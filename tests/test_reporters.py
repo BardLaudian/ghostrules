@@ -328,3 +328,18 @@ def test_markdown_notes() -> None:
     )
     assert "configuration loaded from .ghostrules.toml" in text
     assert "**Warning:** w" in text and "**Error:** e" in text
+
+
+def test_table_keeps_the_title_readable_when_the_path_is_long() -> None:
+    long_path = "tests/fixtures/unicode/gr001_flag_forged/AGENTS.md"
+    result = ScanResult(
+        findings=[
+            finding("GR001", path=long_path, title="Unicode tag characters (ASCII smuggling)")
+        ]
+    )
+    narrow = table.render(result, width=80)
+    assert "Unicode tag characters (ASCII smuggling)" in narrow  # never squeezed into 8 characters
+    assert f"at {long_path}:1:1" in narrow  # the location moves to its own line
+    wide = table.render(result, width=140)
+    head = next(line for line in wide.splitlines() if "GR001" in line)
+    assert head.rstrip().endswith(f"{long_path}:1:1")  # one row when it fits

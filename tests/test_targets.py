@@ -151,3 +151,33 @@ def test_home_targets_macos_and_windows_desktop_paths(tmp_path: Path) -> None:
 
 def test_home_targets_missing_files_are_skipped(tmp_path: Path) -> None:
     assert home_targets(tmp_path, platform="linux", env={}) == []
+
+
+def test_windows_style_separators_are_understood() -> None:
+    backslash = chr(92)
+    assert (
+        classify_path(f".claude{backslash}skills{backslash}x{backslash}SKILL.md") == "instructions"
+    )
+    assert classify_path(f".github{backslash}copilot-instructions.md") == "instructions"
+    assert (
+        classify_path(f"docs{backslash}ai{backslash}a.md", [f"docs{backslash}ai{backslash}*.md"])
+        == "instructions"
+    )
+    assert glob_to_regex(f"vendor{backslash}**").fullmatch("vendor/deep/file.md")
+
+
+def test_exclude_patterns_with_windows_separators(tmp_path: Path) -> None:
+    touch(tmp_path, "vendor/AGENTS.md")
+    touch(tmp_path, "AGENTS.md")
+    backslash = chr(92)
+    assert list(rels(tmp_path, exclude=[f"vendor{backslash}**"])) == ["AGENTS.md"]
+
+
+def test_home_target_outside_the_home_directory_keeps_its_full_path(tmp_path: Path) -> None:
+    home = tmp_path / "home"
+    home.mkdir()
+    appdata = tmp_path / "elsewhere" / "AppData"
+    touch(appdata, "Claude/claude_desktop_config.json", "{}")
+    (found,) = home_targets(home, platform="win32", env={"APPDATA": str(appdata)})
+    assert found.rel == (appdata / "Claude/claude_desktop_config.json").as_posix()
+    assert not found.rel.startswith("~/")

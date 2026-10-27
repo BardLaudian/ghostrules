@@ -77,6 +77,7 @@ def glob_to_regex(pattern: str) -> re.Pattern[str]:
     ``*`` and ``?`` stay within one path segment; ``**/`` matches zero or more directories and a
     trailing ``**`` matches everything below.
     """
+    pattern = pattern.replace("\\", "/")  # patterns written with Windows separators
     out: list[str] = []
     i = 0
     while i < len(pattern):
@@ -104,7 +105,8 @@ def _compile_all(globs: tuple[str, ...]) -> tuple[re.Pattern[str], ...]:
 
 
 def matches_any(rel: str, globs: Iterable[str]) -> bool:
-    """True if the relative POSIX path matches any glob."""
+    """True if the relative path (either separator style) matches any glob."""
+    rel = rel.replace("\\", "/")
     return any(p.fullmatch(rel) for p in _compile_all(tuple(globs)))
 
 

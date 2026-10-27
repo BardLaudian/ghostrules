@@ -7,7 +7,7 @@ import re
 from typing import IO
 
 from rich import box
-from rich.console import Console, Group, RenderableType
+from rich.console import Console, ConsoleOptions, Group, RenderableType, RenderResult
 from rich.padding import Padding
 from rich.panel import Panel
 from rich.rule import Rule
@@ -73,24 +73,47 @@ def _badge(severity: Severity) -> Text:
     return Text(f" {severity.label.upper():^8} ", style=BADGE_STYLE[severity])
 
 
-def _head(finding: Finding) -> Table:
-    grid = Table.grid(expand=True, padding=(0, 1))
-    grid.add_column(no_wrap=True)
-    grid.add_column(no_wrap=True)
-    grid.add_column(ratio=1)
-    grid.add_column(no_wrap=True, justify="right")
-    grid.add_row(
-        _badge(finding.severity),
-        Text(finding.rule_id, style="bold"),
-        Text(safe(finding.title), style="bold"),
-        Text(safe(f"{finding.path}:{finding.line}:{finding.column}"), style="dim"),
-    )
-    return grid
+class _Head:
+    """The first line of a finding: badge, rule id, title and ``path:line:col``.
+
+    On one row when it fits. On narrow terminals or with long paths the location moves to a
+    second line instead of squeezing the title into a few characters.
+    """
+
+    def __init__(self, finding: Finding) -> None:
+        self.badge = _badge(finding.severity)
+        self.rule_id = Text(finding.rule_id, style="bold")
+        self.title = Text(safe(finding.title), style="bold")
+        self.location = Text(
+            safe(f"{finding.path}:{finding.line}:{finding.column}"), style="dim", no_wrap=True
+        )
+
+    def __rich_console__(self, console: Console, options: ConsoleOptions) -> RenderResult:
+        needed = (
+            self.badge.cell_len
+            + self.rule_id.cell_len
+            + self.title.cell_len
+            + self.location.cell_len
+            + 4
+        )
+        grid = Table.grid(expand=True, padding=(0, 1))
+        grid.add_column(no_wrap=True)
+        grid.add_column(no_wrap=True)
+        grid.add_column(ratio=1)
+        if needed <= options.max_width:
+            grid.add_column(no_wrap=True, justify="right")
+            grid.add_row(self.badge, self.rule_id, self.title, self.location)
+            yield grid
+            return
+        grid.add_row(self.badge, self.rule_id, self.title)
+        yield grid
+        indent = self.badge.cell_len + 1
+        yield Padding(Text.assemble(("at ", "dim"), self.location), (0, 0, 0, indent))
 
 
 def _finding_block(finding: Finding, repeated_hidden_text: bool) -> RenderableType:
     """One finding. When it was found inside hidden text already shown above, stay compact."""
-    parts: list[RenderableType] = [_head(finding)]
+    parts: list[RenderableType] = [_Head(finding)]
     body: list[RenderableType] = []
     if repeated_hidden_text:
         body.append(Text.assemble(("↳ ", "dim"), safe(finding.message)))

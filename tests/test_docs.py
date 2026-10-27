@@ -127,7 +127,7 @@ def test_why_section_links_primary_sources() -> None:
 @pytest.mark.parametrize("name", ["README.md", "CONTRIBUTING.md", "SECURITY.md"])
 def test_links_to_repository_files_point_at_files_that_exist(name: str) -> None:
     text = (ROOT / name).read_text(encoding="utf-8")
-    for target in re.findall(r"\]\(https://github\.com/OWNER/ghostrules/blob/main/([^)#]+)", text):
+    for target in re.findall(r"\]\(https://github\.com/[^/]+/ghostrules/blob/main/([^)#]+)", text):
         assert (ROOT / target).exists(), f"{name} links to missing {target}"
     for target in re.findall(r"\]\((?!https?:|#|mailto:)([^)#]+)", text):
         assert (ROOT / target).exists(), f"{name} links to missing {target}"
@@ -183,3 +183,21 @@ def test_issue_templates_are_valid_forms() -> None:
 def test_license_and_author() -> None:
     assert "MIT License" in (ROOT / "LICENSE").read_text(encoding="utf-8")
     assert "Pablo Seoane Temprano" in README
+
+
+# --- the repository scans itself clean --------------------------------------------------------
+
+
+def test_the_repository_is_clean_by_its_own_standards() -> None:
+    """`scan .` and `scan . --all-files` report nothing (PLAN, phase 9)."""
+    from ghostrules.config import load_config
+    from ghostrules.scanner import scan_paths
+
+    config = load_config(ROOT)
+    assert config.source == ".ghostrules.toml"
+    assert "examples/**" in config.exclude and "tests/fixtures/**" in config.exclude
+    for all_files in (False, True):
+        result = scan_paths([ROOT], config, all_files=all_files)
+        assert result.errors == []
+        assert result.scanned_files > 20 if all_files else result.scanned_files >= 1
+        assert result.findings == [], [(f.rule_id, f.path, f.line) for f in result.findings]

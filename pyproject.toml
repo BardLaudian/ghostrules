@@ -39,6 +39,12 @@ dev = [
     "pyyaml>=6",
 ]
 
+[project.urls]
+Homepage = "https://github.com/OWNER/ghostrules"
+Documentation = "https://github.com/OWNER/ghostrules#readme"
+Issues = "https://github.com/OWNER/ghostrules/issues"
+Changelog = "https://github.com/OWNER/ghostrules/blob/main/CHANGELOG.md"
+
 [project.scripts]
 ghostrules = "ghostrules.cli:app"
 

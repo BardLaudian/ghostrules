@@ -43,3 +43,17 @@ def fenced_blocks(text: str) -> list[FencedBlock]:
     if open_fence is not None:
         blocks.append(FencedBlock(open_fence[2], len(text), open_fence[3]))
     return blocks
+
+
+_INLINE_CODE_RE = re.compile(r"(?<!`)(`+)(?!`)(.+?)(?<!`)\1(?!`)")
+
+
+def inline_code_spans(text: str) -> list[tuple[int, int]]:
+    """Spans (start, end offsets) of inline code such as ``<!-- x -->``. A span never crosses a
+    line, and an unmatched backtick does not open one."""
+    spans: list[tuple[int, int]] = []
+    offset = 0
+    for raw in text.split("\n"):
+        spans.extend((offset + m.start(), offset + m.end()) for m in _INLINE_CODE_RE.finditer(raw))
+        offset += len(raw) + 1
+    return spans

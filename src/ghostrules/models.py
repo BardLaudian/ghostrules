@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from typing import TYPE_CHECKING, Any, Literal
 
-from ghostrules.markdown_utils import FencedBlock, fenced_blocks
+from ghostrules.markdown_utils import FencedBlock, fenced_blocks, inline_code_spans
 from ghostrules.secrets import mask_secrets
 
 if TYPE_CHECKING:
@@ -148,6 +148,15 @@ class ScanTarget:
     def code_blocks(self) -> list[FencedBlock]:
         """Fenced Markdown code blocks in the text (computed once)."""
         return fenced_blocks(self.text)
+
+    @cached_property
+    def inline_code(self) -> list[tuple[int, int]]:
+        """Spans of inline code (backticks) in the text (computed once)."""
+        return inline_code_spans(self.text)
+
+    def in_inline_code(self, offset: int) -> bool:
+        """Whether ``offset`` is inside an inline code span."""
+        return any(start <= offset < end for start, end in self.inline_code)
 
     def code_block_at(self, offset: int) -> FencedBlock | None:
         """The fenced code block containing ``offset``, if any."""

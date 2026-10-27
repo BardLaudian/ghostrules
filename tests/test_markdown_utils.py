@@ -1,4 +1,4 @@
-from ghostrules.markdown_utils import fenced_blocks
+from ghostrules.markdown_utils import fenced_blocks, inline_code_spans
 from ghostrules.models import ScanTarget
 
 
@@ -48,3 +48,20 @@ def test_target_code_block_lookup() -> None:
     assert target.code_block_at(0) is None
     assert target.code_block_at(target.text.index("in")) is not None
     assert target.code_block_at(len(target.text) - 2) is None
+
+
+def test_inline_code_spans() -> None:
+    text = "use `<!-- x -->` here and ``a ` b`` there, not `unclosed\nnext `line` ok"
+    spans = [text[s:e] for s, e in inline_code_spans(text)]
+    assert spans == ["`<!-- x -->`", "``a ` b``", "`line`"]
+
+
+def test_inline_code_never_spans_lines_and_unmatched_backtick_opens_nothing() -> None:
+    assert inline_code_spans("a ` b\nc ` d") == []
+    assert inline_code_spans("plain text") == []
+
+
+def test_target_inline_code_lookup() -> None:
+    target = ScanTarget("a.md", "instructions", "x `<!--` y <!--")
+    assert target.in_inline_code(target.text.index("<!--"))
+    assert not target.in_inline_code(target.text.rindex("<!--"))

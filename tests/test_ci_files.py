@@ -301,3 +301,67 @@ def test_changelog_script_exit_codes(tmp_path: Path) -> None:
         r"Usage",
         subprocess.run([sys.executable, str(script)], capture_output=True, text=True).stderr,
     )
+
+
+def test_the_changelog_has_release_notes_for_the_packaged_version() -> None:
+    """release.yml refuses to publish without them."""
+    from ghostrules import __version__
+
+    section = load_script("changelog_section").section
+    body = section((ROOT / "CHANGELOG.md").read_text(encoding="utf-8"), f"v{__version__}")
+    assert body and "### Added" in body
+    assert "## [Unreleased]" in (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+
+
+# --- set_owner ---------------------------------------------------------------------------------
+
+
+def test_set_owner_replaces_the_placeholder_everywhere_it_is_used(tmp_path: Path) -> None:
+    set_owner = load_script("set_owner")
+    carriers = [
+        "README.md", "SECURITY.md", "CONTRIBUTING.md", "pyproject.toml",
+        "src/ghostrules/__init__.py", ".github/ISSUE_TEMPLATE/config.yml",
+    ]  # fmt: skip
+    for name in carriers:
+        source = ROOT / name
+        assert set_owner.PLACEHOLDER in source.read_text(encoding="utf-8"), name
+        target = tmp_path / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+    (tmp_path / "tests" / "fixtures").mkdir(parents=True)
+    (tmp_path / "tests" / "fixtures" / "keep.md").write_text("OWNER/ghostrules", encoding="utf-8")
+
+    assert sorted(set_owner.apply(tmp_path, "octo-cat", dry_run=True)) == sorted(carriers)
+    assert "OWNER/ghostrules" in (tmp_path / "README.md").read_text(encoding="utf-8")  # dry run
+    assert sorted(set_owner.apply(tmp_path, "octo-cat")) == sorted(carriers)
+    for name in carriers:
+        text = (tmp_path / name).read_text(encoding="utf-8")
+        assert "OWNER/ghostrules" not in text and "octo-cat/ghostrules" in text
+    assert set_owner.apply(tmp_path, "octo-cat") == []  # idempotent
+    assert (tmp_path / "tests/fixtures/keep.md").read_text(encoding="utf-8") == "OWNER/ghostrules"
+
+
+@pytest.mark.parametrize("bad", ["", "-x", "x-", "a--b", "has space", "a/b", "x" * 40, "../up"])
+def test_set_owner_rejects_invalid_names(bad: str, tmp_path: Path) -> None:
+    with pytest.raises(ValueError, match="not a valid GitHub"):
+        load_script("set_owner").apply(tmp_path, bad)
+    result = subprocess.run(
+        [sys.executable, str(ROOT / "scripts" / "set_owner.py"), bad or "''"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 2
+
+
+def test_every_place_with_the_placeholder_is_known() -> None:
+    """If a new file carries `OWNER/ghostrules`, set_owner picks it up; list them for review."""
+    set_owner = load_script("set_owner")
+    holders = {
+        p.relative_to(ROOT).as_posix()
+        for p in set_owner.candidate_files(ROOT)
+        if set_owner.PLACEHOLDER in p.read_bytes().decode("utf-8", errors="ignore")
+        and not p.relative_to(ROOT).as_posix().startswith(("docs/", "CHANGELOG"))
+    }
+    holders -= {p for p in holders if p.startswith(".mypy_cache") or p.startswith(".ruff_cache")}
+    assert holders >= {"README.md", "SECURITY.md", "CONTRIBUTING.md", "pyproject.toml"}
+    assert all(not h.startswith(("examples/", "tests/fixtures/")) for h in holders)
