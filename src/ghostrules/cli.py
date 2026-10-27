@@ -1,8 +1,9 @@
-"""Command line interface: ``scan`` (default), ``reveal``, ``clean``, ``rules``, ``version``."""
+"""Command line interface: ``scan`` (default), ``context``, ``reveal``, ``clean``, ``rules``."""
 
 from __future__ import annotations
 
 import enum
+import io
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -15,9 +16,13 @@ from rich.text import Text
 from typer.core import TyperGroup
 
 from ghostrules import __version__
+from ghostrules.agents.claude_code import DEFAULT_MODE as CLAUDE_DEFAULT_MODE
+from ghostrules.agents.claude_code import MODES as CLAUDE_MODES
 from ghostrules.clean import clean_text, unified_diff
 from ghostrules.config import Config, ConfigError, load_config
+from ghostrules.context_command import ContextError, ContextReport, build_report, find_root
 from ghostrules.models import ScanResult, Severity
+from ghostrules.reporters import context as context_report
 from ghostrules.reporters import json_, markdown, sarif, table
 from ghostrules.reporters.common import safe
 from ghostrules.reveal import build as build_reveal
@@ -201,6 +206,138 @@ def _emit(
             typer.echo(f"warning: {safe(warning)}", err=True)
         for error in result.errors:
             typer.echo(f"error: {safe(error)}", err=True)
+    if output is None:
+        sys.stdout.write(text)
+        return
+    try:
+        output.write_text(text, encoding="utf-8")
+    except OSError as exc:
+        _fail(f"cannot write {output}: {exc.strerror or exc}")
+    typer.echo(f"report written to {output}", err=True)
+
+
+# --- context -------------------------------------------------------------------------------
+
+
+class ContextFormat(str, enum.Enum):
+    """Report formats for ``context --format``."""
+
+    tree = "tree"
+    json = "json"
+    markdown = "markdown"
+
+
+@app.command()
+def context(
+    target: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Argument(help="File the agent is working on (default: session start only)."),
+    ] = None,
+    agent: Annotated[
+        str,
+        typer.Option(help="claude-code, copilot-cli, cursor, generic or all. [all]"),
+    ] = "all",
+    cwd: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option("--cwd", help="Directory where the agent session starts (default: the root)."),
+    ] = None,
+    root: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option("--root", help="Repository root (default: the enclosing git root, or '.')."),
+    ] = None,
+    format_: Annotated[
+        ContextFormat, typer.Option("--format", help="Report format.", case_sensitive=False)
+    ] = ContextFormat.tree,
+    show_text: Annotated[
+        bool, typer.Option("--show-text", help="Also print the text the agent receives.")
+    ] = False,
+    no_scan: Annotated[
+        bool, typer.Option("--no-scan", help="Only show the context; do not run the rules.")
+    ] = False,
+    home: Annotated[
+        bool, typer.Option("--home", help="Include user-level sources such as ~/.claude/CLAUDE.md.")
+    ] = False,
+    fail_on: Annotated[
+        Optional[str],  # noqa: UP045
+        typer.Option(help="Exit 1 if a finding has at least this severity, or 'none'. [high]"),
+    ] = None,
+    claude_instructions_mode: Annotated[
+        str,
+        typer.Option(
+            help="Claude Code 'Project instructions' setting: " + ", ".join(CLAUDE_MODES) + "."
+        ),
+    ] = CLAUDE_DEFAULT_MODE,
+    config: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option(help="Path to a config file (default: .ghostrules.toml in the root)."),
+    ] = None,
+    output: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option("--output", "-o", help="Write the report to this file instead of stdout."),
+    ] = None,
+    no_color: Annotated[bool, typer.Option("--no-color", help="Plain output, no colours.")] = False,
+) -> None:
+    """Show, and scan, exactly what an AI agent reads when it works on a file.
+
+    Exit codes: 0 clean (or below --fail-on), 1 findings at or above --fail-on, 2 error.
+    """
+    _utf8_streams()
+    repo_root = root if root is not None else find_root(Path.cwd())
+    try:
+        cfg = load_config(repo_root, config)
+    except ConfigError as exc:
+        _fail(str(exc))
+    if fail_on is not None:
+        cfg = replace(cfg, fail_on=_parse_severity(fail_on, allow_none=True))
+    if claude_instructions_mode not in CLAUDE_MODES:
+        raise typer.BadParameter(
+            f"expected one of: {', '.join(CLAUDE_MODES)}", param_hint="--claude-instructions-mode"
+        )
+    try:
+        report = build_report(
+            repo_root,
+            cfg,
+            agent=agent.strip().lower(),
+            cwd=cwd,
+            target=target,
+            include_home=home,
+            scan=not no_scan,
+            instructions_mode=claude_instructions_mode,
+        )
+    except ContextError as exc:
+        _fail(str(exc))
+    _emit_context(report, format_, show_text, output, no_color)
+    if report.errors:
+        raise typer.Exit(EXIT_ERROR)
+    if cfg.fail_on is not None and any(f.severity >= cfg.fail_on for f in report.findings):
+        raise typer.Exit(EXIT_FINDINGS)
+
+
+def _emit_context(
+    report: ContextReport,
+    fmt: ContextFormat,
+    show_text: bool,
+    output: Path | None,
+    no_color: bool,
+) -> None:
+    if fmt is ContextFormat.tree:
+        renderables: list[Any] = [context_report.build_tree(report)]
+        if show_text:
+            renderables.append(context_report.build_text(report))
+        if output is None:
+            console = _console(no_color)
+            for renderable in renderables:
+                console.print(renderable)
+            return
+        buffer = io.StringIO()
+        file_console = table.make_console(color=False, width=100, file=buffer)
+        for renderable in renderables:
+            file_console.print(renderable)
+        text = buffer.getvalue()
+    elif fmt is ContextFormat.json:
+        text = context_report.render_json(report, show_text=show_text)
+    else:
+        text = context_report.render_markdown(report, show_text=show_text)
     if output is None:
         sys.stdout.write(text)
         return

@@ -55,7 +55,7 @@ def test_demo_fake_token_matches_the_real_token_shape(make_demo: ModuleType) -> 
 
 def test_checked_in_examples_are_up_to_date(demo_root: Path) -> None:
     """examples/ must be exactly what scripts/make_demo.py generates."""
-    for name in ("poisoned-repo", "clean-repo"):
+    for name in ("poisoned-repo", "clean-repo", "import-chain-repo"):
         fresh = {
             p.relative_to(demo_root / name): p.read_bytes()
             for p in (demo_root / name).rglob("*")
@@ -114,7 +114,7 @@ def test_checked_in_demos_behave_as_documented() -> None:
 
 
 def test_each_example_explains_that_it_is_a_defanged_demo() -> None:
-    for name in ("poisoned-repo", "clean-repo"):
+    for name in ("poisoned-repo", "clean-repo", "import-chain-repo"):
         readme = (ROOT / "examples" / name / "README.md").read_text(encoding="utf-8")
         assert "defanged" in readme
 

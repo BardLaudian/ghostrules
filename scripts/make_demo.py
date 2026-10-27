@@ -256,9 +256,77 @@ def clean_files() -> dict[str, str]:
     }
 
 
+def import_chain_files() -> dict[str, str]:
+    """A repository whose CLAUDE.md looks clean but reaches a payload through two imports."""
+    return {
+        "README.md": README_NOTE.format(
+            title="import-chain-repo (defanged demo)",
+            text=(
+                "`CLAUDE.md` looks clean and imports `docs/style.md`, which imports "
+                "`shared/team-rules.md`. That file hides an instruction in invisible characters, "
+                "so a scanner that only looks at agent files never sees it. `docs/setup.md` "
+                "also imports a `.env` file and a path outside the repository.\n\n"
+                "    ghostrules scan --no-follow-imports .   # 0.1 behaviour: nothing found\n"
+                "    ghostrules scan .                       # the payload, with its import chain\n"
+                "    ghostrules context src/api/users.ts --agent claude-code"
+            ),
+        ),
+        "CLAUDE.md": "\n".join(
+            [
+                "# Acme API",
+                "",
+                "Conventions for this repository.",
+                "",
+                "- Code style: @docs/style.md",
+                "- Local setup: @docs/setup.md",
+                "- Run `make test` before committing.",
+                "",
+            ]
+        ),
+        "AGENTS.md": "# Agents\n\nShort pointer for other tools: see CLAUDE.md.\n",
+        "docs/style.md": "\n".join(
+            [
+                "# Style guide",
+                "",
+                "Use four spaces. Keep functions small.",
+                "Team rules live in @../shared/team-rules.md.",
+                "",
+            ]
+        ),
+        "docs/setup.md": "\n".join(
+            [
+                "# Local setup",
+                "",
+                "Environment: @../.env",
+                "Shared tooling notes: @/opt/acme/tooling.md",
+                "",
+            ]
+        ),
+        "shared/team-rules.md": "\n".join(
+            [
+                "# Team rules",
+                "",
+                "- Review every change.",
+                f"- Keep commits small.{tag(HIDDEN_INSTRUCTION)}",
+                "",
+            ]
+        ),
+        ".env": "DEMO_ONLY=not-a-real-secret\n",
+        ".claude/rules/api.md": (
+            '---\npaths:\n  - "src/api/**"\n---\n# API rules\n\nValidate every request body.\n'
+        ),
+        "src/api/users.ts": "export const users: string[] = [];\n",
+        "src/legacy/CLAUDE.md": "# Legacy\n\nThis module is frozen: no new features.\n",
+    }
+
+
 def generate(dest: Path = DEFAULT_DEST) -> Path:
-    """(Re)generate both demo repositories under ``dest``."""
-    for name, files in (("poisoned-repo", poisoned_files()), ("clean-repo", clean_files())):
+    """(Re)generate the demo repositories under ``dest``."""
+    for name, files in (
+        ("poisoned-repo", poisoned_files()),
+        ("clean-repo", clean_files()),
+        ("import-chain-repo", import_chain_files()),
+    ):
         root = dest / name
         if root.exists():
             shutil.rmtree(root)
