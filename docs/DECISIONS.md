@@ -283,6 +283,35 @@ Newest at the bottom of each section. "Phase N" says when the decision takes eff
 - **Issue forms:** "New rule proposal" and "False positive", both opening with a reminder to use
   defanged examples only; blank issues are disabled and the security link is offered instead.
 
+## Applied (Phase 9: final review)
+
+- **Self-scan:** `ghostrules scan .` and `ghostrules scan . --all-files` are clean, using a
+  `.ghostrules.toml` that excludes the deliberately poisoned `examples/**` and `tests/fixtures/**`
+  (and build/cache directories). A test and two CI steps keep it that way.
+- **Two real defects found by the review and fixed:**
+  GR005 treated a documented `` `<!--` `` in inline code as an unterminated comment hiding the
+  rest of the file (a false positive on this repository's own docs; inline code is now skipped
+  like fenced blocks, while a lone backtick or a comment after a code span still counts), and the
+  table squeezed the finding title into a few characters when the path was long (the location now
+  moves to its own line when the row does not fit).
+- **Windows paths:** discovery already worked on POSIX-style relative paths; path matching now
+  also accepts backslashes (in paths and in `exclude` / `extra_targets` patterns). No test assumes
+  a separator, symlinks and bash-only tests are skipped on Windows, and files compared byte for
+  byte are protected by `.gitattributes`. The Windows runner in CI is the first real run.
+- **Verified here:** the full suite (654 tests, 98 % line coverage) on Python 3.10, 3.12 and 3.13;
+  on 3.10 with the minimum declared dependency versions (`typer` 0.12, `rich` 13, `click` < 8.2);
+  `ruff`, `ruff format --check` and `mypy`; `python -m build` plus `twine check` on both artifacts;
+  the wheel installed in an empty virtualenv scanning the demos; every report format on the
+  poisoned demo (28 findings in JSON, SARIF and Markdown, SARIF schema-valid, no unmasked token);
+  `actionlint` on the workflows. **Not verifiable here:** a real GitHub Actions run, the
+  Windows and macOS runners, PyPI publishing, and recording the GIF.
+- **`scripts/set_owner.py GITHUB-NAME`** replaces the `OWNER/ghostrules` placeholder in the README,
+  SECURITY.md, CONTRIBUTING.md, `PROJECT_URL`, the issue-form link and the PyPI project URLs in
+  one go (dry run available, idempotent, refuses invalid names).
+- **Release notes:** `CHANGELOG.md` now has `## [0.1.0] - 2026-10-27`, which `release.yml`
+  requires; a test checks it against `__version__`.
+- **Tag:** `v0.1.0` is created locally on the final commit and not pushed.
+
 ## Planned for later phases
 
 - **`clean`:** removes only characters the rules actually flag (so emoji ZWJ, flag tag sequences,

@@ -1,0 +1,10 @@
+# ghostrules scanning its own repository: the demos and fixtures are poisoned on purpose.
+exclude = [
+  "examples/**",
+  "tests/fixtures/**",
+  "dist/**",
+  "build/**",
+  ".mypy_cache/**",
+  ".ruff_cache/**",
+  ".pytest_cache/**",
+]

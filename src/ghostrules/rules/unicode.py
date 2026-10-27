@@ -303,8 +303,9 @@ _MARKDOWN_SUFFIXES = (".md", ".mdc", ".markdown", ".mdx")
 def gr005_html_comments(target: ScanTarget) -> Iterator[Finding]:
     """Long HTML comments that look like instructions (high if they match GR010-GR016).
 
-    Comments inside fenced code blocks are visible when rendered, so they are ignored. An
-    unterminated ``<!--`` hides the rest of the document and is treated as a comment to the end.
+    Comments inside fenced code blocks or inline code are visible when rendered, so they are
+    ignored. An unterminated ``<!--`` hides the rest of the document and is treated as a comment
+    to the end.
     """
     if target.kind == "other" and not target.path.lower().endswith(_MARKDOWN_SUFFIXES):
         return
@@ -312,6 +313,8 @@ def gr005_html_comments(target: ScanTarget) -> Iterator[Finding]:
         body = match.group(1).strip()
         if len(body) < _COMMENT_MIN_CHARS or target.code_block_at(match.start()) is not None:
             continue
+        if target.in_inline_code(match.start()):
+            continue  # shown literally when rendered, e.g. documentation about `<!-- -->`
         matched = match_injection(body)
         if matched:
             severity = Severity.HIGH

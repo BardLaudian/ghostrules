@@ -344,3 +344,20 @@ def test_hidden_text_findings_come_first_among_equal_severities() -> None:
     hidden = Finding("GR001", Severity.CRITICAL, "t", "m", "z.md", 9, 1, 2, "s", decoded="x")
     lower = Finding("GR901", Severity.HIGH, "t", "m", "a.md", 1, 1, 2, "s", decoded="x")
     assert sort_findings([lower, plain, hidden]) == [hidden, plain, lower]
+
+
+def test_unreadable_file_is_a_warning_and_the_rest_still_scans(tmp_path: Path, monkeypatch) -> None:
+    write(tmp_path, "AGENTS.md", "EVIL\n")
+    write(tmp_path, "CLAUDE.md", "EVIL\n")
+    real = Path.read_bytes
+
+    def flaky(self: Path) -> bytes:
+        if self.name == "AGENTS.md":
+            raise PermissionError(13, "Permission denied")
+        return real(self)
+
+    monkeypatch.setattr(Path, "read_bytes", flaky)
+    result = run(tmp_path, [make_rule("GR900", "EVIL")])
+    assert [f.path for f in result.findings] == ["CLAUDE.md"]
+    assert result.scanned_files == 1
+    assert result.warnings == ["cannot read AGENTS.md: Permission denied"]
