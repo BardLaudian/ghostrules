@@ -421,3 +421,46 @@ scan behaviour changes yet. Inline code spans already existed from 0.1.1.
 - **Line numbers.** `Stripped.line_map` gives the original line of every kept line, and
   `removed` records what was cut (kind, original lines, text), which Phase 5 needs for "changed, not
   visible to <agent>".
+
+## v0.2 Phase 2 — context engine
+
+New: `globs.py` and the `agents/` package (`repo`, `base`, `claude_code`, `copilot_cli`, `cursor`,
+`generic`). Nothing is wired into `scan` yet.
+
+- **Entries vs edges.** `ContextGraph.entries` is the ordered list of files the agent loads, each
+  imported file placed right after its importer; `edges` records every `@` occurrence (status
+  `loaded`, `duplicate`, `missing`, `directory`, `quoted`, `external`, `blocked`, `symlink`,
+  `too_large`, `depth`, `cycle`) in file order, so GR020/GR022/GR023 can be derived without
+  re-parsing. A file reached twice is one entry plus a `duplicate` edge; its `via` is the first chain.
+- **Unreadable entries.** An import that leaves the tree (`/abs`, `~/x`, `../out`) becomes an entry
+  with `readable=False` and no text (never read). Claude Code keeps the importer's load state and
+  the note "requires approval"; Copilot CLI marks it `blocked`. Symlinks, over-4-MiB files and
+  AGENTS.md files the agent skips are `blocked` entries too, so `context` can show them with the reason.
+- **Hop counting.** Refined from Phase 0: hops 1-4 load, hop 5 is loaded and `(unverified)`, hop 6+ is
+  not loaded (see AGENT_MODELS). Copilot: limit 4, every imported entry unverified (base path, depth
+  and code-span rules are undocumented).
+- **External = outside the working directory** for Claude Code (a file inside the repo but outside
+  `--cwd` is readable and carries the approval note); **outside the repository** for Copilot, where it
+  is blocked. User-scope files (`~/...`) never show the approval note.
+- **Imports inside rules** (`.claude/rules/*.md`) are followed for Claude Code and marked like other
+  imports: the docs only describe imports in CLAUDE.md/AGENTS.md. Ancestor-directory rules (between
+  the repo root and `--cwd`) are not documented either: assumed `always`, unverified.
+- **CLAUDE.md symlinks.** ghostrules does not read them (even `CLAUDE.md -> AGENTS.md`, a documented
+  pattern), so the entry is `blocked` and the symlink still counts as "a CLAUDE.md exists" for the
+  AGENTS.md rule. `context` will therefore under-report such a repo; GR025 will say why.
+- **Unparseable rule front matter** (Claude Code): the rule is `always`, unverified, with the whole
+  file as text. Cursor is lenient: the front matter data is used and removed, unverified.
+- **Copilot `*.instructions.md` without `applyTo`** are `manual` (unverified): the docs say
+  path-specific files apply only when `applyTo` matches. `applyTo` is matched against the target
+  path relative to the repository root.
+- **Cursor:** `.md` files in `.cursor/rules` are `blocked` ("ignored"), `.cursorrules` is `always`
+  unverified, nested `AGENTS.md` below the working directory is `on_demand`, and no imports exist.
+- **Generic:** the nearest `AGENTS.md` to the target (or the working directory) is verified, the
+  ones above it on the path are `always` unverified, the rest `on_demand`.
+- **Globs.** One matcher for every agent: anchored, `*` stays in a segment, `**/` spans directories,
+  braces expand up to 1,000 patterns (then stay literal), bad `[` makes one pattern invalid, dotfiles
+  match, case-sensitive by default. Cursor and Copilot have their own matchers in reality; this
+  approximation is the same for all and is the main source of `matches` being wrong in edge cases.
+- **Not modelled:** managed policy files, `claudeMdExcludes`, `--add-dir`, `COPILOT_CUSTOM_INSTRUCTIONS_DIRS`,
+  `/instructions`, directories above the repo root; each is listed in `ContextGraph.notes` or
+  AGENT_MODELS.
