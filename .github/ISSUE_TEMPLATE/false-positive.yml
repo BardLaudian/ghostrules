@@ -1,0 +1,49 @@
+name: False positive
+description: ghostrules reported something that is not a problem.
+title: "[false positive] GRxxx: "
+labels: ["false-positive"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting it. **Do not paste real secrets or private files.** Reduce the content to
+        a small, defanged example (use `example.com`, fake tokens). If the finding involves invisible
+        characters, say which ones (for example the output of `ghostrules reveal FILE`).
+  - type: input
+    id: version
+    attributes:
+      label: ghostrules version
+      description: Output of `ghostrules version`.
+    validations:
+      required: true
+  - type: input
+    id: rule
+    attributes:
+      label: Rule
+      description: The rule that fired, for example GR013.
+      placeholder: GR013
+    validations:
+      required: true
+  - type: textarea
+    id: input
+    attributes:
+      label: Minimal file that triggers it
+      description: The smallest defanged snippet that reproduces the finding, and its file name.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: output
+    attributes:
+      label: What ghostrules printed
+      description: The finding (`ghostrules scan --no-color FILE`).
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why it is legitimate
+      description: What the text is for, and how a rule could tell it apart from a real problem.
+    validations:
+      required: true

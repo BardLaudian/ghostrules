@@ -255,6 +255,34 @@ Newest at the bottom of each section. "Phase N" says when the decision takes eff
 - **Placeholders to fill before publishing:** `OWNER` in the README snippets and in
   `PROJECT_URL` (see Phase 5).
 
+## Applied (Phase 8)
+
+- **README** follows PLAN §8 in order (name, tagline, badges, GIF, why, install, quick start,
+  Action, pre-commit, rules table, supported files, configuration, roadmap, contributing,
+  security, license, author), plus a short "Limits" section: a heuristic scanner should say
+  that no findings is not a proof. A test checks the section order.
+- **Absolute links and images.** PyPI renders the README without the repository around it, so
+  relative links and images would be broken there. Links to repository files use
+  `https://github.com/OWNER/ghostrules/blob/main/...`; a test checks every such target exists.
+  The GIF is referenced by its `raw.githubusercontent.com` URL and is not committed (see Phase 6).
+- **Rules table** is generated from the registry by `scripts/gen_rules_table.py` between
+  `rules-table` markers (`--write` / `--check`); a test fails when it drifts. Each ID cell has an
+  `<a id="gr001">` anchor so the SARIF `helpUri` (`PROJECT_URL#gr001`) lands on the rule. Pipes
+  in descriptions are escaped. "Severity" is the typical one (`Rule.severity`); escalation
+  conditions live in `docs/RULES.md`.
+- **Also under test:** every scanned file pattern and `--home` path appears in the README, every
+  `scan` option is documented, every rule is in `docs/RULES.md` and vice versa, the issue forms
+  are valid and the "Why" section links its five primary sources. The sources were opened and
+  checked when written: Rehberger (ASCII Smuggler, 2024-01-14), Butler (emoji smuggling,
+  2025-02-08), Boucher & Anderson (Trojan Source), Pillar Security (Rules File Backdoor,
+  2025-03-18) and Invariant Labs (MCP tool poisoning, 2025-04-01).
+- **SECURITY.md** uses GitHub private vulnerability reporting and publishes no e-mail address; it
+  lists what counts as a vulnerability (executing or fetching scanned content, an unmasked
+  secret, crafted input that breaks the scan or injects into a report, a way to suppress GR001/GR002)
+  and what is an ordinary bug (false positives and negatives).
+- **Issue forms:** "New rule proposal" and "False positive", both opening with a reminder to use
+  defanged examples only; blank issues are disabled and the security link is offered instead.
+
 ## Planned for later phases
 
 - **`clean`:** removes only characters the rules actually flag (so emoji ZWJ, flag tag sequences,
