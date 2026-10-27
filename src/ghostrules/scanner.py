@@ -73,13 +73,13 @@ def parse_structured(path: str, text: str) -> tuple[Any, str | None]:
     lowered = path.lower()
     try:
         if lowered.endswith(".json"):
-            body = text.removeprefix("﻿")
+            body = text.removeprefix("\ufeff")
             try:
                 return json.loads(body), None
             except json.JSONDecodeError:
                 return json.loads(strip_jsonc(body)), None
         if lowered.endswith(".toml"):
-            return tomllib.loads(text.removeprefix("﻿")), None
+            return tomllib.loads(text.removeprefix("\ufeff")), None
     except (json.JSONDecodeError, tomllib.TOMLDecodeError, RecursionError) as exc:
         return None, str(exc)
     return None, None

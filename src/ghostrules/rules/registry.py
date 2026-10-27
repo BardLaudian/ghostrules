@@ -14,7 +14,8 @@ CheckFn = Callable[[ScanTarget], Iterable[Finding]]
 class Rule:
     """A detection rule: metadata plus a pure ``check`` function.
 
-    ``severity`` is the default (highest-common) severity used for listings and SARIF.
+    ``severity`` is the headline severity (as in RULES.md) used for listings and SARIF; a rule may
+    report other levels depending on context.
     ``scans_decoded`` marks rules that must also run over hidden text decoded by other rules
     (GR010-GR016); the scanner then bumps the severity of what they find there.
     """
