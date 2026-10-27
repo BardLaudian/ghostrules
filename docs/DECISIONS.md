@@ -330,3 +330,55 @@ Newest at the bottom of each section. "Phase N" says when the decision takes eff
 - **URL scope:** `bash <(curl URL)` and `eval "$(curl URL)"` have the URL after the matched
   text, so those matches are judged on the rest of the line.
 - **Inline code span:** `ScanTarget.code_span_at` wraps the existing CommonMark-style span finder.
+
+## v0.2 Phase 0 — agent models and prior art (checked 2026-10-28)
+
+### Agent models re-checked against the official docs
+Details and quotes are in `docs/v0.2/AGENT_MODELS.md` (changes marked `[0-28]`). Pages were read
+through a summarising fetch tool, so re-read a page before relying on a detail that sets a severity.
+
+- **claude-code:** the draft was right on load order, AGENTS.md precedence, imports and HTML-comment
+  stripping. New: invalid rule frontmatter loads the rule unconditionally; per-file truncation limit
+  for on-demand files (40,000 chars on 200K windows); AGENTS.md needs v2.1.277+; external
+  symlinked rules load only without `paths` after approval; `claudeMdExcludes` can remove files
+  (documented limitation, not modelled).
+- **claude-code, external imports are relative to the working directory, not the repo root.** SPEC
+  and RULES define GR020 against the repository root. They agree when `--cwd` is the repo root
+  (the default). Decision: GR020 is evaluated against `--cwd` for claude-code and against the repo
+  root for copilot-cli ("must stay inside the repository"); the message says which.
+- **claude-code, depth:** official docs say four hops (guides quoting five are wrong). The docs do
+  not say whether a direct import is hop 0 or 1: modelled as hop 1, with chains of exactly 4–5
+  hops marked `(unverified)`.
+- **claude-code, HTML comments:** documented only for CLAUDE.md files. AGENTS.md read via the
+  setting, rules and imported files are modelled as "seen" so GR005 never downgrades on a guess.
+  This narrows the headline claim of the agent-aware GR005: it is exact for CLAUDE.md,
+  CLAUDE.local.md and .claude/CLAUDE.md.
+- **copilot-cli:** unchanged and re-confirmed. Still UNVERIFIED: import base path, depth limit,
+  code-span handling, `excludeAgent` effect in the CLI.
+- **cursor:** the draft was a guess; now verified. Rule types match. Differences: `.cursor/rules`
+  rules must be `.mdc` (plain `.md` is ignored), `@file` in rules is **not** an import (so the Cursor
+  model has no import edges), AGENTS.md is supported at root and nested. `.cursorrules` is not on the
+  page: kept as `always`, `(unverified)`. User and Team Rules live outside the repo: documented
+  limitation.
+- **generic (agents.md):** only "nearest file wins" is documented; reading ancestors is not. The
+  nearest is verified, the others `always (unverified)` so a security scan does not miss them.
+
+### Prior art: does anything already resolve `@` imports for security scanning?
+Searched (web, 2026-10-28) for scanners that follow `@path` imports, compute an agent's effective
+context, or lock it. Found nothing that does; none of the READMEs read mention imports.
+Stop condition of the plan ("if something already does exactly this") **not met**.
+
+| Tool | Link | What it does | How v0.2 differs |
+|---|---|---|---|
+| cairnlock 0.5.0 (Python, MIT) | https://github.com/pennacle-security/cairnlock | Static analyzer plus lockfile for AGENTS.md, CLAUDE.md, MCP configs and skill folders; `verify --base` checks against a git ref, SARIF output, 21 rules, many agents. README: discovery by fixed names and globs; lock stores a SHA-256 per tracked file; it "does not execute, import, or install anything it scans". | Closest competitor. No import following, no per-agent view, no stripped-text awareness found in its README; its lock hashes files on disk, ours would hash the resolved context and what each agent *sees*. Its `--include-ancestors` covers parent folders. Source code not read. |
+| agentcheck (Node, MIT) | https://github.com/DhanushNehru/agentcheck | Pattern scanner over CLAUDE.md, AGENTS.md, GEMINI.md, `.cursor/rules`, MCP configs; hidden Unicode, HTML comments, exfil endpoints. No lockfile. | Fixed file list; no import resolution or load model. |
+| AgentShield (TS, MIT) | https://github.com/affaan-m/agentshield | Scanner for agent configs, MCP servers and permissions; baseline of hashed finding fingerprints (drift of findings, not of context). | No import following found; baseline is not a context lock. |
+| SkillSpector (NVIDIA) | https://github.com/nvidia/skillspector | Scans agent skills for injection and exfiltration. | Skills, not instruction context. |
+| CLAUDE.md Security Auditor (Apify) | https://apify.com/ianymu/claudemd-security-auditor | Hosted check of CLAUDE.md and `.claude/hooks`. | Single files. |
+| secure-devtools issue #25 | https://github.com/IsaacBell/secure-devtools/issues/25 | A proposal that names `@path` imports as a surface to scan. The page returned 404 when fetched; known only from a search snippet. | Idea only, nothing shipped as far as found. |
+
+Limits of this search: README-level reading plus search snippets; I did not read any tool's source,
+so "does not follow imports" means "does not document it". `agent-skill-lock` and hardpoint, named in
+`docs/v0.2/SPEC.md` §1, were not looked at. Recommendation for the README comparison paragraph:
+name cairnlock as the closest lockfile tool and state the difference factually (resolved context and
+per-agent seen text), without claiming it lacks features it may have.
