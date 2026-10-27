@@ -1,0 +1,52 @@
+name: New rule proposal
+description: Suggest a new detection, or a missed one (false negative).
+title: "[rule] "
+labels: ["new-rule"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Good rules are precise: they say what to look for, why it is dangerous in a file an agent
+        obeys, and what must **not** match. **Use defanged examples only** (`example.com`, fake
+        tokens), never working payloads.
+  - type: textarea
+    id: threat
+    attributes:
+      label: The risk
+      description: What can an attacker do with it, and which agent or file does it affect? Link a primary source if there is one.
+    validations:
+      required: true
+  - type: textarea
+    id: positive
+    attributes:
+      label: Should be reported
+      description: One or more defanged examples that the rule must flag, with the file name.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: negative
+    attributes:
+      label: Must not be reported
+      description: Legitimate examples that look similar and must stay quiet.
+      render: text
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Suggested severity
+      options: [critical, high, medium, low, info]
+    validations:
+      required: true
+  - type: textarea
+    id: detection
+    attributes:
+      label: Detection idea
+      description: A pattern, a heuristic or a config check. Optional but helpful.
+  - type: checkboxes
+    id: contribute
+    attributes:
+      label: Contribution
+      options:
+        - label: I can send a pull request (see CONTRIBUTING.md).
