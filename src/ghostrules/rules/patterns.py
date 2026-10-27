@@ -10,7 +10,9 @@ from __future__ import annotations
 
 import base64
 import binascii
+import math
 import re
+from collections import Counter
 from typing import NamedTuple
 
 from ghostrules.unicode_utils import is_mostly_printable
@@ -30,9 +32,20 @@ _READ_VERB = (
     r"|leak|paste|share)\b"
 )
 _SENSITIVE_PATH = (
-    r"(?:~/\.ssh|\bid_rsa\b|\bid_ed25519\b|\.aws/credentials|\.env\b|\.npmrc|\.pypirc|\.netrc"
+    r"(?:~/\.ssh|\bid_rsa\b|\bid_ed25519\b|\.aws/credentials|(?<!\w)\.env\b(?!\.(?:example|sample|template|dist)\b)|\.npmrc|\.pypirc|\.netrc"
     r"|\bkubeconfig\b|\bkeychain\b|/etc/shadow|(?:chrome|firefox|safari|browser)\W{0,3}[\w ]{0,15}"
     r"cookies?)"
+)
+
+EXFIL_PATTERNS = _compile(
+    r"!\[[^\]]*\]\(https?://[^)\s]*[?&][^=\s)]+=(?:\{|\$|%7B|<)",
+    rf"{_EXFIL_VERB}.{{0,80}}?{_SECRET}.{{0,200}}?https?://[^\s)\]>\"']+",
+    rf"{_EXFIL_VERB}.{{0,200}}?https?://.{{0,80}}?{_SECRET}",
+)
+COLLECTOR_PATTERNS = _compile(
+    r"\b(?:webhook\.site|requestbin(?:\.\w+)?|pipedream\.net|ngrok(?:-free)?\.(?:io|app)"
+    r"|interact\.sh|oast\.(?:fun|pro|live|site|online|me)|burpcollaborator\.net"
+    r"|beeceptor\.com|hookbin\.com|canarytokens(?:\.\w+)?)",
 )
 
 INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
@@ -57,23 +70,16 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\bsin\s+avisar\s+al\s+usuario",
     ),
     "GR012": _compile(
-        r"\bcurl\b[^\n|]*\|\s*(?:sudo\s+)?(?:ba|z)?sh\b",
-        r"\bwget\b[^\n|]*\|\s*(?:sudo\s+)?(?:ba|z)?sh\b",
-        r"\bcurl\b[^\n|]*\|\s*(?:sudo\s+)?python[0-9.]*\b",
-        r"\b(?:iwr|invoke-webrequest)\b[^\n|]*\|\s*(?:iex|invoke-expression)\b",
-        r"\bpowershell(?:\.exe)?\b[^\n]*\s-e(?:nc|ncodedcommand)?\s+[A-Za-z0-9+/=]{16,}",
-        r"\bbase64\s+(?:-d|--decode)\b[^\n|]*\|\s*(?:ba)?sh\b",
+        r"\bcurl\b[^\n|]{0,200}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b",
+        r"\bwget\b[^\n|]{0,200}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b",
+        r"\bcurl\b[^\n|]{0,200}\|\s*(?:sudo\s+)?python[0-9.]*\b",
+        r"\b(?:iwr|invoke-webrequest)\b[^\n|]{0,200}\|\s*(?:iex|invoke-expression)\b",
+        r"\bpowershell(?:\.exe)?\b[^\n]{0,200}\s-e(?:nc|ncodedcommand)?\s+[A-Za-z0-9+/=]{16,}",
+        r"\bbase64\s+(?:-d|--decode)\b[^\n|]{0,200}\|\s*(?:ba)?sh\b",
         r"\bbash\s+<\(\s*(?:curl|wget)\b",
         r"\beval\s+[\"']?\$\(\s*(?:curl|wget)\b",
     ),
-    "GR013": _compile(
-        r"!\[[^\]]*\]\(https?://[^)\s]*[?&][^=\s)]+=(?:\{|\$|%7B|<)",
-        rf"{_EXFIL_VERB}.{{0,80}}?{_SECRET}.{{0,200}}?https?://",
-        rf"{_EXFIL_VERB}.{{0,200}}?https?://.{{0,80}}?{_SECRET}",
-        r"\b(?:webhook\.site|requestbin(?:\.\w+)?|pipedream\.net|ngrok(?:-free)?\.(?:io|app)"
-        r"|interact\.sh|oast\.(?:fun|pro|live|site|online|me)|burpcollaborator\.net"
-        r"|beeceptor\.com|hookbin\.com|canarytokens(?:\.\w+)?)",
-    ),
+    "GR013": EXFIL_PATTERNS + COLLECTOR_PATTERNS,
     "GR014": _compile(rf"{_READ_VERB}[^\n]{{0,60}}?{_SENSITIVE_PATH}"),
     "GR016": _compile(
         r"--dangerously-skip-permissions",
@@ -95,12 +101,18 @@ _BASE64_RE = re.compile(r"[A-Za-z0-9+/]{60,}={0,2}")
 _HEX_RE = re.compile(r"\b[0-9a-fA-F]{80,}\b")
 
 
-class EncodedPayload(NamedTuple):
-    """A base64/hex run that decodes to mostly printable text. ``end`` is exclusive."""
+SHELL_LANGS = frozenset({"sh", "bash", "shell", "zsh", "fish", "console", "shell-session"})
+SHELL_LANGS |= frozenset({"powershell", "pwsh", "ps1", "cmd", "bat"})
+_DIGEST_HEX_LENGTHS = frozenset({96, 128})  # sha384 / sha512 digests
+_NOISE_MIN_ENTROPY = 4.5
+
+
+class EncodedRun(NamedTuple):
+    """A base64/hex run. ``decoded`` is the text it decodes to, or ``None`` if it is not text."""
 
     start: int
     end: int
-    decoded: str
+    decoded: str | None
 
 
 def _decode_text(data: bytes) -> str | None:
@@ -111,14 +123,36 @@ def _decode_text(data: bytes) -> str | None:
     return text if is_mostly_printable(text) else None
 
 
-def find_encoded_payloads(text: str) -> list[EncodedPayload]:
-    """Find base64 (>= 60 chars) and hex (>= 80 chars) runs that decode to printable text.
+def shannon_entropy(text: str) -> float:
+    """Shannon entropy in bits per character."""
+    if not text:
+        return 0.0
+    total = len(text)
+    return -sum(n / total * math.log2(n / total) for n in Counter(text).values())
 
-    Runs that decode to binary noise (hashes, keys) and ``data:...;base64,`` URIs are skipped.
+
+def _looks_like_random_base64(run: str) -> bool:
+    """High-entropy, mixed-case-with-digits: random bytes rather than a path or identifier."""
+    return (
+        shannon_entropy(run) >= _NOISE_MIN_ENTROPY
+        and any(c.islower() for c in run)
+        and any(c.isupper() for c in run)
+        and any(c.isdigit() for c in run)
+    )
+
+
+def find_encoded_runs(text: str) -> list[EncodedRun]:
+    """Find base64 (>= 60 chars) and hex (>= 80 chars) runs worth reporting.
+
+    Runs decoding to printable text are always returned. Runs that do not decode to text are
+    returned (``decoded=None``) only when they look like random encoded bytes: high-entropy base64
+    not embedded in a path/URL, or hex that is not a standard digest length. ``data:...;base64,``
+    URIs are skipped.
     """
-    found: list[EncodedPayload] = []
+    found: list[EncodedRun] = []
     for match in _BASE64_RE.finditer(text):
-        if text[: match.start()].endswith("base64,"):
+        before = text[: match.start()]
+        if before.endswith("base64,"):
             continue
         run = match.group()
         padded = run + "=" * (-len(run) % 4) if "=" not in run else run
@@ -127,14 +161,21 @@ def find_encoded_payloads(text: str) -> list[EncodedPayload]:
         except (binascii.Error, ValueError):
             continue
         if decoded is not None:
-            found.append(EncodedPayload(match.start(), match.end(), decoded))
+            found.append(EncodedRun(match.start(), match.end(), decoded))
+        elif not before.endswith(("/", "=")) and _looks_like_random_base64(run):
+            found.append(EncodedRun(match.start(), match.end(), None))
     for match in _HEX_RE.finditer(text):
         if len(match.group()) % 2:
             continue
         decoded = _decode_text(bytes.fromhex(match.group()))
-        if decoded is not None:
-            found.append(EncodedPayload(match.start(), match.end(), decoded))
-    return found
+        if decoded is not None or len(match.group()) not in _DIGEST_HEX_LENGTHS:
+            found.append(EncodedRun(match.start(), match.end(), decoded))
+    return sorted(found)
+
+
+def find_encoded_payloads(text: str) -> list[EncodedRun]:
+    """The subset of ``find_encoded_runs`` that decodes to printable text."""
+    return [run for run in find_encoded_runs(text) if run.decoded is not None]
 
 
 def has_agent_directed_language(text: str) -> bool:
