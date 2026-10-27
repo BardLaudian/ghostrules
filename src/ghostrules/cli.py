@@ -135,6 +135,13 @@ def scan(
         Optional[str],  # noqa: UP045
         typer.Option(help="Comma-separated rule IDs to disable, e.g. GR010,GR012."),
     ] = None,
+    follow_imports: Annotated[
+        Optional[bool],  # noqa: UP045
+        typer.Option(
+            "--follow-imports/--no-follow-imports",
+            help="Scan files that instruction files import with @path. [on]",
+        ),
+    ] = None,
     config: Annotated[
         Optional[Path],  # noqa: UP045
         typer.Option(help="Path to a config file (default: .ghostrules.toml in the scan root)."),
@@ -153,6 +160,8 @@ def scan(
     except ConfigError as exc:
         _fail(str(exc))
     cfg = _apply_overrides(cfg, fail_on, min_severity, disable)
+    if follow_imports is not None:
+        cfg = replace(cfg, follow_imports=follow_imports)
 
     result = scan_paths(targets, cfg, all_files=all_files, include_home=home)
     label = ", ".join(str(p) for p in targets)

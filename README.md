@@ -143,6 +143,7 @@ ghostrules scan . --format markdown >> "$GITHUB_STEP_SUMMARY"
 | `--all-files` | off | Check every text file for hidden Unicode, not just agent files |
 | `--home` | off | Also scan user-level agent configs |
 | `--disable GR010,GR012` | | Disable rules |
+| `--follow-imports`, `--no-follow-imports` | on | Scan the files that `@path` imports in instruction files reach |
 | `--config FILE` | auto | Config file (default: `.ghostrules.toml` in the scan root) |
 | `--no-color` | off | Plain output |
 
@@ -233,6 +234,12 @@ the URLs in any file.
 | <a id="gr014"></a>`GR014` | high | instructions | **Sensitive file access.** Instructions to read, print or send credentials files (~/.ssh, .env, .npmrc...). |
 | <a id="gr015"></a>`GR015` | medium | instructions | **Encoded payload.** Long base64 or hex strings in instruction files, which hide their content from reviewers. |
 | <a id="gr016"></a>`GR016` | high | instructions | **Agent safety bypass.** Instructions to skip permission prompts, disable sandboxes or auto-approve everything. |
+| <a id="gr020"></a>`GR020` | high | instructions | **External import.** An @path import that resolves outside the repository (absolute, ~/ or ../ above the root). |
+| <a id="gr021"></a>`GR021` | critical | instructions | **Sensitive file imported into context.** An @path import of a secrets or credentials file (.env, ~/.ssh/*, .npmrc, *.pem...). |
+| <a id="gr022"></a>`GR022` | low | instructions | **Import that silently does not load.** An @path the agent ignores: missing file, too deep, quoted path or a path cut at a space. |
+| <a id="gr023"></a>`GR023` | info | instructions | **Import cycle.** Files that import each other in a loop. Agents stop at the depth limit; it is only noise. |
+| <a id="gr024"></a>`GR024` | info | instructions | **Payload reached only through an import.** Not a detector: findings in a file that only an @import reaches carry the import chain and the tag reached-via-import. Disabling it stops ghostrules from following imports. |
+| <a id="gr025"></a>`GR025` | medium | instructions | **Symlinked instruction source.** An instruction file or rules directory that is a symlink. ghostrules never follows it. |
 | <a id="gr101"></a>`GR101` | critical | config | **Hardcoded secret in agent config.** API keys and tokens written into MCP server env/args/headers/URLs or agent settings env. |
 | <a id="gr102"></a>`GR102` | medium | config | **Unpinned package execution.** MCP servers launched with npx/uvx/etc. without an exact version run whatever is latest. |
 | <a id="gr103"></a>`GR103` | high | config | **Insecure remote MCP transport.** Remote MCP servers reached over plain http:// expose traffic and credentials. |
@@ -280,6 +287,8 @@ exclude = ["vendor/**", "tests/fixtures/**"]
 extra_targets = ["docs/ai/*.md"]    # extra files, treated as instructions
 allow_domains = ["mycompany.com"]   # never flagged by the URL and exfiltration rules (GR012, GR013)
 trust_known_installers = true       # GR012: lower the severity of well-known installers (uv, rustup...)
+follow_imports = true               # scan files reached through @path imports
+agents = ["claude-code", "copilot-cli", "cursor", "generic"]  # agents whose loading is modelled
 ```
 
 Command-line options override the config file. Unknown keys are an error, so typos do not silently

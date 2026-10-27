@@ -464,3 +464,38 @@ New: `globs.py` and the `agents/` package (`repo`, `base`, `claude_code`, `copil
 - **Not modelled:** managed policy files, `claudeMdExcludes`, `--add-dir`, `COPILOT_CUSTOM_INSTRUCTIONS_DIRS`,
   `/instructions`, directories above the repo root; each is listed in `ContextGraph.notes` or
   AGENT_MODELS.
+
+## v0.2 Phase 3 — scan integration and import rules
+
+- **What becomes a scan target.** For every scan root the models of the configured agents (default
+  all four) are run with the session at the root. Every readable file in those contexts is scanned
+  as `instructions`: imported files, and also files the 0.1 globs did not know (`.claude/rules/**`).
+  A file an agent loads by itself is "standalone" and gets no `via`; only a file that imports alone
+  reach gets `via`, `agents` and the tag. `exclude` applies to these files too. `--no-follow-imports`
+  drops the imported files but keeps GR020-GR023, which only read the importing line.
+- **`agents` in findings** is filled only when the file was reached through an import. 0.1 JSON/SARIF
+  output (and a 0.1 test that pins the exact key set) stays byte-for-byte the same for everything
+  else, and `via`/`agents`/`tags` are omitted from JSON when empty.
+- **GR024 is registered** (so `ghostrules rules`, the README table and SARIF list it) but is a tag, not
+  a detector: its check never runs. Putting it in `disable` is equivalent to `--no-follow-imports`.
+- **Graph rules** (`scope="graph"`) receive a `ScanContext` (every agent's graph plus the loaded
+  targets). Findings are placed on the importing line, so the importer's own `ghostrules-ignore`
+  markers apply to GR020-GR023 and nothing else; a marker never reaches the imported file. GR025 has
+  no line to suppress and reports on the link's own path.
+- **GR020** uses each agent's own definition of "outside" (Claude Code: outside the working
+  directory, which at scan time is the root; Copilot CLI: outside the repository), so it is
+  info for user-level files and never reads the target.
+- **GR021** looks at the path as written. The context engine itself never reads a sensitive file: an
+  in-repo `@.env` becomes an unreadable `sensitive` entry, so the file is not hashed or scanned either.
+  High instead of critical when the import is uncertain (inside an HTML comment or after punctuation).
+- **GR022** skips `@mention`-like tokens (no `/`, no extension, no leading `.`/`~`), missing targets of
+  uncertain imports, and anything outside the tree (that is GR020). The "cut at an unescaped space"
+  hint is computed by the engine when a missing path becomes an existing one with the next words
+  appended (at most four).
+- **GR005** gets `AgentView`s on the `ScanTarget`: the comment line ranges each agent strips. Default
+  config models all four agents, and Copilot CLI sees CLAUDE.md comments, so the severity only
+  drops to info for teams that set `agents = ["claude-code"]`. Files no model covers behave as in 0.1.
+- **Edited 0.1 test.** `test_every_rule_fires_somewhere_in_the_poisoned_repo` now checks the 0.1 rules
+  (`id < GR020`): the poisoned demo stays frozen at 7 files / 28 findings (other 0.1 tests pin that)
+  and has no imports or symlinks. `examples/import-chain-repo` (Phase 6) will carry the same check for
+  GR020-GR025. Nothing else in the 0.1 suite changed.
