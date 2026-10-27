@@ -17,7 +17,7 @@ from pathlib import Path
 PLACEHOLDER = "OWNER/ghostrules"
 ROOT = Path(__file__).resolve().parent.parent
 SKIP_DIRS = {".git", ".venv", "node_modules", "__pycache__", "dist", "build"}
-SKIP_PREFIXES = ("tests/fixtures/", "tests/data/", "examples/")
+SKIP_PREFIXES = ("tests/", "examples/")  # the tests use the placeholder as test data
 # GitHub user and organisation names: alphanumerics and single hyphens, at most 39 characters.
 _VALID_OWNER = re.compile(r"^(?!-)(?!.*--)[A-Za-z0-9-]{1,39}(?<!-)$")
 

@@ -316,29 +316,31 @@ def test_the_changelog_has_release_notes_for_the_packaged_version() -> None:
 # --- set_owner ---------------------------------------------------------------------------------
 
 
-def test_set_owner_replaces_the_placeholder_everywhere_it_is_used(tmp_path: Path) -> None:
+def test_set_owner_replaces_the_placeholder_in_every_kind_of_file(tmp_path: Path) -> None:
     set_owner = load_script("set_owner")
+    placeholder = set_owner.PLACEHOLDER
     carriers = [
         "README.md", "SECURITY.md", "CONTRIBUTING.md", "pyproject.toml",
         "src/ghostrules/__init__.py", ".github/ISSUE_TEMPLATE/config.yml",
     ]  # fmt: skip
     for name in carriers:
-        source = ROOT / name
-        assert set_owner.PLACEHOLDER in source.read_text(encoding="utf-8"), name
         target = tmp_path / name
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(source.read_bytes())
-    (tmp_path / "tests" / "fixtures").mkdir(parents=True)
-    (tmp_path / "tests" / "fixtures" / "keep.md").write_text("OWNER/ghostrules", encoding="utf-8")
+        target.write_text(f"see https://github.com/{placeholder}/issues\n", encoding="utf-8")
+    for untouched in ("tests/fixtures/keep.md", "tests/test_x.py", "examples/keep.md"):
+        target = tmp_path / untouched
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(placeholder, encoding="utf-8")
 
     assert sorted(set_owner.apply(tmp_path, "octo-cat", dry_run=True)) == sorted(carriers)
-    assert "OWNER/ghostrules" in (tmp_path / "README.md").read_text(encoding="utf-8")  # dry run
+    assert placeholder in (tmp_path / "README.md").read_text(encoding="utf-8")  # dry run
     assert sorted(set_owner.apply(tmp_path, "octo-cat")) == sorted(carriers)
     for name in carriers:
         text = (tmp_path / name).read_text(encoding="utf-8")
-        assert "OWNER/ghostrules" not in text and "octo-cat/ghostrules" in text
+        assert placeholder not in text and "octo-cat/ghostrules" in text
     assert set_owner.apply(tmp_path, "octo-cat") == []  # idempotent
-    assert (tmp_path / "tests/fixtures/keep.md").read_text(encoding="utf-8") == "OWNER/ghostrules"
+    for untouched in ("tests/fixtures/keep.md", "tests/test_x.py", "examples/keep.md"):
+        assert (tmp_path / untouched).read_text(encoding="utf-8") == placeholder
 
 
 @pytest.mark.parametrize("bad", ["", "-x", "x-", "a--b", "has space", "a/b", "x" * 40, "../up"])
@@ -353,15 +355,18 @@ def test_set_owner_rejects_invalid_names(bad: str, tmp_path: Path) -> None:
     assert result.returncode == 2
 
 
-def test_every_place_with_the_placeholder_is_known() -> None:
-    """If a new file carries `OWNER/ghostrules`, set_owner picks it up; list them for review."""
-    set_owner = load_script("set_owner")
-    holders = {
-        p.relative_to(ROOT).as_posix()
-        for p in set_owner.candidate_files(ROOT)
-        if set_owner.PLACEHOLDER in p.read_bytes().decode("utf-8", errors="ignore")
-        and not p.relative_to(ROOT).as_posix().startswith(("docs/", "CHANGELOG"))
-    }
-    holders -= {p for p in holders if p.startswith(".mypy_cache") or p.startswith(".ruff_cache")}
-    assert holders >= {"README.md", "SECURITY.md", "CONTRIBUTING.md", "pyproject.toml"}
-    assert all(not h.startswith(("examples/", "tests/fixtures/")) for h in holders)
+def test_every_repository_url_names_the_same_owner() -> None:
+    """True before and after set_owner has run: no half-replaced placeholder."""
+    from ghostrules import PROJECT_URL
+
+    owners = set()
+    for name in (
+        "README.md", "SECURITY.md", "CONTRIBUTING.md", "pyproject.toml",
+        "src/ghostrules/__init__.py", ".github/ISSUE_TEMPLATE/config.yml",
+    ):  # fmt: skip
+        text = (ROOT / name).read_text(encoding="utf-8")
+        found = set(re.findall(r"github\.com/([A-Za-z0-9-]+)/ghostrules", text))
+        assert found, f"{name} has no repository URL"
+        owners |= found
+    assert len(owners) == 1, owners
+    assert PROJECT_URL.endswith(f"/{next(iter(owners))}/ghostrules")

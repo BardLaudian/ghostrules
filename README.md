@@ -2,12 +2,12 @@
 
 *Find the instructions your AI agent sees but you don't.*
 
-[![CI](https://github.com/OWNER/ghostrules/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/ghostrules/actions/workflows/ci.yml)
+[![CI](https://github.com/BardLaudian/ghostrules/actions/workflows/ci.yml/badge.svg)](https://github.com/BardLaudian/ghostrules/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/ghostrules.svg)](https://pypi.org/project/ghostrules/)
 [![Python versions](https://img.shields.io/pypi/pyversions/ghostrules.svg)](https://pypi.org/project/ghostrules/)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/OWNER/ghostrules/blob/main/LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/BardLaudian/ghostrules/blob/main/LICENSE)
 
-![ghostrules finds an instruction hidden in an innocent-looking AGENTS.md](https://raw.githubusercontent.com/OWNER/ghostrules/main/demo/demo.gif)
+![ghostrules finds an instruction hidden in an innocent-looking AGENTS.md](https://raw.githubusercontent.com/BardLaudian/ghostrules/main/demo/demo.gif)
 
 `ghostrules` scans a repository (and, if you ask, your machine) for **hidden instructions and risky
 configuration in the files AI coding agents read and obey**: `AGENTS.md`, `CLAUDE.md`,
@@ -124,7 +124,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: OWNER/ghostrules@v0.1.0
+      - uses: BardLaudian/ghostrules@v0.1.0
         with:
           fail-on: high        # critical | high | medium | low | info | none
           all-files: "false"   # also check every text file for hidden Unicode
@@ -148,7 +148,7 @@ the end, so the upload happens even when the scan finds problems. The upload can
 
 ```yaml
 repos:
-  - repo: https://github.com/OWNER/ghostrules
+  - repo: https://github.com/BardLaudian/ghostrules
     rev: v0.1.0
     hooks:
       - id: ghostrules
@@ -161,7 +161,7 @@ above `high` is found.
 
 Rules `GR0xx` look at the content of instruction files; `GR1xx` look at MCP and agent
 configuration. The full logic, with true and false positive examples, is in
-[docs/RULES.md](https://github.com/OWNER/ghostrules/blob/main/docs/RULES.md). Severity is the typical
+[docs/RULES.md](https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md). Severity is the typical
 one: several rules escalate or relax with context (for example GR010 inside a code block is `low`).
 Text revealed by GR001, GR004 or GR015 is re-scanned by GR010–GR016 and reported with one level more
 severity.
@@ -257,7 +257,7 @@ In CI, run the scan from a configuration you trust.
 
 `ghostrules` is a set of heuristics, not a proof: no findings does not mean a file is safe, and some
 findings will be false positives (use `allow_domains`, `disable` or an inline ignore, and please
-[report them](https://github.com/OWNER/ghostrules/issues/new/choose)). It does not understand what a
+[report them](https://github.com/BardLaudian/ghostrules/issues/new/choose)). It does not understand what a
 natural-language instruction means, and it does not look at MCP tool descriptions served by a
 running server.
 
@@ -271,8 +271,8 @@ running server.
 
 ## Contributing, security, license
 
-- Contributions are welcome: see [CONTRIBUTING.md](https://github.com/OWNER/ghostrules/blob/main/CONTRIBUTING.md)
+- Contributions are welcome: see [CONTRIBUTING.md](https://github.com/BardLaudian/ghostrules/blob/main/CONTRIBUTING.md)
   (adding a rule takes three steps).
 - To report a vulnerability in `ghostrules` itself, see
-  [SECURITY.md](https://github.com/OWNER/ghostrules/blob/main/SECURITY.md).
-- [MIT](https://github.com/OWNER/ghostrules/blob/main/LICENSE) © Pablo Seoane Temprano.
+  [SECURITY.md](https://github.com/BardLaudian/ghostrules/blob/main/SECURITY.md).
+- [MIT](https://github.com/BardLaudian/ghostrules/blob/main/LICENSE) © Pablo Seoane Temprano.
