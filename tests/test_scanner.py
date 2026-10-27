@@ -335,3 +335,12 @@ def test_suppressed_parent_does_not_trigger_decoded_pass(tmp_path: Path) -> None
 def test_dedupe_drops_identical_findings() -> None:
     f = finding("GR900", 1)
     assert _dedupe([f, f, finding("GR900", 2)]) == [f, finding("GR900", 2)]
+
+
+def test_hidden_text_findings_come_first_among_equal_severities() -> None:
+    from ghostrules.scanner import sort_findings
+
+    plain = Finding("GR900", Severity.CRITICAL, "t", "m", "a.md", 1, 1, 2, "s")
+    hidden = Finding("GR001", Severity.CRITICAL, "t", "m", "z.md", 9, 1, 2, "s", decoded="x")
+    lower = Finding("GR901", Severity.HIGH, "t", "m", "a.md", 1, 1, 2, "s", decoded="x")
+    assert sort_findings([lower, plain, hidden]) == [hidden, plain, lower]

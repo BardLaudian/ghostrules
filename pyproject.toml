@@ -35,6 +35,7 @@ dev = [
     "pytest-cov>=5",
     "ruff>=0.6",
     "mypy>=1.10",
+    "jsonschema>=4",
 ]
 
 [project.scripts]

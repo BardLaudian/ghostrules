@@ -205,6 +205,13 @@ def _is_pinned(spec: str, python: bool) -> bool:
     return bool((_PY_VERSION if python else _NPM_VERSION).fullmatch(version))
 
 
+def _pin_hint(spec: str, python: bool) -> str:
+    if spec.startswith(_VCS_PREFIXES):
+        return "Pin to a full commit SHA, for example ...repo.git@<40-hex-sha>."
+    name = spec[:1] + re.split(r"[=<>!~@]", spec[1:], maxsplit=1)[0]
+    return f"Pin an exact version, for example {name}{'==' if python else '@'}1.2.3."
+
+
 @rule(
     "GR102",
     Severity.MEDIUM,
@@ -219,7 +226,6 @@ def gr102_unpinned_package(target: ScanTarget) -> Iterator[Finding]:
         if located is None or _is_pinned(located[1], located[2]):
             continue
         index, spec, python = located
-        example = f"{spec.split('@')[0] or spec}=={'1.2.3'}" if python else f"{spec}@1.2.3"
         yield _finding(
             target,
             "GR102",
@@ -228,7 +234,7 @@ def gr102_unpinned_package(target: ScanTarget) -> Iterator[Finding]:
             f"Server '{server.name}' runs '{spec}' without an exact version: "
             "whatever is published latest will execute with your agent's access.",
             server.span(f"args.{index}"),
-            f"Pin an exact version, for example {example}.",
+            _pin_hint(spec, python),
         )
 
 
