@@ -382,3 +382,42 @@ so "does not follow imports" means "does not document it". `agent-skill-lock` an
 `docs/v0.2/SPEC.md` §1, were not looked at. Recommendation for the README comparison paragraph:
 name cairnlock as the closest lockfile tool and state the difference factually (resolved context and
 per-agent seen text), without claiming it lacks features it may have.
+
+## v0.2 Phase 1 — Markdown primitives
+
+New: `markdown_utils.py` (`strip_html_comments`, `parse_frontmatter`, `strip_frontmatter`,
+`Stripped` with a line map back to the original file) and `imports.py` (`find_imports`). No rule or
+scan behaviour changes yet. Inline code spans already existed from 0.1.1.
+
+- **Import start (UNVERIFIED approximation).** Claude Code documents what is skipped, not the exact
+  token grammar. `find_imports` calls an import *certain* when `@` starts a line or follows
+  whitespace (so `user@example.com` and `git@github.com` never match) and *loose* when it follows
+  `( [ { < , ; : > = | *` (markdown links, emphasis). Loose ones are returned with
+  `certain=False`; Phase 2 should scan them but label them `(unverified)`, so a guess about the
+  grammar cannot hide a payload.
+- **Trailing punctuation** (`. , ; : ! ? ) ] } > *` and quotes) is not part of the path, except a
+  balanced `)` (`@docs/a(1).md`). Also unverified; the cost of being wrong is a missing file (GR022).
+- **`@mentions` and npm scopes** are returned like any token. `Import.looks_like_path` (has `/` or
+  `\`, starts with `.` or `~`, or ends in an extension) is what Phase 3 uses to decide whether a
+  token that resolves to nothing is worth a GR022. `@README` has none of those and is still a real
+  import when the file exists; resolution decides.
+- **Quoted paths** are not imports (documented). `find_imports(include_quoted=True)` returns them
+  with `quoted=True` for GR022.
+- **Imports inside block-level HTML comments** are returned with `in_comment=True`. The docs do not
+  say whether Claude Code expands imports before or after stripping comments, so the context
+  engine should follow them but mark them unverified.
+- **HTML comment stripping** models a CommonMark type-2 HTML block: the comment starts a line
+  (up to three spaces of indent) and ends at the line holding `-->`. Text after `-->` stays. Not
+  stripped, on purpose: comments in fenced code (documented), mid-paragraph or in a list item or
+  blockquote (the docs only say "block-level"), and comments that never close. Anything not stripped
+  counts as *seen*, which is the safe direction for GR005 and the lock.
+- **Front matter** supports `key: value`, flow lists, block lists, quoted strings and `true/false`;
+  numbers stay strings. Anything else sets `unparsed` with the reasons. A plain value starting with
+  `*`, `&`, `!`, `|`, `>`, `{`, `[`, `%`, `@` or a backtick, or containing `: `, is flagged because a
+  strict YAML parser rejects it; that matters because the docs say Claude Code then loads a rule
+  as if it had no `paths` (an unquoted `paths: **/*.ts` silently becomes an always-on rule). The raw
+  value is kept in `data`. Cursor's parser may be more lenient than the one in Claude Code; consumers
+  should treat `unparsed` as "behaviour differs per agent".
+- **Line numbers.** `Stripped.line_map` gives the original line of every kept line, and
+  `removed` records what was cut (kind, original lines, text), which Phase 5 needs for "changed, not
+  visible to <agent>".
