@@ -80,7 +80,8 @@ class ScanTarget:
     """A file (or derived text) handed to rules. Rules must treat it as read-only.
 
     ``origin`` is ``None`` for real files; for text derived from a finding (e.g. decoded hidden
-    text) it holds the id of the rule that produced it.
+    text) it holds the id of the rule that produced it. ``allow_domains`` is the configured
+    allow-list, handed to rules as read-only input so they stay pure.
     """
 
     path: str
@@ -89,6 +90,7 @@ class ScanTarget:
     parsed: Any = None
     parse_error: str | None = None
     origin: str | None = None
+    allow_domains: tuple[str, ...] = ()
     lines: list[str] = field(init=False)
 
     def __post_init__(self) -> None:
@@ -101,6 +103,27 @@ class ScanTarget:
             if ch == "\n":
                 starts.append(i + 1)
         return starts
+
+    @cached_property
+    def normalized(self) -> tuple[str, list[int]]:
+        """Whitespace-normalised text plus, for each of its characters, the original offset.
+
+        Every run of whitespace becomes one space, so phrases broken across lines still match.
+        """
+        chars: list[str] = []
+        offsets: list[int] = []
+        in_space = False
+        for i, ch in enumerate(self.text):
+            if ch.isspace():
+                if not in_space:
+                    chars.append(" ")
+                    offsets.append(i)
+                in_space = True
+            else:
+                chars.append(ch)
+                offsets.append(i)
+                in_space = False
+        return "".join(chars), offsets
 
     @cached_property
     def code_blocks(self) -> list[FencedBlock]:

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import shlex
 from collections import defaultdict
 from collections.abc import Iterable
@@ -85,3 +86,19 @@ def group_by_line(target: ScanTarget, offsets: Iterable[int]) -> dict[int, list[
 def clean_hint(target: ScanTarget) -> str:
     """Standard remediation for invisible characters."""
     return f"Remove the invisible characters: ghostrules clean {shlex.quote(target.path)} --write"
+
+
+_URL_HOST_RE = re.compile(r"https?://(?:[^/?#\s@]*@)?([^/?#\s:)\]>]+)", re.IGNORECASE)
+
+
+def host_allowed(host: str, allow_domains: Iterable[str]) -> bool:
+    """True if ``host`` is an allowed domain or a subdomain of one."""
+    host = host.lower().rstrip(".")
+    return any(host == d or host.endswith("." + d) for d in allow_domains)
+
+
+def urls_allowed(text: str, allow_domains: Iterable[str]) -> bool:
+    """True if ``text`` contains URLs and every one of them points at an allowed domain."""
+    allow = tuple(allow_domains)
+    hosts = _URL_HOST_RE.findall(text)
+    return bool(allow and hosts and all(host_allowed(h, allow) for h in hosts))
