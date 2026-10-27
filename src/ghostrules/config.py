@@ -11,7 +11,7 @@ from ghostrules.models import Severity
 
 CONFIG_FILENAME = ".ghostrules.toml"
 _LIST_KEYS = ("disable", "exclude", "extra_targets", "allow_domains")
-_KNOWN_KEYS = {*_LIST_KEYS, "fail_on", "min_severity"}
+_KNOWN_KEYS = {*_LIST_KEYS, "fail_on", "min_severity", "trust_known_installers"}
 
 
 class ConfigError(Exception):
@@ -28,6 +28,7 @@ class Config:
     exclude: tuple[str, ...] = ()
     extra_targets: tuple[str, ...] = ()
     allow_domains: tuple[str, ...] = ()
+    trust_known_installers: bool = True
     source: str | None = None
 
 
@@ -54,6 +55,9 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
         min_severity = Severity.parse(min_raw)
     except ValueError as exc:
         raise ConfigError(str(exc)) from None
+    trust = table.get("trust_known_installers", True)
+    if not isinstance(trust, bool):
+        raise ConfigError("'trust_known_installers' must be true or false")
     return Config(
         disable=frozenset(rule.strip().upper() for rule in _string_list(table, "disable")),
         fail_on=fail_on,
@@ -61,6 +65,7 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
         exclude=tuple(_string_list(table, "exclude")),
         extra_targets=tuple(_string_list(table, "extra_targets")),
         allow_domains=tuple(d.lower() for d in _string_list(table, "allow_domains")),
+        trust_known_installers=trust,
         source=source,
     )
 

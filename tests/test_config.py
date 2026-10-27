@@ -29,6 +29,11 @@ def test_dotfile_is_loaded(tmp_path: Path) -> None:
     assert config.source == ".ghostrules.toml"
 
 
+def test_trust_known_installers_defaults_to_true_and_can_be_disabled() -> None:
+    assert parse_config({}).trust_known_installers is True
+    assert parse_config({"trust_known_installers": False}).trust_known_installers is False
+
+
 def test_fail_on_none_means_never_fail() -> None:
     assert parse_config({"fail_on": "none"}).fail_on is None
 
@@ -60,6 +65,7 @@ def test_explicit_path_takes_priority(tmp_path: Path) -> None:
         {"disable": "GR014"},
         {"exclude": [1]},
         {"typo_key": True},
+        {"trust_known_installers": "yes"},
     ],
 )
 def test_invalid_config_raises(table: dict) -> None:

@@ -172,7 +172,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: BardLaudian/ghostrules@v0.1.0
+      - uses: BardLaudian/ghostrules@v0.1.1
         with:
           fail-on: high        # critical | high | medium | low | info | none
           all-files: "false"   # also check every text file for hidden Unicode
@@ -197,7 +197,7 @@ the end, so the upload happens even when the scan finds problems. The upload can
 ```yaml
 repos:
   - repo: https://github.com/BardLaudian/ghostrules
-    rev: v0.1.0
+    rev: v0.1.1
     hooks:
       - id: ghostrules
 ```
@@ -228,7 +228,7 @@ the URLs in any file.
 | <a id="gr006"></a>`GR006` | low | instructions, config, any file* | **Mixed-script homoglyph word.** Latin words with Cyrillic/Greek lookalikes disguise keywords and domains. |
 | <a id="gr010"></a>`GR010` | high | instructions | **Instruction override.** Text telling the agent to ignore, forget or override its previous or system instructions. |
 | <a id="gr011"></a>`GR011` | high | instructions | **Concealment from the user.** Text telling the agent to hide what it does from the user. |
-| <a id="gr012"></a>`GR012` | critical | instructions | **Remote code execution pattern.** Commands that download and execute remote code (curl \| sh, iex, encoded PowerShell...). |
+| <a id="gr012"></a>`GR012` | critical | instructions | **Remote code execution pattern.** Commands that download and execute remote code (curl \| sh, iex, encoded PowerShell...); severity depends on the source and context. |
 | <a id="gr013"></a>`GR013` | critical | instructions | **Data exfiltration.** Instructions to send secrets to a URL, markdown-image exfiltration, collector domains. |
 | <a id="gr014"></a>`GR014` | high | instructions | **Sensitive file access.** Instructions to read, print or send credentials files (~/.ssh, .env, .npmrc...). |
 | <a id="gr015"></a>`GR015` | medium | instructions | **Encoded payload.** Long base64 or hex strings in instruction files, which hide their content from reviewers. |
@@ -279,6 +279,7 @@ min_severity = "low"                # hide findings below this
 exclude = ["vendor/**", "tests/fixtures/**"]
 extra_targets = ["docs/ai/*.md"]    # extra files, treated as instructions
 allow_domains = ["mycompany.com"]   # never flagged by the URL and exfiltration rules (GR012, GR013)
+trust_known_installers = true       # GR012: lower the severity of well-known installers (uv, rustup...)
 ```
 
 Command-line options override the config file. Unknown keys are an error, so typos do not silently

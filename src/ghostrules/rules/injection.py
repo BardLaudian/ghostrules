@@ -12,6 +12,7 @@ from collections.abc import Iterable, Iterator
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
 from ghostrules.rules.helpers import build_finding, host_allowed, urls_allowed
+from ghostrules.rules.known_installers import extract_urls, is_risky_url, known_installer
 from ghostrules.rules.patterns import (
     COLLECTOR_PATTERNS,
     EXFIL_PATTERNS,
@@ -133,29 +134,84 @@ def gr011_concealment(target: ScanTarget) -> Iterator[Finding]:
     "GR012",
     Severity.CRITICAL,
     "Remote code execution pattern",
-    "Commands that download and execute remote code (curl | sh, iex, encoded PowerShell...).",
+    "Commands that download and execute remote code (curl | sh, iex, encoded PowerShell...);"
+    " severity depends on the source and context.",
     INSTRUCTIONS,
     scans_decoded=True,
 )
 def gr012_remote_code_execution(target: ScanTarget) -> Iterator[Finding]:
-    """Critical in instruction files; skipped when every URL in the command is allow-listed.
+    """Severity depends on what is fetched and where the command sits (see RULES.md).
 
-    The snippet shows the whole command. (The "high elsewhere" case of RULES.md is GR105/GR107,
-    which reuse these patterns for MCP server commands and hooks.)
+    Critical: hidden or opaque payloads, insecure/odd URLs, or an unknown domain in prose. High:
+    unknown domain in code. Medium/low: a well-known installer in prose/code. Skipped when every
+    URL is in ``allow_domains``. The snippet shows the whole command. (The "high elsewhere" case
+    of RULES.md is GR105/GR107, which reuse these patterns for MCP server commands and hooks.)
     """
     for span in _spans(target, INJECTION_PATTERNS["GR012"]):
-        if urls_allowed(target.text[span[0] : span[1]], target.allow_domains):
+        severity, message, installers = _gr012_verdict(target, span)
+        if severity is None:
             continue
         yield _finding(
             target,
             "GR012",
-            Severity.CRITICAL,
+            severity,
             "Remote code execution pattern",
-            "Downloads or decodes and executes code",
+            message,
             span,
-            fix_hint="Remove it, or download, review and pin the script instead of piping it.",
+            fix_hint=_GR012_HINT_SOFT
+            if installers
+            else "Remove it, or download, review and pin the script instead of piping it.",
             limit=_LONG_SNIPPET,
         )
+
+
+_GR012_HINT_SOFT = (
+    "Prefer a pinned version or a package manager; fine to keep if this is documentation."
+)
+_GR012_BASE = "Downloads or decodes and executes code"
+_OPAQUE_COMMAND = re.compile(r"base64|powershell|\beval\b", re.IGNORECASE)
+
+
+def _gr012_judged_text(target: ScanTarget, span: tuple[int, int]) -> str:
+    """The command text whose URLs decide the severity; ``bash <(curl URL)`` and
+    ``eval "$(curl URL)"`` have their URL after the matched part, so those run to end of line."""
+    text = target.text[span[0] : span[1]]
+    if "|" in text:
+        return text
+    end = target.text.find("\n", span[1])
+    return target.text[span[0] : len(target.text) if end == -1 else end]
+
+
+def _in_code(target: ScanTarget, offset: int) -> bool:
+    return target.code_block_at(offset) is not None or target.code_span_at(offset) is not None
+
+
+def _gr012_verdict(
+    target: ScanTarget, span: tuple[int, int]
+) -> tuple[Severity | None, str, list[str]]:
+    """``(severity or None to skip, message, matched installer projects)``, first rule wins."""
+    if target.origin is not None:  # decoded hidden text: always critical
+        return Severity.CRITICAL, _GR012_BASE, []
+    command = _gr012_judged_text(target, span)
+    urls = extract_urls(command)
+    if not urls:
+        if _OPAQUE_COMMAND.search(command):
+            return Severity.CRITICAL, _GR012_BASE, []
+    elif any(is_risky_url(u) for u in urls):
+        return Severity.CRITICAL, _GR012_BASE + " from an insecure or suspicious URL", []
+    if urls_allowed(command, target.allow_domains):
+        return None, "", []
+    if not target.trust_known_installers:
+        return Severity.CRITICAL, _GR012_BASE, []
+    where = "a code block" if _in_code(target, span[0]) else "prose"
+    known = [known_installer(u) for u in urls]
+    if urls and all(known):
+        projects = sorted({k.project for k in known if k})
+        message = f"curl … | sh from a well-known installer ({', '.join(projects)}) in {where}"
+        return (Severity.LOW if where == "a code block" else Severity.MEDIUM), message, projects
+    if where == "a code block":
+        return Severity.HIGH, f"{_GR012_BASE} from an unknown source, in a code block", []
+    return Severity.CRITICAL, f"{_GR012_BASE} from an unknown source, in prose", []
 
 
 # --- GR013 ---------------------------------------------------------------------------------

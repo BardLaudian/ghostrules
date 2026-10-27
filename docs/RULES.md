@@ -63,10 +63,39 @@ still reported but at `low` with message "appears inside a code block".
 `(silently|secretly|quietly) (run|execute|add|send|install|modify)`, `don't mention (this|these)`,
 `hide (this|the) (from|output)`, ES: `no (se lo )?(digas|menciones|muestres) al usuario`, `sin avisar al usuario`.
 
-### GR012 — Remote code execution patterns (critical in instructions, high elsewhere)
+### GR012 — Remote code execution patterns (context-aware in instructions, high elsewhere)
 `curl … | (ba|z)?sh`, `wget … -O- | sh`, `curl … | python`, `iwr|Invoke-WebRequest … | iex`,
 `powershell … -e(nc|ncodedcommand) <base64>`, `base64 (-d|--decode) … | (ba)?sh`,
 `bash <(curl …)`, `eval "$(curl …)"`. Snippet must show the full command.
+
+Severity in instruction files (since 0.1.1). Decide in this order; first match wins:
+
+| # | Situation | Severity |
+|---|---|---|
+| 1 | Match is inside decoded hidden text (GR001/GR004/GR015) | critical (the +1 bump) |
+| 2 | No URL to judge: `base64 -d … \| sh`, `powershell -enc <b64>`, `eval "$(curl …)"` with a variable/unknown target | critical |
+| 3 | Any URL uses `http://`, an IP literal, a non-default port, or a known collector domain (GR013 list) | critical |
+| 4 | Every URL is in `allow_domains` | not reported |
+| 5 | Every URL is a known installer, visible text, inside a fenced code block or inline code span | low |
+| 6 | Every URL is a known installer, visible text, in prose | medium |
+| 7 | Unknown domain, visible text, inside a code block or inline code span | high |
+| 8 | Unknown domain, visible text, in prose | critical |
+
+A command with no URL that is not case 2 (`curl $URL \| sh`) counts as an unknown domain. With
+`trust_known_installers = false`, rows 5-8 collapse to critical, as in 0.1.0.
+
+Why: a visible, well-known installer in a code block is documentation a human reviewer can see and
+judge; an unknown domain in prose telling the agent to run it is the attack pattern.
+
+Known installers (`src/ghostrules/rules/known_installers.py`, `ghostrules rules --installers`).
+Matching is the exact `https` host plus an optional path prefix, never a suffix, so
+`astral.sh.attacker.example` does not match: Astral uv/ruff `astral.sh`, rustup `sh.rustup.rs`,
+Bun `bun.sh`, Deno `deno.land`, pnpm `get.pnpm.io`, Poetry `install.python-poetry.org`, Homebrew
+`raw.githubusercontent.com/Homebrew/install/`, nvm `raw.githubusercontent.com/nvm-sh/nvm/`, SDKMAN
+`get.sdkman.io`, Docker `get.docker.com`, Ollama `ollama.com/install.sh`, Volta `get.volta.sh`.
+
+GR105 and GR107 reuse the GR012 patterns for MCP server commands and hooks and are not affected:
+in configuration files a piped installer stays high/critical.
 
 ### GR013 — Data exfiltration (critical)
 - Markdown image/link whose URL contains a template or variable in the query:

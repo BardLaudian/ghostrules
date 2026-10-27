@@ -318,3 +318,15 @@ Newest at the bottom of each section. "Phase N" says when the decision takes eff
   VS16 and legitimate RTL marks survive). A leading BOM is stripped unless `--keep-bom`.
 - **Code-block downgrade:** only GR010 drops to `low` inside fenced code blocks (RULES).
 - **Self-scan (Phase 9):** exclude `examples/**` as well as test fixtures.
+
+## v0.1.1 — GR012 context-aware severity
+
+- **Registered severity stays `critical`:** it is the maximum the rule can report; the actual
+  severity comes from the table in RULES.md.
+- **`trust_known_installers = false`** makes every non-allow-listed match critical (0.1.0
+  behaviour), not just the known installers.
+- **Row order:** the risky-URL row (http, IP, port, collector) comes before `allow_domains`, as in
+  the table, so an allow-listed domain served over plain `http://` is still critical.
+- **URL scope:** `bash <(curl URL)` and `eval "$(curl URL)"` have the URL after the matched
+  text, so those matches are judged on the rest of the line.
+- **Inline code span:** `ScanTarget.code_span_at` wraps the existing CommonMark-style span finder.

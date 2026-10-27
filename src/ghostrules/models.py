@@ -93,7 +93,8 @@ class ScanTarget:
 
     ``origin`` is ``None`` for real files; for text derived from a finding (e.g. decoded hidden
     text) it holds the id of the rule that produced it. ``allow_domains`` is the configured
-    allow-list, handed to rules as read-only input so they stay pure.
+    allow-list and ``trust_known_installers`` the matching switch, handed to rules as read-only
+    input so they stay pure.
     """
 
     path: str
@@ -103,6 +104,7 @@ class ScanTarget:
     parse_error: str | None = None
     origin: str | None = None
     allow_domains: tuple[str, ...] = ()
+    trust_known_installers: bool = True
     lines: list[str] = field(init=False)
 
     def __post_init__(self) -> None:
@@ -154,9 +156,16 @@ class ScanTarget:
         """Spans of inline code (backticks) in the text (computed once)."""
         return inline_code_spans(self.text)
 
+    def code_span_at(self, offset: int) -> tuple[int, int] | None:
+        """The inline code span containing ``offset``, if any."""
+        for start, end in self.inline_code:
+            if start <= offset < end:
+                return start, end
+        return None
+
     def in_inline_code(self, offset: int) -> bool:
         """Whether ``offset`` is inside an inline code span."""
-        return any(start <= offset < end for start, end in self.inline_code)
+        return self.code_span_at(offset) is not None
 
     def code_block_at(self, offset: int) -> FencedBlock | None:
         """The fenced code block containing ``offset``, if any."""
