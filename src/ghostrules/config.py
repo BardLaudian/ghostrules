@@ -11,7 +11,15 @@ from ghostrules.models import Severity
 
 CONFIG_FILENAME = ".ghostrules.toml"
 _LIST_KEYS = ("disable", "exclude", "extra_targets", "allow_domains")
-_KNOWN_KEYS = {*_LIST_KEYS, "fail_on", "min_severity", "trust_known_installers"}
+_KNOWN_KEYS = {
+    *_LIST_KEYS,
+    "fail_on",
+    "min_severity",
+    "trust_known_installers",
+    "follow_imports",
+    "agents",
+}
+AGENT_NAMES = ("claude-code", "copilot-cli", "cursor", "generic")
 
 
 class ConfigError(Exception):
@@ -29,6 +37,8 @@ class Config:
     extra_targets: tuple[str, ...] = ()
     allow_domains: tuple[str, ...] = ()
     trust_known_installers: bool = True
+    follow_imports: bool = True
+    agents: tuple[str, ...] = AGENT_NAMES
     source: str | None = None
 
 
@@ -58,6 +68,16 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
     trust = table.get("trust_known_installers", True)
     if not isinstance(trust, bool):
         raise ConfigError("'trust_known_installers' must be true or false")
+    follow = table.get("follow_imports", True)
+    if not isinstance(follow, bool):
+        raise ConfigError("'follow_imports' must be true or false")
+    agents = tuple(a.strip().lower() for a in _string_list(table, "agents")) or AGENT_NAMES
+    unknown_agents = [a for a in agents if a not in AGENT_NAMES]
+    if unknown_agents:
+        raise ConfigError(
+            f"unknown agent(s) in 'agents': {', '.join(unknown_agents)} "
+            f"(expected: {', '.join(AGENT_NAMES)})"
+        )
     return Config(
         disable=frozenset(rule.strip().upper() for rule in _string_list(table, "disable")),
         fail_on=fail_on,
@@ -66,6 +86,8 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
         extra_targets=tuple(_string_list(table, "extra_targets")),
         allow_domains=tuple(d.lower() for d in _string_list(table, "allow_domains")),
         trust_known_installers=trust,
+        follow_imports=follow,
+        agents=agents,
         source=source,
     )
 

@@ -6,7 +6,7 @@ import enum
 from bisect import bisect_right
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, NamedTuple
 
 from ghostrules.markdown_utils import FencedBlock, fenced_blocks, inline_code_spans
 from ghostrules.secrets import mask_secrets
@@ -61,6 +61,9 @@ class Finding:
     snippet: str
     decoded: str | None = None
     fix_hint: str = ""
+    via: tuple[str, ...] = ()
+    agents: tuple[str, ...] = ()
+    tags: tuple[str, ...] = ()
 
     def __post_init__(self) -> None:
         # Single choke point: whatever built this finding, no secret survives in its text, so no
@@ -71,7 +74,15 @@ class Finding:
                 object.__setattr__(self, name, mask_secrets(value))
 
     def to_dict(self) -> dict[str, Any]:
-        """JSON-serialisable representation."""
+        """JSON-serialisable form; ``via``, ``agents`` and ``tags`` appear only when set."""
+        data = self._base_dict()
+        for name in ("via", "agents", "tags"):
+            value = getattr(self, name)
+            if value:
+                data[name] = list(value)
+        return data
+
+    def _base_dict(self) -> dict[str, Any]:
         return {
             "rule_id": self.rule_id,
             "severity": self.severity.label,
@@ -85,6 +96,19 @@ class Finding:
             "decoded": self.decoded,
             "fix_hint": self.fix_hint,
         }
+
+
+class AgentView(NamedTuple):
+    """How one agent sees a file: the line ranges of block-level HTML comments it strips before
+    the text reaches the model, and whether that is uncertain."""
+
+    agent: str
+    stripped: tuple[tuple[int, int], ...] = ()
+    unverified: bool = False
+
+    def hides_line(self, line: int) -> bool:
+        """Whether ``line`` lies in a comment this agent strips."""
+        return any(a <= line <= b for a, b in self.stripped)
 
 
 @dataclass
@@ -105,6 +129,7 @@ class ScanTarget:
     origin: str | None = None
     allow_domains: tuple[str, ...] = ()
     trust_known_installers: bool = True
+    agent_views: tuple[AgentView, ...] = ()
     lines: list[str] = field(init=False)
 
     def __post_init__(self) -> None:
@@ -173,6 +198,11 @@ class ScanTarget:
             if block.start <= offset < block.end:
                 return block
         return None
+
+    def offset(self, line: int, column: int) -> int:
+        """Character offset of a 1-based ``(line, column)`` (clamped to the text)."""
+        index = min(max(line, 1), len(self._line_starts)) - 1
+        return min(self._line_starts[index] + max(column, 1) - 1, len(self.text))
 
     def position(self, offset: int) -> tuple[int, int]:
         """Convert a character offset into a 1-based ``(line, column)`` pair."""

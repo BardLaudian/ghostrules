@@ -85,7 +85,9 @@ def test_every_rule_fires_somewhere_in_the_poisoned_repo(demo_root: Path) -> Non
     from ghostrules.rules import all_rules
 
     ids = {f.rule_id for f in scan(demo_root / "poisoned-repo").findings}
-    missing = sorted({r.id for r in all_rules()} - ids)
+    # GR020-GR025 need @imports and symlinks, which this demo (frozen at its 0.1 contents) does
+    # not have; examples/import-chain-repo covers them.
+    missing = sorted({r.id for r in all_rules() if r.id < "GR020"} - ids)
     assert not missing, f"the poisoned demo does not trigger {missing}"
 
 

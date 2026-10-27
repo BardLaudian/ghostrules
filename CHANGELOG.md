@@ -5,6 +5,22 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- `scan` follows `@path` imports by default: files an instruction file imports are scanned as
+  instructions, and their findings carry the import chain (`via`), the agents that load them and the
+  tag `reached-via-import`. `--no-follow-imports` (or `follow_imports = false`) turns it off.
+- Rules GR020 (external import), GR021 (sensitive file imported), GR022 (import that silently does
+  not load), GR023 (import cycle), GR024 (tag for payloads reached through an import) and GR025
+  (symlinked instruction source).
+- The files each modelled agent loads (including `.claude/rules/**`) are scanned even when the
+  discovery globs do not list them. New config keys `follow_imports` and `agents`.
+- JSON findings gain optional `via`, `agents` and `tags`; SARIF results gain `relatedLocations` for
+  the chain and `properties.agents`/`tags`; the table and Markdown reports show the chain.
+
+### Changed
+- GR005 is agent-aware: it says which agents see a hidden comment. Claude Code strips block-level
+  comments from CLAUDE.md files, so the finding is info when no configured agent sees the comment.
+
 ## [0.1.1] - 2026-10-27
 
 ### Changed

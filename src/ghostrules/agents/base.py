@@ -23,6 +23,7 @@ from ghostrules.markdown_utils import (
     strip_frontmatter,
     strip_html_comments,
 )
+from ghostrules.sensitive import is_sensitive_path
 
 Load = Literal["always", "conditional", "on_demand", "agent_decides", "manual", "blocked"]
 ImportStatus = Literal[
@@ -37,6 +38,7 @@ ImportStatus = Literal[
     "too_large",
     "depth",  # deeper than the agent's limit
     "cycle",
+    "sensitive",  # a secrets file: the agent would load it, ghostrules never reads it
 ]
 
 
@@ -61,6 +63,8 @@ class ContextEntry:
     matches: bool | None = None
     line_map: tuple[int, ...] = ()
     removed: tuple[RemovedBlock, ...] = ()
+    symlink_target: str = ""
+    leaves_tree: bool = False
 
     @property
     def hop(self) -> int:
@@ -83,6 +87,10 @@ class ImportEdge:
     note: str = ""
     unverified: bool = False
     looks_like_path: bool = True
+    certain: bool = True
+    in_comment: bool = False
+    outside_tree: bool = False
+    hint: str = ""
 
 
 @dataclass
@@ -286,7 +294,15 @@ class Builder:
         return entry
 
     def add_blocked(
-        self, repo: Repo, rel: str, reason: str, note: str, *, via: tuple[str, ...] = ()
+        self,
+        repo: Repo,
+        rel: str,
+        reason: str,
+        note: str,
+        *,
+        via: tuple[str, ...] = (),
+        symlink_target: str = "",
+        leaves_tree: bool = False,
     ) -> ContextEntry:
         """Record a file the agent skips or refuses, or that ghostrules will not read."""
         return self._append(
@@ -298,6 +314,8 @@ class Builder:
                 via=via,
                 note=note,
                 readable=False,
+                symlink_target=symlink_target,
+                leaves_tree=leaves_tree,
             )
         )
 
@@ -386,12 +404,14 @@ class Builder:
         self, repo: Repo, rel: str, kind: str, reason: str, via: tuple[str, ...]
     ) -> ContextEntry:
         if kind == "symlink":
-            target = repo.symlink_target(rel)
-            where = " outside the tree" if repo.link_leaves_tree(rel) else ""
+            target = repo.symlink_target(rel) or ""
+            outside = repo.link_leaves_tree(rel)
+            where = " outside the tree" if outside else ""
             note = f"symlink{' -> ' + target if target else ''}{where}: not followed"
-        else:
-            note = "not a regular file: skipped"
-        return self.add_blocked(repo, rel, reason, note, via=via)
+            return self.add_blocked(
+                repo, rel, reason, note, via=via, symlink_target=target or "?", leaves_tree=outside
+            )
+        return self.add_blocked(repo, rel, reason, "not a regular file: skipped", via=via)
 
     # --- imports -----------------------------------------------------------------------------
 
@@ -406,7 +426,7 @@ class Builder:
         self._stack.append(parent.path)
         try:
             for imp in find_imports(raw_text, include_quoted=True):
-                self._follow(repo, parent, parent_rel, imp)
+                self._follow(repo, parent, parent_rel, imp, raw_text)
         finally:
             self._stack.pop()
 
@@ -419,6 +439,8 @@ class Builder:
         note: str = "",
         unverified: bool = False,
         slot: int | None = None,
+        outside_tree: bool = False,
+        hint: str = "",
     ) -> None:
         edge = ImportEdge(
             parent.path,
@@ -431,10 +453,16 @@ class Builder:
             note,
             unverified or not imp.certain or imp.in_comment,
             imp.looks_like_path,
+            imp.certain,
+            imp.in_comment,
+            outside_tree,
+            hint,
         )
         self.graph.edges.insert(len(self.graph.edges) if slot is None else slot, edge)
 
-    def _follow(self, repo: Repo, parent: ContextEntry, parent_rel: str, imp: Import) -> None:
+    def _follow(
+        self, repo: Repo, parent: ContextEntry, parent_rel: str, imp: Import, raw_text: str
+    ) -> None:
         if imp.quoted:
             self._edge(parent, imp, imp.path, "quoted", "a quoted path is not imported")
             return
@@ -458,6 +486,9 @@ class Builder:
             self._edge(parent, imp, label, "cycle", "import cycle")
             return
         slot = len(self.graph.edges)  # the edge goes before those of the file it loads
+        if is_sensitive_path(rel) and repo.kind(rel) is not None:
+            self._sensitive(parent, imp, label, via, slot)
+            return
         notes: list[str] = []
         uncertain = hop in self.policy.uncertain_hops
         if uncertain:
@@ -482,6 +513,7 @@ class Builder:
             unverified=uncertain or imp.in_comment or not imp.certain,
             via=via,
         )
+        hint = self._space_hint(repo, parent_rel, imp, raw_text) if status == "missing" else ""
         self._edge(
             parent,
             imp,
@@ -490,7 +522,50 @@ class Builder:
             "; ".join(notes),
             unverified=uncertain or self.policy.all_unverified,
             slot=slot,
+            hint=hint,
         )
+
+    def _sensitive(
+        self, parent: ContextEntry, imp: Import, label: str, via: tuple[str, ...], slot: int
+    ) -> None:
+        """An import of a secrets file: the agent would load it; ghostrules never reads it."""
+        note = "sensitive file: would be loaded into the context; not read by ghostrules"
+        if label not in self._by_path:
+            self._append(
+                ContextEntry(
+                    label,
+                    parent.load,
+                    f"imported by {parent.path}:{imp.line}",
+                    self.agent,
+                    via=via,
+                    note=note,
+                    readable=False,
+                    condition=parent.condition,
+                    matches=parent.matches,
+                    unverified=self.policy.all_unverified,
+                )
+            )
+        self._edge(parent, imp, label, "sensitive", note, slot=slot)
+
+    @staticmethod
+    def _space_hint(repo: Repo, parent_rel: str, imp: Import, raw_text: str) -> str:
+        """If extending the path with the words after it names a file, the author forgot to
+        escape a space."""
+        line = raw_text.split("\n")[imp.line - 1]
+        tail = line[imp.column - 1 + len(imp.raw) :]
+        if not tail.startswith(" "):
+            return ""
+        candidate = imp.path
+        for word in tail.split(" ")[1:5]:
+            if not word:
+                break
+            candidate = f"{candidate} {word}"
+            for trimmed in (candidate, candidate.rstrip(".,;:!?)")):
+                resolved = resolve_import(trimmed, parent_rel)
+                if resolved.kind == "repo" and repo.kind(resolved.rel) == "file":
+                    escaped = trimmed.replace(" ", "\\ ")
+                    return f"the path is cut at an unescaped space; write @{escaped}"
+        return ""
 
     def _external(
         self,
@@ -530,7 +605,15 @@ class Builder:
                     unverified=self.policy.all_unverified,
                 )
             )
-        self._edge(parent, imp, label, status, note, unverified=self.policy.all_unverified)
+        self._edge(
+            parent,
+            imp,
+            label,
+            status,
+            note,
+            unverified=self.policy.all_unverified,
+            outside_tree=True,
+        )
 
     def finish(self) -> ContextGraph:
         """The completed graph."""

@@ -149,7 +149,14 @@ class ClaudeCode:
     def _rules(self, b: Builder) -> None:
         repo = b.repo
         if _RULES_DIR in repo.linked_dirs:
-            b.add_blocked(repo, _RULES_DIR, "rules directory", "symlinked directory: not followed")
+            b.add_blocked(
+                repo,
+                _RULES_DIR,
+                "rules directory",
+                "symlinked directory: not followed",
+                symlink_target=repo.symlink_target(_RULES_DIR) or "?",
+                leaves_tree=repo.link_leaves_tree(_RULES_DIR),
+            )
         for rel in repo.files:
             base = _rule_base(rel)
             if base is None:
