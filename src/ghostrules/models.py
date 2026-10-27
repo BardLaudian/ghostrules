@@ -8,6 +8,8 @@ from dataclasses import dataclass, field
 from functools import cached_property
 from typing import Any, Literal
 
+from ghostrules.markdown_utils import FencedBlock, fenced_blocks
+
 Kind = Literal["instructions", "config", "other"]
 """What a scanned file is: agent instructions, agent/MCP config, or any other text file."""
 
@@ -99,6 +101,18 @@ class ScanTarget:
             if ch == "\n":
                 starts.append(i + 1)
         return starts
+
+    @cached_property
+    def code_blocks(self) -> list[FencedBlock]:
+        """Fenced Markdown code blocks in the text (computed once)."""
+        return fenced_blocks(self.text)
+
+    def code_block_at(self, offset: int) -> FencedBlock | None:
+        """The fenced code block containing ``offset``, if any."""
+        for block in self.code_blocks:
+            if block.start <= offset < block.end:
+                return block
+        return None
 
     def position(self, offset: int) -> tuple[int, int]:
         """Convert a character offset into a 1-based ``(line, column)`` pair."""
