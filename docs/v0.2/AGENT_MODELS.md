@@ -66,10 +66,11 @@ already approved** (no prompt).
 **Imports** (`@path`):
 - "Relative paths resolve relative to the file containing the import, not the working directory."
   Absolute paths and `~` are allowed.
-- Recursive, "maximum depth of four hops". The docs do not say whether the file that imports
-  directly is hop 0 or 1; model as: direct import = hop 1, hop 4 still loads, hop 5 does not
-  (**UNVERIFIED** off-by-one; mark chains of exactly 4–5 as `(unverified)`). Third-party guides
-  quoting "5 levels" disagree with the official page; the official page wins.
+- Recursive, "maximum depth of four hops". The docs do not say whether a direct import is hop 0 or
+  hop 1. Counting a direct import as hop 1: hops 1-4 load under both readings, hop 5 loads only if
+  the count starts at 0, hop 6 and beyond never load. Model: hops 1-4 loaded; hop 5 loaded and
+  marked `(unverified)`; hop 6+ not loaded (`depth`). (A security scan would rather read one file
+  too many than miss one.) Third-party guides quoting "5 levels" disagree with the official page.
 - Not parsed inside Markdown **code spans or fenced code blocks** ("wrap it in backticks to keep the
   text literal").
 - A path ends at the first space; `\ ` escapes a space ("Without the backslashes, the path ends at
