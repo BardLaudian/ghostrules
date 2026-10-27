@@ -11,8 +11,10 @@ from typing import Any
 
 from ghostrules._compat import tomllib
 from ghostrules.config import Config
+from ghostrules.jsonloc import strip_jsonc
 from ghostrules.models import Finding, ScanResult, ScanTarget
 from ghostrules.rules import Rule, all_rules
+from ghostrules.secrets import mask_secrets
 from ghostrules.targets import Candidate, discover, home_targets
 
 # Invisible-character findings must never be silenceable from inside the scanned file.
@@ -23,49 +25,6 @@ _RULE_ID_RE = re.compile(r"GR\d{3}", re.IGNORECASE)
 
 # Maps a 1-based line number to the rule ids it ignores; ``None`` means every rule.
 Suppressions = dict[int, "frozenset[str] | None"]
-
-
-def strip_jsonc(text: str) -> str:
-    """Blank out ``//`` and ``/* */`` comments and trailing commas, outside of strings.
-
-    Characters are replaced by spaces (newlines kept) so offsets, lines and columns still match
-    the original text.
-    """
-    out: list[str] = []
-    pending_comma: int | None = None
-    in_string = False
-    i, n = 0, len(text)
-    while i < n:
-        ch = text[i]
-        if in_string:
-            out.append(ch)
-            if ch == "\\" and i + 1 < n:
-                out.append(text[i + 1])
-                i += 1
-            elif ch == '"':
-                in_string = False
-            i += 1
-        elif text.startswith("//", i):
-            end = text.find("\n", i)
-            end = n if end == -1 else end
-            out.append(" " * (end - i))
-            i = end
-        elif text.startswith("/*", i):
-            close = text.find("*/", i + 2)
-            end = n if close == -1 else close + 2
-            out.append("".join(c if c == "\n" else " " for c in text[i:end]))
-            i = end
-        else:
-            if ch in "}]" and pending_comma is not None:
-                out[pending_comma] = " "
-            if ch == ",":
-                pending_comma = len(out)
-            elif not ch.isspace():
-                pending_comma = None
-            in_string = ch == '"'
-            out.append(ch)
-            i += 1
-    return "".join(out)
 
 
 def parse_structured(path: str, text: str) -> tuple[Any, str | None]:
@@ -142,7 +101,8 @@ def _run_rules(target: ScanTarget, rules: Iterable[Rule], errors: list[str]) -> 
         try:
             found.extend(r.check(target))
         except Exception as exc:  # a buggy rule must not hide every other finding
-            errors.append(f"rule {r.id} failed on {target.path}: {type(exc).__name__}: {exc}")
+            detail = mask_secrets(f"{type(exc).__name__}: {exc}")
+            errors.append(f"rule {r.id} failed on {target.path}: {detail}")
     return found
 
 
@@ -261,7 +221,7 @@ def scan_paths(
             continue
         result.scanned_files += 1
         if target.parse_error:
-            result.warnings.append(f"cannot parse {label}: {target.parse_error}")
+            result.warnings.append(mask_secrets(f"cannot parse {label}: {target.parse_error}"))
         kept, suppressed, errors = scan_target(target, config, rule_list)
         findings.extend(kept)
         result.suppressed += suppressed

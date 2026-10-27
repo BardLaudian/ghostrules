@@ -10,11 +10,10 @@ from __future__ import annotations
 
 import base64
 import binascii
-import math
 import re
-from collections import Counter
 from typing import NamedTuple
 
+from ghostrules.secrets import shannon_entropy
 from ghostrules.unicode_utils import is_mostly_printable
 
 
@@ -121,14 +120,6 @@ def _decode_text(data: bytes) -> str | None:
     except UnicodeDecodeError:
         return None
     return text if is_mostly_printable(text) else None
-
-
-def shannon_entropy(text: str) -> float:
-    """Shannon entropy in bits per character."""
-    if not text:
-        return 0.0
-    total = len(text)
-    return -sum(n / total * math.log2(n / total) for n in Counter(text).values())
 
 
 def _looks_like_random_base64(run: str) -> bool:

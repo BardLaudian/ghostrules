@@ -14,4 +14,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Rules GR010-GR016: instruction override, concealment, remote code execution, data
   exfiltration, sensitive file access, encoded payloads, agent safety bypass (English + Spanish);
   hidden text decoded by other rules is re-scanned with a severity bump.
+- Rules GR101-GR108: hardcoded secrets, unpinned packages, insecure transport, broad filesystem
+  scope, shell wrappers, dangerous Docker options, over-permissive agent settings, auto-trusted
+  MCP servers; findings point at the exact value in the file.
+- Central secret masking: no secret is ever printed, in any field of a finding or diagnostic.
 - `scripts/make_fixtures.py` generating reproducible, defanged fixtures.
