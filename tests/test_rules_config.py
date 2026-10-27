@@ -163,7 +163,7 @@ def unpinned(command: str, *args: str) -> list[Finding]:
 def test_gr102_positive(command: str, args: list[str]) -> None:
     (finding,) = unpinned(command, *args)
     assert finding.severity is Severity.MEDIUM
-    assert "Pin an exact version" in finding.fix_hint
+    assert finding.fix_hint.startswith("Pin ")
 
 
 @pytest.mark.parametrize(

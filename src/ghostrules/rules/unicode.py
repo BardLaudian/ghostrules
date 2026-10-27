@@ -6,6 +6,7 @@ import re
 import unicodedata
 from collections import Counter
 from collections.abc import Iterator
+from typing import NamedTuple
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
 from ghostrules.rules.helpers import build_finding, clean_hint, group_by_line
@@ -67,6 +68,7 @@ def gr001_tag_characters(target: ScanTarget) -> Iterator[Finding]:
             end=run.end,
             decoded=decoded,
             fix_hint=clean_hint(target),
+            limit=4,
         )
 
 
@@ -197,6 +199,19 @@ def _is_legit_joiner(text: str, start: int, end: int) -> bool:
     return False
 
 
+def zero_width_offsets(text: str) -> list[int]:
+    """Offsets of zero-width characters GR003 flags (legitimate joiners and the BOM excluded)."""
+    offsets: list[int] = []
+    for run in find_runs(text, ZERO_WIDTH):
+        for i in range(run.start, run.end):
+            if i == 0 and text[0] == "\ufeff":
+                continue  # byte-order mark at the start of the file
+            if _is_legit_joiner(text, run.start, run.end):
+                continue
+            offsets.append(i)
+    return offsets
+
+
 @rule(
     "GR003",
     Severity.MEDIUM,
@@ -207,14 +222,7 @@ def _is_legit_joiner(text: str, start: int, end: int) -> bool:
 def gr003_zero_width(target: ScanTarget) -> Iterator[Finding]:
     """One finding per line; high when a line has >= 5 or the file has >= 20 such characters."""
     text = target.text
-    offsets: list[int] = []
-    for run in find_runs(text, ZERO_WIDTH):
-        for i in range(run.start, run.end):
-            if i == 0 and text[0] == "\ufeff":
-                continue  # byte-order mark at the start of the file
-            if _is_legit_joiner(text, run.start, run.end):
-                continue
-            offsets.append(i)
+    offsets = zero_width_offsets(text)
     if not offsets:
         return
     by_line = group_by_line(target, offsets)
@@ -453,3 +461,40 @@ def gr006_homoglyphs(target: ScanTarget) -> Iterator[Finding]:
                 fix_hint="Replace lookalike characters with plain ASCII.",
                 limit=120,
             )
+
+
+# --- Removal (used by ``ghostrules clean``) ------------------------------------------------
+
+
+class Removal(NamedTuple):
+    """Characters ``clean`` will delete and what it deliberately keeps."""
+
+    offsets: list[int]
+    kept_bidi: int
+
+
+def removable(text: str, *, keep_bom: bool = False) -> Removal:
+    """Offsets of the characters GR001-GR004 flag, i.e. what ``clean`` removes.
+
+    Exactly the flagged characters: emoji joiners, genuine flag sequences, variation selectors
+    in short runs and a byte-order mark kept with ``keep_bom`` all survive. Bidirectional
+    controls in files that are substantially right-to-left are kept (and counted), since they
+    are legitimate there.
+    """
+    found: set[int] = set()
+    for run in find_runs(text, TAG):
+        if not _is_flag_sequence(text, run.start, run.end):
+            found.update(range(run.start, run.end))
+    bidi = _char_offsets(text, BIDI)
+    kept_bidi = 0
+    if has_substantial_rtl(text):
+        kept_bidi = len(bidi)
+    else:
+        found.update(bidi)
+    found.update(zero_width_offsets(text))
+    for run in find_runs(text, VARIATION_SELECTOR):
+        if run.end - run.start >= _VS_MIN_RUN:
+            found.update(range(run.start, run.end))
+    if text.startswith("\ufeff") and not keep_bom:
+        found.add(0)
+    return Removal(sorted(found), kept_bidi)

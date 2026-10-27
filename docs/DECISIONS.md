@@ -149,6 +149,57 @@ Newest at the bottom of each section. "Phase N" says when the decision takes eff
 - **GR108:** `enableAllProjectMcpServers: true`, plus Gemini-style `"trust": true` on a server
   as the "equivalent auto-trust flag".
 
+## Applied (Phase 5)
+
+- **Default command:** `ghostrules`, `ghostrules .` and `ghostrules --format json` all run `scan`
+  (a custom Typer group prepends it unless the first argument is a command or `--help`).
+- **Precedence:** CLI flag > config file > default. `--disable` is added to the config's list.
+  Config is looked up in the first scan path (or its directory).
+- **`--fail-on` scope:** only findings left after `--min-severity` and after inline suppressions
+  count, so a hidden finding can never fail the build (and the notes line shows suppressions).
+- **Exit codes:** 2 also when the scan itself failed (missing path, crashed rule), even if
+  nothing was found, so a broken scan can never look clean. The table then says "Scan
+  incomplete" instead of showing a green tick.
+- **Output channels:** the table (and its notes, warnings and errors) goes to stdout. For
+  `json`/`sarif`/`markdown`, stdout carries only the report and diagnostics go to stderr, so
+  `ghostrules scan --format json | jq` always works. `-o FILE` writes the report (table: plain
+  text, no colour) and prints "report written to FILE" on stderr.
+- **Reporters** each expose `render(result, **options) -> str`; `reporters/common.py` holds the
+  shared helpers (it has no `render`, so it is not treated as a reporter).
+  Lone surrogates from undecodable input bytes are replaced before output, so nothing can crash
+  on encoding, and stdout is switched to UTF-8 when the terminal's code page is not.
+- **Table:** findings grouped by file; files ordered by worst severity, then those hiding
+  decoded text, then path. Severity badges are colour-coded pills; invisible-character tokens
+  are highlighted; the decoded hidden text sits in a red panel titled "Decoded hidden text"
+  (no colon: it is a panel title, not a line) with matching malicious phrases and URLs
+  highlighted. A finding derived from hidden text already shown above is rendered compactly
+  (`↳ ...`) instead of repeating the panel. Snippets stay on one line (ellipsis). Width is
+  capped at 120 columns.
+- **Ordering of `result.findings`:** severity, then findings that carry decoded hidden text,
+  then path/line/column/rule, so every format leads with the hidden instruction.
+- **Notes shown to the reader:** configuration loaded from the scanned repo and the number of
+  findings hidden by `ghostrules-ignore`, because both can hide findings (see Phase 1).
+- **SARIF:** validated in tests against the official 2.1.0 schema (vendored in `tests/data/`,
+  checked with `jsonschema`, now a dev dependency). `columnKind` is `unicodeCodePoints`.
+  `helpUri` points to `PROJECT_URL#<rule id>`; **`PROJECT_URL` in `ghostrules/__init__.py` still
+  has the placeholder `OWNER` and must be set before publishing.** Findings in `--home` files
+  are left out and mentioned in the run's notifications.
+- **JSON:** the specified keys plus `warnings`, `errors` and, in `summary`, `suppressed`,
+  `files_with_findings` and `config_source`.
+- **Markdown:** truncated at 100 rows; every cell is escaped (`|`, backticks, `<`, `>`) so
+  scanned content cannot inject Markdown or HTML into a PR comment.
+- **`reveal`:** numbered listing; tag characters and variation selectors are tokens without
+  names (long runs), other invisible characters have names; HTML comments are highlighted;
+  decoded ASCII (tags) and bytes (variation selectors) follow each line. Output is masked.
+- **`clean`:** removes exactly what GR001-GR004 flag (see Phase 2 exceptions), except
+  bidirectional controls in substantially right-to-left files, which are kept and reported.
+  A leading BOM goes unless `--keep-bom`. It refuses to overwrite an existing
+  `FILE.ghostrules.bak`. Line endings and undecodable bytes are preserved. The dry-run diff
+  shows removed characters as tokens and is masked.
+- **Demo repositories:** `scripts/make_demo.py` generates `examples/poisoned-repo` (minimal for
+  now; Phase 6 completes it so every rule fires) and `examples/clean-repo`; a test checks that
+  the checked-in files equal the generator's output.
+
 ## Planned for later phases
 
 - **Poisoned demo coverage:** PLAN §6 does not trigger GR004, GR006, GR014, GR015, GR016, GR104
@@ -156,10 +207,4 @@ Newest at the bottom of each section. "Phase N" says when the decision takes eff
 - **`clean`:** removes only characters the rules actually flag (so emoji ZWJ, flag tag sequences,
   VS16 and legitimate RTL marks survive). A leading BOM is stripped unless `--keep-bom`.
 - **Code-block downgrade:** only GR010 drops to `low` inside fenced code blocks (RULES).
-- **Exit code:** `--fail-on` considers findings left after `--min-severity` filtering and after
-  suppressions.
 - **Self-scan (Phase 9):** exclude `examples/**` as well as test fixtures.
-- **SARIF:** findings from `--home` files are not repo-relative and are left out of SARIF.
-- **Phase 5 must mask too:** `reveal` prints file content and `clean`'s dry-run prints a diff of
-  it, which bypass `Finding`; both have to run their output through `mask_secrets`, and the
-  Phase 5 reporters must expose `render(result) -> str` so the masking test covers them.
