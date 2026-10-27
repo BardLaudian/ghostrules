@@ -6,6 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `ghostrules context [TARGET]`: shows what an agent reads when it works on a file (the files it
+  loads at session start, the rules its `paths`/`globs` select, the directories that load on
+  demand, the imports it follows and the files it skips, with the reason) and scans exactly that.
+  Output as a tree, JSON or Markdown; `--agent`, `--cwd`, `--root`, `--show-text`, `--no-scan`,
+  `--home`, `--fail-on`.
+- `examples/import-chain-repo`: a CLAUDE.md that looks clean and reaches a hidden payload through two
+  imports, plus a `.env` import and one outside the repository.
 - `scan` follows `@path` imports by default: files an instruction file imports are scanned as
   instructions, and their findings carry the import chain (`via`), the agents that load them and the
   tag `reached-via-import`. `--no-follow-imports` (or `follow_imports = false`) turns it off.
