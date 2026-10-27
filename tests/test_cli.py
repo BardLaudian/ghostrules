@@ -249,6 +249,14 @@ def test_rules_command_lists_every_rule() -> None:
     assert "Remote code execution pattern" in result.stdout
 
 
+def test_rules_installers_lists_the_trusted_installers() -> None:
+    result = invoke("rules", "--installers")
+    assert result.exit_code == 0
+    for text in ("Astral uv/ruff", "astral.sh", "sh.rustup.rs", "/Homebrew/install/"):
+        assert text in result.stdout
+    assert "GR012" not in result.stdout
+
+
 # --- reveal ----------------------------------------------------------------------------------
 
 

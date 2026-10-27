@@ -65,3 +65,12 @@ def test_target_inline_code_lookup() -> None:
     target = ScanTarget("a.md", "instructions", "x `<!--` y <!--")
     assert target.in_inline_code(target.text.index("<!--"))
     assert not target.in_inline_code(target.text.rindex("<!--"))
+
+
+def test_target_code_span_at_handles_backtick_runs_of_any_length() -> None:
+    text = "a ``x ` y`` b `c` d"
+    target = ScanTarget("AGENTS.md", "instructions", text)
+    assert target.code_span_at(text.index("x")) == (2, 11)
+    assert target.code_span_at(text.index("y")) == (2, 11)
+    assert target.code_span_at(text.index("c")) == (14, 17)
+    assert target.code_span_at(text.index("b")) is None

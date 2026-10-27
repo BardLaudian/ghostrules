@@ -5,6 +5,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-10-27
+
+### Changed
+- GR012 (remote code execution pattern) now sets its severity from context instead of reporting
+  every `curl ... | sh` as critical. A well-known installer in a code block is low, in prose
+  medium; an unknown domain is high in a code block and critical in prose. Plain `http://`, IP
+  literals, non-default ports, collector domains, opaque payloads (`base64 -d | sh`,
+  `powershell -enc`) and text hidden by invisible characters stay critical. This stops the default
+  `--fail-on high` from failing on real repositories that document `uv` or `rustup`.
+  GR105 and GR107 (MCP server commands and hooks) are unchanged.
+
+### Added
+- Built-in list of well-known installers (uv/ruff, rustup, Bun, Deno, pnpm, Poetry, Homebrew, nvm,
+  SDKMAN, Docker, Ollama, Volta), matched on the exact host and optional path prefix, and
+  `ghostrules rules --installers` to print it.
+- `trust_known_installers` option (default `true`); `false` restores the 0.1.0 behaviour.
+- Inline code span awareness for GR012 (`ScanTarget.code_span_at`).
+
 ## [0.1.0] - 2026-10-27
 
 First release.

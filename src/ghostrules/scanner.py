@@ -45,7 +45,10 @@ def parse_structured(path: str, text: str) -> tuple[Any, str | None]:
 
 
 def load_target(
-    candidate: Candidate, label: str | None = None, allow_domains: tuple[str, ...] = ()
+    candidate: Candidate,
+    label: str | None = None,
+    allow_domains: tuple[str, ...] = (),
+    trust_known_installers: bool = True,
 ) -> ScanTarget:
     """Read a candidate as UTF-8 (``surrogateescape``, so bad bytes never crash) and parse it."""
     data = candidate.abs_path.read_bytes()
@@ -59,6 +62,7 @@ def load_target(
         parsed=parsed,
         parse_error=error,
         allow_domains=allow_domains,
+        trust_known_installers=trust_known_installers,
     )
 
 
@@ -124,6 +128,7 @@ def _scan_decoded(
             text=parent.decoded,
             origin=parent.rule_id,
             allow_domains=target.allow_domains,
+            trust_known_installers=target.trust_known_installers,
         )
         for hit in _run_rules(virtual, decoding_rules, errors):
             derived.append(
@@ -227,7 +232,7 @@ def scan_paths(
             continue
         seen.add(resolved)
         try:
-            target = load_target(cand, label, config.allow_domains)
+            target = load_target(cand, label, config.allow_domains, config.trust_known_installers)
         except OSError as exc:
             result.warnings.append(f"cannot read {label}: {exc.strerror or exc}")
             continue

@@ -23,6 +23,7 @@ from ghostrules.reporters.common import safe
 from ghostrules.reveal import build as build_reveal
 from ghostrules.reveal import has_hidden_content
 from ghostrules.rules import all_rules
+from ghostrules.rules.known_installers import KNOWN_INSTALLERS
 from ghostrules.scanner import scan_paths
 
 EXIT_OK, EXIT_FINDINGS, EXIT_ERROR = 0, 1, 2
@@ -292,12 +293,28 @@ def _styled_diff(diff: str) -> Text:
 # --- rules / version -----------------------------------------------------------------------
 
 
+def _print_installers(console: Console) -> None:
+    grid = Table(box=None, pad_edge=False, header_style="bold")
+    for name in ("Project", "Host", "Path prefix"):
+        grid.add_column(name, no_wrap=True)
+    for entry in KNOWN_INSTALLERS:
+        grid.add_row(Text(entry.project), Text(entry.host), Text(entry.path_prefix or "-"))
+    console.print(grid)
+
+
 @app.command()
 def rules(
     no_color: Annotated[bool, typer.Option("--no-color", help="Plain output, no colours.")] = False,
+    installers: Annotated[
+        bool,
+        typer.Option("--installers", help="List the well-known installers GR012 trusts instead."),
+    ] = False,
 ) -> None:
     """List every detection rule."""
     _utf8_streams()
+    if installers:
+        _print_installers(_console(no_color))
+        return
     grid = Table(box=None, pad_edge=False, header_style="bold")
     grid.add_column("ID", no_wrap=True)
     grid.add_column("Severity", no_wrap=True)
