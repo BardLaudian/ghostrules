@@ -2,5 +2,5 @@
 
 __version__ = "0.1.0"
 
-# Used for SARIF help links. Replace OWNER with the real GitHub account before publishing.
-PROJECT_URL = "https://github.com/OWNER/ghostrules"
+# Used for SARIF help links. Keep it in sync with the repository URL (scripts/set_owner.py).
+PROJECT_URL = "https://github.com/BardLaudian/ghostrules"

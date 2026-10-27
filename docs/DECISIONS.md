@@ -263,7 +263,7 @@ Newest at the bottom of each section. "Phase N" says when the decision takes eff
   that no findings is not a proof. A test checks the section order.
 - **Absolute links and images.** PyPI renders the README without the repository around it, so
   relative links and images would be broken there. Links to repository files use
-  `https://github.com/OWNER/ghostrules/blob/main/...`; a test checks every such target exists.
+  `https://github.com/BardLaudian/ghostrules/blob/main/...`; a test checks every such target exists.
   The GIF is referenced by its `raw.githubusercontent.com` URL and is not committed (see Phase 6).
 - **Rules table** is generated from the registry by `scripts/gen_rules_table.py` between
   `rules-table` markers (`--write` / `--check`); a test fails when it drifts. Each ID cell has an
@@ -305,7 +305,7 @@ Newest at the bottom of each section. "Phase N" says when the decision takes eff
   poisoned demo (28 findings in JSON, SARIF and Markdown, SARIF schema-valid, no unmasked token);
   `actionlint` on the workflows. **Not verifiable here:** a real GitHub Actions run, the
   Windows and macOS runners, PyPI publishing, and recording the GIF.
-- **`scripts/set_owner.py GITHUB-NAME`** replaces the `OWNER/ghostrules` placeholder in the README,
+- **`scripts/set_owner.py GITHUB-NAME`** replaces the `BardLaudian/ghostrules` placeholder in the README,
   SECURITY.md, CONTRIBUTING.md, `PROJECT_URL`, the issue-form link and the PyPI project URLs in
   one go (dry run available, idempotent, refuses invalid names).
 - **Release notes:** `CHANGELOG.md` now has `## [0.1.0] - 2026-10-27`, which `release.yml`

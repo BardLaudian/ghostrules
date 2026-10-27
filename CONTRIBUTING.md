@@ -6,7 +6,7 @@ coverage**: every change to a detection comes with a positive and a negative tes
 ## Set up
 
 ```bash
-git clone https://github.com/OWNER/ghostrules && cd ghostrules
+git clone https://github.com/BardLaudian/ghostrules && cd ghostrules
 python -m venv .venv && . .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
 

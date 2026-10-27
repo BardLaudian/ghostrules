@@ -5,7 +5,7 @@
 ## Reporting a vulnerability
 
 Please **do not open a public issue** for a vulnerability. Use GitHub's private reporting:
-[report a vulnerability](https://github.com/OWNER/ghostrules/security/advisories/new)
+[report a vulnerability](https://github.com/BardLaudian/ghostrules/security/advisories/new)
 (repository **Security → Report a vulnerability**).
 
 Include the `ghostrules` version (`ghostrules version`), what you expected, what happened and, if
