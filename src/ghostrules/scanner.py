@@ -173,10 +173,18 @@ def _dedupe(findings: Iterable[Finding]) -> list[Finding]:
 
 def sort_findings(findings: Iterable[Finding]) -> list[Finding]:
     """Order by severity (most severe first), hidden-text findings first among equals, then
-    path, line, column and rule id."""
+    files closer to the root, path, line, column and rule id."""
     return sorted(
         findings,
-        key=lambda f: (-int(f.severity), not f.decoded, f.path, f.line, f.column, f.rule_id),
+        key=lambda f: (
+            -int(f.severity),
+            not f.decoded,
+            f.path.count("/"),
+            f.path,
+            f.line,
+            f.column,
+            f.rule_id,
+        ),
     )
 
 

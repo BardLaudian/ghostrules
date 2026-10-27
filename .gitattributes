@@ -1,0 +1,5 @@
+# Keep line endings stable: the demo repositories and fixtures are byte-exact (they contain
+# invisible characters and tests compare them with what the generators write).
+* text=auto eol=lf
+examples/** -text
+tests/fixtures/** -text

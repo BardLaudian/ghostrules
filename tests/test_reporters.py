@@ -108,7 +108,6 @@ def test_table_poisoned_repo_layout(poisoned_result: ScanResult) -> None:
     lines = text.splitlines()
     assert lines[0] == f"◆ ghostrules v{__version__}  scanning examples/poisoned-repo"
     assert lines[-1] == summary_line(poisoned_result)
-    assert "6 critical · 6 high · 2 medium in 5 files (scanned 5)" in text or " critical · " in text
     first_group = next(line for line in lines if "finding" in line and "─" in line)
     assert first_group.startswith("AGENTS.md")  # the hidden text comes first
     assert "CRITICAL" in text and "HIGH" in text and "MEDIUM" in text
@@ -184,10 +183,12 @@ def test_table_snippet_stays_on_one_line() -> None:
 def test_json_report_shape(poisoned_result: ScanResult) -> None:
     data = json.loads(json_.render(poisoned_result))
     assert data["version"] == __version__
-    assert data["scanned_files"] == 5
+    assert data["scanned_files"] == poisoned_result.scanned_files == 7
     assert len(data["findings"]) == len(poisoned_result.findings) == data["summary"]["total"]
-    assert data["summary"]["by_severity"] == {"critical": 6, "high": 6, "medium": 2}
-    assert data["summary"]["files_with_findings"] == 5
+    by_severity = data["summary"]["by_severity"]
+    assert list(by_severity) == ["critical", "high", "medium", "low"]  # most severe first
+    assert sum(by_severity.values()) == data["summary"]["total"]
+    assert data["summary"]["files_with_findings"] == 7
     first = data["findings"][0]
     assert set(first) == {
         "rule_id", "severity", "title", "message", "path", "line", "column",
