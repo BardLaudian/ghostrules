@@ -6,9 +6,13 @@ import enum
 from bisect import bisect_right
 from dataclasses import dataclass, field
 from functools import cached_property
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from ghostrules.markdown_utils import FencedBlock, fenced_blocks
+from ghostrules.secrets import mask_secrets
+
+if TYPE_CHECKING:
+    from ghostrules.mcp_config import ServerDef
 
 Kind = Literal["instructions", "config", "other"]
 """What a scanned file is: agent instructions, agent/MCP config, or any other text file."""
@@ -57,6 +61,14 @@ class Finding:
     snippet: str
     decoded: str | None = None
     fix_hint: str = ""
+
+    def __post_init__(self) -> None:
+        # Single choke point: whatever built this finding, no secret survives in its text, so no
+        # reporter can print one.
+        for name in ("title", "message", "snippet", "decoded", "fix_hint"):
+            value = getattr(self, name)
+            if value:
+                object.__setattr__(self, name, mask_secrets(value))
 
     def to_dict(self) -> dict[str, Any]:
         """JSON-serialisable representation."""
@@ -124,6 +136,13 @@ class ScanTarget:
                 offsets.append(i)
                 in_space = False
         return "".join(chars), offsets
+
+    @cached_property
+    def servers(self) -> list[ServerDef]:
+        """MCP servers defined in this config file (computed once)."""
+        from ghostrules.mcp_config import extract_servers
+
+        return extract_servers(self)
 
     @cached_property
     def code_blocks(self) -> list[FencedBlock]:

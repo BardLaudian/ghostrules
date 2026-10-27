@@ -99,13 +99,58 @@ Newest at the bottom of each section. "Phase N" says when the decision takes eff
 - **Excerpts:** messages quote the matched text (whitespace collapsed, 80 chars). Secret masking
   of snippets/messages is still to do centrally in Phase 4.
 
+## Applied (Phase 4)
+
+- **Masking (`secrets.py`):** a secret of >= 20 characters is shown as first 4 + `****…` + last 4
+  (`ghp_****…a1b2`, the CLAUDE.md format; RULES.md's wording differs only by the ellipsis);
+  shorter ones as `****`. `mask_secrets` covers known token formats, bearer tokens, URL
+  passwords, and `key=value` / `--flag value` pairs whose name looks secret and whose value looks
+  like one (>= 16 chars, entropy >= 3.5, no spaces, not a placeholder/URL/path). It is idempotent.
+- **Single choke point:** `Finding.__post_init__` masks `title`, `message`, `snippet`, `decoded`
+  and `fix_hint`, so any finding, from any rule, is safe to print, serialise or repr. On top of
+  that `build_finding` masks the *line* before cutting the snippet (positions are remapped), so a
+  context window can never leave a readable fragment of a secret. Scanner warnings and rule-crash
+  errors are masked too.
+- **Masking is broader than detection:** a secret glued to letters (`xghp_...`) is still masked
+  even though GR101 requires a word boundary to *report* one; the ambiguous `sk-` prefix needs a
+  digit and some entropy in that case so words like `task-management-...` are left alone.
+- **Reporter guarantee:** reporters do not exist yet. They can only print what `Finding` and
+  `ScanResult` hold, which is already masked; `tests/test_secret_masking.py` additionally runs
+  every module of `ghostrules.reporters` exposing `render(result) -> str` against a scenario
+  with every secret format in every place (Phase 5 reporters must expose that function).
+- **Mutation check:** with masking switched off the dedicated tests fail (7 of 9), so they do
+  detect a leak.
+- **Test secrets:** defanged fakes in `tests/secret_samples.py` with the real shapes; the GitHub
+  one is `ghp_` + 36 chars (`EXAMPLE` x5 + `0`), since the spec's 32-char sample cannot match
+  GR101.
+- **`ServerDef`:** carries `spans` (character offsets of the server key and of each command, arg,
+  env value, header value and URL) instead of the single `line` in PLAN §4, so findings point at
+  the exact value. Shapes read: `mcpServers`, `servers`, `mcp.servers`, `projects.*.mcpServers`
+  (`~/.claude.json`) and Codex `[mcp_servers.*]` (TOML locations are found by text search inside
+  the server's table, so they are approximate when the same value repeats).
+- **GR101 scope:** known formats are checked in every value of a server (env, args, headers, URL
+  incl. query and password) and in the settings `env`; the generic rule needs a secret-looking
+  key name (env/header name, `--flag=value`, or the flag before the value, URL parameter).
+- **GR102:** knows npx, bunx, `pnpm dlx`, `yarn dlx`, uvx, `pipx run` (value-taking flags
+  skipped, `-p/--package/--from/--spec` read as the package). Pinned = exact `x.y.z` (npm) or
+  `==`/`@version` (Python) or a git commit SHA; local paths and archive URLs are not judged.
+  `pkg@1`, `@latest`, ranges and branch/tag refs are unpinned.
+- **GR103:** `http://` only (not `ws://`); `${VAR}` hosts are skipped; loopback = `localhost`,
+  127.0.0.0/8, `::1`.
+- **GR104:** "filesystem-like" = `filesystem` in the name/package, or a `fs`/`files` token
+  (so `pdfsearch` is not one). The package argument itself is never counted as a path.
+- **GR105:** also matches `dash/ksh/fish`, combined flags like `-lc`, and PowerShell
+  `-enc/-EncodedCommand`; critical when the command string matches a GR012 pattern (which
+  includes encoded PowerShell).
+- **GR106:** one finding per dangerous option, pointing at that argument.
+- **GR107:** besides the specified keys, hook commands are also checked for shell-style
+  exfiltration (`curl ... .env`, `cat ~/.ssh/id_rsa | curl`, `env | curl`) and collector domains,
+  since GR013's prose patterns would miss them. Gemini `yolo` is read only under `.gemini/`.
+- **GR108:** `enableAllProjectMcpServers: true`, plus Gemini-style `"trust": true` on a server
+  as the "equivalent auto-trust flag".
+
 ## Planned for later phases
 
-- **GR101 fixture token:** `ghp_EXAMPLEEXAMPLEEXAMPLEEXAMPLE0000` has 32 chars after the prefix
-  and low entropy, so it would not match GR101 (needs 36). Demo/fixture tokens will be 36 chars.
-- **Masking format:** `ghp_****…a1b2` (CLAUDE.md) wins over RULES' `first 4 + **** + last 4`.
-  Masking is applied centrally when a `Finding` is built, so snippets/messages/decoded text are
-  already safe, including GR012's "full command" snippet.
 - **Poisoned demo coverage:** PLAN §6 does not trigger GR004, GR006, GR014, GR015, GR016, GR104
   or GR105; the demo will be extended so every rule fires (RULES acceptance criterion).
 - **`clean`:** removes only characters the rules actually flag (so emoji ZWJ, flag tag sequences,
@@ -115,4 +160,6 @@ Newest at the bottom of each section. "Phase N" says when the decision takes eff
   suppressions.
 - **Self-scan (Phase 9):** exclude `examples/**` as well as test fixtures.
 - **SARIF:** findings from `--home` files are not repo-relative and are left out of SARIF.
-- **MCP shapes:** also read `projects.*.mcpServers` in `~/.claude.json`.
+- **Phase 5 must mask too:** `reveal` prints file content and `clean`'s dry-run prints a diff of
+  it, which bypass `Finding`; both have to run their output through `mask_secrets`, and the
+  Phase 5 reporters must expose `render(result) -> str` so the masking test covers them.

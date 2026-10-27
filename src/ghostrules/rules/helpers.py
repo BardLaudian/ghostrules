@@ -8,6 +8,7 @@ from collections import defaultdict
 from collections.abc import Iterable
 
 from ghostrules.models import Finding, ScanTarget, Severity
+from ghostrules.secrets import apply_spans, map_offset, mask_secrets, mask_spans
 from ghostrules.unicode_utils import render_invisible
 
 
@@ -49,28 +50,41 @@ def build_finding(
     fix_hint: str = "",
     limit: int = 8,
     with_name: bool = False,
+    secrets: Iterable[str] = (),
 ) -> Finding:
     """Build a ``Finding`` for the text at offsets ``[start, end)`` of the target.
 
     Line/column point at ``start`` (1-based, code points). ``end_column`` is exclusive and is
     clamped to the end of the first line when the match spans several lines.
+
+    The snippet is built from the line with every secret already masked (known formats plus the
+    exact values in ``secrets``), so a context window can never cut a secret in half and leave
+    a readable fragment. Positions in the finding still refer to the real file.
     """
     line, column = target.position(start)
-    text_line = target.lines[line - 1]
+    raw_line = target.lines[line - 1]
     last_line, last_column = target.position(max(end - 1, start))
-    end_column = last_column + 1 if last_line == line else len(text_line) + 1
-    snippet = make_snippet(text_line, column - 1, end_column - 1, limit=limit, with_name=with_name)
+    end_column = last_column + 1 if last_line == line else len(raw_line) + 1
+    secret_values = tuple(secrets)
+    spans = mask_spans(raw_line, secret_values)
+    snippet = make_snippet(
+        apply_spans(raw_line, spans),
+        map_offset(spans, column - 1),
+        map_offset(spans, end_column - 1, end=True),
+        limit=limit,
+        with_name=with_name,
+    )
     return Finding(
         rule_id=rule_id,
         severity=severity,
         title=title,
-        message=message,
+        message=mask_secrets(message, secret_values),
         path=target.path,
         line=line,
         column=column,
         end_column=end_column,
         snippet=snippet,
-        decoded=decoded or None,
+        decoded=mask_secrets(decoded, secret_values) if decoded else None,
         fix_hint=fix_hint,
     )
 
