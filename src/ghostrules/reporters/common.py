@@ -54,7 +54,7 @@ class FileGroup:
 
 def group_by_file(findings: list[Finding]) -> list[FileGroup]:
     """Group findings by file. Files with the worst findings come first; among equals, a file
-    hiding decoded text comes before one that does not, then by path."""
+    hiding decoded text comes before one that does not, then files nearer the root, then path."""
     by_path: dict[str, list[Finding]] = {}
     for f in findings:
         by_path.setdefault(f.path, []).append(f)
@@ -66,7 +66,12 @@ def group_by_file(findings: list[Finding]) -> list[FileGroup]:
     ]
     return sorted(
         groups,
-        key=lambda g: (-int(g.worst), not any(f.decoded for f in g.findings), g.path),
+        key=lambda g: (
+            -int(g.worst),
+            not any(f.decoded for f in g.findings),
+            g.path.count("/"),
+            g.path,
+        ),
     )
 
 
