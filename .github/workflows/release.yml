@@ -1,0 +1,77 @@
+name: Release
+
+# Push a tag like v0.1.0 to publish. PyPI uses Trusted Publishing (OIDC): there is no API token
+# in this repository. One-time setup on PyPI: add a "pending publisher" for this repository,
+# workflow "release.yml" and environment "pypi".
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: The tag must match the package version
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import os, re
+          version = re.search(r'__version__ = "([^"]+)"', open("src/ghostrules/__init__.py").read()).group(1)
+          tag = os.environ["TAG"].removeprefix("v")
+          assert version == tag, f"tag {tag} does not match __version__ {version}"
+          PY
+
+      - name: The changelog must have release notes for this tag
+        env:
+          TAG: ${{ github.ref_name }}
+        run: python scripts/changelog_section.py "$TAG" > release-notes.md
+
+      - name: Build
+        run: |
+          python -m pip install --disable-pip-version-check --quiet build
+          python -m build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: |
+            dist/
+            release-notes.md
+
+  publish-pypi:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write # Trusted Publishing
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    needs: publish-pypi
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: gh release create "$TAG" dist/* --repo "$REPO" --title "$TAG" --notes-file release-notes.md

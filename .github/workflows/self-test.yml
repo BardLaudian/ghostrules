@@ -1,0 +1,73 @@
+name: Self-test
+
+# Runs the action from this very checkout against the demo repositories.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Poisoned demo with fail-on none (must pass, must report findings)
+        id: poisoned
+        uses: ./
+        with:
+          path: examples/poisoned-repo
+          fail-on: none
+          upload-sarif: "false"
+
+      - name: SARIF must contain results, led by the hidden instruction
+        run: |
+          python - <<'PY'
+          import json
+          run = json.load(open("ghostrules.sarif"))["runs"][0]
+          results = run["results"]
+          assert len(results) > 10, f"expected many results, got {len(results)}"
+          ids = {r["ruleId"] for r in results}
+          assert {"GR001", "GR012", "GR101"} <= ids, ids
+          assert results[0]["ruleId"] == "GR001", results[0]["ruleId"]
+          assert run["tool"]["driver"]["rules"], "rules missing"
+          print(f"ok: {len(results)} results")
+          PY
+
+      - name: The exit-code output is 0
+        env:
+          EXIT_CODE: ${{ steps.poisoned.outputs.exit-code }}
+        run: test "$EXIT_CODE" = "0"
+
+      - name: Poisoned demo with the default fail-on (must fail the step)
+        id: gate
+        uses: ./
+        continue-on-error: true
+        with:
+          path: examples/poisoned-repo
+          upload-sarif: "false"
+
+      - name: The gate must have failed
+        env:
+          OUTCOME: ${{ steps.gate.outcome }}
+          EXIT_CODE: ${{ steps.gate.outputs.exit-code }}
+        run: |
+          test "$OUTCOME" = "failure"
+          test "$EXIT_CODE" = "1"
+
+      - name: Clean demo (must pass with no results)
+        uses: ./
+        with:
+          path: examples/clean-repo
+          upload-sarif: "false"
+
+      - name: SARIF must be empty
+        run: |
+          python - <<'PY'
+          import json
+          results = json.load(open("ghostrules.sarif"))["runs"][0]["results"]
+          assert results == [], results
+          PY

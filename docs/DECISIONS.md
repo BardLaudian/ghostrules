@@ -222,6 +222,39 @@ Newest at the bottom of each section. "Phase N" says when the decision takes eff
   Windows checkouts (autocrlf) keep these byte-exact files intact; the "examples are up to date"
   test would otherwise fail on the Windows CI runner.
 
+## Applied (Phase 7)
+
+- **Action inputs never reach a shell by text substitution.** Every `${{ ... }}` goes through an
+  `env:` variable, and a test fails if any workflow or action script contains `${{` in a `run:`.
+  The action installs itself from `$GITHUB_ACTION_PATH` (the same directory as
+  `${{ github.action_path }}`), with Python 3.12.
+- **Job flow (SPEC §7):** the scan step runs with the requested `fail-on`, writes
+  `ghostrules.sarif` and only *records* the exit code (output `exit-code`); the SARIF upload and
+  the Markdown job summary follow; the last step fails the job with the recorded code and an
+  `::error` annotation (1 = findings, anything else = the scan could not run). A test executes
+  these exact scripts with bash against the demo repositories.
+- **SARIF upload cannot fail the job** (`continue-on-error`): it is unavailable on forks and on
+  private repositories without code scanning, and the scan result must stay the only gate.
+- **`path` should stay `.`:** SARIF locations are relative to the scanned path, and GitHub resolves
+  them from the repository root. Documented in the input description and the README.
+- **pre-commit hook:** `entry: ghostrules scan`, `pass_filenames: false`, no `always_run`
+  (pre-commit then runs it only on commits that stage at least one file, which is every real
+  commit). It scans the repository root, exits 1 on findings.
+- **Workflows:** `ci.yml` also smoke-tests the demos (clean exits 0, poisoned exits 1) on every
+  OS. `self-test.yml` runs the local action on the poisoned demo with `fail-on: none` and asserts
+  the SARIF has results led by GR001, then with the default `fail-on` and asserts the step fails
+  with exit code 1, then on the clean demo and asserts an empty SARIF. All three workflows pass
+  `actionlint` (run locally from a throwaway virtualenv; it is not a project dependency).
+- **Release (`release.yml`, on `v*` tags):** build once, then publish to PyPI through
+  *Trusted Publishing* (OIDC, environment `pypi`, no token or secret anywhere; a test checks), then
+  create the GitHub release with the built files. The build job refuses to continue if the tag
+  differs from `__version__` or if `CHANGELOG.md` has no non-empty `## [X.Y.Z]` section
+  (`scripts/changelog_section.py`), so **Phase 9 must turn `[Unreleased]` into `[0.1.0]`** before
+  tagging. One-time setup on PyPI: add a pending publisher for the repository, workflow
+  `release.yml`, environment `pypi`.
+- **Placeholders to fill before publishing:** `OWNER` in the README snippets and in
+  `PROJECT_URL` (see Phase 5).
+
 ## Planned for later phases
 
 - **`clean`:** removes only characters the rules actually flag (so emoji ZWJ, flag tag sequences,

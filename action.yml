@@ -1,0 +1,97 @@
+name: ghostrules
+description: >-
+  Find hidden instructions and risky configuration in the files AI coding agents read and obey
+  (AGENTS.md, CLAUDE.md, .cursorrules, skills, MCP configs...). Read-only: nothing is executed.
+author: Pablo Seoane Temprano
+branding:
+  icon: eye-off
+  color: gray-dark
+
+inputs:
+  path:
+    description: >-
+      File or directory to scan. Leave it at the repository root: SARIF locations are relative to
+      this path, so GitHub code scanning only places alerts correctly for ".".
+    default: "."
+  fail-on:
+    description: Fail the job if a finding has at least this severity (critical, high, medium, low, info) or "none".
+    default: high
+  all-files:
+    description: Also check every text file in the tree for hidden Unicode characters.
+    default: "false"
+  upload-sarif:
+    description: >-
+      Upload the SARIF report to GitHub code scanning (needs "security-events: write" and a
+      repository where code scanning is available).
+    default: "true"
+
+outputs:
+  exit-code:
+    description: "ghostrules exit code: 0 clean, 1 findings at or above fail-on, 2 error."
+    value: ${{ steps.scan.outputs.exit-code }}
+  sarif-file:
+    description: Path of the SARIF report.
+    value: ghostrules.sarif
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Install ghostrules
+      shell: bash
+      run: python -m pip install --disable-pip-version-check --quiet "${GITHUB_ACTION_PATH}"
+
+    - name: Scan
+      id: scan
+      shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+        INPUT_ALL_FILES: ${{ inputs.all-files }}
+      run: |
+        # The SARIF report is written whatever the result; the job is failed in the last step,
+        # after the report has been uploaded and summarised.
+        args=("$INPUT_PATH" --fail-on "$INPUT_FAIL_ON")
+        if [ "$INPUT_ALL_FILES" = "true" ]; then args+=(--all-files); fi
+        set +e
+        ghostrules scan "${args[@]}" --format sarif --output ghostrules.sarif
+        code=$?
+        set -e
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+
+    - name: Upload SARIF to code scanning
+      if: ${{ inputs.upload-sarif == 'true' && !cancelled() }}
+      uses: github/codeql-action/upload-sarif@v3
+      continue-on-error: true
+      with:
+        sarif_file: ghostrules.sarif
+        category: ghostrules
+
+    - name: Write job summary
+      if: ${{ !cancelled() }}
+      shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_ALL_FILES: ${{ inputs.all-files }}
+      run: |
+        args=("$INPUT_PATH" --fail-on none)
+        if [ "$INPUT_ALL_FILES" = "true" ]; then args+=(--all-files); fi
+        ghostrules scan "${args[@]}" --format markdown >> "$GITHUB_STEP_SUMMARY" || true
+
+    - name: Fail if ghostrules found problems
+      if: ${{ !cancelled() }}
+      shell: bash
+      env:
+        SCAN_EXIT_CODE: ${{ steps.scan.outputs.exit-code }}
+        INPUT_FAIL_ON: ${{ inputs.fail-on }}
+      run: |
+        case "$SCAN_EXIT_CODE" in
+          0) ;;
+          1) echo "::error title=ghostrules::Findings at or above '$INPUT_FAIL_ON' severity. See the job summary and the Security tab." ;;
+          *) echo "::error title=ghostrules::The scan failed to run (exit code '$SCAN_EXIT_CODE')." ;;
+        esac
+        exit "${SCAN_EXIT_CODE:-2}"

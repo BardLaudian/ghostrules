@@ -1,0 +1,9 @@
+- id: ghostrules
+  name: ghostrules (hidden instructions in AI agent files)
+  description: >-
+    Scan the repository for hidden Unicode, malicious instructions and risky MCP/agent
+    configuration in AGENTS.md, CLAUDE.md, .cursorrules, skills, MCP configs and similar files.
+  entry: ghostrules scan
+  language: python
+  pass_filenames: false
+  minimum_pre_commit_version: "3.0.0"
