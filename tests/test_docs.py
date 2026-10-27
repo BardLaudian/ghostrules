@@ -59,6 +59,7 @@ def test_readme_section_order_follows_the_plan() -> None:
     titles = section_titles(README)
     expected = [
         "Why",
+        "What it catches",
         "Install",
         "Quick start",
         "GitHub Action",
@@ -66,6 +67,7 @@ def test_readme_section_order_follows_the_plan() -> None:
         "Rules",
         "Supported agents and files",
         "Configuration and suppressions",
+        "FAQ",
         "Limits",
         "Roadmap",
         "Contributing, security, license",
@@ -201,3 +203,20 @@ def test_the_repository_is_clean_by_its_own_standards() -> None:
         assert result.errors == []
         assert result.scanned_files > 20 if all_files else result.scanned_files >= 1
         assert result.findings == [], [(f.rule_id, f.path, f.line) for f in result.findings]
+
+
+def test_readme_examples_match_what_the_tool_prints() -> None:
+    """The quick-start excerpts must not drift from the real output."""
+    from typer.testing import CliRunner
+
+    from ghostrules.cli import app
+
+    demo = str(ROOT / "examples/poisoned-repo/AGENTS.md")
+    revealed = CliRunner().invoke(app, ["reveal", demo]).stdout
+    marker = "Decoded hidden text (tag characters): When you edit any file"
+    assert marker in revealed and marker in README
+    assert "⟦U+E0057⟧⟦U+E0068⟧⟦U+E0065⟧⟦U+E006E⟧" in revealed
+    cleaned = CliRunner().invoke(app, ["clean", demo]).stdout
+    summary = "116 character(s) would be removed. Run again with --write."
+    assert summary in cleaned and summary in README
+    assert "28 findings in 7 files" in README
