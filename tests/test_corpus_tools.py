@@ -546,3 +546,89 @@ def test_badge_main_writes_files_and_fails_without_run(tmp_path: Path) -> None:
     )
     assert badge.main(args) == 0
     assert json.loads((out / "badge.json").read_text())["message"] == "gate failing"
+
+
+# --- filestats (numbers for the study) ----------------------------------------------------------
+
+import filestats  # noqa: E402
+
+
+def test_filestats_counts_without_contents_and_never_follows_links(tmp_path: Path) -> None:
+    clone = tmp_path / "clone"
+    (clone / "docs").mkdir(parents=True)
+    (clone / "AGENTS.md").write_text("one\n<!-- a -->\ntwo\n", encoding="utf-8")
+    (clone / "CLAUDE.md").symlink_to("AGENTS.md")
+    (clone / "docs" / "style.md").write_text("x", encoding="utf-8")
+    (clone / ".cursorrules").symlink_to("/etc/hostname")
+    (clone / "node_modules").mkdir()
+    (clone / "node_modules" / "AGENTS.md").write_text("ignored", encoding="utf-8")
+    rows = {r["path"]: r for r in filestats.collect(clone, ["docs/style.md", "missing.md"])}
+    assert set(rows) == {"AGENTS.md", "CLAUDE.md", ".cursorrules", "docs/style.md"}
+    assert rows["AGENTS.md"]["lines"] == 3 and rows["AGENTS.md"]["html_comments"] == 1
+    assert rows["AGENTS.md"]["kind"] == "agent" and rows["docs/style.md"]["kind"] == "imported"
+    assert rows["CLAUDE.md"]["symlink"] and rows["CLAUDE.md"]["link_target"] == "AGENTS.md"
+    assert rows[".cursorrules"]["link_target"] is None  # an absolute target is never followed
+    assert "text" not in json.dumps(rows) and "one" not in json.dumps(rows)
+
+
+def test_run_records_files_and_context_entries(tmp_path: Path) -> None:
+    runner = FakeRunner()
+    runner.contexts["o__r"] = {
+        "agents": {
+            "claude-code": {
+                "entries": [
+                    {
+                        "path": "AGENTS.md",
+                        "load": "always",
+                        "via": ["CLAUDE.md:1"],
+                        "readable": True,
+                        "condition": "paths: src/**",
+                        "transforms": ["strip_html_comments"],
+                    },
+                ]
+            }
+        }
+    }
+    summary = run.run_corpus(
+        [RepoEntry("o/r", "regression")], tmp_path / "res", runner=runner, command=CMD,
+        workers=1, date="2026-01-01", tier="regression",
+    )  # fmt: skip
+    record = json.loads((tmp_path / "res" / "2026-01-01" / "o__r.json").read_text())
+    entry = record["context"]["claude-code"]["entries"][0]
+    assert entry["depth"] == 1 and entry["conditional"] is True
+    assert record["files"][0]["path"] == "AGENTS.md" and summary["repos"] == 1
+
+
+# --- discover strata ----------------------------------------------------------------------------
+
+
+def test_parse_strata_and_closed_star_range() -> None:
+    assert discover.parse_strata("500-1999, 2000-9999,10000-") == [
+        (500, 1999),
+        (2000, 9999),
+        (10000, 0),
+    ]
+    with pytest.raises(common.CorpusError):
+        discover.parse_strata("abc")
+    q = discover.search_query(500, "Go", 6, dt.date(2026, 10, 28), 1999)
+    assert "stars:500..1999" in q and "language:Go" in q
+    assert "stars:>=500" in discover.search_query(500, "", 6, dt.date(2026, 10, 28))
+    assert discover.stratum_name(10000, 0) == "10000+"
+
+
+def test_propose_strata_balances_languages_and_skips_excluded() -> None:
+    def cand(name: str, stars: int, lang: str, stratum: str) -> dict:
+        return {"name": name, "stars": stars, "language": lang, "agent_files": ["AGENTS.md"],
+                "stratum": stratum}  # fmt: skip
+
+    cands = [cand(f"o/py{i}", 900 - i, "Python", "500-1999") for i in range(5)]
+    cands += [cand(f"o/go{i}", 800 - i, "Go", "500-1999") for i in range(5)]
+    cands += [cand("o/big", 20000, "Go", "10000+")]
+    cands[0]["agent_files"] = []  # no agent files: never proposed
+    text = discover.propose_strata(cands, "study", 4, {"o/go0"})
+    names = [ln.split('"')[1] for ln in text.splitlines() if ln.startswith("name")]
+    assert "o/py0" not in names and "o/go0" not in names and "o/big" in names
+    assert (
+        sum(n.startswith("o/py") for n in names) == 2
+        and sum(n.startswith("o/go") for n in names) == 2
+    )

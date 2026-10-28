@@ -29,6 +29,7 @@ from common import (
     CorpusError,
     Proc,
     Runner,
+    load_repos,
     read_json,
     subprocess_runner,
     valid_repo,
@@ -112,10 +113,14 @@ def parse_response(proc: Proc) -> tuple[int, dict[str, str], Any]:
         return status, headers, None
 
 
-def search_query(min_stars: int, language: str, months: int, today: dt.date) -> str:
-    """The repository search query (not archived, not a fork, pushed recently)."""
+def search_query(
+    min_stars: int, language: str, months: int, today: dt.date, max_stars: int = 0
+) -> str:
+    """The repository search query (not archived, not a fork, pushed recently). With
+    ``max_stars`` the star range is closed."""
     since = (today - dt.timedelta(days=30 * months)).isoformat()
-    parts = [f"stars:>={min_stars}", "archived:false", "fork:false", f"pushed:>{since}"]
+    stars = f"stars:{min_stars}..{max_stars}" if max_stars else f"stars:>={min_stars}"
+    parts = [stars, "archived:false", "fork:false", f"pushed:>{since}"]
     if language:
         parts.append(f"language:{language}")
     return " ".join(parts)
@@ -153,11 +158,15 @@ def agent_files(client: GhClient, repo: str, branch: str) -> list[str] | None:
     return sorted(files)
 
 
-def discover(client: GhClient, queries: list[str], limit: int = 0) -> list[dict[str, Any]]:
-    """Candidates with stars, language and agent files (``None`` = unknown)."""
+def discover(
+    client: GhClient, queries: list[str], limit: int = 0, per_query: int = 0
+) -> list[dict[str, Any]]:
+    """Candidates with stars, language and agent files (``None`` = unknown). ``per_query`` keeps
+    only the most starred results of each query."""
     seen: dict[str, dict[str, Any]] = {}
     for query in queries:
-        for item in search_repos(client, query):
+        pages = -(-per_query // PER_PAGE) if per_query else SEARCH_PAGES
+        for item in search_repos(client, query, pages)[: per_query or None]:
             name = item.get("full_name", "")
             if valid_repo(name) and name not in seen and not item.get("fork"):
                 seen[name] = item
@@ -196,6 +205,72 @@ def propose(candidates: list[dict[str, Any]], tier: str, count: int) -> str:
     return "\n".join(lines)
 
 
+def parse_strata(spec: str) -> list[tuple[int, int]]:
+    """``"500-1999,2000-9999,10000-"`` -> ``[(500, 1999), (2000, 9999), (10000, 0)]``."""
+    out = []
+    for part in spec.split(","):
+        lo, _, hi = part.strip().partition("-")
+        if not lo.isdigit() or (hi and not hi.isdigit()):
+            raise CorpusError(f"bad stratum {part!r}: expected LOW-HIGH or LOW-")
+        out.append((int(lo), int(hi) if hi else 0))
+    return out
+
+
+def stratum_name(lo: int, hi: int) -> str:
+    """A label such as ``500-1999`` or ``10000+``."""
+    return f"{lo}-{hi}" if hi else f"{lo}+"
+
+
+def discover_strata(
+    client: GhClient,
+    strata: list[tuple[int, int]],
+    languages: list[str],
+    months: int,
+    per_cell: int,
+    today: dt.date,
+) -> list[dict[str, Any]]:
+    """Candidates of every (stars range x language) cell, each tagged with its ``stratum``."""
+    out: list[dict[str, Any]] = []
+    for lo, hi in strata:
+        for lang in languages:
+            query = search_query(lo, lang, months, today, hi)
+            for c in discover(client, [query], per_query=per_cell):
+                out.append({**c, "stratum": stratum_name(lo, hi)})
+    return out
+
+
+def propose_strata(
+    candidates: list[dict[str, Any]], tier: str, per_stratum: int, exclude: set[str]
+) -> str:
+    """Like ``propose`` but ``per_stratum`` repos from each stars stratum (round-robin across
+    languages), skipping ``exclude`` (repos already in another tier)."""
+    chosen: list[dict[str, Any]] = []
+    for stratum in dict.fromkeys(c["stratum"] for c in candidates):
+        pool = [
+            c
+            for c in candidates
+            if c["stratum"] == stratum and c["name"] not in exclude and c["agent_files"]
+        ]
+        chosen += _round_robin(pool, per_stratum)
+    lines = [f"# proposed: {len(chosen)} repos, tier {tier}, {dt.date.today().isoformat()}"]
+    for c in sorted(chosen, key=lambda c: c["name"].lower()):
+        lines += ["[[repo]]", f'name = "{c["name"]}"', f'tier = "{tier}"', ""]
+    return "\n".join(lines)
+
+
+def _round_robin(pool: list[dict[str, Any]], count: int) -> list[dict[str, Any]]:
+    by_language: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for c in sorted(pool, key=lambda c: -c["stars"]):
+        by_language[c["language"] or "other"].append(c)
+    queues = sorted(by_language.values(), key=lambda q: -q[0]["stars"])
+    chosen: list[dict[str, Any]] = []
+    while len(chosen) < count and any(queues):
+        for queue in queues:
+            if queue and len(chosen) < count:
+                chosen.append(queue.pop(0))
+    return chosen
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Discover corpus candidates with the gh CLI.")
     p.add_argument("--min-stars", type=int, default=2000)
@@ -205,6 +280,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     p.add_argument("--out", type=Path, default=CACHE_DIR / "candidates.json")
     p.add_argument("--refresh", action="store_true", help="ignore the cache")
     p.add_argument("--propose", metavar="TIER:N", help="print a TOML block, e.g. regression:300")
+    p.add_argument("--strata", help='stars strata, e.g. "500-1999,2000-9999,10000-"')
+    p.add_argument("--per-cell", type=int, default=150, help="candidates per stratum x language")
+    p.add_argument("--per-stratum", type=int, default=500, help="repos proposed per stratum")
+    p.add_argument("--exclude-tier", help="skip repos of this tier in repos.toml")
     p.add_argument("--from-file", type=Path, help="propose from an earlier --out file")
     args = p.parse_args(argv)
     try:
@@ -213,8 +292,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         else:
             languages = [lang.strip() for lang in args.language.split(",")] or [""]
             today = dt.date.today()
-            queries = [search_query(args.min_stars, lang, args.months, today) for lang in languages]
-            candidates = discover(GhClient(refresh=args.refresh), queries, args.limit)
+            client = GhClient(refresh=args.refresh)
+            if args.strata:
+                candidates = discover_strata(
+                    client, parse_strata(args.strata), languages, args.months, args.per_cell, today
+                )
+            else:
+                queries = [
+                    search_query(args.min_stars, lang, args.months, today) for lang in languages
+                ]
+                candidates = discover(client, queries, args.limit)
             write_json(args.out, candidates)
             known = sum(1 for c in candidates if c["agent_files"])
             unknown = sum(1 for c in candidates if c["agent_files"] is None)
@@ -223,7 +310,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             tier, _, count = args.propose.partition(":")
             if tier not in TIERS or not count.isdigit():
                 raise CorpusError(f"--propose expects TIER:N with TIER in {', '.join(TIERS)}")
-            print(propose(candidates, tier, int(count)))
+            if args.strata or any("stratum" in c for c in candidates):
+                skip = {
+                    e.name
+                    for e in load_repos(CORPUS_DIR / "repos.toml")
+                    if e.tier == args.exclude_tier
+                }
+                print(propose_strata(candidates, tier, args.per_stratum, skip))
+            else:
+                print(propose(candidates, tier, int(count)))
     except CorpusError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return 2

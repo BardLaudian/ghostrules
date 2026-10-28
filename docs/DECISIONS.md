@@ -841,3 +841,15 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   runs the Playwright smoke test (`tests/web`, skipped when playwright is missing, GitHub calls
   mocked) and deploys with SHA-pinned official actions. The demo's hidden text is generated in JS,
   so no invisible characters are stored in the repository.
+
+## v0.3 Phase 5 — study tooling
+
+- **Selection (approved):** 3 stars strata (500-1999, 2000-9999, 10000+) x the 10 languages of the
+  regression tier (Rust, JavaScript, C++, Java, Ruby, Go, C#, Python, TypeScript, PHP), the 150
+  most-starred candidates per cell, public, non-fork, non-archived, pushed within 6 months, with at
+  least one agent file; about 500 repos per stratum, round-robin across languages. The regression
+  repos are excluded from `study` and the report uses both tiers together.
+- **`run.py` records more numbers:** per context entry its load kind, import depth, whether it is
+  conditional and which transforms apply; per file (`filestats.py`) kind (agent / imported), size,
+  lines, symlink and its in-repo target, a 16-hex content hash (to find duplicated files) and the
+  number of HTML comments. No text is stored. Symlinks are read with `lstat`/`readlink`, never followed.
