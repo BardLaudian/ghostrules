@@ -205,11 +205,17 @@ def _is_agent_file(cand: Candidate) -> bool:
 
 
 def _annotate(finding: Finding, meta: FileMeta | None, standalone: bool) -> Finding:
-    """Mark findings in a file that only an import reaches with the chain and the agents."""
-    if meta is None or standalone or not meta.via:
+    """Mark findings in a file that only an import reaches with the chain and the agents, and
+    findings in a file an agent reads through a symlink with the link's name."""
+    if meta is None:
         return finding
-    tags = (IMPORT_TAG,) if _INJECTION_TAG_RULES.fullmatch(finding.rule_id) else ()
-    return replace(finding, via=meta.via, agents=tuple(sorted(meta.agents)), tags=tags)
+    if meta.via and not standalone:
+        tags = (IMPORT_TAG,) if _INJECTION_TAG_RULES.fullmatch(finding.rule_id) else ()
+        return replace(finding, via=meta.via, agents=tuple(sorted(meta.agents)), tags=tags)
+    if meta.aliases:
+        via = tuple(f"{alias} (symlink)" for alias in sorted(meta.aliases))
+        return replace(finding, via=via, agents=tuple(sorted(meta.agents)))
+    return finding
 
 
 def _label_for(root: Path, roots: list[Path]) -> Callable[[str], str]:
@@ -246,6 +252,7 @@ def _run_graph_rules(
             },
             rc.label_of,
             lambda path: matches_any(path, config.exclude),
+            rc.base,
         )
         for r in graph_rules:
             assert r.check_graph is not None

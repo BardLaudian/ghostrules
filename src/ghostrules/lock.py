@@ -44,8 +44,10 @@ class LockEntry:
     """A file in one agent's context, as recorded in the lock.
 
     ``via`` is the chain of importing *paths* (no line numbers, so adding a line to CLAUDE.md does
-    not churn every file it imports). Hashes are ``None`` for entries ghostrules does not read
-    (symlinks, external or sensitive imports, files the agent skips).
+    not churn every file it imports). ``link`` is set for a symlink that is an alias of a file in
+    the repository (the hashes are those of its target). Hashes are ``None`` for entries
+    ghostrules does not read (links out of the repository, external or sensitive imports, files the
+    agent skips).
     """
 
     path: str
@@ -55,6 +57,7 @@ class LockEntry:
     raw_sha256: str | None
     seen_sha256: str | None
     lines: str | None
+    link: str | None = None  # a symlink: the file in the repository it ends at
 
     @property
     def key(self) -> tuple[str, tuple[str, ...]]:
@@ -126,6 +129,7 @@ def _record(entry: ContextEntry) -> LockEntry:
         raw_sha256=entry.raw_sha256 if readable else None,
         seen_sha256=entry.seen_sha256 if readable else None,
         lines=fingerprint(entry.text) if readable else None,
+        link=entry.alias_of or None,
     )
 
 
@@ -163,7 +167,7 @@ def build_snapshot(
 
 
 def _entry_dict(e: LockEntry) -> dict[str, Any]:
-    return {
+    data: dict[str, Any] = {
         "path": e.path,
         "via": list(e.via),
         "load": e.load,
@@ -172,6 +176,9 @@ def _entry_dict(e: LockEntry) -> dict[str, Any]:
         "seen_sha256": e.seen_sha256,
         "lines": e.lines,
     }
+    if e.link:
+        data["link"] = e.link
+    return data
 
 
 def to_json(lock: Lock) -> str:
@@ -223,6 +230,7 @@ def parse_lock(text: str) -> Lock:
                     raw_sha256=_opt_str(item.get("raw_sha256"), "raw_sha256"),
                     seen_sha256=_opt_str(item.get("seen_sha256"), "seen_sha256"),
                     lines=_opt_str(item.get("lines"), "lines"),
+                    link=_opt_str(item.get("link"), "link"),
                 )
             )
         agents[name] = records
@@ -364,6 +372,8 @@ def _compare(old: LockEntry, new: LockEntry, agent: str, snap: Snapshot) -> Chan
         details.append(
             f"condition: {_condition_text(old) or 'none'} → {_condition_text(new) or 'none'}"
         )
+    if old.link != new.link:
+        details.append(f"symlink target: {old.link or 'none'} → {new.link or 'none'}")
     current = snap.entries[(agent, new.path, new.via)]
     if old.seen_sha256 != new.seen_sha256 or details:
         change = Change("changed", new.path, new.via, [agent], details, current, old)

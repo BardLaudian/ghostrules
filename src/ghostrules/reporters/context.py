@@ -100,7 +100,9 @@ def _entry_node(entry: ContextEntry, report: ContextReport) -> Node:
         details.append("(unverified)")
     if entry.load != "blocked" and entry.note and (entry.unverified or not entry.readable):
         details.append(_short_note(entry.note))
-    return Node(icon, state, style, entry.path, details, report.severity_counts(entry.path))
+    name = f"{entry.path} → {entry.alias_of} (symlink)" if entry.alias_of else entry.path
+    counts = report.severity_counts(entry.alias_of or entry.path)
+    return Node(icon, state, style, name, details, counts)
 
 
 def _leaf(edge: ImportEdge) -> Node | None:
@@ -291,6 +293,10 @@ def _entry_dict(entry: ContextEntry, show_text: bool) -> dict[str, Any]:
         "matches": entry.matches,
         "note": entry.note,
     }
+    if entry.alias_of:
+        data["alias_of"] = entry.alias_of
+    if entry.link_problem:
+        data["link_problem"] = entry.link_problem
     if show_text:
         data["text"] = entry.text
     return data

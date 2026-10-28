@@ -36,6 +36,8 @@ _SENSITIVE_PATH = (
     r"cookies?)"
 )
 
+SENSITIVE_PATH_RE = re.compile(_SENSITIVE_PATH, re.IGNORECASE)
+
 EXFIL_PATTERNS = _compile(
     r"!\[[^\]]*\]\(https?://[^)\s]*[?&][^=\s)]+=(?:\{|\$|%7B|<)",
     rf"{_EXFIL_VERB}.{{0,80}}?{_SECRET}.{{0,200}}?https?://[^\s)\]>\"']+",
@@ -59,8 +61,10 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\bolvida\s+(?:tus|las)\s+instrucciones",
     ),
     "GR011": _compile(
+        # "do not tell the user to ...", "... which|what|how|where|when|why ..." is about what to
+        # say, not concealment; "that" is concealment only as "that you ..."
         r"\b(?:do\s+not|don'?t)\s+(?:tell|inform|mention|show|reveal)(?:\s+this)?(?:\s+to)?"
-        r"\s+the\s+user",
+        r"\s+the\s+user(?!\s+(?:to|which|what|how|where|when|why)\b)(?!\s+that\b(?!\s+you\b))",
         r"\bwithout\s+(?:telling|asking|notifying)\s+the\s+user",
         r"\b(?:silently|secretly|quietly)\s+(?:run|execute|add|send|install|modify)",
         r"\bdon'?t\s+mention\s+(?:this|these)",
@@ -69,9 +73,12 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\bsin\s+avisar\s+al\s+usuario",
     ),
     "GR012": _compile(
-        r"\bcurl\b[^\n|]{0,200}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b",
-        r"\bwget\b[^\n|]{0,200}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b",
-        r"\bcurl\b[^\n|]{0,200}\|\s*(?:sudo\s+)?python[0-9.]*\b",
+        # stdin is code only when the interpreter reads its program from it: `sh -c '...'` and
+        # `python -c/-m/script` take the program from an argument, and stdin is data
+        r"\bcurl\b[^\n|]{0,200}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b(?!\s+-c\b)",
+        r"\bwget\b[^\n|]{0,200}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b(?!\s+-c\b)",
+        r"\bcurl\b[^\n|]{0,200}\|\s*(?:sudo\s+)?python[0-9.]*(?:[ \t]+-)?"
+        r"(?=[ \t]*(?:[|;&)#]|\n|\Z))",
         r"\b(?:iwr|invoke-webrequest)\b[^\n|]{0,200}\|\s*(?:iex|invoke-expression)\b",
         r"\bpowershell(?:\.exe)?\b[^\n]{0,200}\s-e(?:nc|ncodedcommand)?\s+[A-Za-z0-9+/=]{16,}",
         r"\bbase64\s+(?:-d|--decode)\b[^\n|]{0,200}\|\s*(?:ba)?sh\b",
@@ -79,7 +86,11 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\beval\s+[\"']?\$\(\s*(?:curl|wget)\b",
     ),
     "GR013": EXFIL_PATTERNS + COLLECTOR_PATTERNS,
-    "GR014": _compile(rf"{_READ_VERB}[^\n]{{0,60}}?{_SENSITIVE_PATH}"),
+    # the verb governs the path: same clause (no `;` or sentence end), at most six words apart
+    "GR014": _compile(
+        rf"{_READ_VERB}[:,]?(?:[ \t]+[^\s;]*[^\s;.!?]){{0,6}}?"
+        rf"[ \t]+[`'\"(\[\u201c]*(?:[^\s/`'\"]*/)*{_SENSITIVE_PATH}"
+    ),
     "GR016": _compile(
         r"--dangerously-skip-permissions",
         r"\bbypassPermissions\b",

@@ -130,9 +130,12 @@ class ClaudeCode:
     def _agents_file(self, b: Builder, rel: str, where: str, has_claude: bool) -> None:
         repo = b.repo
         reason = f"{rel} in {where}"
-        if b.has(repo.label(rel)):
+        loaded = b.loaded_as(repo, rel)
+        if loaded == repo.label(rel):
             return  # already loaded through an import: not read twice
-        if self.mode == "claude-md":
+        if loaded is not None:  # a CLAUDE.md symlink to this file was read: not counted twice
+            b.add_blocked(repo, rel, reason, f"already read through {loaded} (symlink)")
+        elif self.mode == "claude-md":
             b.add_blocked(repo, rel, reason, 'instructions mode "claude-md"')
         elif self.mode == "claude-md-or-agents-md" and has_claude:
             b.add_blocked(
@@ -148,15 +151,7 @@ class ClaudeCode:
 
     def _rules(self, b: Builder) -> None:
         repo = b.repo
-        if repo.kind(_RULES_DIR) == "symlink":
-            b.add_blocked(
-                repo,
-                _RULES_DIR,
-                "rules directory",
-                "symlinked directory: not followed",
-                symlink_target=repo.symlink_target(_RULES_DIR) or "?",
-                leaves_tree=repo.link_leaves_tree(_RULES_DIR),
-            )
+        b.note_linked_dir(repo, _RULES_DIR, "rules directory")
         for rel in repo.files:
             base = _rule_base(rel)
             if base is None:

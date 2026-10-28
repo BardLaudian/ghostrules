@@ -23,6 +23,13 @@ _EXACT_NAMES = frozenset(
 )
 
 
+def is_template_path(path: str) -> bool:
+    """Whether ``path`` names a template for a secrets file (``.env.example``, ``*.sample``,
+    ``creds.template``, ``.env.ai-surfaces.example``): it holds placeholders, not secrets."""
+    name = path.replace("\\", "/").rstrip("/").rsplit("/", 1)[-1]
+    return bool(_PLACEHOLDER.search(name))
+
+
 def is_sensitive_path(path: str) -> bool:
     """Whether ``path`` (as written in an import) names a secrets or credentials file.
 

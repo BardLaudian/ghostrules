@@ -53,6 +53,7 @@ class FileMeta:
     views: list[AgentView] = field(default_factory=list)
     via: tuple[str, ...] = ()
     rooted: bool = False  # some agent loads it by itself, not only through an import
+    aliases: list[str] = field(default_factory=list)  # symlinks the agents read it through
 
 
 def build_context(
@@ -79,8 +80,11 @@ def collect_meta(contexts: list[RootContext], config: Config) -> dict[str, FileM
                     continue
                 if is_excluded(entry, config.exclude):
                     continue
-                label = rc.label_of(entry.path)
-                item = meta.setdefault(label, FileMeta(rc.abs_path(entry.path), entry.path))
+                real = entry.alias_of or entry.path  # a symlink is scanned as the file it ends at
+                label = rc.label_of(real)
+                item = meta.setdefault(label, FileMeta(rc.abs_path(real), real))
+                if entry.alias_of and not entry.via and entry.path not in item.aliases:
+                    item.aliases.append(entry.path)
                 item.agents.add(agent)
                 item.views.append(
                     AgentView(
