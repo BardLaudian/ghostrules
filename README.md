@@ -2,10 +2,12 @@
 
 *Know exactly what your AI agent reads — and approve every change to it.*
 
+**[Try it in your browser →](https://bardlaudian.github.io/ghostrules/)** Paste an `AGENTS.md`, drop a folder or name a public repo. It runs the real scanner in the page: your files never leave it.
+
 [![CI](https://github.com/BardLaudian/ghostrules/actions/workflows/ci.yml/badge.svg)](https://github.com/BardLaudian/ghostrules/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/ghostrules.svg)](https://pypi.org/project/ghostrules/)
 [![Python versions](https://img.shields.io/pypi/pyversions/ghostrules.svg)](https://pypi.org/project/ghostrules/)
-[![Corpus](https://img.shields.io/endpoint?url=https%3A%2F%2Fbardlaudian.github.io%2Fghostrules%2Fcorpus%2Fbadge.json)](corpus/README.md)
+[![Corpus](https://img.shields.io/endpoint?url=https%3A%2F%2Fbardlaudian.github.io%2Fghostrules%2Fcorpus%2Fbadge.json)](https://github.com/BardLaudian/ghostrules/blob/main/corpus/README.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/BardLaudian/ghostrules/blob/main/LICENSE)
 
 ![A CLAUDE.md that looks clean imports a file that imports a file with a hidden instruction; ghostrules finds it and shows the chain](https://raw.githubusercontent.com/BardLaudian/ghostrules/main/demo/imports.gif)
@@ -298,7 +300,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: BardLaudian/ghostrules@v0.2.1
+      - uses: BardLaudian/ghostrules@v0.3.0
         with:
           fail-on: high          # critical | high | medium | low | info | none
           all-files: "false"     # also check every text file for hidden Unicode
@@ -331,7 +333,7 @@ output `lock-exit-code` is `0` up to date, `1` changed, `2` the check could not 
 ```yaml
 repos:
   - repo: https://github.com/BardLaudian/ghostrules
-    rev: v0.2.1
+    rev: v0.3.0
     hooks:
       - id: ghostrules
 ```
@@ -490,6 +492,21 @@ the list.
 **How do I fail CI only for serious problems?** `--fail-on critical` (or `high`, the default).
 Findings below that level are still reported but do not change the exit code, and `--fail-on none`
 never fails.
+
+## How we test precision
+
+A scanner that cries wolf gets switched off, so precision is measured, not assumed. Every week a
+workflow scans 300 popular public repositories with agent files (`corpus/`, the only part of the
+project that uses the network) and fails if a critical or high finding has not been reviewed. Each
+false positive found that way became a test and a rule change; findings that are correct matches in
+a harmless context (a `curl | sh` installer in a README) are labelled and kept. On the first run of
+the 300 repositories 0.2.1 reported 84 critical and 156 high findings; 0.3.0 reports none critical
+and 53 high, all reviewed.
+
+The same tooling scanned 1,583 repositories for
+[a study of what popular repositories tell their AI agents](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md):
+aggregates only, no repository is named next to a finding, and every number comes from the CSVs in
+`study/data/`.
 
 ## Limits
 
