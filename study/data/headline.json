@@ -1,0 +1,18 @@
+{
+  "claude_agents_both": 491,
+  "claude_agents_symlink_or_import_pct": 67.4,
+  "claude_md_over_200_pct": 16.3,
+  "mcp_repos_with_unpinned_pct": 33.3,
+  "pct_multi_tool": 44.4,
+  "repos_claude_html_comment_pct": 7.7,
+  "repos_failed": 0,
+  "repos_importing_non_agent_file_pct": 4.7,
+  "repos_scanned": 1583,
+  "repos_with_agent_files": 1583,
+  "repos_with_at_imports_pct": 16.9,
+  "repos_with_conditional_rules_pct": 30.2,
+  "repos_with_hidden_unicode": 6,
+  "repos_with_risky_settings_pct": 0.8,
+  "repos_with_secret_findings": 0,
+  "repos_with_unloaded_import_pct": 1.3
+}

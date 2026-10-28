@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="619.2pt" height="288pt" viewBox="0 0 619.2 288" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>ghostrules study/charts.py</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 288 
+L 619.2 288 
+L 619.2 0 
+L 0 0 
+z
+" style="fill: #1a1a19"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 279.63072 253.44 
+L 600.624 253.44 
+L 600.624 59.616 
+L 279.63072 59.616 
+z
+" style="fill: #1a1a19"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 279.63072 92.072557 
+L 481.588992 92.072557 
+L 481.588992 68.426182 
+L 279.63072 68.426182 
+z
+" clip-path="url(#pcecc8b80d0)" style="fill: #6a6a65"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 279.63072 130.211872 
+L 392.647104 130.211872 
+L 392.647104 106.565497 
+L 279.63072 106.565497 
+z
+" clip-path="url(#pcecc8b80d0)" style="fill: #6a6a65"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 279.63072 168.351188 
+L 331.123392 168.351188 
+L 331.123392 144.704812 
+L 279.63072 144.704812 
+z
+" clip-path="url(#pcecc8b80d0)" style="fill: #6a6a65"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 279.63072 206.490503 
+L 311.061312 206.490503 
+L 311.061312 182.844128 
+L 279.63072 182.844128 
+z
+" clip-path="url(#pcecc8b80d0)" style="fill: #3987e5"/>
+   </g>
+   <g id="patch_7">
+    <path d="M 279.63072 244.629818 
+L 288.324288 244.629818 
+L 288.324288 220.983443 
+L 279.63072 220.983443 
+z
+" clip-path="url(#pcecc8b80d0)" style="fill: #6a6a65"/>
+   </g>
+   <g id="matplotlib.axis_1"/>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_1"/>
+     <g id="text_1">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: end; fill: #f0efec" x="276.13072" y="84.048588" transform="rotate(-0 276.13072 84.048588)">Rules that apply only to some paths</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_2"/>
+     <g id="text_2">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: end; fill: #f0efec" x="276.13072" y="122.187904" transform="rotate(-0 276.13072 122.187904)">@ imports pull files in</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_3"/>
+     <g id="text_3">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: end; fill: #f0efec" x="276.13072" y="160.327219" transform="rotate(-0 276.13072 160.327219)">CLAUDE.md with HTML comments Claude strips</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_4"/>
+     <g id="text_4">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: end; fill: #f0efec" x="276.13072" y="198.466534" transform="rotate(-0 276.13072 198.466534)">Imports a file that is not an agent file</text>
+     </g>
+    </g>
+    <g id="ytick_5">
+     <g id="line2d_5"/>
+     <g id="text_5">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: end; fill: #f0efec" x="276.13072" y="236.605849" transform="rotate(-0 276.13072 236.605849)">An import that silently does not load</text>
+     </g>
+    </g>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #f0efec" x="485.440911" y="82.847416" transform="rotate(-0 485.440911 82.847416)">30.2%  (478 of 1,583)</text>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #f0efec" x="396.499023" y="120.986732" transform="rotate(-0 396.499023 120.986732)">16.9%  (268 of 1,583)</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #f0efec" x="334.975311" y="159.126047" transform="rotate(-0 334.975311 159.126047)">7.7%  (44 of 570)</text>
+   </g>
+   <g id="text_9">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #f0efec" x="314.913231" y="197.265362" transform="rotate(-0 314.913231 197.265362)">4.7%  (74 of 1,583)</text>
+   </g>
+   <g id="text_10">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #f0efec" x="292.176207" y="235.404677" transform="rotate(-0 292.176207 235.404677)">1.3%  (21 of 1,583)</text>
+   </g>
+  </g>
+  <g id="text_11">
+   <text style="font-weight: 700; font-size: 14px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #f0efec" x="12.384" y="20.717812" transform="rotate(-0 12.384 20.717812)">What the agent reads is not always what the path says</text>
+  </g>
+  <g id="text_12">
+   <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #c3c2b7" x="12.384" y="42.518438" transform="rotate(-0 12.384 42.518438)">Share of repositories; the highlighted files are invisible to a path-based scanner</text>
+  </g>
+  <g id="text_13">
+   <text style="font-size: 8px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #c3c2b7" x="12.384" y="280.318125" transform="rotate(-0 12.384 280.318125)">1,583 popular public repositories with at least one agent file · snapshot 2026-10-28</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="pcecc8b80d0">
+   <rect x="279.63072" y="59.616" width="320.99328" height="193.824"/>
+  </clipPath>
+ </defs>
+</svg>

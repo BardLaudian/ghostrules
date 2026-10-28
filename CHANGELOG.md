@@ -5,6 +5,59 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-28
+
+Measurement release. ghostrules now runs against real repositories every week, a browser playground
+runs the real scanner without installing anything, and the first full study of popular repositories
+drove a round of precision fixes. On the 300-repository regression tier 0.2.1 reported 323 findings
+(84 critical, 156 high); 0.3.0 reports 212 (0 critical, 53 high), every critical and high finding
+reviewed. On the 1,283-repository study tier the first run reported 1,072 findings (13 critical, 296
+high); after the fixes 945 (12 critical, 252 high), all of medium and above triaged.
+
+### Added
+- **Playground** (`web/`, `.github/workflows/pages.yml`): a static page that runs the real scanner in
+  the browser with Pyodide. Paste a file, drop a folder (agent files and what they import, up to
+  5 MB) or name a public GitHub repo (the only tab that uses the network). Shows what you see versus
+  what the agent reads, the context tree per agent and downloadable JSON, Markdown and SARIF reports.
+  Playwright smoke test; deployed to GitHub Pages on release tags.
+- **Corpus tooling** (`corpus/`, outside the package and the wheel): `discover.py`, `run.py`,
+  `check.py`, `triage.py`, `badge.py`, `filestats.py`, a weekly `corpus.yml` workflow and an endpoint
+  badge in the README. Findings are labelled by fingerprint in `corpus/labels.toml`; labels never
+  name a repository for a reported finding.
+- **Study tooling** (`study/`): per-repository features, aggregate CSVs, SVG charts in light and dark,
+  the triage classes and `study/report.md`, generated from the CSVs.
+- `ghostrules.playground`, `ghostrules.reveal_data` and `ghostrules.reporters.context_data`: the core
+  (scanner, rules, context engine, JSON, SARIF and Markdown reporters) now imports without `typer`
+  and `rich`; the terminal output is unchanged.
+- `action.yml` is named `ghostrules scan` and its description fits the Marketplace limit (125
+  characters).
+
+### Fixed
+- GR003: a lone U+200B between two letters of Khmer, Thai, Lao or Myanmar text is that script's word
+  separator and is ignored.
+- GR005: a hidden comment is `medium` when it carries an instruction cue, `low` when it only mentions
+  agents, `high` unchanged for injection matches.
+- GR010: `override system|safety` needs a following noun, and defensive text that quotes the phrase
+  is `low`.
+- GR011: `without asking the user` is no longer concealment; a prohibition earlier in the clause, a
+  safety claim ("does not silently install"), a description in the third person ("silently runs") and
+  a modal before it are not reported.
+- GR012: naming the `curl | sh` pattern without a target is `low`; a `curl` in prose no longer joins
+  the next code block; `| bash script.sh` is not a data pipe into the shell.
+- GR013: needs a verb, a secret and a URL in the same clause; prohibitions, loopback URLs, `POST`
+  and `.post(`, "send the user to" and "send X only to the fixed origin" are not exfiltration.
+- GR014: the verb must govern the path across no paragraph break, clause connector (`before`,
+  `after`, `when`), passive or noun use; `### Output` is a heading; `.env.default` and copying a
+  dotenv file are not reads.
+- GR015: runs inside URLs, Subresource Integrity digests and low-entropy hex (`AAAA…`) are skipped.
+- GR016: a prohibition ("Avoid `--yolo`"), a table row and a list item that documents a flag are not
+  an instruction.
+- A bare `@/`, `@~/`, `@./` or `@../` is a path prefix, not an import.
+
+### Known limits
+- Splitting an exfiltration instruction across two sentences avoids the GR013 prose match, and a
+  concealment right after an unrelated prohibition in the same clause is not reported.
+
 ## [0.2.1] - 2026-10-28
 
 Precision release. A scan of 12 popular public repositories with 0.2.0 found no critical issue,
