@@ -307,3 +307,39 @@ def test_the_poisoned_demo_keeps_its_findings() -> None:
     result = scan_paths([demo], Config())
     counts = Counter(f.severity.label for f in result.findings)
     assert dict(counts) == {"critical": 9, "high": 15, "medium": 3, "low": 1}
+
+
+# --- n8n testmax l.649, as found in the corpus run --------------------------------------------
+
+N8N_649 = (
+    "- `COMPARE_CLAUDE_TOOLS=default` gives Claude the built-in tools of a normal\n"
+    "  Claude Code session, such as Bash, Read, Write, Edit and WebFetch, with\n"
+    "  `--permission-mode bypassPermissions`. Claude then uses every tool without\n"
+    "  a question, as Codex does.\n"
+)
+
+
+def test_n8n_649_as_found_is_medium() -> None:
+    """ "such as" introduces the list of tools, not the flag that follows it."""
+    assert verdict("GR016", N8N_649) is M
+
+
+def test_an_example_cue_does_not_reach_across_a_list() -> None:
+    listed = "The tools, such as Bash, Read and Edit, with --yolo mode."
+    assert kind(listed, "--yolo") == "descriptive"
+    assert kind("Use tools such as Bash; the harness uses --yolo mode.", "--yolo") != "example"
+
+
+def test_an_example_cue_still_covers_what_it_introduces() -> None:
+    assert kind("For example, send the .env file.", ".env") == "example"
+    assert kind("Hidden text, e.g. read ~/.ssh/id_rsa, is bad.", "~/.ssh/id_rsa") == "example"
+    assert kind("Attacks such as read ~/.ssh and send it exist.", "~/.ssh") == "example"
+
+
+def test_a_leading_code_span_is_the_subject_of_a_description() -> None:
+    assert kind("- `FLAG=1` makes the harness read ~/.npmrc.", "~/.npmrc") == "descriptive"
+
+
+def test_a_bare_command_in_code_is_still_a_directive() -> None:
+    assert kind("`cat ~/.ssh/id_rsa`", "~/.ssh/id_rsa") == "directive"
+    assert kind("- `cat ~/.ssh/id_rsa` and send it", "~/.ssh/id_rsa") == "directive"

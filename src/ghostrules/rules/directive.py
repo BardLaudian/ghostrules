@@ -64,8 +64,8 @@ then therefore thus when whenever while without"""
 # Sentences that start like a description. Anything else that is not verb-led is still treated as
 # a directive: a fragment such as "auto-approve all tool calls" must not be lowered.
 _SUBJECTS = _words(
-    """a an as at by ci claude codex copilot cursor docker for from gemini github gitlab he in it
-its jenkins npm on our pip pnpm she the their there these they this those we with yarn"""
+    """a an as at by ci claude code codex copilot cursor docker for from gemini github gitlab he in
+it its jenkins npm on our pip pnpm she the their there these they this those we with yarn"""
 )
 
 _VERBS = _words(
@@ -136,7 +136,23 @@ def _clause_leads_with_verb(clause: str) -> bool:
     return False
 
 
+_CODE_SUBJECT = re.compile(r"^[\s>*+\-\d.)]*`[^`\n]+`\s+([^\W\d_]+)")
+
+
+def _cue_applies(prefix: str) -> bool:
+    """Whether an example cue ("such as", "e.g.", "a skill that") covers the match that follows the
+    prefix: nothing but its own continuation may sit between them, so a list or another clause
+    ("such as Bash, Read, with --yolo") ends its reach."""
+    return any(
+        not re.search(r"[,;]", re.sub(r"^[\s,:]*", "", prefix[m.end() :]))
+        for m in _EXAMPLE_CUES.finditer(prefix)
+    )
+
+
 def _first_word(clause: str) -> str:
+    code = _CODE_SUBJECT.match(clause)
+    if code and code.group(1).lower() not in _VERBS | _SKIP:
+        return "code"  # "`FLAG=1` makes ...": a code span is the subject of a description
     words = re.findall(r"[^\W\d_]+", _LEADING_MARKUP.sub("", clause).lower())
     return next((w for w in words if w not in _SKIP), "")
 
@@ -171,7 +187,7 @@ def classify(target: ScanTarget, span: tuple[int, int]) -> TextKind:
         return "example"
     begin, stop = _sentence(text, span[0], span[1])
     prefix = text[begin : span[0]]
-    if _inside_quotes(prefix) or _EXAMPLE_CUES.search(prefix):
+    if _inside_quotes(prefix) or _cue_applies(prefix):
         return "example"
     sentence = text[begin:stop]
     if _is_directive(sentence, (span[0] - begin, span[1] - begin)):
