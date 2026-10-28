@@ -4,6 +4,9 @@ import re
 from pathlib import Path
 from types import ModuleType
 
+from typer.testing import CliRunner
+
+from ghostrules.cli import app
 from ghostrules.config import Config
 from ghostrules.models import Severity
 from ghostrules.scanner import scan_paths
@@ -175,6 +178,72 @@ def test_demo_tape_matches_the_plan() -> None:
 def test_demo_tape_is_shorter_than_fifteen_seconds() -> None:
     tape = (ROOT / "demo" / "demo.tape").read_text(encoding="utf-8")
     assert 8 < tape_seconds(tape) < 15
+
+
+def _commands(tape: str) -> list[str]:
+    return re.findall(r'^Type "(.*)"$', tape, re.MULTILINE)
+
+
+def test_imports_tape_follows_the_import_story() -> None:
+    tape = (ROOT / "demo" / "imports.tape").read_text(encoding="utf-8")
+    assert "Output demo/imports.gif" in tape
+    assert re.search(r"^Set Width 1200$", tape, re.MULTILINE)
+    assert _commands(tape) == [
+        "export PS1='$ ' && clear",
+        "cat examples/import-chain-repo/CLAUDE.md",
+        "ghostrules scan --no-follow-imports examples/import-chain-repo",
+        "ghostrules scan examples/import-chain-repo | head -12",
+        "ghostrules context src/api/users.ts --root examples/import-chain-repo --agent claude-code",
+    ]
+    assert 10 < tape_seconds(tape) < 20
+
+
+def test_lock_tape_shows_the_review_diff_and_the_check() -> None:
+    tape = (ROOT / "demo" / "lock.tape").read_text(encoding="utf-8")
+    assert "Output demo/lock.gif" in tape
+    visible = _commands(tape)[2:]  # the first two lines are hidden setup
+    assert visible == [
+        "diff base/shared/team-rules.md pr/shared/team-rules.md | sed 's/[^ -~]//g'",
+        "ghostrules lock --check --root pr",
+    ]
+    assert "make_demo.py --lock-scenario /tmp/acme" in tape
+    assert 8 < tape_seconds(tape) < 20
+
+
+def test_imports_tape_commands_do_what_the_story_says(demo_root: Path) -> None:
+    root = demo_root / "import-chain-repo"
+    assert scan_paths([root], Config(follow_imports=False)).findings == []
+    result = scan_paths([root], Config())
+    assert {"GR001", "GR020", "GR021"} <= {f.rule_id for f in result.findings}
+
+
+def test_the_import_scan_in_the_tape_fits_in_head_12(demo_root: Path) -> None:
+    from ghostrules.reporters import table
+
+    result = scan_paths([demo_root / "import-chain-repo"], Config())
+    lines = table.render(result, width=118, target="examples/import-chain-repo").splitlines()[:12]
+    text = "\n".join(lines)
+    assert "via CLAUDE.md:5 → docs/style.md:4" in text
+    assert "Decoded hidden text" in text and "╰" in text
+    assert "exfil.example" in text
+
+
+def test_the_lock_scenario(tmp_path: Path, make_demo: ModuleType) -> None:
+    make_demo.lock_scenario(tmp_path)
+    base, pr = tmp_path / "base", tmp_path / "pr"
+    runner = CliRunner()
+    assert runner.invoke(app, ["lock", "--root", str(base)]).exit_code == 0
+    (pr / ".ghostrules.lock").write_bytes((base / ".ghostrules.lock").read_bytes())
+    assert runner.invoke(app, ["lock", "--check", "--root", str(base)]).exit_code == 0
+    checked = runner.invoke(app, ["lock", "--check", "--no-color", "--root", str(pr)])
+    assert checked.exit_code == 1
+    assert "✎ changed  shared/team-rules.md" in checked.stdout
+    assert f"hidden text: {make_demo.PR_HIDDEN_INSTRUCTION}" in checked.stdout
+    assert "via CLAUDE.md:5 → docs/style.md:4" in checked.stdout
+    # what a reviewer's diff shows: the added bullet, and nothing else
+    visible = (pr / "shared" / "team-rules.md").read_text(encoding="utf-8")
+    shown = "".join(c for c in visible if " " <= c <= "~" or c == "\n")
+    assert "Ask before deleting files." in shown and "bootstrap" not in shown
 
 
 def test_the_scan_command_in_the_tape_fits_in_head_24(demo_root: Path) -> None:

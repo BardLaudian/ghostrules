@@ -563,3 +563,40 @@ New: `globs.py` and the `agents/` package (`repo`, `base`, `claude_code`, `copil
 - **Scope.** No `--cwd`/`--home`: the lock is repository-wide at the root. It does not run the
   rules; `scan` and `context` do. The README (Phase 7) must say it is a visibility control and
   recommend CODEOWNERS on the lock and on instruction files, since a pull request can update it too.
+
+## v0.2 Phase 6 — Action, config, demos
+
+- **Action.** New inputs `follow-imports` (default `true`; `false` passes `--no-follow-imports` to the
+  scan and to the summary) and `lock-check` (default `false`). The "Check the lock" step runs
+  `ghostrules lock --check --root "$INPUT_PATH" --format markdown`, records the exit code in the
+  new output `lock-exit-code`, and appends the report to the job summary under "What your agents
+  read changed in this PR" (a missing lock is reported there too). Like the scan step it never fails
+  by itself; the last step fails the job with the worse of the two results (scan 1/2, lock 1/2), so
+  the SARIF upload and the summaries still happen. 0.1 inputs and outputs are untouched. As before,
+  no `${{ }}` inside `run:` scripts, only environment variables.
+- **Config.** `follow_imports`, `agents` and `lockfile` already existed (added with the features
+  that needed them in Phases 3 and 5); this phase only documents `lockfile` in the README block.
+- **Self-test.** The existing job keeps its three runs (so its test still reads "three"); a second
+  job `import-chain` runs the local action on `examples/import-chain-repo` with imports followed (SARIF must
+  carry GR001 with `relatedLocations` CLAUDE.md → docs/style.md and the tag `reached-via-import`,
+  plus GR020 and GR021) and with `follow-imports: "false"` (SARIF empty). It then builds the
+  lock scenario in `$RUNNER_TEMP`, locks `base/`, copies the lock to `pr/`, and runs the action with
+  `lock-check` on both: `base` must pass with `lock-exit-code` 0, `pr` must fail the step with 1.
+  The lock is created inside the job, not committed under `examples/`: it embeds the ghostrules
+  version, which would make the "examples are up to date" test fail after every release.
+- **Lock scenario.** `python scripts/make_demo.py --lock-scenario DEST` writes `DEST/base` (the
+  import-chain repo) and `DEST/pr` (the same plus a pull request that edits `shared/team-rules.md`:
+  a visible rewording and a new bullet with a hidden sentence). It does not run ghostrules, so the
+  generator stays dependency-free.
+- **Tapes.** The 0.1 `demo/demo.tape` (and the `demo.gif` already in the repository, recorded from
+  it) is left as it is: it tells the hidden-Unicode story and its test pins it. The 0.2 stories are two
+  new tapes, `demo/imports.tape` (cat CLAUDE.md, `scan --no-follow-imports` finds nothing,
+  `scan | head -12` shows the payload with its chain, `context ... --agent claude-code`) and
+  `demo/lock.tape` (a `diff | sed` view of the pull request as a reviewer sees it, which drops
+  everything that is not printable ASCII, then `lock --check`). Both are under 20 seconds by the
+  repository's own estimate. The plan said to replace `demo.tape`; keeping both lets the Phase 7 README
+  choose which GIF leads. **Neither new GIF has been recorded**: vhs, ffmpeg and ttyd are not
+  available in this environment.
+- **Tests edited.** `test_action_inputs_follow_the_spec` (two new inputs), the step-order test (one
+  new step) and `test_self_test_runs_the_local_action_on_the_demos` (looks at the `action` job, not
+  every job). Everything else from 0.1 is unchanged.
