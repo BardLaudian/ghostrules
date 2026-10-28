@@ -1,0 +1,5 @@
+# The pinned corpus. The human picks the tiers (see corpus/README.md); discover.py only proposes.
+#
+# [[repo]]
+# name = "owner/repo"
+# tier = "regression"   # or "study"

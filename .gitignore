@@ -12,3 +12,8 @@ dist/
 htmlcov/
 *.ghostrules.bak
 ghostrules.sarif
+
+# corpus tooling
+corpus/.cache/
+corpus/results/*
+!corpus/results/latest-summary.json
