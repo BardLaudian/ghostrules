@@ -817,9 +817,12 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   (30 days).
 - **Publishing:** weekly `schedule` and `workflow_dispatch`, never on pull requests. The `publish`
   job runs only on `refs/heads/main` and writes `corpus/badge.json` and `corpus/summary.json` to
-  `gh-pages` with the job's `GITHUB_TOKEN` (`contents: write` on that job only). The README badge
-  reads `https://bardlaudian.github.io/ghostrules/corpus/badge.json`, which needs GitHub Pages
-  enabled on `gh-pages`.
+  the orphan branch `badges` (created on first run, only those files) with the job's `GITHUB_TOKEN`
+  (`contents: write` on that job only). The README badge reads
+  `https://raw.githubusercontent.com/BardLaudian/ghostrules/badges/corpus/badge.json`.
+- **Not `gh-pages`:** Pages is deployed from Actions (`pages.yml`), so a `gh-pages` branch is never
+  served and the first design left the badge broken. A branch read through raw.githubusercontent
+  needs no Pages setup and leaves `pages.yml` alone.
 
 ## v0.3 Phase 4 — web playground
 
