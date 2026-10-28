@@ -1,4 +1,4 @@
-"""Command line interface: ``scan`` (default), ``context``, ``reveal``, ``clean``, ``rules``."""
+"""Command line interface: ``scan`` (default), ``context``, ``lock``, ``reveal``, ``clean``..."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ from rich.text import Text
 from typer.core import TyperGroup
 
 from ghostrules import __version__
+from ghostrules import lock as lock_mod
 from ghostrules.agents.claude_code import DEFAULT_MODE as CLAUDE_DEFAULT_MODE
 from ghostrules.agents.claude_code import MODES as CLAUDE_MODES
 from ghostrules.clean import clean_text, unified_diff
@@ -24,6 +25,7 @@ from ghostrules.context_command import ContextError, ContextReport, build_report
 from ghostrules.models import ScanResult, Severity
 from ghostrules.reporters import context as context_report
 from ghostrules.reporters import json_, markdown, sarif, table
+from ghostrules.reporters import lock as lock_report
 from ghostrules.reporters.common import safe
 from ghostrules.reveal import build as build_reveal
 from ghostrules.reveal import has_hidden_content
@@ -338,6 +340,140 @@ def _emit_context(
         text = context_report.render_json(report, show_text=show_text)
     else:
         text = context_report.render_markdown(report, show_text=show_text)
+    if output is None:
+        sys.stdout.write(text)
+        return
+    try:
+        output.write_text(text, encoding="utf-8")
+    except OSError as exc:
+        _fail(f"cannot write {output}: {exc.strerror or exc}")
+    typer.echo(f"report written to {output}", err=True)
+
+
+# --- lock ----------------------------------------------------------------------------------
+
+
+class LockFormat(str, enum.Enum):
+    """Report formats for ``lock --check``."""
+
+    text = "text"
+    markdown = "markdown"
+    json = "json"
+
+
+@app.command()
+def lock(
+    check: Annotated[
+        bool,
+        typer.Option("--check", help="Compare the repository with the lock; exit 1 if it differs."),
+    ] = False,
+    update: Annotated[
+        bool, typer.Option("--update", help="Rewrite the lock (the same as running 'lock').")
+    ] = False,
+    format_: Annotated[
+        LockFormat,
+        typer.Option("--format", help="Report format for --check.", case_sensitive=False),
+    ] = LockFormat.text,
+    root: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option("--root", help="Repository root (default: the enclosing git root, or '.')."),
+    ] = None,
+    lockfile: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option("--lockfile", help="Lock file (default: .ghostrules.lock in the root)."),
+    ] = None,
+    claude_instructions_mode: Annotated[
+        str,
+        typer.Option(
+            help="Claude Code 'Project instructions' setting: " + ", ".join(CLAUDE_MODES) + "."
+        ),
+    ] = CLAUDE_DEFAULT_MODE,
+    config: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option(help="Path to a config file (default: .ghostrules.toml in the root)."),
+    ] = None,
+    output: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option("--output", "-o", help="Write the --check report to this file."),
+    ] = None,
+    no_color: Annotated[bool, typer.Option("--no-color", help="Plain output, no colours.")] = False,
+) -> None:
+    """Pin what your AI agents read, and review every change to it.
+
+    Without options this writes .ghostrules.lock. With --check it compares the repository with the
+    lock and shows what changed. Exit codes for --check: 0 up to date, 1 changed, 2 error.
+    """
+    _utf8_streams()
+    if check and update:
+        raise typer.BadParameter("use either --check or --update", param_hint="--check/--update")
+    repo_root = root if root is not None else find_root(Path.cwd())
+    try:
+        cfg = load_config(repo_root, config)
+    except ConfigError as exc:
+        _fail(str(exc))
+    if claude_instructions_mode not in CLAUDE_MODES:
+        raise typer.BadParameter(
+            f"expected one of: {', '.join(CLAUDE_MODES)}", param_hint="--claude-instructions-mode"
+        )
+    if not repo_root.is_dir():
+        _fail(f"{repo_root} is not a directory")
+    lock_path = repo_root / (lockfile if lockfile is not None else Path(cfg.lockfile))
+    name = lockfile.as_posix() if lockfile is not None else cfg.lockfile
+    snapshot = lock_mod.build_snapshot(repo_root, cfg, instructions_mode=claude_instructions_mode)
+    if check:
+        try:
+            diff = lock_mod.diff_lock(lock_mod.read_lock(lock_path), snapshot)
+        except lock_mod.LockError as exc:
+            _fail(str(exc))
+        _emit_lock(diff, name, format_, output, no_color)
+        if not diff.empty:
+            raise typer.Exit(EXIT_FINDINGS)
+        return
+    summary = ""
+    if lock_path.exists():
+        try:
+            previous = lock_mod.diff_lock(lock_mod.read_lock(lock_path), snapshot)
+        except lock_mod.LockError:
+            previous = None
+        if previous is not None and not previous.empty:
+            summary = f" ({_lock_summary(previous)})"
+    try:
+        lock_path.write_bytes(lock_mod.to_json(snapshot.lock).encode("utf-8"))
+    except OSError as exc:
+        _fail(f"cannot write {lock_path}: {exc.strerror or exc}")
+    files = len({e.path for items in snapshot.lock.agents.values() for e in items})
+    agents = len(snapshot.lock.agents)
+    typer.echo(f"wrote {name}: {files} file(s) in the contexts of {agents} agent(s){summary}")
+
+
+def _lock_summary(diff: lock_mod.LockDiff) -> str:
+    counts = {k: 0 for k in ("added", "changed", "removed")}
+    for change in diff.changes:
+        counts["changed" if change.kind == "hidden" else change.kind] += 1
+    for config_change in diff.configs:
+        counts[config_change.kind] += 1
+    return ", ".join(f"{n} {kind}" for kind, n in counts.items() if n) or "agents changed"
+
+
+def _emit_lock(
+    diff: lock_mod.LockDiff,
+    name: str,
+    fmt: LockFormat,
+    output: Path | None,
+    no_color: bool,
+) -> None:
+    if fmt is LockFormat.text:
+        renderable = lock_report.build_report(diff, name)
+        if output is None:
+            _console(no_color).print(renderable)
+            return
+        buffer = io.StringIO()
+        table.make_console(color=False, width=100, file=buffer).print(renderable)
+        text = buffer.getvalue()
+    elif fmt is LockFormat.markdown:
+        text = lock_report.render_markdown(diff, name)
+    else:
+        text = lock_report.render_json(diff, name)
     if output is None:
         sys.stdout.write(text)
         return
