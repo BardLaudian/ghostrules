@@ -665,3 +665,27 @@ emitted a GR025 `medium` per link, which claimed Claude reads nothing in the mos
   `test_agents_claude.py` (4 tests), `test_agents_repo.py` (1), `test_lock.py` (1) and
   `test_scan_imports.py` (3) now describe the alias behaviour; the outside-the-root cases they
   covered are kept. `README.md`'s rules table is regenerated.
+
+### F2 — GR022 only for intended file references
+- `Import.looks_like_path` is now "has an extension, or starts with `./`, `../`, `~/`, `/`" (it used
+  to be true for any `/`). The context engine widens it to a path whose **first segment exists next
+  to the importing file** (`ImportEdge.looks_like_path`), checked before the npm-scope look: a real
+  `docs/` directory is evidence of intent even though `@docs/missing` has the shape of a scope.
+- The spec's "skip tokens matching the npm scope pattern" is therefore implied by the new default
+  rather than a separate regex; a scope with an extension (`@types/node.d.ts`) is still reported
+  when missing, as the spec says. The same flag drives the `context` tree, so those tokens no longer
+  show as a missing leaf either (one definition of "meant as an import").
+- 0.2 test changed: `@types/node` is no longer reported (`test_scan_imports.py`,
+  `test_imports.py`).
+
+### F4 — GR012 on data pipes and Claude's installer
+- Patterns, not post-filters: `| sh`/`bash` no longer matches when followed by `-c`; `| python`
+  matches only when nothing but an optional `-` follows before the end of the clause (end of line,
+  `|`, `;`, `&`, `)` or a comment). `python3 -u script.py` and `python -c` are data.
+- `node -e` and `jq` were never matched; tests now pin that. `| node` without `-e` is still not
+  matched (not asked for; no corpus case).
+- GR105/GR107 (MCP commands and hooks) share the pattern list, so they stop matching the same data
+  pipes. That is the intent of the fix, not a separate change.
+- `claude.ai/install.sh` added with its source. The list keeps its existing order (appended, not
+  re-sorted) to keep `ghostrules rules --installers` output stable; the spec's "keep sorted" is
+  applied to future additions from the corpus run.

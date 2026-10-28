@@ -292,9 +292,10 @@ def test_gr022_missing_file(tmp_path: Path) -> None:
     assert "@docs/gone.md" in finding.message
 
 
-def test_gr022_npm_scopes_look_like_paths_and_are_reported(tmp_path: Path) -> None:
+def test_gr022_npm_scopes_are_not_reported(tmp_path: Path) -> None:
+    """Changed in 0.2.1 (F2): 0.2.0 reported ``@types/node`` as an import that does not load."""
     make(tmp_path, {"CLAUDE.md": "Types come from @types/node.\n"})
-    assert len(by_rule(scan(tmp_path), "GR022")) == 1
+    assert by_rule(scan(tmp_path), "GR022") == []
 
 
 def test_gr022_quoted_path_and_depth(tmp_path: Path) -> None:

@@ -23,6 +23,7 @@ _QUOTES = "\"'“”‘’"
 _LOOSE_BEFORE = "([{<,;:>=|*"
 _TRAILING = ".,;:!?)]}>*\"'”’"
 _KNOWN_EXTENSION = re.compile(r"\.[A-Za-z0-9]{1,6}$")
+_PATH_PREFIXES = ("./", "../", "~/", "/", ".\\", "..\\")
 
 
 class Import(NamedTuple):
@@ -45,10 +46,12 @@ class Import(NamedTuple):
 
     @property
     def looks_like_path(self) -> bool:
-        """Whether this is likely meant as a file path rather than a ``@mention``: it has a
-        directory separator, a leading ``.``/``~``, or a file extension."""
+        """Whether this is likely meant as a file path rather than a ``@mention`` or an npm scope
+        (``@n8n/design-system``): it has a file extension, or starts with ``./``, ``../``, ``~/``
+        or ``/``. A path with directories and no extension also counts when its first segment
+        exists next to the importing file; the context engine checks that."""
         p = self.path
-        return "/" in p or "\\" in p or p.startswith((".", "~")) or bool(_KNOWN_EXTENSION.search(p))
+        return p.startswith(_PATH_PREFIXES) or bool(_KNOWN_EXTENSION.search(p))
 
 
 def _inside(offset: int, spans: list[tuple[int, int]], starts: list[int]) -> bool:

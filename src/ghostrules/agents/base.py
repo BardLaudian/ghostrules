@@ -490,6 +490,7 @@ class Builder:
         slot: int | None = None,
         outside_tree: bool = False,
         hint: str = "",
+        intended: bool | None = None,
     ) -> None:
         edge = ImportEdge(
             parent.path,
@@ -501,7 +502,7 @@ class Builder:
             parent.hop + 1,
             note,
             unverified or not imp.certain or imp.in_comment,
-            imp.looks_like_path,
+            imp.looks_like_path if intended is None else intended,
             imp.certain,
             imp.in_comment,
             outside_tree,
@@ -572,6 +573,7 @@ class Builder:
             unverified=uncertain or self.policy.all_unverified,
             slot=slot,
             hint=hint,
+            intended=self._intended(repo, parent_rel, imp),
         )
 
     def _sensitive(
@@ -595,6 +597,17 @@ class Builder:
                 )
             )
         self._edge(parent, imp, label, "sensitive", note, slot=slot)
+
+    @staticmethod
+    def _intended(repo: Repo, parent_rel: str, imp: Import) -> bool:
+        """Whether the author meant a file: an extension or an explicit prefix, or a first path
+        segment that exists next to the importing file (which wins over an npm-scope look)."""
+        if imp.looks_like_path:
+            return True
+        if "/" not in imp.path:
+            return False
+        first = imp.path.replace("\\", "/").split("/", 1)[0]
+        return repo.kind(posixpath.join(posixpath.dirname(parent_rel), first)) is not None
 
     @staticmethod
     def _space_hint(repo: Repo, parent_rel: str, imp: Import, raw_text: str) -> str:

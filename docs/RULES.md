@@ -76,6 +76,10 @@ still reported but at `low` with message "appears inside a code block".
 `powershell … -e(nc|ncodedcommand) <base64>`, `base64 (-d|--decode) … | (ba)?sh`,
 `bash <(curl …)`, `eval "$(curl …)"`. Snippet must show the full command.
 
+Stdin counts as code only when the interpreter reads its **program** from it (v0.2.1). `… | python`,
+`… | python3 -` and `… | sh` / `bash -s` are matched; `… | python -c '…'`, `-m module`, `script.py`,
+`… | sh -c '…'`, `… | node -e '…'` and `… | jq …` use stdin as data and are not.
+
 Severity in instruction files (since 0.1.1). Decide in this order; first match wins:
 
 | # | Situation | Severity |
@@ -100,7 +104,8 @@ Matching is the exact `https` host plus an optional path prefix, never a suffix,
 `astral.sh.attacker.example` does not match: Astral uv/ruff `astral.sh`, rustup `sh.rustup.rs`,
 Bun `bun.sh`, Deno `deno.land`, pnpm `get.pnpm.io`, Poetry `install.python-poetry.org`, Homebrew
 `raw.githubusercontent.com/Homebrew/install/`, nvm `raw.githubusercontent.com/nvm-sh/nvm/`, SDKMAN
-`get.sdkman.io`, Docker `get.docker.com`, Ollama `ollama.com/install.sh`, Volta `get.volta.sh`.
+`get.sdkman.io`, Docker `get.docker.com`, Ollama `ollama.com/install.sh`, Volta `get.volta.sh`,
+Claude Code `claude.ai/install.sh`.
 
 GR105 and GR107 reuse the GR012 patterns for MCP server commands and hooks and are not affected:
 in configuration files a piped installer stays high/critical.
@@ -203,8 +208,11 @@ when the import itself is uncertain (inside an HTML comment, or after punctuatio
 ### GR022 — Import that silently does not load (low)
 An `@path` the agent ignores: the file does not exist, is a directory, is deeper than the depth
 limit, is wrapped in quotes, or is cut at an unescaped space (`@Design Docs/a.md`; the finding says
-to write `@Design\ Docs/a.md`). Only tokens that look like paths are reported (`@alice` is a
-mention; `@types/node` is reported).
+to write `@Design\ Docs/a.md`). Only tokens that look like an intended file reference are reported
+(v0.2.1): a file extension (`@docs/missing.md`), a prefix `./`, `../`, `~/` or `/` (`@./notes`), or
+a first path segment that exists next to the importing file (`@docs/missing` with a `docs/`
+directory). `@alice` is a mention and `@types/node`, `@n8n/design-system` are npm scopes: none is
+reported.
 
 ### GR023 — Import cycle (info)
 `A → B → A`, reported once on the import that closes the loop. Agents stop at the depth limit.
