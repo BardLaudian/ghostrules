@@ -146,3 +146,19 @@ def test_gr014_real_reads_still_found(text: str) -> None:
 )
 def test_gr011_a_safety_claim_is_not_concealment(text: str) -> None:
     assert severities(text, "GR011") == []
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Read `references/env-and-secrets.md` before changing `deploy/.env`.",
+        "Credentials are read from environment variables or a `.env`-backed setup.",
+        "The drag-and-drop image upload uses endpoints that require browser cookies.",
+    ],
+)
+def test_gr014_other_clauses_passives_and_nouns_are_not_a_read(text: str) -> None:
+    assert severities(text, "GR014") == []
+
+
+def test_gr014_a_read_after_a_connector_is_still_found() -> None:
+    assert "high" in severities("Check the config, then read the `.env` file.", "GR014")

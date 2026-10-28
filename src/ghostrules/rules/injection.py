@@ -436,6 +436,8 @@ def gr014_sensitive_files(target: ScanTarget) -> Iterator[Finding]:
     for span in _spans(target, INJECTION_PATTERNS["GR014"]):
         if _negated_before(target.text, span[0]):
             continue
+        if _verb_is_not_a_verb(target.text, span):
+            continue
         if "\n\n" in target.text[span[0] : span[1]] or _output_is_a_noun(target.text, span[0]):
             continue  # a paragraph break ends the clause; "### Output" names a section
         if _COPY_TO_DESTINATION.match(target.text[span[0] : span[1]]):
@@ -463,6 +465,24 @@ def _output_is_a_noun(text: str, start: int) -> bool:
     """``output`` is also a heading ("### Output") or a noun ("Expected output")."""
     return text[start : start + 6].lower() == "output" and bool(
         _NOUN_OUTPUT.search(text[max(0, start - 20) : start])
+    )
+
+
+_PASSIVE_BEFORE = re.compile(r"\b(?:is|are|was|were|be|been|being)\s+$", re.IGNORECASE)
+# "image upload uses internal endpoints": the "verb" is a noun when a finite verb follows it
+_FINITE_AFTER = re.compile(
+    r"^\w+\s+(?:is|are|was|were|has|have|can|will|may|uses|requires|needs|supports|takes|returns"
+    r"|shows|lets|works)\b",
+    re.IGNORECASE,
+)
+
+
+def _verb_is_not_a_verb(text: str, span: tuple[int, int]) -> bool:
+    """ "Credentials are read from ..." (passive description) and "the image upload uses ..." (a
+    noun) do not tell the agent to read or send anything."""
+    return bool(
+        _PASSIVE_BEFORE.search(text[max(0, span[0] - 12) : span[0]])
+        or _FINITE_AFTER.match(text[span[0] : span[0] + 60])
     )
 
 
