@@ -148,7 +148,7 @@ class ClaudeCode:
 
     def _rules(self, b: Builder) -> None:
         repo = b.repo
-        if _RULES_DIR in repo.linked_dirs:
+        if repo.kind(_RULES_DIR) == "symlink":
             b.add_blocked(
                 repo,
                 _RULES_DIR,

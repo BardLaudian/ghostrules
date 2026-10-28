@@ -546,7 +546,7 @@ def test_a_symlinked_directory_is_never_entered(tmp_path) -> None:
 
 def test_a_symlinked_rules_directory_is_reported(tmp_path) -> None:
     make(tmp_path, {"shared/r.md": "x"})
-    link(tmp_path, ".claude/rules", "../shared", is_dir=True)
+    link(tmp_path, ".claude/rules", os.path.join("..", "shared"), is_dir=True)
     g = ClaudeCode().build(Repo(tmp_path))
     e = entry(g, ".claude/rules")
     assert e.load == "blocked" and "symlinked directory" in e.note

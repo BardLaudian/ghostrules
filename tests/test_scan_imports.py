@@ -348,7 +348,7 @@ def test_gr025_is_high_when_the_link_leaves_the_repo(tmp_path: Path) -> None:
 
 def test_gr025_symlinked_rules_directory_and_imported_link(tmp_path: Path) -> None:
     make(tmp_path, {"shared/r.md": "x", "CLAUDE.md": "@link.md", "real.md": "x"})
-    symlink(tmp_path, ".claude/rules", "../shared", is_dir=True)
+    symlink(tmp_path, ".claude/rules", os.path.join("..", "shared"), is_dir=True)
     symlink(tmp_path, "link.md", "real.md")
     paths = sorted(f.path for f in by_rule(scan(tmp_path), "GR025"))
     assert paths == [".claude/rules", "link.md"]

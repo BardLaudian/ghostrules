@@ -48,3 +48,12 @@ def test_symlinks_are_never_followed(tmp_path) -> None:
 
 def test_label_uses_the_prefix(tmp_path) -> None:
     assert Repo(tmp_path, "~/").label(".claude/CLAUDE.md") == "~/.claude/CLAUDE.md"
+
+
+def test_a_dangling_symlinked_directory_is_still_a_symlink(tmp_path) -> None:
+    """Listed as a file by os.walk (it cannot be entered), but reported as a symlink."""
+    try:
+        os.symlink("nowhere", tmp_path / "rules", target_is_directory=True)
+    except (OSError, NotImplementedError):
+        pytest.skip("symlinks are not available here")
+    assert Repo(tmp_path).kind("rules") == "symlink"
