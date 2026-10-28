@@ -10,7 +10,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Precision release. A scan of 12 popular public repositories with 0.2.0 found no critical issue,
 but every `high` finding was a false positive, and `context` was wrong for the most common real
 setup. On those repositories 0.2.0 reported 9 high, 18 medium and 8 low findings; 0.2.1 reports
-1 medium and 3 low, with no high, no critical and no GR025.
+2 medium and 2 low, with no high, no critical and no GR025.
 
 ### Added
 - `ghostrules context --format json` entries carry `alias_of` (and `link_problem`) when a symlink is

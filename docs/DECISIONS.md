@@ -730,3 +730,15 @@ emitted a GR025 `medium` per link, which claimed Claude reads nothing in the mos
 - **Tagline.** The README has only the 0.2 tagline; the old sentence opens the first paragraph. The
   package description in `pyproject.toml` and the CLI help keep the old one (F5 speaks of the README).
 - **Version** `0.2.1`; README snippets say `v0.2.1` (the tag does not exist yet).
+
+### F3 follow-up — n8n l.649 (found by the corpus run)
+The real sentence is a soft-wrapped bullet: "`COMPARE_CLAUDE_TOOLS=default` gives Claude the tools ...,
+such as Bash, Read, Write, Edit and WebFetch, with `--permission-mode bypassPermissions`." It came
+out `low` (example), FIXES.md expects `medium`. Two changes:
+- **An example cue only reaches what it introduces:** the text between the cue and the match may not
+  contain `,` or `;` (after the cue's own comma, as in "For example, send ..."). "such as Bash, Read
+  ..., with --flag" ends the reach of "such as" at the list.
+- **A leading code span is a subject** when a non-verb word follows it ("`FLAG=1` gives ...", "makes
+  ..."), so the sentence is a description. A code span that is the whole clause, or is followed by a
+  verb or "and", stays a directive (`` `cat ~/.ssh/id_rsa` `` is still high).
+Corpus after the change: n8n l.649 is `medium`; the other three remaining findings are unchanged.
