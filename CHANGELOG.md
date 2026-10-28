@@ -5,6 +5,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- README restructured as a landing page; option tables, configuration, supported files, FAQ and limits
+  moved to `docs/USAGE.md`, and the rules table to `docs/RULES.md`.
+- SARIF `helpUri` points to `docs/RULES.md#grNNN` (the rules table moved there).
+
 ## [0.3.0] - 2026-10-28
 
 Measurement release. ghostrules now runs against real repositories every week, a browser playground

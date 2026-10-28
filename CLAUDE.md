@@ -5,7 +5,7 @@
 machine) for **hidden instructions and risky configuration in the files AI coding agents read and
 obey**: `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, Copilot instructions, skills, MCP configs, etc.
 
-Tagline: *"Find the instructions your AI agent sees but you don't."*
+Tagline: *"Know exactly what your AI agent reads — and approve every change to it."*
 
 It is a **defensive** security tool. It only reads files and reports findings. It never executes
 anything it finds, never makes network requests, and never phones home.

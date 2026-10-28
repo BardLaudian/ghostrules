@@ -1,4 +1,4 @@
-"""The documentation promises: README in sync with the code, complete, and with no dead links."""
+"""The documentation promises: README, USAGE and RULES match the code and have no dead links."""
 
 import re
 
@@ -12,6 +12,8 @@ from ghostrules.rules import all_rules
 from ghostrules.targets import CONFIG_GLOBS, INSTRUCTION_GLOBS
 
 README = (ROOT / "README.md").read_text(encoding="utf-8")
+USAGE = (ROOT / "docs" / "USAGE.md").read_text(encoding="utf-8")
+RULES_MD = (ROOT / "docs" / "RULES.md").read_text(encoding="utf-8")
 HOME_FILES = [
     "~/.claude.json",
     "~/.claude/settings.json",
@@ -32,14 +34,15 @@ def section_titles(markdown: str) -> list[str]:
 
 def test_rules_table_is_in_sync_with_the_registry() -> None:
     gen = load_script("gen_rules_table")
-    assert gen.replace_block(README, gen.rules_table()) == README, (
+    assert gen.replace_block(RULES_MD, gen.rules_table()) == RULES_MD, (
         "run: python scripts/gen_rules_table.py --write"
     )
 
 
 def test_rules_table_lists_every_rule_once_with_an_anchor() -> None:
     for rule in all_rules():
-        assert README.count(f'<a id="{rule.id.lower()}"></a>`{rule.id}`') == 1
+        assert RULES_MD.count(f'<a id="{rule.id.lower()}"></a>`{rule.id}`') == 1
+        assert f"`{rule.id}`" not in README  # the README does not carry the table
 
 
 def test_rules_table_survives_markdown_pipes() -> None:
@@ -55,50 +58,92 @@ def test_every_rule_in_the_code_is_documented_in_rules_md_and_vice_versa() -> No
     assert documented == {rule.id for rule in all_rules()}
 
 
-def test_readme_section_order_follows_the_plan() -> None:
-    titles = section_titles(README)
+def test_readme_section_order_converts_visitors() -> None:
     expected = [
+        "Install and run",
         "Why",
-        "What it catches",
         "What your agents actually read",
+        "Hidden Unicode",
         "Review every change to what your agents read",
-        "Install",
-        "Quick start",
-        "GitHub Action",
-        "pre-commit",
-        "Rules",
-        "Supported agents and files",
-        "Configuration and suppressions",
-        "FAQ",
-        "Limits",
-        "Roadmap",
+        "GitHub Action and pre-commit",
+        "How we test precision",
+        "Documentation",
         "Contributing, security, license",
     ]
-    assert [t for t in titles if t in expected] == expected
+    assert section_titles(README) == expected
 
 
-def test_readme_opens_with_name_tagline_badges_and_the_imports_gif() -> None:
-    lines = README.splitlines()
-    assert lines[0] == "# ghostrules"
-    assert lines[2] == "*Know exactly what your AI agent reads — and approve every change to it.*"
-    assert "Find the instructions your AI agent sees but you don't" not in lines[4]  # one tagline
-    first_paragraph = README.split("[![License", 1)[1].split("\n\n", 2)[2]
-    assert first_paragraph.startswith("`ghostrules` finds the instructions your AI agent sees")
-    head = README.split("## Why")[0]
-    assert head.count("](https://") >= 4  # CI, PyPI, Python versions, license
+def test_readme_is_short_and_uses_absolute_links() -> None:
+    assert len(README.splitlines()) < 200
+    for target in re.findall(r"\]\(([^)\s]+)\)", README):
+        assert target.startswith(("https://", "mailto:")), f"relative link in the README: {target}"
+    for src in re.findall(r'(?:src|srcset)="([^"]+)"', README):
+        assert src.startswith("https://"), src
+
+
+def test_readme_opens_with_the_picture_banner_tagline_badges_and_the_imports_gif() -> None:
+    base = "https://raw.githubusercontent.com/BardLaudian/ghostrules/main/"
+    head = README.split("## Install and run")[0]
+    assert head.startswith('<p align="center">\n  <picture>')
+    assert f'media="(prefers-color-scheme: dark)" srcset="{base}assets/banner-dark.png"' in head
+    assert f'media="(prefers-color-scheme: light)" srcset="{base}assets/banner-light.png"' in head
+    assert '<img alt="ghostrules"' in head
+    for name in ("banner-dark.png", "banner-light.png"):
+        assert (ROOT / "assets" / name).is_file()
+    assert "*Know exactly what your AI agent reads — and approve every change to it.*" in head
     for badge in (
         "actions/workflows/ci.yml",
         "pypi/v/ghostrules",
         "pypi/pyversions",
         "license-MIT",
+        "badges%2Fcorpus%2Fbadge.json",
     ):
         assert badge in head
-    # absolute URLs (PyPI renders the README outside GitHub); imports first, demo lower down
-    base = "https://raw.githubusercontent.com/BardLaudian/ghostrules/main/demo/"
-    assert head.index("badge") < head.index(base + "imports.gif")
-    assert README.index(base + "imports.gif") < README.index(base + "demo.gif")
-    assert README.index(base + "demo.gif") > README.index("## What it catches")
+    assert head.index("![CI]") < head.index(base + "demo/imports.gif")
+    # the study line follows the GIF, then install, run and the playground
+    assert head.index(base + "demo/imports.gif") < head.index("study/report.md")
+    install = README.split("## Install and run")[1].split("## Why")[0]
+    assert "pipx install ghostrules" in install and "ghostrules scan ." in install
+    assert "https://bardlaudian.github.io/ghostrules/" in install
+    assert README.index(base + "demo/imports.gif") < README.index(base + "demo/demo.gif")
     assert (ROOT / "demo" / "imports.gif").is_file() and (ROOT / "demo" / "demo.gif").is_file()
+
+
+def test_every_dropped_section_is_still_linked_from_the_readme() -> None:
+    for anchor in ("docs/USAGE.md#github-action", "docs/USAGE.md#limits"):
+        assert anchor in README
+    for doc in ("docs/USAGE.md", "docs/RULES.md", "docs/AGENT_MODELS.md", "study/report.md"):
+        assert f"/blob/main/{doc}" in README
+    titles = section_titles(USAGE)
+    for title in (
+        "Quick start",
+        "What it catches",
+        "What your agents actually read",
+        "Review every change to what your agents read",
+        "GitHub Action",
+        "pre-commit",
+        "Supported agents and files",
+        "Configuration and suppressions",
+        "FAQ",
+        "Limits",
+        "Roadmap",
+    ):
+        assert title in titles, title
+
+
+def test_the_study_line_quotes_numbers_that_are_in_the_study_data() -> None:
+    import json
+
+    headline = json.loads((ROOT / "study" / "data" / "headline.json").read_text("utf-8"))
+    line = next(ln for ln in README.splitlines() if ln.startswith("**In [1,"))
+    assert f"{headline['repos_scanned']:,}" in line
+    for key in (
+        "pct_multi_tool",
+        "claude_md_over_200_pct",
+        "mcp_repos_with_unpinned_pct",
+    ):
+        assert f"{headline[key]} %" in line, key
+    assert f"{headline['repos_with_hidden_unicode']} repositories" in line
 
 
 def test_design_history_lives_in_docs_design() -> None:
@@ -112,28 +157,28 @@ def test_design_history_lives_in_docs_design() -> None:
     assert "docs/design/SPEC.md" in claude and "docs/design/PLAN.md" in claude
 
 
-def test_readme_documents_every_scan_option() -> None:
+def test_usage_documents_every_scan_option() -> None:
     scan = get_command(app).commands["scan"]  # type: ignore[attr-defined]
     for param in scan.params:
         for opt in getattr(param, "opts", []):
             if opt.startswith("--"):
-                assert f"`{opt}" in README or f"`-o, {opt}" in README, f"{opt} is not in the README"
+                assert f"`{opt}" in USAGE or f"`-o, {opt}" in USAGE, f"{opt} is not in USAGE.md"
 
 
-def test_readme_lists_every_scanned_file_pattern() -> None:
+def test_usage_lists_every_scanned_file_pattern() -> None:
     for glob in (*INSTRUCTION_GLOBS, *CONFIG_GLOBS):
-        assert glob.removeprefix("**/") in README, f"{glob} is not in the README table"
+        assert glob.removeprefix("**/") in USAGE, f"{glob} is not in the USAGE table"
     for path in HOME_FILES:
-        assert path in README
+        assert path in USAGE
 
 
-def test_readme_explains_why_ghost_findings_cannot_be_suppressed() -> None:
-    assert "GR001 and GR002 can never be suppressed" in README
-    assert "ghostrules-ignore" in README and ".ghostrules.toml" in README
+def test_usage_explains_why_ghost_findings_cannot_be_suppressed() -> None:
+    assert "GR001 and GR002 can never be suppressed" in USAGE
+    assert "ghostrules-ignore" in USAGE and ".ghostrules.toml" in USAGE
 
 
 def test_why_section_links_primary_sources() -> None:
-    why = README.split("## Why")[1].split("## Install")[0]
+    why = README.split("## Why")[1].split("## What your agents actually read")[0]
     for host in (
         "embracethered.com",
         "paulbutler.org",
@@ -147,7 +192,7 @@ def test_why_section_links_primary_sources() -> None:
 # --- links -----------------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("name", ["README.md", "CONTRIBUTING.md", "SECURITY.md"])
+@pytest.mark.parametrize("name", ["README.md", "CONTRIBUTING.md", "SECURITY.md", "docs/USAGE.md"])
 def test_links_to_repository_files_point_at_files_that_exist(name: str) -> None:
     text = (ROOT / name).read_text(encoding="utf-8")
     for target in re.findall(r"\]\(https://github\.com/[^/]+/ghostrules/blob/main/([^)#]+)", text):
@@ -240,8 +285,9 @@ def test_readme_examples_match_what_the_tool_prints() -> None:
     assert "⟦U+E0057⟧⟦U+E0068⟧⟦U+E0065⟧⟦U+E006E⟧" in revealed
     cleaned = CliRunner().invoke(app, ["clean", demo]).stdout
     summary = "116 character(s) would be removed. Run again with --write."
-    assert summary in cleaned and summary in README
-    assert "28 findings in 7 files" in README
+    assert summary in cleaned
+    assert "28 findings in 7 files" in USAGE
+    assert summary in USAGE
 
 
 def test_readme_context_and_lock_excerpts_match_what_the_tool_prints(tmp_path) -> None:
