@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Generate the rules table of the README from the rule registry.
+"""Generate the rules table of docs/RULES.md from the rule registry.
 
     python scripts/gen_rules_table.py            # print the table
-    python scripts/gen_rules_table.py --write    # update README.md in place
-    python scripts/gen_rules_table.py --check    # exit 1 if README.md is out of date
+    python scripts/gen_rules_table.py --write    # update docs/RULES.md in place
+    python scripts/gen_rules_table.py --check    # exit 1 if docs/RULES.md is out of date
 
-A test runs the same check, so the README can never drift from the code.
+A test runs the same check, so the rule index can never drift from the code.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from pathlib import Path
 
 from ghostrules.rules import all_rules
 
-README = Path(__file__).resolve().parent.parent / "README.md"
+RULES_MD = Path(__file__).resolve().parent.parent / "docs" / "RULES.md"
 START = "<!-- rules-table:start -->"
 END = "<!-- rules-table:end -->"
 _FILES = {"instructions": "instructions", "config": "config", "other": "any file*"}
@@ -36,26 +36,24 @@ def rules_table() -> str:
     return "\n".join(lines)
 
 
-def replace_block(readme: str, table: str) -> str:
-    """Return ``readme`` with the text between the markers replaced by ``table``."""
-    start, end = readme.index(START), readme.index(END)
-    return f"{readme[: start + len(START)]}\n{table}\n{readme[end:]}"
+def replace_block(document: str, table: str) -> str:
+    """Return ``document`` with the text between the markers replaced by ``table``."""
+    start, end = document.index(START), document.index(END)
+    return f"{document[: start + len(START)]}\n{table}\n{document[end:]}"
 
 
 def main(argv: list[str]) -> int:
     table = rules_table()
     if "--write" in argv or "--check" in argv:
-        current = README.read_text(encoding="utf-8")
+        current = RULES_MD.read_text(encoding="utf-8")
         updated = replace_block(current, table)
         if "--check" in argv:
             if current != updated:
-                print(
-                    "README.md rules table is out of date: run scripts/gen_rules_table.py --write"
-                )
+                print("docs/RULES.md is out of date: run scripts/gen_rules_table.py --write")
                 return 1
             return 0
-        README.write_text(updated, encoding="utf-8")
-        print("README.md updated")
+        RULES_MD.write_text(updated, encoding="utf-8")
+        print("docs/RULES.md updated")
         return 0
     print(table)
     return 0
