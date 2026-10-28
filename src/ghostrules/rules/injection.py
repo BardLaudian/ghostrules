@@ -11,16 +11,19 @@ import re
 from collections.abc import Iterable, Iterator
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
+from ghostrules.rules.directive import classify, downgrade_note, severity_for
 from ghostrules.rules.helpers import build_finding, host_allowed, urls_allowed
 from ghostrules.rules.known_installers import extract_urls, is_risky_url, known_installer
 from ghostrules.rules.patterns import (
     COLLECTOR_PATTERNS,
     EXFIL_PATTERNS,
     INJECTION_PATTERNS,
+    SENSITIVE_PATH_RE,
     SHELL_LANGS,
     find_encoded_runs,
 )
 from ghostrules.rules.registry import rule
+from ghostrules.sensitive import is_template_path
 
 INSTRUCTIONS: tuple[Kind, ...] = ("instructions",)
 _EXCERPT_CHARS = 80
@@ -114,14 +117,16 @@ def gr010_instruction_override(target: ScanTarget) -> Iterator[Finding]:
     scans_decoded=True,
 )
 def gr011_concealment(target: ScanTarget) -> Iterator[Finding]:
-    """Instructions to act without telling, showing or asking the user."""
+    """Instructions to act without telling, showing or asking the user. High for an instruction,
+    medium when the text describes something, low for an example or a quotation."""
     for span in _spans(target, INJECTION_PATTERNS["GR011"]):
+        kind = classify(target, span)
         yield _finding(
             target,
             "GR011",
-            Severity.HIGH,
+            severity_for(kind, Severity.HIGH),
             "Concealment from the user",
-            "Tells the agent to hide its actions from the user",
+            "Tells the agent to hide its actions from the user" + downgrade_note(kind),
             span,
             fix_hint="Remove the instruction; agents should be transparent about their actions.",
         )
@@ -294,21 +299,35 @@ _COPY_TO_DESTINATION = re.compile(
     scans_decoded=True,
 )
 def gr014_sensitive_files(target: ScanTarget) -> Iterator[Finding]:
-    """A sensitive path near a read/print/send verb, unless the verb is negated ("never print")."""
+    """A sensitive path that a read/print/send verb governs, unless the verb is negated ("never
+    print") or the path is a template (``.env.example``). High for an instruction, medium when the
+    text describes something, low for an example or a quotation."""
     for span in _spans(target, INJECTION_PATTERNS["GR014"]):
         if _NEGATION_BEFORE.search(target.text[max(0, span[0] - 40) : span[0]]):
             continue
         if _COPY_TO_DESTINATION.match(target.text[span[0] : span[1]]):
             continue
+        if _names_a_template(target.text, span):
+            continue
+        kind = classify(target, span)
         yield _finding(
             target,
             "GR014",
-            Severity.HIGH,
+            severity_for(kind, Severity.HIGH),
             "Sensitive file access",
-            "Tells the agent to access a credentials or secrets file",
+            "Tells the agent to access a credentials or secrets file" + downgrade_note(kind),
             span,
             fix_hint="Remove the instruction; agents should not read or transmit credential files.",
         )
+
+
+def _names_a_template(text: str, span: tuple[int, int]) -> bool:
+    """Whether the sensitive path in a match is a template file (``.env.ai-surfaces.example``)."""
+    found = SENSITIVE_PATH_RE.search(text, span[0], span[1])
+    if found is None:
+        return False
+    token = text[found.start() :].split(None, 1)[0].rstrip("`'\".,;:)]}>\u201d\u2019")
+    return is_template_path(token)
 
 
 # --- GR015 ---------------------------------------------------------------------------------
@@ -360,14 +379,16 @@ def gr015_encoded_payloads(target: ScanTarget) -> Iterator[Finding]:
     scans_decoded=True,
 )
 def gr016_safety_bypass(target: ScanTarget) -> Iterator[Finding]:
-    """Flags that or instructions which switch off the agent's safety checks."""
+    """Flags that or instructions which switch off the agent's safety checks. High for an
+    instruction, medium when prose documents that something runs that way, low for an example."""
     for span in _spans(target, INJECTION_PATTERNS["GR016"]):
+        kind = classify(target, span)
         yield _finding(
             target,
             "GR016",
-            Severity.HIGH,
+            severity_for(kind, Severity.HIGH),
             "Agent safety bypass",
-            "Tells the agent to bypass its permission or safety checks",
+            "Tells the agent to bypass its permission or safety checks" + downgrade_note(kind),
             span,
             fix_hint="Remove it; keep the agent's permission prompts and sandbox enabled.",
         )

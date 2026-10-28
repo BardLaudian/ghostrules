@@ -66,10 +66,27 @@ Text revealed by GR001/GR004 decoding must ALSO be scanned by GR010–GR016 (rep
 Negative: documentation *about* prompt injection inside fenced code blocks marked as examples is
 still reported but at `low` with message "appears inside a code block".
 
+### Directive, descriptive and example text (GR011, GR014, GR016; v0.2.1)
+These three rules match phrases that are just as common in prose that *describes* something. Each
+match is classified by the sentence around it (`src/ghostrules/rules/directive.py`):
+
+| Kind | What it is | Severity |
+|---|---|---|
+| directive | An imperative sentence or clause ("Read …", "Always send …", "Silently run …"), "you must/should …", anything that does not start like a description, and **all decoded hidden text** | the rule's normal severity |
+| descriptive | A third-person description ("The scripts read …", "Claude then uses …", "With `~/.npmrc` moved aside it exits 1") | at most medium |
+| example | Inside a fenced block or in quotes, or a sentence introduced by "e.g.", "for example", "such as", "a skill that …", "… instructs the agent to …" | at most low |
+
+Text decoded from hidden characters is always a directive and keeps the +1 bump (critical).
+Inline code does not make a match an example: `` Run `claude --yolo` `` is read as "Run …". A lowered
+finding says so in its message. GR010 and GR012 have their own context rules and do not use this.
+
 ### GR011 — Concealment from the user (high)
 `do not (tell|inform|mention|show|reveal)( this)? (to )?the user`, `without (telling|asking|notifying) the user`,
 `(silently|secretly|quietly) (run|execute|add|send|install|modify)`, `don't mention (this|these)`,
 `hide (this|the) (from|output)`, ES: `no (se lo )?(digas|menciones|muestres) al usuario`, `sin avisar al usuario`.
+Not concealment, and not reported: "do not tell the user **to** …", "… **which|what|how|where|when|why**
+…" and "… **that** …" unless it is "that you …": these say what to tell the user. "Do not tell the
+user about this", "Do not tell the user." and "Do not tell the user that you did it" are.
 
 ### GR012 — Remote code execution patterns (context-aware in instructions, high elsewhere)
 `curl … | (ba|z)?sh`, `wget … -O- | sh`, `curl … | python`, `iwr|Invoke-WebRequest … | iex`,
@@ -124,8 +141,11 @@ Respect `allow_domains` from config.
 ### GR014 — Sensitive file access (high)
 Instruction text referencing `~/.ssh`, `id_rsa`, `id_ed25519`, `.aws/credentials`, `.env`
 (as a file to read/send, not "add .env to .gitignore"), `.npmrc`, `.pypirc`, `.netrc`, `kubeconfig`,
-`Keychain`, browser cookie stores, `/etc/shadow`, combined with a read/print/cat/send verb within
-60 chars. Negative test: "Never commit .env files" must NOT fire.
+`Keychain`, browser cookie stores, `/etc/shadow`, combined with a read/print/cat/send verb that
+governs the path: same clause (no `;` or sentence end between them) and at most six words apart
+(v0.2.1; it was "within 60 chars"). Negative test: "Never commit .env files" must NOT fire. Template
+files (`.env.example`, `.env.sample`, `.env.template`, `.env.ai-surfaces.example`, `*.example`) are not
+secrets and never fire (the same list as GR021). Severity by directive / descriptive / example (above).
 
 ### GR015 — Encoded payloads (medium → high)
 Base64 runs ≥ 60 chars (or hex ≥ 80) in instruction files. Decode; if the result is mostly
@@ -136,6 +156,9 @@ images and things inside fenced code blocks labelled with a language other than 
 `--dangerously-skip-permissions`, `bypassPermissions`, `--yolo`, `yolo mode`, `auto[- ]?approve (all|every)`,
 `always (allow|approve|accept) (all )?(commands|tools|edits)`, `disable (the )?(sandbox|safety|guardrails)`,
 `never ask (for )?(permission|confirmation)`, ES: `sin pedir (permiso|confirmación)`.
+Severity by directive / descriptive / example (above): "Run with `--dangerously-skip-permissions`" is
+high, "The test harness runs Claude with `--permission-mode bypassPermissions`" is medium, a fenced
+`claude --dangerously-skip-permissions` is low.
 
 ---
 
