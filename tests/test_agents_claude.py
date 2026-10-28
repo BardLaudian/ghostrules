@@ -501,10 +501,10 @@ def test_without_home_no_user_files(tmp_path) -> None:
 # --- symlinks ----------------------------------------------------------------------------------
 
 
-def link(tmp_path: Path, name: str, target: str) -> None:
+def link(tmp_path: Path, name: str, target: str, *, is_dir: bool = False) -> None:
     try:
         (tmp_path / name).parent.mkdir(parents=True, exist_ok=True)
-        os.symlink(target, tmp_path / name)
+        os.symlink(target, tmp_path / name, target_is_directory=is_dir)
     except (OSError, NotImplementedError):
         pytest.skip("symlinks are not available here")
 
@@ -539,14 +539,14 @@ def test_an_imported_symlink_is_not_followed(tmp_path) -> None:
 
 def test_a_symlinked_directory_is_never_entered(tmp_path) -> None:
     make(tmp_path, {"CLAUDE.md": "@docs/a.md", "real/a.md": "x"})
-    link(tmp_path, "docs", "real")
+    link(tmp_path, "docs", "real", is_dir=True)
     g = ClaudeCode().build(Repo(tmp_path))
     assert [(e.target, e.status) for e in g.edges] == [("docs/a.md", "symlink")]
 
 
 def test_a_symlinked_rules_directory_is_reported(tmp_path) -> None:
     make(tmp_path, {"shared/r.md": "x"})
-    link(tmp_path, ".claude/rules", "../shared")
+    link(tmp_path, ".claude/rules", "../shared", is_dir=True)
     g = ClaudeCode().build(Repo(tmp_path))
     e = entry(g, ".claude/rules")
     assert e.load == "blocked" and "symlinked directory" in e.note

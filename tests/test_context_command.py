@@ -306,7 +306,27 @@ def test_resolve_inside_reads_cwd_then_root(tmp_path: Path, monkeypatch) -> None
 def test_resolve_inside_does_not_follow_symlinks(tmp_path: Path) -> None:
     root = make(tmp_path / "repo", {"real/a.md": "x"})
     try:
-        os.symlink(tmp_path, root / "escape")
+        os.symlink(tmp_path, root / "escape", target_is_directory=True)
     except (OSError, NotImplementedError):
         pytest.skip("symlinks are not available here")
     assert resolve_inside(Path("escape/y.md"), root, "target") == "escape/y.md"
+
+
+def test_resolve_inside_ignores_a_reading_on_another_drive(tmp_path: Path, monkeypatch) -> None:
+    """On Windows os.path.relpath raises when the current directory is on another drive."""
+    root = make(tmp_path / "repo", {"src/a.ts": "x"})
+    elsewhere = tmp_path / "elsewhere"
+    elsewhere.mkdir()
+    monkeypatch.chdir(elsewhere)
+    real = os.path.relpath
+
+    def relpath(path, start=os.curdir):
+        if os.path.normpath(path).startswith(str(elsewhere)):
+            raise ValueError("path is on mount 'D:', start on mount 'C:'")
+        return real(path, start)
+
+    monkeypatch.setattr(os.path, "relpath", relpath)
+    assert resolve_inside(Path("src/a.ts"), root, "target") == "src/a.ts"
+    assert resolve_inside(Path("src"), root, "--cwd") == "src"
+    with pytest.raises(ContextError):
+        resolve_inside(Path("../nowhere.py"), root, "target")

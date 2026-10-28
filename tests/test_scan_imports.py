@@ -322,10 +322,10 @@ def test_gr022_is_quiet_about_things_that_load(tmp_path: Path) -> None:
 # --- GR025 -------------------------------------------------------------------------------------
 
 
-def symlink(root: Path, name: str, target: str) -> None:
+def symlink(root: Path, name: str, target: str, *, is_dir: bool = False) -> None:
     try:
         (root / name).parent.mkdir(parents=True, exist_ok=True)
-        os.symlink(target, root / name)
+        os.symlink(target, root / name, target_is_directory=is_dir)
     except (OSError, NotImplementedError):
         pytest.skip("symlinks are not available here")
 
@@ -348,7 +348,7 @@ def test_gr025_is_high_when_the_link_leaves_the_repo(tmp_path: Path) -> None:
 
 def test_gr025_symlinked_rules_directory_and_imported_link(tmp_path: Path) -> None:
     make(tmp_path, {"shared/r.md": "x", "CLAUDE.md": "@link.md", "real.md": "x"})
-    symlink(tmp_path, ".claude/rules", "../shared")
+    symlink(tmp_path, ".claude/rules", "../shared", is_dir=True)
     symlink(tmp_path, "link.md", "real.md")
     paths = sorted(f.path for f in by_rule(scan(tmp_path), "GR025"))
     assert paths == [".claude/rules", "link.md"]

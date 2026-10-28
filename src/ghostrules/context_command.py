@@ -62,7 +62,10 @@ def resolve_inside(raw: Path, root: Path, what: str) -> str:
     inside: list[tuple[str, str]] = []
     for option in options:
         full = os.path.normpath(os.path.abspath(option))
-        rel = os.path.relpath(full, base)
+        try:
+            rel = os.path.relpath(full, base)
+        except ValueError:  # Windows: another drive cannot be inside the root
+            continue
         if rel == ".":
             inside.append(("", full))
         elif not rel.startswith("..") and not os.path.isabs(rel):
