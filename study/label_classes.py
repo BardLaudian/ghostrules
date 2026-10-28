@@ -88,6 +88,7 @@ def label_findings(
     labels: list[Label] = []
     counts: Counter[str] = Counter()
     unmatched: list[dict[str, Any]] = []
+    seen: set[str] = set()
     for record in records:
         for f in record.get("findings", []):
             if f["severity"] not in GATED:
@@ -97,6 +98,9 @@ def label_findings(
                 unmatched.append(f)
                 continue
             key, label, reason = hit
+            if f["fingerprint"] in seen:
+                continue  # the same snippet twice in one file has one fingerprint
+            seen.add(f["fingerprint"])
             counts[f"{key} -> {label}"] += 1
             labels.append(Label(f["fingerprint"], label, f["rule_id"], f["severity"], "", reason))
     return labels, counts, unmatched

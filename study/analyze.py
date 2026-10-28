@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "corpus"))
 from features import RISK_RULES, repo_features  # noqa: E402
 
 
@@ -47,8 +48,11 @@ def write_csv(path: Path, header: list[str], rows: list[list[Any]]) -> None:
         writer.writerows(rows)
 
 
-def analyze(records: list[dict[str, Any]], out: Path) -> dict[str, Any]:
-    """Write the CSVs and return the headline numbers."""
+def analyze(
+    records: list[dict[str, Any]], out: Path, labels: dict[str, Any] | None = None
+) -> dict[str, Any]:
+    """Write the CSVs and return the headline numbers. ``labels`` (fingerprint -> Label) adds
+    ``precision_by_rule.csv``."""
     ok = [r for r in records if r["status"] == "ok"]
     feats = [repo_features(r) for r in ok]
     n = len(feats)
@@ -123,6 +127,22 @@ def analyze(records: list[dict[str, Any]], out: Path) -> dict[str, Any]:
         [[rule, sev, c, rule_repos[rule], pct(rule_repos[rule], n)]
          for (rule, sev), c in sorted(rule_findings.items())],
     )  # fmt: skip
+    if labels is not None:
+        counts: dict[str, Counter[str]] = {}
+        for r in ok:
+            for f in r.get("findings", []):
+                if f["severity"] not in ("critical", "high", "medium"):
+                    continue
+                label = labels.get(f["fingerprint"])
+                counts.setdefault(f["rule_id"], Counter())[
+                    label.label if label else "unlabelled"
+                ] += 1
+        write_csv(
+            out / "precision_by_rule.csv",
+            ["rule", "findings_medium_plus", "tp", "wontfix", "fp", "unlabelled"],
+            [[rule, sum(c.values()), c["tp"], c["wontfix"], c["fp"], c["unlabelled"]]
+             for rule, c in sorted(counts.items())],
+        )  # fmt: skip
     risk = {k: sum(1 for f in feats if f["risk"][k]) for k in RISK_RULES}
     write_csv(
         out / "risk_indicators.csv",
@@ -165,8 +185,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Aggregate the study results into CSVs.")
     p.add_argument("results", nargs="+", type=Path)
     p.add_argument("--out", type=Path, default=Path(__file__).resolve().parent / "data")
+    p.add_argument("--labels", nargs="*", type=Path, default=[], help="labels.toml files")
     args = p.parse_args(argv)
-    headline = analyze(load_records(args.results), args.out)
+    labels: dict[str, Any] = {}
+    if args.labels:
+        from common import load_labels
+
+        for path in args.labels:
+            labels.update(load_labels(path))
+    headline = analyze(load_records(args.results), args.out, labels if args.labels else None)
     (args.out / "headline.json").write_text(
         json.dumps(headline, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
