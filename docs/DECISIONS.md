@@ -892,3 +892,10 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   each class checked on its examples and approved by the maintainer; the report says "triaged by
   class", not "read one by one", and notes that a `wontfix` is a judgement (GR016: a flag named in a
   guide).
+
+## v0.3 housekeeping
+
+- **v0.3 design notes are versioned** in `docs/design/v0.3/` (`PLAN`, `CORPUS`, `PLAYGROUND`, `STUDY`),
+  next to the v0.1.1 and v0.2 ones. This supersedes the F5 note that left `docs/v0.3/` uncommitted.
+  The session hand-off note (`HANDOFF.md`) was dropped: it was tied to one working session.
+  `docs/v0.2.1/FIXES.md` stays uncommitted because it quotes lines of public repositories.
