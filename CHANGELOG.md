@@ -6,6 +6,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- GitHub Action inputs `follow-imports` (default `true`) and `lock-check` (default `false`). With
+  `lock-check` the action runs `ghostrules lock --check`, puts the differences in the job summary
+  under "What your agents read changed in this PR" and fails the job if there are any; new output
+  `lock-exit-code`.
+- Config keys `follow_imports`, `agents` and `lockfile`.
+- `python scripts/make_demo.py --lock-scenario DEST` and the tapes `demo/imports.tape` and
+  `demo/lock.tape` for the 0.2 GIFs.
 - `ghostrules lock`: writes `.ghostrules.lock`, a deterministic record (sorted keys, no timestamps,
   CRLF-normalised hashes) of every file in each modelled agent's context, how it is reached, and
   the text the agent actually receives, plus a hash of every MCP and agent settings file.

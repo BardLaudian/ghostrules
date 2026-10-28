@@ -288,6 +288,7 @@ extra_targets = ["docs/ai/*.md"]    # extra files, treated as instructions
 allow_domains = ["mycompany.com"]   # never flagged by the URL and exfiltration rules (GR012, GR013)
 trust_known_installers = true       # GR012: lower the severity of well-known installers (uv, rustup...)
 follow_imports = true               # scan files reached through @path imports
+lockfile = ".ghostrules.lock"       # where `ghostrules lock` writes the pinned context
 agents = ["claude-code", "copilot-cli", "cursor", "generic"]  # agents whose loading is modelled
 ```
 
