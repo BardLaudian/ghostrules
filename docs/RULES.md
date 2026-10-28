@@ -36,6 +36,14 @@ Report **only** if the comment body is ≥ 40 chars and either matches any GR010
 (`you must`, `always`, `never`, `assistant`, `AI`, `agent`, `model`) (→ medium).
 Plain short comments (TODOs, lint directives) are ignored.
 
+Agent-aware (since 0.2): the finding lists which modelled agents see the comment. Claude Code strips
+block-level comments from `CLAUDE.md`, `CLAUDE.local.md` and `.claude/CLAUDE.md` before the model
+sees them, so a comment there is *not seen by* claude-code; Copilot CLI and the others are assumed
+to see it. If no configured agent sees it the finding is info ("stripped by claude-code before
+reaching the model"); otherwise the severity is unchanged. Where stripping is not documented
+(AGENTS.md, rules, imported files) the comment counts as seen. Set `agents = ["claude-code"]` to
+model a team that only uses Claude Code.
+
 ### GR006 — Mixed-script homoglyph words (low)
 A single word mixing Latin with Cyrillic/Greek lookalikes (e.g. `pаypal` with Cyrillic а) inside
 instruction files or URLs. Low severity, but upgrade to high if inside a URL/domain.
@@ -168,6 +176,49 @@ Other agents: equivalent keys if trivial to support (e.g. Gemini `"yolo": true`)
 cloned repo's `.mcp.json` would start servers without review.
 
 ---
+
+## Import graph (0.2)
+
+Agents build their context by following `@path` imports, so these rules look at every modelled
+agent's context (`docs/AGENT_MODELS.md`), not only at a fixed list of files. Findings sit on the
+importing line, and nothing an import points at outside the repository is ever read. Files an
+import reaches are scanned as instruction files and their findings carry the chain
+(`via CLAUDE.md:12 → docs/style.md:3`) and the agents that load them. An `ghostrules-ignore` marker
+in the importing file never silences a finding in the imported file: markers only apply to the
+file they are written in.
+
+### GR020 — External import (high)
+An `@path` import that resolves outside the repository: an absolute path, `~/…`, or `../` climbing
+above the root. Claude Code asks for a one-time approval (an earlier approval silently covers new
+imports); Copilot CLI does not load it. The message names the agents affected. Info when the
+importing file is user-level (`~/.claude/CLAUDE.md`).
+
+### GR021 — Sensitive file imported into context (critical)
+An import whose target is a credentials file: `.env`, `.env.*` (not `.example`, `.sample`,
+`.template`, `.dist`), anything under `.ssh/`, `id_rsa*`, `id_ed25519*`, `.aws/credentials`,
+`.npmrc`, `.pypirc`, `.netrc`, kubeconfig, `*.pem`, `*.key`, `credentials.json`, `secrets.*`.
+Importing it sends the secret to the model provider with every prompt. The file is never read. High
+when the import itself is uncertain (inside an HTML comment, or after punctuation).
+
+### GR022 — Import that silently does not load (low)
+An `@path` the agent ignores: the file does not exist, is a directory, is deeper than the depth
+limit, is wrapped in quotes, or is cut at an unescaped space (`@Design Docs/a.md`; the finding says
+to write `@Design\ Docs/a.md`). Only tokens that look like paths are reported (`@alice` is a
+mention; `@types/node` is reported).
+
+### GR023 — Import cycle (info)
+`A → B → A`, reported once on the import that closes the loop. Agents stop at the depth limit.
+
+### GR024 — Payload reached only through an import (tag)
+Not a detector. A GR001–GR016 finding in a file that is not itself an agent file and is reached only
+through imports gets the tag `reached-via-import` and the import chain in `via`. This is what makes
+a payload hidden in an imported file visible. Adding `GR024` to `disable` (or `--no-follow-imports`)
+stops ghostrules from scanning imported files.
+
+### GR025 — Symlinked instruction source (medium)
+An instruction file, imported file or rules directory that is a symlink. ghostrules never follows
+symlinks, so what the agent reads through it is not scanned. High when the link target is outside
+the repository (Claude Code treats such links like external imports).
 
 ## Severity calibration targets (acceptance)
 - `examples/clean-repo` (realistic AGENTS.md, CLAUDE.md, .mcp.json with `${GITHUB_TOKEN}`, pinned

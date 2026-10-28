@@ -23,6 +23,7 @@ from ghostrules.reporters.common import (
     group_by_file,
     safe,
     severity_counts,
+    via_text,
 )
 from ghostrules.rules.patterns import COLLECTOR_PATTERNS, EXFIL_PATTERNS, INJECTION_PATTERNS
 
@@ -114,6 +115,15 @@ class _Head:
 def _finding_block(finding: Finding, repeated_hidden_text: bool) -> RenderableType:
     """One finding. When it was found inside hidden text already shown above, stay compact."""
     parts: list[RenderableType] = [_Head(finding)]
+    if finding.via:
+        chain = f"via {via_text(finding)}"
+        if finding.agents:
+            chain += f" · loaded by {', '.join(finding.agents)}"
+        parts.append(
+            Padding(
+                Text(safe(chain), style="yellow"), (0, 0, 0, _badge(finding.severity).cell_len + 1)
+            )
+        )
     body: list[RenderableType] = []
     if repeated_hidden_text:
         body.append(Text.assemble(("↳ ", "dim"), safe(finding.message)))

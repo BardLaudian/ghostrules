@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from ghostrules.models import Finding, ScanResult, Severity
-from ghostrules.reporters.common import config_notes, safe, summary_line
+from ghostrules.reporters.common import config_notes, safe, summary_line, via_text
 
 MAX_ROWS = 100
 _ICON = {
@@ -29,6 +29,9 @@ def _row(f: Finding) -> str:
     detail = _cell(f.message)
     if f.decoded:
         detail += f"<br>**Decoded hidden text:** `{_cell(f.decoded)}`"
+    if f.via:
+        loaded = f" (loaded by {_cell(', '.join(f.agents))})" if f.agents else ""
+        detail += f"<br>**Reached via import:** `{_cell(via_text(f))}`{loaded}"
     return (
         f"| {_ICON[f.severity]} {f.severity.label} | `{f.rule_id}` | {where} | "
         f"**{_cell(f.title)}**<br>{detail} |"

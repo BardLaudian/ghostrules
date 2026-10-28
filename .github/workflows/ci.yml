@@ -38,3 +38,4 @@ jobs:
         run: |
           ghostrules scan . --no-color
           ghostrules scan . --all-files --no-color
+          ghostrules lock --check --no-color
