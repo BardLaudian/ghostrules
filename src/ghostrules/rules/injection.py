@@ -436,6 +436,8 @@ def gr014_sensitive_files(target: ScanTarget) -> Iterator[Finding]:
     for span in _spans(target, INJECTION_PATTERNS["GR014"]):
         if _negated_before(target.text, span[0]):
             continue
+        if "\n\n" in target.text[span[0] : span[1]] or _output_is_a_noun(target.text, span[0]):
+            continue  # a paragraph break ends the clause; "### Output" names a section
         if _COPY_TO_DESTINATION.match(target.text[span[0] : span[1]]):
             continue
         if _names_a_template(target.text, span) or _copies_dotenv(target.text[span[0] : span[1]]):
@@ -450,6 +452,18 @@ def gr014_sensitive_files(target: ScanTarget) -> Iterator[Finding]:
             span,
             fix_hint="Remove the instruction; agents should not read or transmit credential files.",
         )
+
+
+_NOUN_OUTPUT = re.compile(
+    r"(?:^|\n)[ \t]*#+[ \t]*$|\b(?:expected|the|its|program|command|tool)\s+$", re.I
+)
+
+
+def _output_is_a_noun(text: str, start: int) -> bool:
+    """``output`` is also a heading ("### Output") or a noun ("Expected output")."""
+    return text[start : start + 6].lower() == "output" and bool(
+        _NOUN_OUTPUT.search(text[max(0, start - 20) : start])
+    )
 
 
 _COPY_VERB = re.compile(r"(?:copy|paste)\b", re.IGNORECASE)

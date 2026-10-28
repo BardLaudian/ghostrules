@@ -177,6 +177,9 @@ still does), `.env.default` is a template, and a prohibition written in bold or 
 files (`.env.example`, `.env.sample`, `.env.template`, `.env.ai-surfaces.example`, `*.example`) are not
 secrets and never fire (the same list as GR021). Severity by directive / descriptive / example (above).
 
+Since 0.3 (study) a match that spans a paragraph break is not reported, and `output` as a heading
+(`### Output`) or a noun (`Expected output`) is not a verb.
+
 ### GR015 — Encoded payloads (medium → high)
 Base64 runs ≥ 60 chars (or hex ≥ 80) in instruction files. Decode; if the result is mostly
 printable text → high and put it in `decoded` (and scan it with GR010–GR014). Skip data URIs of
