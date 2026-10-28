@@ -510,3 +510,12 @@ def test_corpus_workflow_never_runs_on_pull_requests_and_publishes_from_main_onl
     publish = corpus["jobs"]["publish"]
     assert "refs/heads/main" in publish["if"]
     assert publish["permissions"] == {"contents": "write"}
+    script = "\n".join(str(step.get("run", "")) for step in publish["steps"])
+    assert "git push origin badges" in script and "gh-pages" not in script
+    assert "git add corpus" in script  # only the corpus/ files go to the orphan branch
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert (
+        "raw.githubusercontent.com%2FBardLaudian%2Fghostrules%2Fbadges%2Fcorpus%2Fbadge.json"
+        in readme
+    )
+    assert "github.io%2Fghostrules%2Fcorpus" not in readme
