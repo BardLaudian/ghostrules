@@ -46,7 +46,8 @@ jobs:
           if-no-files-found: ignore
 
   publish:
-    # Only the default branch publishes; the badge reads corpus/badge.json from gh-pages.
+    # Only the default branch publishes; the badge reads corpus/badge.json from the orphan
+    # branch "badges" (gh-pages is not served: Pages is deployed from Actions by pages.yml).
     needs: corpus
     if: always() && needs.corpus.result != 'skipped' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -57,16 +58,16 @@ jobs:
         with:
           name: corpus-results
           path: artifact
-      - name: Publish to gh-pages
+      - name: Publish to the badges branch
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
           test -f artifact/corpus-public/badge.json
-          git clone --quiet --depth 1 --branch gh-pages \
+          git clone --quiet --depth 1 --branch badges \
             "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" site \
-            || { mkdir site && git -C site init --quiet -b gh-pages \
+            || { mkdir site && git -C site init --quiet -b badges \
               && git -C site remote add origin \
               "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"; }
           mkdir -p site/corpus
@@ -76,4 +77,4 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add corpus
           git diff --cached --quiet || git commit --quiet -m "corpus: weekly summary"
-          git push origin gh-pages
+          git push origin badges
