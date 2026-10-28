@@ -1,6 +1,6 @@
 # ghostrules v0.2 — Build plan
 
-Read first: `docs/v0.2/SPEC.md`, `docs/v0.2/AGENT_MODELS.md`, `docs/v0.2/RULES.md`, plus the 0.1
+Read first: `docs/v0.2/SPEC.md`, `docs/AGENT_MODELS.md`, `docs/v0.2/RULES.md`, plus the 0.1
 docs and `CLAUDE.md`. Same workflow as 0.1: one phase at a time; after each phase run
 `pytest -q && ruff check . && mypy src`, commit with a conventional message, then stop and report.
 Work on a branch `v0.2`; open a PR at the end.

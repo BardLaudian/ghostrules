@@ -19,6 +19,9 @@ reasonably possible. Reporters are credited in the changelog unless they prefer 
 
 - **The scanner does something it must never do**: executes, downloads, imports or evaluates
   scanned content, follows a symbolic link out of the scanned tree, or makes a network request.
+- **An `@path` import makes the scanner read what it must not**: a file outside the scanned
+  tree, a symbolic link's target, or a credentials file such as `.env` (GR021 reports these
+  imports and the file must stay unread).
 - **A secret is printed unmasked** in any output format (table, JSON, SARIF, Markdown, `reveal`,
   `clean`) or in a warning or error message.
 - **Crafted input hurts the scan**: a crash that stops the report, an unbounded loop or memory
@@ -40,8 +43,9 @@ Only the latest released `0.x` version receives fixes.
 
 ## Design guarantees you can rely on
 
-- Read-only on your repository: the only writes are the report you ask for (`scan --output`) and
-  `ghostrules clean --write`, which keeps a backup of the original.
+- Read-only on your repository: the only writes are the report you ask for (`--output`),
+  `ghostrules lock` (the lock file) and `ghostrules clean --write`, which keeps a backup of the
+  original.
 - No network access and no execution of scanned content, at runtime or in tests.
 - Test fixtures and demos are defanged (`*.example` domains, fake tokens).
 - Secrets are masked in a single place that every output passes through, and a dedicated test

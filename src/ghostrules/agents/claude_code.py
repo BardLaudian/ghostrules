@@ -1,6 +1,6 @@
 """Claude Code: CLAUDE.md files, AGENTS.md fallback, ``.claude/rules`` and ``@`` imports.
 
-Source of truth: ``docs/v0.2/AGENT_MODELS.md`` (section claude-code), from
+Source of truth: ``docs/AGENT_MODELS.md`` (section claude-code), from
 https://code.claude.com/docs/en/memory.
 """
 

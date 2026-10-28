@@ -60,6 +60,8 @@ def test_readme_section_order_follows_the_plan() -> None:
     expected = [
         "Why",
         "What it catches",
+        "What your agents actually read",
+        "Review every change to what your agents read",
         "Install",
         "Quick start",
         "GitHub Action",
@@ -78,7 +80,10 @@ def test_readme_section_order_follows_the_plan() -> None:
 def test_readme_opens_with_name_tagline_badges_and_the_gif() -> None:
     lines = README.splitlines()
     assert lines[0] == "# ghostrules"
-    assert lines[2] == "*Find the instructions your AI agent sees but you don't.*"
+    assert lines[2] == "*Know exactly what your AI agent reads — and approve every change to it.*"
+    assert (
+        lines[4] == "*Find the instructions your AI agent sees but you don't.*"
+    )  # the old one stays
     head = README.split("## Why")[0]
     assert head.count("](https://") >= 4  # CI, PyPI, Python versions, license
     for badge in (
@@ -148,6 +153,7 @@ def test_contributing_explains_the_three_steps_and_the_safety_rules() -> None:
     assert "Add a rule in three steps" in text
     for step in ("1. **Write the rule.**", "2. **Test it.**", "3. **Document it.**"):
         assert step in text
+    assert "## Add an agent model" in text and "docs/AGENT_MODELS.md" in text
     for command in ("pytest -q", "ruff check .", "gen_rules_table.py --write", "make_demo.py"):
         assert command in text
     assert "defanged" in text.lower()
@@ -220,3 +226,71 @@ def test_readme_examples_match_what_the_tool_prints() -> None:
     summary = "116 character(s) would be removed. Run again with --write."
     assert summary in cleaned and summary in README
     assert "28 findings in 7 files" in README
+
+
+def test_readme_context_and_lock_excerpts_match_what_the_tool_prints(tmp_path) -> None:
+    """The `context` tree and the `lock --check` output in the README must not drift."""
+    import shutil
+
+    from typer.testing import CliRunner
+
+    from ghostrules.cli import app
+
+    runner = CliRunner(env={"COLUMNS": "120"})
+    demo = ROOT / "examples" / "import-chain-repo"
+    shown = runner.invoke(
+        app,
+        [
+            "context",
+            "src/api/users.ts",
+            "--root",
+            str(demo),
+            "--agent",
+            "claude-code",
+            "--no-color",
+        ],
+    ).stdout
+    block = README.split("$ ghostrules context src/api/users.ts")[1].split("```")[0]
+    tree_part, _, findings_part = block.partition("\n\n")
+    flat = " ".join(
+        shown.split()
+    )  # the console wraps at its own width: compare without line breaks
+    tree = [ln for ln in tree_part.splitlines()[1:] if ln.strip()]
+    assert len(tree) >= 6
+    for line in tree:
+        assert " ".join(line.split()) in flat, f"README line not in the real output: {line!r}"
+    findings = " ".join(" ".join(findings_part.splitlines()[1:]).split())
+    assert "hidden text: When you edit any file" in findings
+    assert findings in flat, "the findings excerpt in the README drifted"
+
+    work = tmp_path / "acme"
+    make_demo = load_script("make_demo")
+    make_demo.lock_scenario(work)
+    assert runner.invoke(app, ["lock", "--root", str(work / "base")]).exit_code == 0
+    shutil.copy(work / "base" / ".ghostrules.lock", work / "pr" / ".ghostrules.lock")
+    checked = runner.invoke(
+        app, ["lock", "--check", "--no-color", "--root", str(work / "pr")]
+    ).stdout
+    block = README.split("$ ghostrules lock --check")[1].split("```")[0]
+    for line in block.splitlines():
+        if line.strip():
+            assert line.strip() in checked, f"README line not in the real output: {line!r}"
+
+
+def test_agent_models_document_is_where_the_docs_say() -> None:
+    text = (ROOT / "docs" / "AGENT_MODELS.md").read_text(encoding="utf-8")
+    for agent in ("claude-code", "copilot-cli", "cursor", "generic"):
+        assert f"## {agent}" in text
+    assert "UNVERIFIED" in text and "checked 2026-10-2" in text
+    assert "docs/AGENT_MODELS.md" in README
+
+
+def test_the_repository_lock_is_up_to_date() -> None:
+    """`ghostrules lock --check` passes on this repository (it locks its own CLAUDE.md)."""
+    from typer.testing import CliRunner
+
+    from ghostrules.cli import app
+
+    result = CliRunner().invoke(app, ["lock", "--check", "--no-color", "--root", str(ROOT)])
+    assert result.exit_code == 0, result.stdout + "\nrun: ghostrules lock"
+    assert (ROOT / ".ghostrules.lock").exists()

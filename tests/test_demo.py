@@ -89,7 +89,8 @@ def test_every_rule_fires_somewhere_in_the_poisoned_repo(demo_root: Path) -> Non
 
     ids = {f.rule_id for f in scan(demo_root / "poisoned-repo").findings}
     # GR020-GR025 need @imports and symlinks, which this demo (frozen at its 0.1 contents) does
-    # not have; examples/import-chain-repo covers them.
+    # not have (GR020 and GR021 fire in examples/import-chain-repo; GR022-GR025 are covered by
+    # tests/test_scan_imports.py, because a demo cannot hold a symlink or a cycle portably).
     missing = sorted({r.id for r in all_rules() if r.id < "GR020"} - ids)
     assert not missing, f"the poisoned demo does not trigger {missing}"
 

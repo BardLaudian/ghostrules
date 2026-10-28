@@ -1,6 +1,6 @@
 """Cursor: ``.cursor/rules/*.mdc``, the legacy ``.cursorrules`` and AGENTS.md.
 
-Source of truth: ``docs/v0.2/AGENT_MODELS.md`` (section cursor), from https://cursor.com/docs/context/rules.
+Source of truth: ``docs/AGENT_MODELS.md`` (section cursor), from https://cursor.com/docs/context/rules.
 ``@file`` references inside rules are not expanded by Cursor, so this model has no imports.
 """
 

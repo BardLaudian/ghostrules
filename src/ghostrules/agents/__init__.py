@@ -1,4 +1,4 @@
-"""Agent models: how each supported agent loads instructions (``docs/v0.2/AGENT_MODELS.md``)."""
+"""Agent models: how each supported agent loads instructions (``docs/AGENT_MODELS.md``)."""
 
 from __future__ import annotations
 

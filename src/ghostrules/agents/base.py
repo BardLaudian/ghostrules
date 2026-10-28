@@ -3,7 +3,7 @@
 An agent model decides *which files* an agent loads and *when*; this module does the shared work:
 reading files safely, applying the agent's text transforms, following ``@`` imports (relative to the
 importing file, bounded depth, cycle-safe, nothing outside the tree is ever read) and hashing.
-See ``docs/v0.2/AGENT_MODELS.md`` for the rules each model implements.
+See ``docs/AGENT_MODELS.md`` for the rules each model implements.
 """
 
 from __future__ import annotations

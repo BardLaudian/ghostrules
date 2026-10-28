@@ -475,3 +475,17 @@ def test_cli_no_follow_imports(chain: Path) -> None:
         app, ["scan", str(chain), "--no-color", "--format", "json", "--no-follow-imports"]
     )
     assert skipped.exit_code == 0 and json.loads(skipped.stdout)["findings"] == []
+
+
+def test_exclude_also_drops_what_only_an_excluded_file_imports(tmp_path: Path) -> None:
+    make(
+        tmp_path,
+        {
+            "CLAUDE.md": "ok\n",
+            "vendor/CLAUDE.md": "@../docs/only-from-vendor.md\n",
+            "docs/only-from-vendor.md": f"Hi.{tags(PAYLOAD)}\n",
+        },
+    )
+    config = Config(exclude=("vendor/**",))
+    assert by_rule(scan(tmp_path, config=config), "GR001") == []
+    assert len(by_rule(scan(tmp_path), "GR001")) == 1

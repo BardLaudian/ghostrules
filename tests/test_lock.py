@@ -433,3 +433,18 @@ def test_parse_lock_rejects_bad_shapes() -> None:
         with pytest.raises(LockError):
             parse_lock(text)
     assert parse_lock('{"lock_version": 1, "agents": {}}').agents == {}
+
+
+def test_files_that_only_an_excluded_file_imports_are_left_out(tmp_path: Path) -> None:
+    make(
+        tmp_path,
+        {
+            "CLAUDE.md": "@docs/a.md\n",
+            "docs/a.md": "a\n",
+            "vendor/CLAUDE.md": "@/opt/outside.md @../docs/only-from-vendor.md\n",
+            "docs/only-from-vendor.md": "b\n",
+        },
+    )
+    snap = build_snapshot(tmp_path, Config(exclude=("vendor/**",)))
+    paths = {e.path for e in snap.lock.agents["claude-code"]}
+    assert paths == {"CLAUDE.md", "docs/a.md"}
