@@ -384,7 +384,7 @@ def _negated_before(text: str, start: int) -> bool:
 _CLAUSE_END = re.compile(r"[.;:!?\n]")
 _PROHIBITION = re.compile(
     r"(?:never|do\s+not|don'?t|must\s+not|should\s+not|shouldn'?t|mustn'?t|avoid|nunca|evita"
-    r"|rather\s+than|instead\s+of)\s+(?:[a-z']+\s+){0,8}$",
+    r"|rather\s+than|instead\s+of|does\s+not|doesn'?t|cannot|can'?t|won'?t)\s+(?:[a-z']+\s+){0,8}$",
     re.IGNORECASE,
 )
 

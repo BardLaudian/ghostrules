@@ -135,3 +135,14 @@ def test_gr014_a_heading_a_noun_or_a_paragraph_break_is_not_a_read(text: str) ->
 )
 def test_gr014_real_reads_still_found(text: str) -> None:
     assert "high" in severities(text, "GR014")
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "The executor does not silently install missing packages.",
+        "A trusted config cannot silently execute anything.",
+    ],
+)
+def test_gr011_a_safety_claim_is_not_concealment(text: str) -> None:
+    assert severities(text, "GR011") == []
