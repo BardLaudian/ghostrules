@@ -1,0 +1,7 @@
+# Triaged findings, keyed by fingerprint (corpus/triage.py appends here).
+# label = "tp" | "fp" | "wontfix" | "reported". An "fp" needs severity and
+# test = "tests/test_x.py::test_name". "reported" and "tp" never name the repository.
+#
+# [[label]]
+# fingerprint = "0123456789abcdef"
+# label = "fp"

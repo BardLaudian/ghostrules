@@ -742,3 +742,33 @@ out `low` (example), FIXES.md expects `medium`. Two changes:
   ..."), so the sentence is a description. A code span that is the whole clause, or is followed by a
   verb or "and", stays a directive (`` `cat ~/.ssh/id_rsa` `` is still high).
 Corpus after the change: n8n l.649 is `medium`; the other three remaining findings are unchanged.
+
+## v0.3 Phase 1 — corpus tooling
+
+- **Location and packaging.** `corpus/` is outside `src/`, so the wheel (which packages only
+  `src/ghostrules`) never contains it; the sdist excludes `/corpus` in `pyproject.toml`.
+  `tests/test_corpus_packaging.py` builds both with hatchling and checks the file lists (`hatchling`
+  is in the `dev` extra). The scripts import each other as top-level modules (`import common`), so they
+  run as `python corpus/x.py`; the tests add `corpus/` to `sys.path`.
+- **No shell, one injectable layer.** Every `git`, `gh` and `ghostrules` call goes through a `Runner`
+  (list of arguments, never a shell); tests use `tests/corpus_fakes.FakeRunner`. Repository names are
+  validated before they reach any command (no leading `-` or `.`, so never an option).
+- **Measurement is isolated.** `run.py` always passes `--config <empty file>` and runs from a directory
+  outside the clone, so a scanned repo's `.ghostrules.toml` cannot change the result. The command is
+  `python -I -c "from ghostrules.cli import app; app()"` because the package has no `__main__`.
+- **Stored results.** No `message` or `fix_hint`; `snippet` is re-masked with `mask_secrets` and passed
+  through `safe_text` (repository content may carry terminal escapes); `decoded` only for GR001/GR004;
+  context only as counts and readable paths. `triage.py` re-fetches the file with `gh api` for display
+  only.
+- **Labels and privacy.** `labels.toml` is committed, so `reported` and `tp` labels never name the
+  repository (only `fp` and `wontfix`, which are benign, do). Messages from `check.py` carry the
+  fingerprint, not the repository. An `fp` label must record its old severity and an existing test.
+- **check.py exit codes.** 1 = unlabelled critical/high, `fp` at or above its old severity, `fp`
+  without an existing test. 2 = a scan, context run or timeout failed (or no run exists). A failed
+  clone is reported but is not a gate: repositories get renamed or deleted.
+- **discover.py.** Responses (200/404/409/451) are cached forever in `corpus/.cache/` (`--refresh`
+  ignores it); a rate-limited reply sleeps until `X-RateLimit-Reset`. A truncated tree is `null`
+  ("unknown"). `--propose` picks round-robin across languages, most starred first, as a starting point
+  only: the human edits the list.
+- **Real check (2026-10-28).** `run.py --repos getsentry/sentry-python,anthropics/claude-agent-sdk-python`:
+  both `ok`, 2 findings (low), `check.py` PASS.
