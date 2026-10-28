@@ -853,3 +853,16 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   conditional and which transforms apply; per file (`filestats.py`) kind (agent / imported), size,
   lines, symlink and its in-repo target, a 16-hex content hash (to find duplicated files) and the
   number of HTML comments. No text is stored. Symlinks are read with `lstat`/`readlink`, never followed.
+
+- **Study precision fixes (2026-10-28, first study run, 1,283 repos).** Real false positives, fixed
+  with tests in `tests/test_precision_study.py`: GR011 (prohibition anywhere in the clause; bare verb
+  only; modal / "either" before `silently`), GR016 (prohibition in the clause; a list item that opens
+  with the flag documents it, so medium), GR013 ("send X only to the fixed/official/configured …
+  origin" restricts where data goes, so it is descriptive, not critical), GR015 (runs inside URLs, SRI
+  digests, `AAAA…` padding), imports (a bare `@/`, `@~/`, `@./`, `@../` is a prefix, not a file).
+  Known evasions: a real concealment preceded by a prohibition in the same clause is not reported;
+  "send it only to the official https://attacker.example" is medium, not critical.
+- **Left as they are (labelled in triage, not rule bugs):** GR003 on characters that really are in
+  the text (word joiner before `mapbox://`, a ZWSP demonstration in a security skill), GR012 on known
+  installers (`curl … | sh`), GR014 "read the `.env`" instructions in a project's own file, GR107 allow
+  lists, GR105 `bash` wrappers, GR020 imports that really leave the repository.

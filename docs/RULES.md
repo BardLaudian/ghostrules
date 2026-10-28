@@ -93,6 +93,11 @@ finding says so in its message. GR012 has its own context rules and does not use
 Since 0.3 `without asking the user` is not matched (it is about permission, which GR016 covers), and
 a match governed by a prohibition ("Never silently add scope", "rather than silently adding",
 "Never act without telling the user") is not reported: the sentence forbids the concealment.
+Since 0.3 (study) a prohibition anywhere earlier in the same clause (up to eight words, not across
+`. ; : ! ?` or a line break) counts ("Do not post an event without telling the user"), the verb of the
+`silently …` pattern must be the bare form (`silently installs` / `silently running` describe, they
+do not order) and a modal or "either" before it ("would silently run", "either silently run") makes
+it a description.
 Not concealment, and not reported: "do not tell the user **to** …", "… **which|what|how|where|when|why**
 …" and "… **that** …" unless it is "that you …": these say what to tell the user. "Do not tell the
 user about this", "Do not tell the user." and "Do not tell the user that you did it" are.
@@ -175,14 +180,18 @@ secrets and never fire (the same list as GR021). Severity by directive / descrip
 ### GR015 — Encoded payloads (medium → high)
 Base64 runs ≥ 60 chars (or hex ≥ 80) in instruction files. Decode; if the result is mostly
 printable text → high and put it in `decoded` (and scan it with GR010–GR014). Skip data URIs of
-images and things inside fenced code blocks labelled with a language other than shell.
+images and things inside fenced code blocks labelled with a language other than shell. Since 0.3 also
+skipped: runs inside a URL (a commit hash in a path), Subresource Integrity digests (`sha384-…`) and
+hex of very low entropy (`AAAA…` padding).
 
 ### GR016 — Agent safety bypass (high)
 `--dangerously-skip-permissions`, `bypassPermissions`, `--yolo`, `yolo mode`, `auto[- ]?approve (all|every)`,
 `always (allow|approve|accept) (all )?(commands|tools|edits)`, `disable (the )?(sandbox|safety|guardrails)`,
 `never ask (for )?(permission|confirmation)`, ES: `sin pedir (permiso|confirmación)`.
-A Markdown table row (`| --yolo | disables all prompts |`) documents the flag and is at most medium
-(0.3, GR016 only). Severity by directive / descriptive / example (above): "Run with `--dangerously-skip-permissions`" is
+A Markdown table row (`| --yolo | disables all prompts |`) and a list item that opens with the flag
+(`- **`--yolo` (alias …):** every tool is allowed`) document it and are at most medium (0.3, GR016
+only); a prohibition earlier in the clause ("Avoid `--yolo`", "Do not disable the sandbox") is not
+reported. Severity by directive / descriptive / example (above): "Run with `--dangerously-skip-permissions`" is
 high, "The test harness runs Claude with `--permission-mode bypassPermissions`" is medium, a fenced
 `claude --dangerously-skip-permissions` is low.
 

@@ -1205,3 +1205,5137 @@ tier = "regression"
 name = "zed-industries/zed"
 tier = "regression"
 
+
+# proposed: 1283 repos, tier study, 2026-10-28
+[[repo]]
+name = "0xPlaygrounds/rig"
+tier = "study"
+
+[[repo]]
+name = "1jehuang/jcode"
+tier = "study"
+
+[[repo]]
+name = "24pullrequests/24pullrequests"
+tier = "study"
+
+[[repo]]
+name = "648540858/wvp-GB28181-pro"
+tier = "study"
+
+[[repo]]
+name = "a5c-ai/babysitter"
+tier = "study"
+
+[[repo]]
+name = "Aas-ee/open-webSearch"
+tier = "study"
+
+[[repo]]
+name = "abhigyanpatwari/GitNexus"
+tier = "study"
+
+[[repo]]
+name = "abi/screenshot-to-code"
+tier = "study"
+
+[[repo]]
+name = "abiosoft/colima"
+tier = "study"
+
+[[repo]]
+name = "actions/runner"
+tier = "study"
+
+[[repo]]
+name = "ada-url/ada"
+tier = "study"
+
+[[repo]]
+name = "AdguardTeam/AdGuardHome"
+tier = "study"
+
+[[repo]]
+name = "aeonfun/opendia"
+tier = "study"
+
+[[repo]]
+name = "agalwood/Motrix"
+tier = "study"
+
+[[repo]]
+name = "ageerle/ruoyi-ai"
+tier = "study"
+
+[[repo]]
+name = "agentscope-ai/agentscope-java"
+tier = "study"
+
+[[repo]]
+name = "agno-agi/agno"
+tier = "study"
+
+[[repo]]
+name = "ai-dynamo/dynamo"
+tier = "study"
+
+[[repo]]
+name = "ai-hero-dev/ai-hero"
+tier = "study"
+
+[[repo]]
+name = "ai-job-search-dev/ai-job-search"
+tier = "study"
+
+[[repo]]
+name = "AIPentest/CyberStrikeAI"
+tier = "study"
+
+[[repo]]
+name = "aipoch/medical-research-skills"
+tier = "study"
+
+[[repo]]
+name = "air-verse/air"
+tier = "study"
+
+[[repo]]
+name = "aklivity/zilla"
+tier = "study"
+
+[[repo]]
+name = "alandtse/alexa_media_player"
+tier = "study"
+
+[[repo]]
+name = "AlaSQL/alasql"
+tier = "study"
+
+[[repo]]
+name = "alchaincyf/huashu-motion"
+tier = "study"
+
+[[repo]]
+name = "alexellis/k3sup"
+tier = "study"
+
+[[repo]]
+name = "alibaba/jetcache"
+tier = "study"
+
+[[repo]]
+name = "alibaba/MNN"
+tier = "study"
+
+[[repo]]
+name = "alibaba/QLExpress"
+tier = "study"
+
+[[repo]]
+name = "alibaba/spring-ai-alibaba"
+tier = "study"
+
+[[repo]]
+name = "alipay/SoloPi"
+tier = "study"
+
+[[repo]]
+name = "Alishahryar1/free-claude-code"
+tier = "study"
+
+[[repo]]
+name = "alphaXiv/OpenResearch"
+tier = "study"
+
+[[repo]]
+name = "alvinunreal/oh-my-opencode-slim"
+tier = "study"
+
+[[repo]]
+name = "alvinunreal/tmuxai"
+tier = "study"
+
+[[repo]]
+name = "AnalogJ/scrutiny"
+tier = "study"
+
+[[repo]]
+name = "AnalyseDeCircuit/oxideterm"
+tier = "study"
+
+[[repo]]
+name = "anbeime/skill"
+tier = "study"
+
+[[repo]]
+name = "Andersbakken/rtags"
+tier = "study"
+
+[[repo]]
+name = "andrewrabert/jellium-desktop"
+tier = "study"
+
+[[repo]]
+name = "AngleSharp/AngleSharp"
+tier = "study"
+
+[[repo]]
+name = "ankitects/anki"
+tier = "study"
+
+[[repo]]
+name = "anonaddy/anonaddy"
+tier = "study"
+
+[[repo]]
+name = "ansible/ansible"
+tier = "study"
+
+[[repo]]
+name = "ant-design-blazor/ant-design-blazor"
+tier = "study"
+
+[[repo]]
+name = "ant-design/ant-design-pro"
+tier = "study"
+
+[[repo]]
+name = "AntennaPod/AntennaPod"
+tier = "study"
+
+[[repo]]
+name = "anthropics/claude-agent-sdk-python"
+tier = "study"
+
+[[repo]]
+name = "anthropics/claude-code-action"
+tier = "study"
+
+[[repo]]
+name = "anthropics/claude-for-legal"
+tier = "study"
+
+[[repo]]
+name = "anthropics/claude-plugins-official"
+tier = "study"
+
+[[repo]]
+name = "antrea-io/antrea"
+tier = "study"
+
+[[repo]]
+name = "antvis/F2"
+tier = "study"
+
+[[repo]]
+name = "anyproto/anytype-ts"
+tier = "study"
+
+[[repo]]
+name = "aoci-spec/aoci-code"
+tier = "study"
+
+[[repo]]
+name = "aome510/spotify-player"
+tier = "study"
+
+[[repo]]
+name = "apache/airflow"
+tier = "study"
+
+[[repo]]
+name = "apache/arrow"
+tier = "study"
+
+[[repo]]
+name = "apache/auron"
+tier = "study"
+
+[[repo]]
+name = "apache/beam"
+tier = "study"
+
+[[repo]]
+name = "apache/brpc"
+tier = "study"
+
+[[repo]]
+name = "apache/datafusion"
+tier = "study"
+
+[[repo]]
+name = "apache/dolphinscheduler"
+tier = "study"
+
+[[repo]]
+name = "apache/doris"
+tier = "study"
+
+[[repo]]
+name = "apache/druid"
+tier = "study"
+
+[[repo]]
+name = "apache/echarts"
+tier = "study"
+
+[[repo]]
+name = "apache/fesod"
+tier = "study"
+
+[[repo]]
+name = "apache/flink-cdc"
+tier = "study"
+
+[[repo]]
+name = "apache/hadoop"
+tier = "study"
+
+[[repo]]
+name = "apache/hbase"
+tier = "study"
+
+[[repo]]
+name = "apache/hertzbeat"
+tier = "study"
+
+[[repo]]
+name = "apache/hive"
+tier = "study"
+
+[[repo]]
+name = "apache/hudi"
+tier = "study"
+
+[[repo]]
+name = "apache/iceberg"
+tier = "study"
+
+[[repo]]
+name = "apache/incubator-kie"
+tier = "study"
+
+[[repo]]
+name = "apache/iotdb"
+tier = "study"
+
+[[repo]]
+name = "apache/jmeter"
+tier = "study"
+
+[[repo]]
+name = "apache/kudu"
+tier = "study"
+
+[[repo]]
+name = "apache/nifi"
+tier = "study"
+
+[[repo]]
+name = "apache/pinot"
+tier = "study"
+
+[[repo]]
+name = "apache/plc4x"
+tier = "study"
+
+[[repo]]
+name = "apache/pulsar"
+tier = "study"
+
+[[repo]]
+name = "apache/seatunnel"
+tier = "study"
+
+[[repo]]
+name = "apache/shenyu"
+tier = "study"
+
+[[repo]]
+name = "apache/solr"
+tier = "study"
+
+[[repo]]
+name = "apache/storm"
+tier = "study"
+
+[[repo]]
+name = "apache/superset"
+tier = "study"
+
+[[repo]]
+name = "apache/tomcat"
+tier = "study"
+
+[[repo]]
+name = "apache/trafficserver"
+tier = "study"
+
+[[repo]]
+name = "apache/zeppelin"
+tier = "study"
+
+[[repo]]
+name = "apereo/cas"
+tier = "study"
+
+[[repo]]
+name = "apify/crawlee-python"
+tier = "study"
+
+[[repo]]
+name = "apple/foundationdb"
+tier = "study"
+
+[[repo]]
+name = "appleboy/gorush"
+tier = "study"
+
+[[repo]]
+name = "AppliedEnergistics/Applied-Energistics-2"
+tier = "study"
+
+[[repo]]
+name = "appsmithorg/appsmith"
+tier = "study"
+
+[[repo]]
+name = "appwrite/appwrite"
+tier = "study"
+
+[[repo]]
+name = "AprilNEA/OpenLogi"
+tier = "study"
+
+[[repo]]
+name = "aptabase/aptabase"
+tier = "study"
+
+[[repo]]
+name = "aptos-labs/aptos-core"
+tier = "study"
+
+[[repo]]
+name = "aquaproj/aqua"
+tier = "study"
+
+[[repo]]
+name = "ArduPilot/ardupilot"
+tier = "study"
+
+[[repo]]
+name = "argoproj/argo-cd"
+tier = "study"
+
+[[repo]]
+name = "ariga/atlas"
+tier = "study"
+
+[[repo]]
+name = "arvidn/libtorrent"
+tier = "study"
+
+[[repo]]
+name = "asgeirtj/system_prompts_leaks"
+tier = "study"
+
+[[repo]]
+name = "AstrBotDevs/AstrBot"
+tier = "study"
+
+[[repo]]
+name = "AsyncHttpClient/async-http-client"
+tier = "study"
+
+[[repo]]
+name = "atipugin/telegram-bot-ruby"
+tier = "study"
+
+[[repo]]
+name = "atuinsh/atuin"
+tier = "study"
+
+[[repo]]
+name = "Automattic/jetpack"
+tier = "study"
+
+[[repo]]
+name = "Automattic/mongoose"
+tier = "study"
+
+[[repo]]
+name = "Automattic/simplenote-android"
+tier = "study"
+
+[[repo]]
+name = "AutoMQ/automq"
+tier = "study"
+
+[[repo]]
+name = "avo-hq/avo"
+tier = "study"
+
+[[repo]]
+name = "aws-amplify/amplify-js"
+tier = "study"
+
+[[repo]]
+name = "aws/aws-lambda-dotnet"
+tier = "study"
+
+[[repo]]
+name = "aws/karpenter-provider-aws"
+tier = "study"
+
+[[repo]]
+name = "awslabs/mcp"
+tier = "study"
+
+[[repo]]
+name = "ayangweb/BongoCat"
+tier = "study"
+
+[[repo]]
+name = "ayghri/i-have-adhd"
+tier = "study"
+
+[[repo]]
+name = "azerothcore/azerothcore-wotlk"
+tier = "study"
+
+[[repo]]
+name = "Azure/azure-sdk-for-go"
+tier = "study"
+
+[[repo]]
+name = "Azure/data-api-builder"
+tier = "study"
+
+[[repo]]
+name = "babel/babel"
+tier = "study"
+
+[[repo]]
+name = "babyfish-ct/jimmer"
+tier = "study"
+
+[[repo]]
+name = "backnotprop/plannotator"
+tier = "study"
+
+[[repo]]
+name = "baomidou/mybatis-plus"
+tier = "study"
+
+[[repo]]
+name = "barryvdh/laravel-dompdf"
+tier = "study"
+
+[[repo]]
+name = "basecamp/once"
+tier = "study"
+
+[[repo]]
+name = "basketikun/infinite-canvas"
+tier = "study"
+
+[[repo]]
+name = "basnijholt/home-assistant-config"
+tier = "study"
+
+[[repo]]
+name = "bcgit/bc-csharp"
+tier = "study"
+
+[[repo]]
+name = "BeaconBay/ck"
+tier = "study"
+
+[[repo]]
+name = "beam-cloud/beta9"
+tier = "study"
+
+[[repo]]
+name = "beikeshop/beikeshop"
+tier = "study"
+
+[[repo]]
+name = "benbalter/word-to-markdown"
+tier = "study"
+
+[[repo]]
+name = "bentoml/BentoML"
+tier = "study"
+
+[[repo]]
+name = "BerriAI/litellm"
+tier = "study"
+
+[[repo]]
+name = "Besty0728/Unity-Skills"
+tier = "study"
+
+[[repo]]
+name = "besu-eth/besu"
+tier = "study"
+
+[[repo]]
+name = "bethington/ghidra-mcp"
+tier = "study"
+
+[[repo]]
+name = "BetterDiscord/Installer"
+tier = "study"
+
+[[repo]]
+name = "BetterTyped/react-zoom-pan-pinch"
+tier = "study"
+
+[[repo]]
+name = "bezzad/Downloader"
+tier = "study"
+
+[[repo]]
+name = "bibendi/dip"
+tier = "study"
+
+[[repo]]
+name = "BidingCC/BuildingAI"
+tier = "study"
+
+[[repo]]
+name = "bigbluebutton/bigbluebutton"
+tier = "study"
+
+[[repo]]
+name = "BigPizzaV3/CodexPlusPlus"
+tier = "study"
+
+[[repo]]
+name = "biomejs/biome"
+tier = "study"
+
+[[repo]]
+name = "bitsandbytes-foundation/bitsandbytes"
+tier = "study"
+
+[[repo]]
+name = "bkaankose/Wino-Mail"
+tier = "study"
+
+[[repo]]
+name = "blader/humanizer"
+tier = "study"
+
+[[repo]]
+name = "block/buzz"
+tier = "study"
+
+[[repo]]
+name = "BloopAI/vibe-kanban"
+tier = "study"
+
+[[repo]]
+name = "blotcms/blot"
+tier = "study"
+
+[[repo]]
+name = "bluesky-social/atproto"
+tier = "study"
+
+[[repo]]
+name = "bmad-code-org/BMAD-METHOD"
+tier = "study"
+
+[[repo]]
+name = "bojieli/ai-agent-book"
+tier = "study"
+
+[[repo]]
+name = "BornToBeRoot/NETworkManager"
+tier = "study"
+
+[[repo]]
+name = "bottlepy/bottle"
+tier = "study"
+
+[[repo]]
+name = "bottlesdevs/Bottles"
+tier = "study"
+
+[[repo]]
+name = "BoundaryML/baml"
+tier = "study"
+
+[[repo]]
+name = "bpmn-io/bpmn-js"
+tier = "study"
+
+[[repo]]
+name = "bpmn-io/diagram-js"
+tier = "study"
+
+[[repo]]
+name = "brainflow-dev/brainflow"
+tier = "study"
+
+[[repo]]
+name = "bramp/ffmpeg-cli-wrapper"
+tier = "study"
+
+[[repo]]
+name = "brndnmtthws/conky"
+tier = "study"
+
+[[repo]]
+name = "bruin-data/bruin"
+tier = "study"
+
+[[repo]]
+name = "bryanroscoe/shield_optimizer"
+tier = "study"
+
+[[repo]]
+name = "btcpayserver/btcpayserver"
+tier = "study"
+
+[[repo]]
+name = "btraceio/btrace"
+tier = "study"
+
+[[repo]]
+name = "bytecodealliance/wasm-tools"
+tier = "study"
+
+[[repo]]
+name = "bytecodealliance/wasmtime"
+tier = "study"
+
+[[repo]]
+name = "bytedance/sonic"
+tier = "study"
+
+[[repo]]
+name = "bytedance/xgplayer"
+tier = "study"
+
+[[repo]]
+name = "cabaletta/baritone"
+tier = "study"
+
+[[repo]]
+name = "cachix/devenv"
+tier = "study"
+
+[[repo]]
+name = "Cacti/cacti"
+tier = "study"
+
+[[repo]]
+name = "cadence-workflow/cadence"
+tier = "study"
+
+[[repo]]
+name = "calcom/cal.diy"
+tier = "study"
+
+[[repo]]
+name = "calesthio/OpenMontage"
+tier = "study"
+
+[[repo]]
+name = "callstack/repack"
+tier = "study"
+
+[[repo]]
+name = "candid82/joker"
+tier = "study"
+
+[[repo]]
+name = "CapSoftware/Cap"
+tier = "study"
+
+[[repo]]
+name = "carbon-design-system/carbon"
+tier = "study"
+
+[[repo]]
+name = "cardisoft/cardinal"
+tier = "study"
+
+[[repo]]
+name = "casey/just"
+tier = "study"
+
+[[repo]]
+name = "catboost/catboost"
+tier = "study"
+
+[[repo]]
+name = "ccfddl/ccf-deadlines"
+tier = "study"
+
+[[repo]]
+name = "ccusage/ccusage"
+tier = "study"
+
+[[repo]]
+name = "ccxt/ccxt"
+tier = "study"
+
+[[repo]]
+name = "centic9/jgit-cookbook"
+tier = "study"
+
+[[repo]]
+name = "ceph/ceph"
+tier = "study"
+
+[[repo]]
+name = "cerebroapp/cerebro"
+tier = "study"
+
+[[repo]]
+name = "chakra-ui/chakra-ui"
+tier = "study"
+
+[[repo]]
+name = "chaos-mesh/chaos-mesh"
+tier = "study"
+
+[[repo]]
+name = "charmbracelet/crush"
+tier = "study"
+
+[[repo]]
+name = "chatboxai/chatbox"
+tier = "study"
+
+[[repo]]
+name = "cheaper-inference/OmniRoute"
+tier = "study"
+
+[[repo]]
+name = "checkstyle/checkstyle"
+tier = "study"
+
+[[repo]]
+name = "chenglou/pretext"
+tier = "study"
+
+[[repo]]
+name = "chengzuopeng/stock-sdk"
+tier = "study"
+
+[[repo]]
+name = "ChenLiu-1996/figures4papers"
+tier = "study"
+
+[[repo]]
+name = "CherryHQ/cherry-studio"
+tier = "study"
+
+[[repo]]
+name = "chigwell/telegram-mcp"
+tier = "study"
+
+[[repo]]
+name = "ChilliCream/graphql-platform"
+tier = "study"
+
+[[repo]]
+name = "chillzhuang/SpringBlade"
+tier = "study"
+
+[[repo]]
+name = "chroma-core/chroma"
+tier = "study"
+
+[[repo]]
+name = "ChromeDevTools/chrome-devtools-mcp"
+tier = "study"
+
+[[repo]]
+name = "chthollyphile/folia-major"
+tier = "study"
+
+[[repo]]
+name = "cilium/cilium"
+tier = "study"
+
+[[repo]]
+name = "cilium/ebpf"
+tier = "study"
+
+[[repo]]
+name = "cinar/indicator"
+tier = "study"
+
+[[repo]]
+name = "cjpais/Handy"
+tier = "study"
+
+[[repo]]
+name = "clappr/clappr"
+tier = "study"
+
+[[repo]]
+name = "ClickHouse/clickhouse-java"
+tier = "study"
+
+[[repo]]
+name = "cline/cline"
+tier = "study"
+
+[[repo]]
+name = "clockworklabs/SpacetimeDB"
+tier = "study"
+
+[[repo]]
+name = "cloud-hypervisor/cloud-hypervisor"
+tier = "study"
+
+[[repo]]
+name = "cloudflare/computer"
+tier = "study"
+
+[[repo]]
+name = "cloudflare/moltworker"
+tier = "study"
+
+[[repo]]
+name = "cloudflare/vinext"
+tier = "study"
+
+[[repo]]
+name = "cloudflare/workerd"
+tier = "study"
+
+[[repo]]
+name = "cloudflare/workers-oauth-provider"
+tier = "study"
+
+[[repo]]
+name = "cloudfoundry/uaa"
+tier = "study"
+
+[[repo]]
+name = "cockroachdb/cockroach"
+tier = "study"
+
+[[repo]]
+name = "code-yeongyu/oh-my-openagent"
+tier = "study"
+
+[[repo]]
+name = "codecentric/spring-boot-admin"
+tier = "study"
+
+[[repo]]
+name = "codeigniter4/CodeIgniter4"
+tier = "study"
+
+[[repo]]
+name = "codenameone/CodenameOne"
+tier = "study"
+
+[[repo]]
+name = "CoderLine/alphaTab"
+tier = "study"
+
+[[repo]]
+name = "coji/natural-japanese"
+tier = "study"
+
+[[repo]]
+name = "colinhacks/zod"
+tier = "study"
+
+[[repo]]
+name = "collinbarrett/FilterLists"
+tier = "study"
+
+[[repo]]
+name = "composer-unused/composer-unused"
+tier = "study"
+
+[[repo]]
+name = "composer/packagist"
+tier = "study"
+
+[[repo]]
+name = "composio-community/awesome-claude-plugins"
+tier = "study"
+
+[[repo]]
+name = "ComposioHQ/awesome-claude-skills"
+tier = "study"
+
+[[repo]]
+name = "Consensys-Incorporated/gnark"
+tier = "study"
+
+[[repo]]
+name = "CopilotKit/CopilotKit"
+tier = "study"
+
+[[repo]]
+name = "CoreBunch/Instatic"
+tier = "study"
+
+[[repo]]
+name = "CoreWCF/CoreWCF"
+tier = "study"
+
+[[repo]]
+name = "coulsontl/ai-toolbox"
+tier = "study"
+
+[[repo]]
+name = "crazywhalecc/static-php-cli"
+tier = "study"
+
+[[repo]]
+name = "crewAIInc/crewAI"
+tier = "study"
+
+[[repo]]
+name = "crmne/ruby_llm"
+tier = "study"
+
+[[repo]]
+name = "crmne/spotifast"
+tier = "study"
+
+[[repo]]
+name = "crynta/terax-ai"
+tier = "study"
+
+[[repo]]
+name = "cube-js/cube"
+tier = "study"
+
+[[repo]]
+name = "cvxpy/cvxpy"
+tier = "study"
+
+[[repo]]
+name = "CyberAgentGameEntertainment/NovaShader"
+tier = "study"
+
+[[repo]]
+name = "cypress-io/cypress"
+tier = "study"
+
+[[repo]]
+name = "Cysharp/ZLinq"
+tier = "study"
+
+[[repo]]
+name = "czl9707/build-your-own-openclaw"
+tier = "study"
+
+[[repo]]
+name = "DanKE123abc/NoUnityCN"
+tier = "study"
+
+[[repo]]
+name = "dapr/dapr"
+tier = "study"
+
+[[repo]]
+name = "daptin/daptin"
+tier = "study"
+
+[[repo]]
+name = "darknessomi/musicbox"
+tier = "study"
+
+[[repo]]
+name = "databasus/databasus"
+tier = "study"
+
+[[repo]]
+name = "databendlabs/databend"
+tier = "study"
+
+[[repo]]
+name = "databricks-solutions/ai-dev-kit"
+tier = "study"
+
+[[repo]]
+name = "dbgate/dbgate"
+tier = "study"
+
+[[repo]]
+name = "debezium/debezium"
+tier = "study"
+
+[[repo]]
+name = "decidim/decidim"
+tier = "study"
+
+[[repo]]
+name = "decolua/9router"
+tier = "study"
+
+[[repo]]
+name = "deepspeedai/DeepSpeed"
+tier = "study"
+
+[[repo]]
+name = "DefinitelyTyped/DefinitelyTyped"
+tier = "study"
+
+[[repo]]
+name = "defold/defold"
+tier = "study"
+
+[[repo]]
+name = "DevExpress/DevExtreme"
+tier = "study"
+
+[[repo]]
+name = "devlooped/moq"
+tier = "study"
+
+[[repo]]
+name = "dfinity/ic"
+tier = "study"
+
+[[repo]]
+name = "DHTMLX/gantt"
+tier = "study"
+
+[[repo]]
+name = "di-sukharev/opencommit"
+tier = "study"
+
+[[repo]]
+name = "DialmasterOrg/Youtarr"
+tier = "study"
+
+[[repo]]
+name = "Dicklesworthstone/pi_agent_rust"
+tier = "study"
+
+[[repo]]
+name = "directus/directus"
+tier = "study"
+
+[[repo]]
+name = "Dirkster99/AvalonDock"
+tier = "study"
+
+[[repo]]
+name = "DIYgod/RSSHub"
+tier = "study"
+
+[[repo]]
+name = "dmacvicar/terraform-provider-libvirt"
+tier = "study"
+
+[[repo]]
+name = "docker/compose"
+tier = "study"
+
+[[repo]]
+name = "docling-project/docling"
+tier = "study"
+
+[[repo]]
+name = "dodyg/practical-aspnetcore"
+tier = "study"
+
+[[repo]]
+name = "Dokploy/dokploy"
+tier = "study"
+
+[[repo]]
+name = "Dolibarr/dolibarr"
+tier = "study"
+
+[[repo]]
+name = "domaindrivendev/Swashbuckle.AspNetCore"
+tier = "study"
+
+[[repo]]
+name = "dosbox-staging/dosbox-staging"
+tier = "study"
+
+[[repo]]
+name = "dotnet/dotNext"
+tier = "study"
+
+[[repo]]
+name = "dotnet/eShop"
+tier = "study"
+
+[[repo]]
+name = "dotnet/machinelearning"
+tier = "study"
+
+[[repo]]
+name = "dotnet/msbuild"
+tier = "study"
+
+[[repo]]
+name = "dotnet/Nerdbank.GitVersioning"
+tier = "study"
+
+[[repo]]
+name = "dotnet/orleans"
+tier = "study"
+
+[[repo]]
+name = "dotnet/Silk.NET"
+tier = "study"
+
+[[repo]]
+name = "dotnet/skills"
+tier = "study"
+
+[[repo]]
+name = "dotnet/wcf"
+tier = "study"
+
+[[repo]]
+name = "dotnet/wpf"
+tier = "study"
+
+[[repo]]
+name = "dotnet/yarp"
+tier = "study"
+
+[[repo]]
+name = "dotnetcore/AgileConfig"
+tier = "study"
+
+[[repo]]
+name = "dotnetcore/AspectCore-Framework"
+tier = "study"
+
+[[repo]]
+name = "doxygen/doxygen"
+tier = "study"
+
+[[repo]]
+name = "dr5hn/countries-states-cities-database"
+tier = "study"
+
+[[repo]]
+name = "dreadl0ck/netcap"
+tier = "study"
+
+[[repo]]
+name = "droidrun/mobilerun"
+tier = "study"
+
+[[repo]]
+name = "dromara/MaxKey"
+tier = "study"
+
+[[repo]]
+name = "dsh-market/dsh-market"
+tier = "study"
+
+[[repo]]
+name = "Dyneteq/reconya"
+tier = "study"
+
+[[repo]]
+name = "e2b-dev/runtime"
+tier = "study"
+
+[[repo]]
+name = "easysoft/zentaopms"
+tier = "study"
+
+[[repo]]
+name = "eclipse-vertx/vert.x"
+tier = "study"
+
+[[repo]]
+name = "EcoPasteHub/EcoPaste"
+tier = "study"
+
+[[repo]]
+name = "ecsphp/ecs"
+tier = "study"
+
+[[repo]]
+name = "egametang/ET"
+tier = "study"
+
+[[repo]]
+name = "Egonex-AI/Understand-Anything"
+tier = "study"
+
+[[repo]]
+name = "elastic/elasticsearch-php"
+tier = "study"
+
+[[repo]]
+name = "elastic/elasticsearch-ruby"
+tier = "study"
+
+[[repo]]
+name = "elastic/logstash"
+tier = "study"
+
+[[repo]]
+name = "elder-plinius/OBLITERATUS"
+tier = "study"
+
+[[repo]]
+name = "elementor/elementor"
+tier = "study"
+
+[[repo]]
+name = "elsa-workflows/elsa-core"
+tier = "study"
+
+[[repo]]
+name = "emberstack/kubernetes-reflector"
+tier = "study"
+
+[[repo]]
+name = "endoflife-date/endoflife.date"
+tier = "study"
+
+[[repo]]
+name = "enso-org/enso"
+tier = "study"
+
+[[repo]]
+name = "Eric-Guo/wechat"
+tier = "study"
+
+[[repo]]
+name = "EricLBuehler/mistral.rs"
+tier = "study"
+
+[[repo]]
+name = "esengine/DeepSeek-Reasonix"
+tier = "study"
+
+[[repo]]
+name = "eslint/eslint"
+tier = "study"
+
+[[repo]]
+name = "espnet/espnet"
+tier = "study"
+
+[[repo]]
+name = "EthanYoQ/AI-Novel-Writer"
+tier = "study"
+
+[[repo]]
+name = "eva-engine/eva.js"
+tier = "study"
+
+[[repo]]
+name = "evannotfound/hexo-theme-redefine"
+tier = "study"
+
+[[repo]]
+name = "evilmartians/lefthook"
+tier = "study"
+
+[[repo]]
+name = "evilsocket/legba"
+tier = "study"
+
+[[repo]]
+name = "evloghq/evlog"
+tier = "study"
+
+[[repo]]
+name = "evoluhq/evolu"
+tier = "study"
+
+[[repo]]
+name = "evolus/pencil"
+tier = "study"
+
+[[repo]]
+name = "evolution-foundation/evolution-api"
+tier = "study"
+
+[[repo]]
+name = "EvoMap/evolver"
+tier = "study"
+
+[[repo]]
+name = "evrone/go-clean-template"
+tier = "study"
+
+[[repo]]
+name = "exo-explore/exo"
+tier = "study"
+
+[[repo]]
+name = "expo/expo"
+tier = "study"
+
+[[repo]]
+name = "eze-is/web-access"
+tier = "study"
+
+[[repo]]
+name = "fabianlindfors/reshape"
+tier = "study"
+
+[[repo]]
+name = "fabio-rovai/open-ontologies"
+tier = "study"
+
+[[repo]]
+name = "fabro-sh/fabro"
+tier = "study"
+
+[[repo]]
+name = "facebook/docusaurus"
+tier = "study"
+
+[[repo]]
+name = "facebook/pyrefly"
+tier = "study"
+
+[[repo]]
+name = "facebook/relay"
+tier = "study"
+
+[[repo]]
+name = "facebook/sapling"
+tier = "study"
+
+[[repo]]
+name = "Facepunch/sbox-public"
+tier = "study"
+
+[[repo]]
+name = "falconry/falcon"
+tier = "study"
+
+[[repo]]
+name = "fastapi/full-stack-fastapi-template"
+tier = "study"
+
+[[repo]]
+name = "FastEndpoints/FastEndpoints"
+tier = "study"
+
+[[repo]]
+name = "FastLED/FastLED"
+tier = "study"
+
+[[repo]]
+name = "fastrepl/anarlog"
+tier = "study"
+
+[[repo]]
+name = "fatfreecrm/fat_free_crm"
+tier = "study"
+
+[[repo]]
+name = "featbit/featbit"
+tier = "study"
+
+[[repo]]
+name = "feichao93/battle-city"
+tier = "study"
+
+[[repo]]
+name = "feigeCode/navop"
+tier = "study"
+
+[[repo]]
+name = "FEX-Emu/FEX"
+tier = "study"
+
+[[repo]]
+name = "Finbuckle/Finbuckle.MultiTenant"
+tier = "study"
+
+[[repo]]
+name = "firebase/firebase-ios-sdk"
+tier = "study"
+
+[[repo]]
+name = "firecrawl/anydoc"
+tier = "study"
+
+[[repo]]
+name = "firecrawl/pdf-inspector"
+tier = "study"
+
+[[repo]]
+name = "firekylin/firekylin"
+tier = "study"
+
+[[repo]]
+name = "Fission-AI/OpenSpec"
+tier = "study"
+
+[[repo]]
+name = "fission/fission"
+tier = "study"
+
+[[repo]]
+name = "flannel-io/flannel"
+tier = "study"
+
+[[repo]]
+name = "FlaxEngine/FlaxEngine"
+tier = "study"
+
+[[repo]]
+name = "flipped-aurora/gin-vue-admin"
+tier = "study"
+
+[[repo]]
+name = "flippercloud/flipper"
+tier = "study"
+
+[[repo]]
+name = "fluxcd/flux2"
+tier = "study"
+
+[[repo]]
+name = "FOGProject/fogproject"
+tier = "study"
+
+[[repo]]
+name = "forloopcodes/contextplus"
+tier = "study"
+
+[[repo]]
+name = "FOSSBilling/FOSSBilling"
+tier = "study"
+
+[[repo]]
+name = "francescopace/espectre"
+tier = "study"
+
+[[repo]]
+name = "freestylefly/awesome-gpt-image-2"
+tier = "study"
+
+[[repo]]
+name = "FreezingMoon/AncientBeast"
+tier = "study"
+
+[[repo]]
+name = "frenck/awesome-home-assistant"
+tier = "study"
+
+[[repo]]
+name = "fujiapple852/trippy"
+tier = "study"
+
+[[repo]]
+name = "fullstackhero/dotnet-starter-kit"
+tier = "study"
+
+[[repo]]
+name = "FULU-Foundation/OrcaSlicer-bambulab"
+tier = "study"
+
+[[repo]]
+name = "GameFoundry/B3DFramework"
+tier = "study"
+
+[[repo]]
+name = "gastownhall/beads"
+tier = "study"
+
+[[repo]]
+name = "Gathin23/cleanyourtv"
+tier = "study"
+
+[[repo]]
+name = "gchq/CyberChef"
+tier = "study"
+
+[[repo]]
+name = "Gentleman-Programming/engram"
+tier = "study"
+
+[[repo]]
+name = "Gentleman-Programming/gentle-ai"
+tier = "study"
+
+[[repo]]
+name = "georust/geo"
+tier = "study"
+
+[[repo]]
+name = "gephi/gephi"
+tier = "study"
+
+[[repo]]
+name = "getarcaneapp/arcane"
+tier = "study"
+
+[[repo]]
+name = "getnao/nao"
+tier = "study"
+
+[[repo]]
+name = "getsentry/sentry"
+tier = "study"
+
+[[repo]]
+name = "getsentry/sentry-php"
+tier = "study"
+
+[[repo]]
+name = "GeyserMC/Geyser"
+tier = "study"
+
+[[repo]]
+name = "ghostfolio/ghostfolio"
+tier = "study"
+
+[[repo]]
+name = "GhostManager/Ghostwriter"
+tier = "study"
+
+[[repo]]
+name = "git-ecosystem/git-credential-manager"
+tier = "study"
+
+[[repo]]
+name = "gitbutlerapp/gitbutler"
+tier = "study"
+
+[[repo]]
+name = "gitextensions/gitextensions"
+tier = "study"
+
+[[repo]]
+name = "github/awesome-copilot"
+tier = "study"
+
+[[repo]]
+name = "github/github-mcp-server"
+tier = "study"
+
+[[repo]]
+name = "gitkraken/vscode-gitlens"
+tier = "study"
+
+[[repo]]
+name = "gitroomhq/postiz-app"
+tier = "study"
+
+[[repo]]
+name = "glanderness/BeefTV"
+tier = "study"
+
+[[repo]]
+name = "glpi-project/glpi"
+tier = "study"
+
+[[repo]]
+name = "go-delve/delve"
+tier = "study"
+
+[[repo]]
+name = "go-git/go-git"
+tier = "study"
+
+[[repo]]
+name = "go-gost/gost"
+tier = "study"
+
+[[repo]]
+name = "go-spring/go-spring"
+tier = "study"
+
+[[repo]]
+name = "goaop/framework"
+tier = "study"
+
+[[repo]]
+name = "gofiber/fiber"
+tier = "study"
+
+[[repo]]
+name = "golang-jwt/jwt"
+tier = "study"
+
+[[repo]]
+name = "golbin/hop"
+tier = "study"
+
+[[repo]]
+name = "google-ai-edge/LiteRT-LM"
+tier = "study"
+
+[[repo]]
+name = "google-deepmind/mujoco"
+tier = "study"
+
+[[repo]]
+name = "google/adk-go"
+tier = "study"
+
+[[repo]]
+name = "google/adk-java"
+tier = "study"
+
+[[repo]]
+name = "google/comprehensive-rust"
+tier = "study"
+
+[[repo]]
+name = "google/magika"
+tier = "study"
+
+[[repo]]
+name = "google/nomulus"
+tier = "study"
+
+[[repo]]
+name = "google/perfetto"
+tier = "study"
+
+[[repo]]
+name = "google/xls"
+tier = "study"
+
+[[repo]]
+name = "GoogleChrome/lighthouse"
+tier = "study"
+
+[[repo]]
+name = "GoogleCloudPlatform/knowledge-catalog"
+tier = "study"
+
+[[repo]]
+name = "googleworkspace/cli"
+tier = "study"
+
+[[repo]]
+name = "goplus/xgo"
+tier = "study"
+
+[[repo]]
+name = "gordalina/cachetool"
+tier = "study"
+
+[[repo]]
+name = "gradio-app/gradio"
+tier = "study"
+
+[[repo]]
+name = "grafana/grafana"
+tier = "study"
+
+[[repo]]
+name = "grafana/k6"
+tier = "study"
+
+[[repo]]
+name = "grafana/loki"
+tier = "study"
+
+[[repo]]
+name = "gramps-project/gramps-web"
+tier = "study"
+
+[[repo]]
+name = "graphql-java/graphql-java"
+tier = "study"
+
+[[repo]]
+name = "Graylog2/graylog2-server"
+tier = "study"
+
+[[repo]]
+name = "greenshot/greenshot"
+tier = "study"
+
+[[repo]]
+name = "gregnavis/active_record_doctor"
+tier = "study"
+
+[[repo]]
+name = "GreptimeTeam/greptimedb"
+tier = "study"
+
+[[repo]]
+name = "gridex/gridex"
+tier = "study"
+
+[[repo]]
+name = "grommet/grommet"
+tier = "study"
+
+[[repo]]
+name = "grpc/grpc-go"
+tier = "study"
+
+[[repo]]
+name = "guzzle/promises"
+tier = "study"
+
+[[repo]]
+name = "GZTimeWalker/GZCTF"
+tier = "study"
+
+[[repo]]
+name = "h4ckf0r0day/obscura"
+tier = "study"
+
+[[repo]]
+name = "hahwul/WebHackersWeapons"
+tier = "study"
+
+[[repo]]
+name = "haifengl/smile"
+tier = "study"
+
+[[repo]]
+name = "halide/Halide"
+tier = "study"
+
+[[repo]]
+name = "hanshuaikang/nezha"
+tier = "study"
+
+[[repo]]
+name = "hardikvasa/google-images-download"
+tier = "study"
+
+[[repo]]
+name = "harfbuzz/harfbuzz"
+tier = "study"
+
+[[repo]]
+name = "HarnessMD/munder-difflin"
+tier = "study"
+
+[[repo]]
+name = "harry7557558/spirula-studio"
+tier = "study"
+
+[[repo]]
+name = "harttle/liquidjs"
+tier = "study"
+
+[[repo]]
+name = "hashicorp/vault"
+tier = "study"
+
+[[repo]]
+name = "hashtopolis/server"
+tier = "study"
+
+[[repo]]
+name = "hatchet-dev/hatchet"
+tier = "study"
+
+[[repo]]
+name = "HawaiiBeach/TinyNvidiaUpdateChecker"
+tier = "study"
+
+[[repo]]
+name = "headroomlabs-ai/headroom"
+tier = "study"
+
+[[repo]]
+name = "helm/helm"
+tier = "study"
+
+[[repo]]
+name = "heygen-com/hyperframes"
+tier = "study"
+
+[[repo]]
+name = "HeyPuter/puter"
+tier = "study"
+
+[[repo]]
+name = "hiddify/Hiddify-Manager"
+tier = "study"
+
+[[repo]]
+name = "highlight/highlight"
+tier = "study"
+
+[[repo]]
+name = "highlightjs/highlight.js"
+tier = "study"
+
+[[repo]]
+name = "higress-group/higress"
+tier = "study"
+
+[[repo]]
+name = "Hiram-Wong/zyfun"
+tier = "study"
+
+[[repo]]
+name = "hiyouga/LlamaFactory"
+tier = "study"
+
+[[repo]]
+name = "HKUDS/CLI-Anything"
+tier = "study"
+
+[[repo]]
+name = "HKUDS/DeepTutor"
+tier = "study"
+
+[[repo]]
+name = "HKUDS/nanobot"
+tier = "study"
+
+[[repo]]
+name = "HoshinoSuzumi/chronoframe"
+tier = "study"
+
+[[repo]]
+name = "hotdata-dev/hotdata-cli"
+tier = "study"
+
+[[repo]]
+name = "hotpath-rs/hotpath"
+tier = "study"
+
+[[repo]]
+name = "hrydgard/ppsspp"
+tier = "study"
+
+[[repo]]
+name = "huang-sir1/radiology-skills"
+tier = "study"
+
+[[repo]]
+name = "hugohe3/ppt-master"
+tier = "study"
+
+[[repo]]
+name = "Humanizr/Humanizer"
+tier = "study"
+
+[[repo]]
+name = "humblemuzzu/dumbtv"
+tier = "study"
+
+[[repo]]
+name = "humhub/humhub"
+tier = "study"
+
+[[repo]]
+name = "huntabyte/shadcn-svelte"
+tier = "study"
+
+[[repo]]
+name = "Hybrid-Mount/meta-hybrid_mount"
+tier = "study"
+
+[[repo]]
+name = "hyperbrowserai/hyperbrowser-app-examples"
+tier = "study"
+
+[[repo]]
+name = "hyperdxio/hyperdx"
+tier = "study"
+
+[[repo]]
+name = "HypothesisWorks/hypothesis"
+tier = "study"
+
+[[repo]]
+name = "ibigbug/clash-rs"
+tier = "study"
+
+[[repo]]
+name = "iBUHub/AIStudioToAPI"
+tier = "study"
+
+[[repo]]
+name = "ifandelse/machina.js"
+tier = "study"
+
+[[repo]]
+name = "iflytek/astron-agent"
+tier = "study"
+
+[[repo]]
+name = "iii-hq/iii"
+tier = "study"
+
+[[repo]]
+name = "ikatson/rqbit"
+tier = "study"
+
+[[repo]]
+name = "ikvmnet/ikvm"
+tier = "study"
+
+[[repo]]
+name = "Imbad0202/academic-research-skills"
+tier = "study"
+
+[[repo]]
+name = "imputnet/helium"
+tier = "study"
+
+[[repo]]
+name = "influxdata/influxdb"
+tier = "study"
+
+[[repo]]
+name = "inspec/inspec"
+tier = "study"
+
+[[repo]]
+name = "interpretml/interpret"
+tier = "study"
+
+[[repo]]
+name = "InvoiceShelf/InvoiceShelf"
+tier = "study"
+
+[[repo]]
+name = "irihitech/Ursa.Avalonia"
+tier = "study"
+
+[[repo]]
+name = "irsyadadl/intentui"
+tier = "study"
+
+[[repo]]
+name = "isaac-sim/IsaacLab"
+tier = "study"
+
+[[repo]]
+name = "istio/istio"
+tier = "study"
+
+[[repo]]
+name = "itsfatduck/optimizerDuck"
+tier = "study"
+
+[[repo]]
+name = "ivmartel/dwv"
+tier = "study"
+
+[[repo]]
+name = "izhaorui/Zr.Admin.NET"
+tier = "study"
+
+[[repo]]
+name = "j178/prek"
+tier = "study"
+
+[[repo]]
+name = "j3ssie/metabigor"
+tier = "study"
+
+[[repo]]
+name = "jackwener/OpenCLI"
+tier = "study"
+
+[[repo]]
+name = "jaegertracing/jaeger"
+tier = "study"
+
+[[repo]]
+name = "jamiepine/voicebox"
+tier = "study"
+
+[[repo]]
+name = "JanDeDobbeleer/oh-my-posh"
+tier = "study"
+
+[[repo]]
+name = "jaredpalmer/kev"
+tier = "study"
+
+[[repo]]
+name = "jarrodwatts/claude-hud"
+tier = "study"
+
+[[repo]]
+name = "jbangdev/jbang"
+tier = "study"
+
+[[repo]]
+name = "JCodesMore/ai-website-cloner-template"
+tier = "study"
+
+[[repo]]
+name = "jdx/mise"
+tier = "study"
+
+[[repo]]
+name = "jeequan/jeepay"
+tier = "study"
+
+[[repo]]
+name = "jeffbski/wait-on"
+tier = "study"
+
+[[repo]]
+name = "JeffreySu/WeiXinMPSDK"
+tier = "study"
+
+[[repo]]
+name = "jely2002/youtube-dl-gui"
+tier = "study"
+
+[[repo]]
+name = "jeremy-prt/bloub"
+tier = "study"
+
+[[repo]]
+name = "Jeric-X/SyncClipboard"
+tier = "study"
+
+[[repo]]
+name = "jesse-ai/jesse"
+tier = "study"
+
+[[repo]]
+name = "Jesseovo/last30days-skill-cn"
+tier = "study"
+
+[[repo]]
+name = "jestjs/jest"
+tier = "study"
+
+[[repo]]
+name = "jjjake/internetarchive"
+tier = "study"
+
+[[repo]]
+name = "jline/jline3"
+tier = "study"
+
+[[repo]]
+name = "jm33-m0/emp3r0r"
+tier = "study"
+
+[[repo]]
+name = "jnMetaCode/superpowers-zh"
+tier = "study"
+
+[[repo]]
+name = "johnbillion/query-monitor"
+tier = "study"
+
+[[repo]]
+name = "jonobr1/two.js"
+tier = "study"
+
+[[repo]]
+name = "josh-project/josh"
+tier = "study"
+
+[[repo]]
+name = "jstedfast/MailKit"
+tier = "study"
+
+[[repo]]
+name = "juce-framework/JUCE"
+tier = "study"
+
+[[repo]]
+name = "Julian-adv/OpenMMO"
+tier = "study"
+
+[[repo]]
+name = "justjavac/wechat-miniapp-radar"
+tier = "study"
+
+[[repo]]
+name = "K-Dense-AI/scientific-agent-skills"
+tier = "study"
+
+[[repo]]
+name = "k2-fsa/sherpa-onnx"
+tier = "study"
+
+[[repo]]
+name = "k3s-io/k3s"
+tier = "study"
+
+[[repo]]
+name = "kagkarlsson/db-scheduler"
+tier = "study"
+
+[[repo]]
+name = "kairos-io/kairos"
+tier = "study"
+
+[[repo]]
+name = "karatelabs/karate"
+tier = "study"
+
+[[repo]]
+name = "karpathy/nanochat"
+tier = "study"
+
+[[repo]]
+name = "karthikmudunuri/eldoraui"
+tier = "study"
+
+[[repo]]
+name = "kata-containers/kata-containers"
+tier = "study"
+
+[[repo]]
+name = "katanemo/plano"
+tier = "study"
+
+[[repo]]
+name = "kekingcn/kkFileView"
+tier = "study"
+
+[[repo]]
+name = "kenforthewin/atomic"
+tier = "study"
+
+[[repo]]
+name = "kenn-io/roborev"
+tier = "study"
+
+[[repo]]
+name = "kepano/defuddle"
+tier = "study"
+
+[[repo]]
+name = "keras-team/keras"
+tier = "study"
+
+[[repo]]
+name = "keybase/client"
+tier = "study"
+
+[[repo]]
+name = "KeygraphHQ/shannon"
+tier = "study"
+
+[[repo]]
+name = "kimai/kimai"
+tier = "study"
+
+[[repo]]
+name = "kimdre/doco-cd"
+tier = "study"
+
+[[repo]]
+name = "kirschbaum-development/eloquent-power-joins"
+tier = "study"
+
+[[repo]]
+name = "kitao/pyxel"
+tier = "study"
+
+[[repo]]
+name = "klzgrad/naiveproxy"
+tier = "study"
+
+[[repo]]
+name = "kmonkeyhead/MORT"
+tier = "study"
+
+[[repo]]
+name = "koharu-rs/koharu"
+tier = "study"
+
+[[repo]]
+name = "Kong/insomnia"
+tier = "study"
+
+[[repo]]
+name = "koodo-reader/koodo-reader"
+tier = "study"
+
+[[repo]]
+name = "koordinator-sh/koordinator"
+tier = "study"
+
+[[repo]]
+name = "Kopuz-org/kopuz"
+tier = "study"
+
+[[repo]]
+name = "kptdev/kpt"
+tier = "study"
+
+[[repo]]
+name = "krausest/js-framework-benchmark"
+tier = "study"
+
+[[repo]]
+name = "kuaifan/dootask"
+tier = "study"
+
+[[repo]]
+name = "kubernetes-sigs/external-dns"
+tier = "study"
+
+[[repo]]
+name = "kubernetes-sigs/kubebuilder"
+tier = "study"
+
+[[repo]]
+name = "kubetail-org/kubetail"
+tier = "study"
+
+[[repo]]
+name = "kucherenko/jscpd"
+tier = "study"
+
+[[repo]]
+name = "kunchenguid/no-mistakes"
+tier = "study"
+
+[[repo]]
+name = "kunchenguid/treehouse"
+tier = "study"
+
+[[repo]]
+name = "Kunena/Kunena-Forum"
+tier = "study"
+
+[[repo]]
+name = "kurrent-io/KurrentDB"
+tier = "study"
+
+[[repo]]
+name = "kushview/element"
+tier = "study"
+
+[[repo]]
+name = "kvcache-ai/Mooncake"
+tier = "study"
+
+[[repo]]
+name = "kyverno/kyverno"
+tier = "study"
+
+[[repo]]
+name = "labstack/echo"
+tier = "study"
+
+[[repo]]
+name = "LadybugDB/ladybug"
+tier = "study"
+
+[[repo]]
+name = "lahfir/agent-desktop"
+tier = "study"
+
+[[repo]]
+name = "lance-format/lance"
+tier = "study"
+
+[[repo]]
+name = "langchain-ai/langgraph"
+tier = "study"
+
+[[repo]]
+name = "langchain4j/langchain4j"
+tier = "study"
+
+[[repo]]
+name = "larastan/larastan"
+tier = "study"
+
+[[repo]]
+name = "Laravel-Lang/lang"
+tier = "study"
+
+[[repo]]
+name = "laravel/fortify"
+tier = "study"
+
+[[repo]]
+name = "laravel/socialite"
+tier = "study"
+
+[[repo]]
+name = "laravel/telescope"
+tier = "study"
+
+[[repo]]
+name = "LargeModGames/spotatui"
+tier = "study"
+
+[[repo]]
+name = "laurent22/joplin"
+tier = "study"
+
+[[repo]]
+name = "layui/layui"
+tier = "study"
+
+[[repo]]
+name = "lballabio/QuantLib"
+tier = "study"
+
+[[repo]]
+name = "lbjlaq/Antigravity-Manager"
+tier = "study"
+
+[[repo]]
+name = "ledger/ledger"
+tier = "study"
+
+[[repo]]
+name = "leejet/stable-diffusion.cpp"
+tier = "study"
+
+[[repo]]
+name = "leemysw/yovoice"
+tier = "study"
+
+[[repo]]
+name = "lemomo-ai/lemo-opuscar"
+tier = "study"
+
+[[repo]]
+name = "leokhoa/laragon"
+tier = "study"
+
+[[repo]]
+name = "lepoco/wpfui"
+tier = "study"
+
+[[repo]]
+name = "lexmount/moli"
+tier = "study"
+
+[[repo]]
+name = "lfnovo/open-notebook"
+tier = "study"
+
+[[repo]]
+name = "liangxiegame/QFramework"
+tier = "study"
+
+[[repo]]
+name = "LianjiaTech/retrofit-spring-boot-starter"
+tier = "study"
+
+[[repo]]
+name = "LibreChat-AI/LibreChat"
+tier = "study"
+
+[[repo]]
+name = "librenms/librenms"
+tier = "study"
+
+[[repo]]
+name = "LibreSprite/LibreSprite"
+tier = "study"
+
+[[repo]]
+name = "librosa/librosa"
+tier = "study"
+
+[[repo]]
+name = "lifting-bits/remill"
+tier = "study"
+
+[[repo]]
+name = "lightningnetwork/lnd"
+tier = "study"
+
+[[repo]]
+name = "Lightricks/LTX-2"
+tier = "study"
+
+[[repo]]
+name = "lihongxun945/gobang"
+tier = "study"
+
+[[repo]]
+name = "likeadmin-likeshop/likeshop"
+tier = "study"
+
+[[repo]]
+name = "liljencrantz/crush"
+tier = "study"
+
+[[repo]]
+name = "lima-vm/lima"
+tier = "study"
+
+[[repo]]
+name = "linkedin/ambry"
+tier = "study"
+
+[[repo]]
+name = "linki/chaoskube"
+tier = "study"
+
+[[repo]]
+name = "linuxkit/linuxkit"
+tier = "study"
+
+[[repo]]
+name = "lirantal/npq"
+tier = "study"
+
+[[repo]]
+name = "litedb-org/LiteDB"
+tier = "study"
+
+[[repo]]
+name = "liuliu/ccv"
+tier = "study"
+
+[[repo]]
+name = "Live-Charts/LiveCharts2"
+tier = "study"
+
+[[repo]]
+name = "lldap/lldap"
+tier = "study"
+
+[[repo]]
+name = "LLPhant/LLPhant"
+tier = "study"
+
+[[repo]]
+name = "lmorg/murex"
+tier = "study"
+
+[[repo]]
+name = "lnkiai/m3e-canvas"
+tier = "study"
+
+[[repo]]
+name = "lobehub/lobehub"
+tier = "study"
+
+[[repo]]
+name = "lobsters/lobsters"
+tier = "study"
+
+[[repo]]
+name = "loco-rs/loco"
+tier = "study"
+
+[[repo]]
+name = "longbridge/gpui-kit"
+tier = "study"
+
+[[repo]]
+name = "lorien/awesome-web-scraping"
+tier = "study"
+
+[[repo]]
+name = "luangjokaj/wordpressify"
+tier = "study"
+
+[[repo]]
+name = "luolangaga/tubatools"
+tier = "study"
+
+[[repo]]
+name = "luongnv89/claude-howto"
+tier = "study"
+
+[[repo]]
+name = "lynx-family/lynx"
+tier = "study"
+
+[[repo]]
+name = "m4rs-mt/ILGPU"
+tier = "study"
+
+[[repo]]
+name = "MaaAssistantArknights/MaaAssistantArknights"
+tier = "study"
+
+[[repo]]
+name = "maboloshi/github-chinese"
+tier = "study"
+
+[[repo]]
+name = "Macro-Deck-App/Macro-Deck"
+tier = "study"
+
+[[repo]]
+name = "MadAppGang/dingo"
+tier = "study"
+
+[[repo]]
+name = "magnitudedev/magnitude"
+tier = "study"
+
+[[repo]]
+name = "maguowei/starred"
+tier = "study"
+
+[[repo]]
+name = "MakazhanAlpamys/Soup"
+tier = "study"
+
+[[repo]]
+name = "makepad/makepad"
+tier = "study"
+
+[[repo]]
+name = "makeplane/plane"
+tier = "study"
+
+[[repo]]
+name = "malbiruk/driftwm"
+tier = "study"
+
+[[repo]]
+name = "ManageIQ/manageiq"
+tier = "study"
+
+[[repo]]
+name = "mandarons/icloud-docker"
+tier = "study"
+
+[[repo]]
+name = "MapleTechLabs/maple"
+tier = "study"
+
+[[repo]]
+name = "MapsterMapper/Mapster"
+tier = "study"
+
+[[repo]]
+name = "Mapsui/Mapsui"
+tier = "study"
+
+[[repo]]
+name = "maragudk/gomponents"
+tier = "study"
+
+[[repo]]
+name = "margelo/react-native-vision-camera"
+tier = "study"
+
+[[repo]]
+name = "MariaDB/server"
+tier = "study"
+
+[[repo]]
+name = "mark3labs/mcp-go"
+tier = "study"
+
+[[repo]]
+name = "markedjs/marked"
+tier = "study"
+
+[[repo]]
+name = "marktext/marktext"
+tier = "study"
+
+[[repo]]
+name = "MarlinFirmware/Marlin"
+tier = "study"
+
+[[repo]]
+name = "martinus/nanobench"
+tier = "study"
+
+[[repo]]
+name = "master-co/css"
+tier = "study"
+
+[[repo]]
+name = "mateaix/matecloud"
+tier = "study"
+
+[[repo]]
+name = "mattermost/mattermost"
+tier = "study"
+
+[[repo]]
+name = "max-sixty/worktrunk"
+tier = "study"
+
+[[repo]]
+name = "maximhq/bifrost"
+tier = "study"
+
+[[repo]]
+name = "mcollina/skills"
+tier = "study"
+
+[[repo]]
+name = "mcpp-community/d2mcpp"
+tier = "study"
+
+[[repo]]
+name = "mediago-dev/mediago"
+tier = "study"
+
+[[repo]]
+name = "mem0ai/mem0"
+tier = "study"
+
+[[repo]]
+name = "MemPalace/mempalace"
+tier = "study"
+
+[[repo]]
+name = "mercurjs/mercur"
+tier = "study"
+
+[[repo]]
+name = "MervinPraison/PraisonAI"
+tier = "study"
+
+[[repo]]
+name = "meshtastic/firmware"
+tier = "study"
+
+[[repo]]
+name = "mg-chao/snow-apps"
+tier = "study"
+
+[[repo]]
+name = "MIC-DKFZ/nnUNet"
+tier = "study"
+
+[[repo]]
+name = "MichaelGrafnetter/DSInternals"
+tier = "study"
+
+[[repo]]
+name = "micro/go-micro"
+tier = "study"
+
+[[repo]]
+name = "micronaut-projects/micronaut-core"
+tier = "study"
+
+[[repo]]
+name = "microsoft/aspire"
+tier = "study"
+
+[[repo]]
+name = "microsoft/autogen"
+tier = "study"
+
+[[repo]]
+name = "microsoft/azure-pipelines-agent"
+tier = "study"
+
+[[repo]]
+name = "microsoft/cppwinrt"
+tier = "study"
+
+[[repo]]
+name = "microsoft/DirectXMath"
+tier = "study"
+
+[[repo]]
+name = "microsoft/DirectXTK12"
+tier = "study"
+
+[[repo]]
+name = "microsoft/DiskANN"
+tier = "study"
+
+[[repo]]
+name = "microsoft/fast"
+tier = "study"
+
+[[repo]]
+name = "microsoft/GSL"
+tier = "study"
+
+[[repo]]
+name = "microsoft/microsoft-ui-xaml"
+tier = "study"
+
+[[repo]]
+name = "microsoft/msphpsql"
+tier = "study"
+
+[[repo]]
+name = "microsoft/onnxruntime"
+tier = "study"
+
+[[repo]]
+name = "microsoft/OpenAPI.NET"
+tier = "study"
+
+[[repo]]
+name = "microsoft/openvmm"
+tier = "study"
+
+[[repo]]
+name = "microsoft/playwright-mcp"
+tier = "study"
+
+[[repo]]
+name = "microsoft/PowerApps-Samples"
+tier = "study"
+
+[[repo]]
+name = "microsoft/react-native-windows"
+tier = "study"
+
+[[repo]]
+name = "microsoft/snmalloc"
+tier = "study"
+
+[[repo]]
+name = "microsoft/typespec"
+tier = "study"
+
+[[repo]]
+name = "microsoft/VFSForGit"
+tier = "study"
+
+[[repo]]
+name = "microsoft/vscode-eslint"
+tier = "study"
+
+[[repo]]
+name = "microsoft/vscode-js-debug"
+tier = "study"
+
+[[repo]]
+name = "microsoft/vscode-mssql"
+tier = "study"
+
+[[repo]]
+name = "microsoft/windows-drivers-rs"
+tier = "study"
+
+[[repo]]
+name = "MicrosoftDocs/mcp"
+tier = "study"
+
+[[repo]]
+name = "mifi/lossless-cut"
+tier = "study"
+
+[[repo]]
+name = "mikro-orm/mikro-orm"
+tier = "study"
+
+[[repo]]
+name = "miqdadbadjuber/anti-slop"
+tier = "study"
+
+[[repo]]
+name = "MirrorNetworking/Mirror"
+tier = "study"
+
+[[repo]]
+name = "MISP/MISP"
+tier = "study"
+
+[[repo]]
+name = "mitmproxy/mitmproxy"
+tier = "study"
+
+[[repo]]
+name = "miurla/morphic"
+tier = "study"
+
+[[repo]]
+name = "mixxxdj/mixxx"
+tier = "study"
+
+[[repo]]
+name = "mlco2/codecarbon"
+tier = "study"
+
+[[repo]]
+name = "mltframework/shotcut"
+tier = "study"
+
+[[repo]]
+name = "modelcontextprotocol/modelcontextprotocol"
+tier = "study"
+
+[[repo]]
+name = "modem-dev/hunk"
+tier = "study"
+
+[[repo]]
+name = "ModernRelay/omnigraph"
+tier = "study"
+
+[[repo]]
+name = "moeru-ai/airi"
+tier = "study"
+
+[[repo]]
+name = "mongodb/laravel-mongodb"
+tier = "study"
+
+[[repo]]
+name = "mongodb/mongo-go-driver"
+tier = "study"
+
+[[repo]]
+name = "mongodb/mongo-php-library"
+tier = "study"
+
+[[repo]]
+name = "mongodb/mongo-ruby-driver"
+tier = "study"
+
+[[repo]]
+name = "mongodb/mongoid"
+tier = "study"
+
+[[repo]]
+name = "mono/SkiaSharp"
+tier = "study"
+
+[[repo]]
+name = "MonoGame-Extended/Monogame-Extended"
+tier = "study"
+
+[[repo]]
+name = "MorphiaOrg/morphia"
+tier = "study"
+
+[[repo]]
+name = "mozilla-services/syncstorage-rs"
+tier = "study"
+
+[[repo]]
+name = "mozilla/sccache"
+tier = "study"
+
+[[repo]]
+name = "mpdf/mpdf"
+tier = "study"
+
+[[repo]]
+name = "mRemoteNG/mRemoteNG"
+tier = "study"
+
+[[repo]]
+name = "MudBlazor/MudBlazor"
+tier = "study"
+
+[[repo]]
+name = "mufeedvh/code2prompt"
+tier = "study"
+
+[[repo]]
+name = "multitheftauto/mtasa-blue"
+tier = "study"
+
+[[repo]]
+name = "mumble-voip/mumble"
+tier = "study"
+
+[[repo]]
+name = "mvanhorn/last30days-skill"
+tier = "study"
+
+[[repo]]
+name = "mvdan/sh"
+tier = "study"
+
+[[repo]]
+name = "mxpv/podsync"
+tier = "study"
+
+[[repo]]
+name = "MystenLabs/sui"
+tier = "study"
+
+[[repo]]
+name = "Mzying2001/CefFlashBrowser"
+tier = "study"
+
+[[repo]]
+name = "N4darae/shrt"
+tier = "study"
+
+[[repo]]
+name = "napi-rs/napi-rs"
+tier = "study"
+
+[[repo]]
+name = "natemcmaster/DotNetCorePlugins"
+tier = "study"
+
+[[repo]]
+name = "nativewind/nativewind"
+tier = "study"
+
+[[repo]]
+name = "naudio/NAudio"
+tier = "study"
+
+[[repo]]
+name = "nautechsystems/nautilus_trader"
+tier = "study"
+
+[[repo]]
+name = "nefarius/DsHidMini"
+tier = "study"
+
+[[repo]]
+name = "neo4j/neo4j"
+tier = "study"
+
+[[repo]]
+name = "neo4jrb/activegraph"
+tier = "study"
+
+[[repo]]
+name = "nestrilabs/nestri"
+tier = "study"
+
+[[repo]]
+name = "netbirdio/netbird"
+tier = "study"
+
+[[repo]]
+name = "NethermindEth/nethermind"
+tier = "study"
+
+[[repo]]
+name = "netlify/cli"
+tier = "study"
+
+[[repo]]
+name = "nette/nette"
+tier = "study"
+
+[[repo]]
+name = "nette/tracy"
+tier = "study"
+
+[[repo]]
+name = "NetTopologySuite/NetTopologySuite"
+tier = "study"
+
+[[repo]]
+name = "NEventStore/NEventStore"
+tier = "study"
+
+[[repo]]
+name = "NewLifeX/X"
+tier = "study"
+
+[[repo]]
+name = "NG-ZORRO/ng-zorro-antd"
+tier = "study"
+
+[[repo]]
+name = "nhost/nhost"
+tier = "study"
+
+[[repo]]
+name = "nickjvandyke/eslint-plugin-react-you-might-not-need-an-effect"
+tier = "study"
+
+[[repo]]
+name = "nicoverbruggen/libron"
+tier = "study"
+
+[[repo]]
+name = "nilsteampassnet/TeamPass"
+tier = "study"
+
+[[repo]]
+name = "nimbalyst/nimbalyst"
+tier = "study"
+
+[[repo]]
+name = "nisshi-io/solace-nisshi"
+tier = "study"
+
+[[repo]]
+name = "nissl-lab/npoi"
+tier = "study"
+
+[[repo]]
+name = "nklmilojevic/sofka"
+tier = "study"
+
+[[repo]]
+name = "nndeploy/nndeploy"
+tier = "study"
+
+[[repo]]
+name = "NomaDamas/k-skill"
+tier = "study"
+
+[[repo]]
+name = "novuhq/novu"
+tier = "study"
+
+[[repo]]
+name = "npgsql/efcore.pg"
+tier = "study"
+
+[[repo]]
+name = "NRules/NRules"
+tier = "study"
+
+[[repo]]
+name = "NuGet/NuGetGallery"
+tier = "study"
+
+[[repo]]
+name = "Nutlope/aicommits"
+tier = "study"
+
+[[repo]]
+name = "nuxt/nuxt"
+tier = "study"
+
+[[repo]]
+name = "NVIDIA-AI-Blueprints/video-search-and-summarization"
+tier = "study"
+
+[[repo]]
+name = "nvidia-isaac/cuVSLAM"
+tier = "study"
+
+[[repo]]
+name = "NVIDIA-Omniverse/usd-brep"
+tier = "study"
+
+[[repo]]
+name = "NVIDIA/aistore"
+tier = "study"
+
+[[repo]]
+name = "NVIDIA/cudf"
+tier = "study"
+
+[[repo]]
+name = "NVIDIA/dcgm-exporter"
+tier = "study"
+
+[[repo]]
+name = "NVIDIA/garak"
+tier = "study"
+
+[[repo]]
+name = "NVIDIA/OpenShell"
+tier = "study"
+
+[[repo]]
+name = "NVlabs/curobo"
+tier = "study"
+
+[[repo]]
+name = "nWidart/laravel-modules"
+tier = "study"
+
+[[repo]]
+name = "nxtrace/NTrace-core"
+tier = "study"
+
+[[repo]]
+name = "nyakang/nyaterm"
+tier = "study"
+
+[[repo]]
+name = "nymtech/nym"
+tier = "study"
+
+[[repo]]
+name = "obsidianmd/obsidian-help"
+tier = "study"
+
+[[repo]]
+name = "OctoPrint/OctoPrint"
+tier = "study"
+
+[[repo]]
+name = "odoo/odoo"
+tier = "study"
+
+[[repo]]
+name = "ogx-ai/ogx"
+tier = "study"
+
+[[repo]]
+name = "oil-oil/beautify-github-readme"
+tier = "study"
+
+[[repo]]
+name = "omgovich/colord"
+tier = "study"
+
+[[repo]]
+name = "onsi/ginkgo"
+tier = "study"
+
+[[repo]]
+name = "opal/opal"
+tier = "study"
+
+[[repo]]
+name = "open-circle/valibot"
+tier = "study"
+
+[[repo]]
+name = "open-mercato/open-mercato"
+tier = "study"
+
+[[repo]]
+name = "open-pencil/open-pencil"
+tier = "study"
+
+[[repo]]
+name = "open-slide/open-slide"
+tier = "study"
+
+[[repo]]
+name = "open-telemetry/opentelemetry-collector"
+tier = "study"
+
+[[repo]]
+name = "open-telemetry/opentelemetry-operator"
+tier = "study"
+
+[[repo]]
+name = "OpenAEV-Platform/openaev"
+tier = "study"
+
+[[repo]]
+name = "openai/codex-plugin-cc"
+tier = "study"
+
+[[repo]]
+name = "openai/plugins"
+tier = "study"
+
+[[repo]]
+name = "openatx/uiautomator2"
+tier = "study"
+
+[[repo]]
+name = "openbao/openbao"
+tier = "study"
+
+[[repo]]
+name = "openbq-org/OpenBB"
+tier = "study"
+
+[[repo]]
+name = "opencart/opencart"
+tier = "study"
+
+[[repo]]
+name = "OpenCCU/OpenCCU"
+tier = "study"
+
+[[repo]]
+name = "openclaw/clawhub"
+tier = "study"
+
+[[repo]]
+name = "openclaw/gogcli"
+tier = "study"
+
+[[repo]]
+name = "openemr/openemr"
+tier = "study"
+
+[[repo]]
+name = "openfaas/faas"
+tier = "study"
+
+[[repo]]
+name = "OpenFeign/feign"
+tier = "study"
+
+[[repo]]
+name = "openJiuwen-ai/jiuwenswarm"
+tier = "study"
+
+[[repo]]
+name = "OpenListTeam/OpenList"
+tier = "study"
+
+[[repo]]
+name = "openmediavault/openmediavault"
+tier = "study"
+
+[[repo]]
+name = "opennextjs/opennextjs-cloudflare"
+tier = "study"
+
+[[repo]]
+name = "OpenRefine/OpenRefine"
+tier = "study"
+
+[[repo]]
+name = "openremote/core"
+tier = "study"
+
+[[repo]]
+name = "opensearch-project/OpenSearch"
+tier = "study"
+
+[[repo]]
+name = "openshift/origin"
+tier = "study"
+
+[[repo]]
+name = "openstatusHQ/openstatus"
+tier = "study"
+
+[[repo]]
+name = "opentofu/opentofu"
+tier = "study"
+
+[[repo]]
+name = "openupm/openupm"
+tier = "study"
+
+[[repo]]
+name = "operator-framework/operator-lifecycle-manager"
+tier = "study"
+
+[[repo]]
+name = "opnsense/core"
+tier = "study"
+
+[[repo]]
+name = "OrcaSlicer/OrcaSlicer"
+tier = "study"
+
+[[repo]]
+name = "OrchardCMS/OrchardCore"
+tier = "study"
+
+[[repo]]
+name = "organicmaps/organicmaps"
+tier = "study"
+
+[[repo]]
+name = "OSGeo/gdal"
+tier = "study"
+
+[[repo]]
+name = "osmandapp/OsmAnd"
+tier = "study"
+
+[[repo]]
+name = "osquery/osquery"
+tier = "study"
+
+[[repo]]
+name = "ossf/best-practices-badge"
+tier = "study"
+
+[[repo]]
+name = "oumi-ai/oumi"
+tier = "study"
+
+[[repo]]
+name = "outline/outline"
+tier = "study"
+
+[[repo]]
+name = "OutlineFoundation/outline-apps"
+tier = "study"
+
+[[repo]]
+name = "OWASP/CheatSheetSeries"
+tier = "study"
+
+[[repo]]
+name = "owen2345/camaleon-cms"
+tier = "study"
+
+[[repo]]
+name = "owncloud/core"
+tier = "study"
+
+[[repo]]
+name = "oxc-project/oxc"
+tier = "study"
+
+[[repo]]
+name = "pacifio/atlas"
+tier = "study"
+
+[[repo]]
+name = "padrino/padrino-framework"
+tier = "study"
+
+[[repo]]
+name = "palkan/action_policy"
+tier = "study"
+
+[[repo]]
+name = "pandas-dev/pandas"
+tier = "study"
+
+[[repo]]
+name = "papermark/papermark"
+tier = "study"
+
+[[repo]]
+name = "PaperMC/Paper"
+tier = "study"
+
+[[repo]]
+name = "pardeike/Harmony"
+tier = "study"
+
+[[repo]]
+name = "Part-DB/Part-DB-server"
+tier = "study"
+
+[[repo]]
+name = "passbolt/passbolt_api"
+tier = "study"
+
+[[repo]]
+name = "pastelsky/bundlephobia"
+tier = "study"
+
+[[repo]]
+name = "payloadcms/payload"
+tier = "study"
+
+[[repo]]
+name = "Payum/Payum"
+tier = "study"
+
+[[repo]]
+name = "PBH-BTN/PeerBanHelper"
+tier = "study"
+
+[[repo]]
+name = "pcottle/learnGitBranching"
+tier = "study"
+
+[[repo]]
+name = "PCSX2/pcsx2"
+tier = "study"
+
+[[repo]]
+name = "pdm-project/pdm"
+tier = "study"
+
+[[repo]]
+name = "peco/peco"
+tier = "study"
+
+[[repo]]
+name = "pengrad/java-telegram-bot-api"
+tier = "study"
+
+[[repo]]
+name = "penso/herdr-gpui"
+tier = "study"
+
+[[repo]]
+name = "perplexityai/SPACE"
+tier = "study"
+
+[[repo]]
+name = "petergoldstein/dalli"
+tier = "study"
+
+[[repo]]
+name = "petergpt/bullshit-benchmark"
+tier = "study"
+
+[[repo]]
+name = "pgjdbc/pgjdbc"
+tier = "study"
+
+[[repo]]
+name = "phan/phan"
+tier = "study"
+
+[[repo]]
+name = "PhilipK/BoilR"
+tier = "study"
+
+[[repo]]
+name = "photonixapp/photonix"
+tier = "study"
+
+[[repo]]
+name = "photoprism/photoprism"
+tier = "study"
+
+[[repo]]
+name = "phpstan/phpdoc-parser"
+tier = "study"
+
+[[repo]]
+name = "pig-mesh/pig"
+tier = "study"
+
+[[repo]]
+name = "pimalaya/himalaya"
+tier = "study"
+
+[[repo]]
+name = "pingcap/tidb"
+tier = "study"
+
+[[repo]]
+name = "pinpoint-apm/pinpoint"
+tier = "study"
+
+[[repo]]
+name = "pinterest/teletraan"
+tier = "study"
+
+[[repo]]
+name = "pixel-agents-hq/pixel-agents"
+tier = "study"
+
+[[repo]]
+name = "pixijs/pixijs"
+tier = "study"
+
+[[repo]]
+name = "pkgxdev/pkgx"
+tier = "study"
+
+[[repo]]
+name = "plantuml/plantuml"
+tier = "study"
+
+[[repo]]
+name = "plasma-umass/Mesh"
+tier = "study"
+
+[[repo]]
+name = "PlotJuggler/PlotJuggler"
+tier = "study"
+
+[[repo]]
+name = "pocket-id/pocket-id"
+tier = "study"
+
+[[repo]]
+name = "pocoproject/poco"
+tier = "study"
+
+[[repo]]
+name = "podman-container-tools/buildah"
+tier = "study"
+
+[[repo]]
+name = "podman-container-tools/podman"
+tier = "study"
+
+[[repo]]
+name = "polardb/polardbx-sql"
+tier = "study"
+
+[[repo]]
+name = "portainer/portainer"
+tier = "study"
+
+[[repo]]
+name = "Power-Components/livewire-powergrid"
+tier = "study"
+
+[[repo]]
+name = "PowerShell/vscode-powershell"
+tier = "study"
+
+[[repo]]
+name = "pranshuparmar/witr"
+tier = "study"
+
+[[repo]]
+name = "prestodb/presto"
+tier = "study"
+
+[[repo]]
+name = "primefaces/primefaces"
+tier = "study"
+
+[[repo]]
+name = "PrimeIntellect-ai/prime-agent"
+tier = "study"
+
+[[repo]]
+name = "prisma/orm"
+tier = "study"
+
+[[repo]]
+name = "PrivateBin/PrivateBin"
+tier = "study"
+
+[[repo]]
+name = "processing/p5.js"
+tier = "study"
+
+[[repo]]
+name = "procore-oss/blueprinter"
+tier = "study"
+
+[[repo]]
+name = "project-chip/connectedhomeip"
+tier = "study"
+
+[[repo]]
+name = "project-copacetic/copacetic"
+tier = "study"
+
+[[repo]]
+name = "Project-OSRM/osrm-backend"
+tier = "study"
+
+[[repo]]
+name = "projectdiscovery/nuclei"
+tier = "study"
+
+[[repo]]
+name = "prometheus/alertmanager"
+tier = "study"
+
+[[repo]]
+name = "Provenance-Emu/Provenance"
+tier = "study"
+
+[[repo]]
+name = "px0-ai/px0"
+tier = "study"
+
+[[repo]]
+name = "py-why/dowhy"
+tier = "study"
+
+[[repo]]
+name = "pybind/pybind11"
+tier = "study"
+
+[[repo]]
+name = "pycaret/pycaret"
+tier = "study"
+
+[[repo]]
+name = "pydantic/monty"
+tier = "study"
+
+[[repo]]
+name = "pymc-devs/pymc"
+tier = "study"
+
+[[repo]]
+name = "pyrevitlabs/pyRevit"
+tier = "study"
+
+[[repo]]
+name = "python/cpython"
+tier = "study"
+
+[[repo]]
+name = "pytorch/tutorials"
+tier = "study"
+
+[[repo]]
+name = "qcad/qcad"
+tier = "study"
+
+[[repo]]
+name = "qdrant/qdrant"
+tier = "study"
+
+[[repo]]
+name = "Qexo/Qexo"
+tier = "study"
+
+[[repo]]
+name = "qi4L/JYso"
+tier = "study"
+
+[[repo]]
+name = "qingjian-team/qingjian"
+tier = "study"
+
+[[repo]]
+name = "qualcomm/GenieX"
+tier = "study"
+
+[[repo]]
+name = "quartznet/quartznet"
+tier = "study"
+
+[[repo]]
+name = "quasarframework/quasar"
+tier = "study"
+
+[[repo]]
+name = "questdb/questdb"
+tier = "study"
+
+[[repo]]
+name = "qufei1993/skills-hub"
+tier = "study"
+
+[[repo]]
+name = "quii/learn-go-with-tests"
+tier = "study"
+
+[[repo]]
+name = "quint-co/quint"
+tier = "study"
+
+[[repo]]
+name = "rabbitmq/rabbitmq-tutorials"
+tier = "study"
+
+[[repo]]
+name = "RabbyHub/Rabby"
+tier = "study"
+
+[[repo]]
+name = "rapi-doc/RapiDoc"
+tier = "study"
+
+[[repo]]
+name = "ratatui/ratatui"
+tier = "study"
+
+[[repo]]
+name = "ray-project/ray"
+tier = "study"
+
+[[repo]]
+name = "RayWangQvQ/BiliBiliToolPro"
+tier = "study"
+
+[[repo]]
+name = "RazorConsole/RazorConsole"
+tier = "study"
+
+[[repo]]
+name = "ReAbout/web-sec"
+tier = "study"
+
+[[repo]]
+name = "react-grid-layout/react-draggable"
+tier = "study"
+
+[[repo]]
+name = "react/yoga"
+tier = "study"
+
+[[repo]]
+name = "reactive-resume/reactive-resume"
+tier = "study"
+
+[[repo]]
+name = "reactivemarbles/DynamicData"
+tier = "study"
+
+[[repo]]
+name = "reactiveui/ReactiveUI"
+tier = "study"
+
+[[repo]]
+name = "reactiveui/refit"
+tier = "study"
+
+[[repo]]
+name = "reactnativecn/react-native-update"
+tier = "study"
+
+[[repo]]
+name = "readthedocs/readthedocs.org"
+tier = "study"
+
+[[repo]]
+name = "realsenseai/librealsense"
+tier = "study"
+
+[[repo]]
+name = "realworld-apps/realworld"
+tier = "study"
+
+[[repo]]
+name = "reconurge/flowsint"
+tier = "study"
+
+[[repo]]
+name = "redis/go-redis"
+tier = "study"
+
+[[repo]]
+name = "redis/jedis"
+tier = "study"
+
+[[repo]]
+name = "redis/lettuce"
+tier = "study"
+
+[[repo]]
+name = "redis/redis-rb"
+tier = "study"
+
+[[repo]]
+name = "redis/RedisInsight"
+tier = "study"
+
+[[repo]]
+name = "redpanda-data/connect"
+tier = "study"
+
+[[repo]]
+name = "reflex-dev/xy"
+tier = "study"
+
+[[repo]]
+name = "rehan-remade/universal-modder"
+tier = "study"
+
+[[repo]]
+name = "relaticle/relaticle"
+tier = "study"
+
+[[repo]]
+name = "remix-run/react-router"
+tier = "study"
+
+[[repo]]
+name = "remotion-dev/remotion"
+tier = "study"
+
+[[repo]]
+name = "replicate/cog"
+tier = "study"
+
+[[repo]]
+name = "rest-assured/rest-assured"
+tier = "study"
+
+[[repo]]
+name = "restsharp/RestSharp"
+tier = "study"
+
+[[repo]]
+name = "Ripple-TS/ripple"
+tier = "study"
+
+[[repo]]
+name = "risingwavelabs/risingwave"
+tier = "study"
+
+[[repo]]
+name = "rivet-dev/rivet"
+tier = "study"
+
+[[repo]]
+name = "rizsotto/Bear"
+tier = "study"
+
+[[repo]]
+name = "rmcrackan/Libation"
+tier = "study"
+
+[[repo]]
+name = "rmk-rs/rmk"
+tier = "study"
+
+[[repo]]
+name = "rmyndharis/antigravity-skills"
+tier = "study"
+
+[[repo]]
+name = "roadrunner-server/roadrunner"
+tier = "study"
+
+[[repo]]
+name = "roboflow/rf-detr"
+tier = "study"
+
+[[repo]]
+name = "roboflow/supervision"
+tier = "study"
+
+[[repo]]
+name = "robustmq/robustmq"
+tier = "study"
+
+[[repo]]
+name = "RocketChat/Rocket.Chat"
+tier = "study"
+
+[[repo]]
+name = "rohitg00/ai-engineering-from-scratch"
+tier = "study"
+
+[[repo]]
+name = "rojo-rbx/rojo"
+tier = "study"
+
+[[repo]]
+name = "rollup/rollup"
+tier = "study"
+
+[[repo]]
+name = "root-gg/plik"
+tier = "study"
+
+[[repo]]
+name = "rorkai/App-Store-Connect-CLI"
+tier = "study"
+
+[[repo]]
+name = "rouge-ruby/rouge"
+tier = "study"
+
+[[repo]]
+name = "RSSNext/Folo"
+tier = "study"
+
+[[repo]]
+name = "rubenlagus/TelegramBots"
+tier = "study"
+
+[[repo]]
+name = "ruby-amqp/bunny"
+tier = "study"
+
+[[repo]]
+name = "ruby-git/ruby-git"
+tier = "study"
+
+[[repo]]
+name = "rubyzip/rubyzip"
+tier = "study"
+
+[[repo]]
+name = "run-llama/llama_index"
+tier = "study"
+
+[[repo]]
+name = "runatlantis/atlantis"
+tier = "study"
+
+[[repo]]
+name = "runcat-dev/RunCat365"
+tier = "study"
+
+[[repo]]
+name = "runtipi/runtipi"
+tier = "study"
+
+[[repo]]
+name = "rust-skia/rust-skia"
+tier = "study"
+
+[[repo]]
+name = "rustfs/rustfs"
+tier = "study"
+
+[[repo]]
+name = "RustPython/RustPython"
+tier = "study"
+
+[[repo]]
+name = "ruvnet/ruflo"
+tier = "study"
+
+[[repo]]
+name = "sahat/hackathon-starter"
+tier = "study"
+
+[[repo]]
+name = "salesforce/lwc"
+tier = "study"
+
+[[repo]]
+name = "sammcj/gollama"
+tier = "study"
+
+[[repo]]
+name = "sampotts/plyr"
+tier = "study"
+
+[[repo]]
+name = "sandbox-quantum/switch"
+tier = "study"
+
+[[repo]]
+name = "sandeco/reversa"
+tier = "study"
+
+[[repo]]
+name = "sanogueralorenzo/sanogueralorenzo.github.io"
+tier = "study"
+
+[[repo]]
+name = "Sapd/HeadsetControl"
+tier = "study"
+
+[[repo]]
+name = "saulpw/visidata"
+tier = "study"
+
+[[repo]]
+name = "scality/cloudserver"
+tier = "study"
+
+[[repo]]
+name = "schemacrawler/SchemaCrawler"
+tier = "study"
+
+[[repo]]
+name = "Schniz/fnm"
+tier = "study"
+
+[[repo]]
+name = "schollz/croc"
+tier = "study"
+
+[[repo]]
+name = "scikit-learn/scikit-learn"
+tier = "study"
+
+[[repo]]
+name = "ScottPlot/ScottPlot"
+tier = "study"
+
+[[repo]]
+name = "scrapy/scrapy"
+tier = "study"
+
+[[repo]]
+name = "screenpipe/screenpipe"
+tier = "study"
+
+[[repo]]
+name = "scylladb/scylladb"
+tier = "study"
+
+[[repo]]
+name = "scylladb/seastar"
+tier = "study"
+
+[[repo]]
+name = "SeaQL/sea-orm"
+tier = "study"
+
+[[repo]]
+name = "sebastienros/fluid"
+tier = "study"
+
+[[repo]]
+name = "securego/gosec"
+tier = "study"
+
+[[repo]]
+name = "security-union/videocall-rs"
+tier = "study"
+
+[[repo]]
+name = "selenide/selenide"
+tier = "study"
+
+[[repo]]
+name = "SemiAnalysisAI/InferenceX"
+tier = "study"
+
+[[repo]]
+name = "ServiceStack/ServiceStack"
+tier = "study"
+
+[[repo]]
+name = "servo/rust-smallvec"
+tier = "study"
+
+[[repo]]
+name = "severity1/claude-code-prompt-improver"
+tier = "study"
+
+[[repo]]
+name = "sganggs/Stronghold-Protocol"
+tier = "study"
+
+[[repo]]
+name = "shadowsocks/shadowsocks-c"
+tier = "study"
+
+[[repo]]
+name = "shaka-project/shaka-player"
+tier = "study"
+
+[[repo]]
+name = "shakacode/react_on_rails"
+tier = "study"
+
+[[repo]]
+name = "shalldie/vscode-background"
+tier = "study"
+
+[[repo]]
+name = "shaongitbd/doory"
+tier = "study"
+
+[[repo]]
+name = "shareAI-lab/learn-claude-code"
+tier = "study"
+
+[[repo]]
+name = "shengjidaguai-china/goutoujunshi"
+tier = "study"
+
+[[repo]]
+name = "shimat/opencvsharp"
+tier = "study"
+
+[[repo]]
+name = "shinyorg/shiny"
+tier = "study"
+
+[[repo]]
+name = "ShisatoYano/AutonomousVehicleControlBeginnersGuide"
+tier = "study"
+
+[[repo]]
+name = "shiwenwen/hope-agent"
+tier = "study"
+
+[[repo]]
+name = "Shopify/roast"
+tier = "study"
+
+[[repo]]
+name = "Shopify/shopify_app"
+tier = "study"
+
+[[repo]]
+name = "sickn33/agentic-awesome-skills"
+tier = "study"
+
+[[repo]]
+name = "silvertakana/worldwideview"
+tier = "study"
+
+[[repo]]
+name = "sipeed/picoclaw"
+tier = "study"
+
+[[repo]]
+name = "SixLabors/ImageSharp"
+tier = "study"
+
+[[repo]]
+name = "siyuan-note/siyuan"
+tier = "study"
+
+[[repo]]
+name = "sjdonado/idonthavespotify"
+tier = "study"
+
+[[repo]]
+name = "skim-rs/skim"
+tier = "study"
+
+[[repo]]
+name = "SkyAPM/SkyAPM-dotnet"
+tier = "study"
+
+[[repo]]
+name = "slack-ruby/slack-ruby-client"
+tier = "study"
+
+[[repo]]
+name = "slidevjs/slidev"
+tier = "study"
+
+[[repo]]
+name = "slint-ui/slint"
+tier = "study"
+
+[[repo]]
+name = "smartcontractkit/chainlink"
+tier = "study"
+
+[[repo]]
+name = "smartstore/Smartstore"
+tier = "study"
+
+[[repo]]
+name = "smol-machines/smolvm"
+tier = "study"
+
+[[repo]]
+name = "smrchy/rsmq"
+tier = "study"
+
+[[repo]]
+name = "sn4k3/NetSonar"
+tier = "study"
+
+[[repo]]
+name = "sn4k3/UVtools"
+tier = "study"
+
+[[repo]]
+name = "SnailSploit/Claude-Red"
+tier = "study"
+
+[[repo]]
+name = "Snapchat/Valdi"
+tier = "study"
+
+[[repo]]
+name = "sofastack/sofa-ark"
+tier = "study"
+
+[[repo]]
+name = "solana-foundation/pay"
+tier = "study"
+
+[[repo]]
+name = "sosedoff/pgweb"
+tier = "study"
+
+[[repo]]
+name = "sous-chefs/docker"
+tier = "study"
+
+[[repo]]
+name = "soutaro/steep"
+tier = "study"
+
+[[repo]]
+name = "spatie/dashboard.spatie.be"
+tier = "study"
+
+[[repo]]
+name = "spatie/laravel-activitylog"
+tier = "study"
+
+[[repo]]
+name = "spatie/laravel-backup"
+tier = "study"
+
+[[repo]]
+name = "spatie/laravel-medialibrary"
+tier = "study"
+
+[[repo]]
+name = "spatie/laravel-sluggable"
+tier = "study"
+
+[[repo]]
+name = "spinframework/spin"
+tier = "study"
+
+[[repo]]
+name = "spinnaker/spinnaker"
+tier = "study"
+
+[[repo]]
+name = "spring-projects/spring-ai"
+tier = "study"
+
+[[repo]]
+name = "spring-projects/spring-integration"
+tier = "study"
+
+[[repo]]
+name = "sqlfluff/sqlfluff"
+tier = "study"
+
+[[repo]]
+name = "StackExchange/StackExchange.Redis"
+tier = "study"
+
+[[repo]]
+name = "stakpak/agent"
+tier = "study"
+
+[[repo]]
+name = "standard-webhooks/standard-webhooks"
+tier = "study"
+
+[[repo]]
+name = "star-history/star-history"
+tier = "study"
+
+[[repo]]
+name = "starc007/ui-components"
+tier = "study"
+
+[[repo]]
+name = "starkware-libs/cairo"
+tier = "study"
+
+[[repo]]
+name = "StarRocks/starrocks"
+tier = "study"
+
+[[repo]]
+name = "Start9Labs/start-technologies"
+tier = "study"
+
+[[repo]]
+name = "statamic/cms"
+tier = "study"
+
+[[repo]]
+name = "stefanzweifel/laravel-stats"
+tier = "study"
+
+[[repo]]
+name = "stephengpope/thepopebot"
+tier = "study"
+
+[[repo]]
+name = "StockSharp/StockSharp"
+tier = "study"
+
+[[repo]]
+name = "Stonewuu/ai-fusion-video"
+tier = "study"
+
+[[repo]]
+name = "storytold/cadcraft"
+tier = "study"
+
+[[repo]]
+name = "storytold/effectcraft"
+tier = "study"
+
+[[repo]]
+name = "storytold/gridcraft"
+tier = "study"
+
+[[repo]]
+name = "strands-agents/harness-sdk"
+tier = "study"
+
+[[repo]]
+name = "STranslate/STranslate"
+tier = "study"
+
+[[repo]]
+name = "strapi/strapi"
+tier = "study"
+
+[[repo]]
+name = "streamlit/streamlit"
+tier = "study"
+
+[[repo]]
+name = "stride3d/stride"
+tier = "study"
+
+[[repo]]
+name = "strimzi/strimzi-kafka-operator"
+tier = "study"
+
+[[repo]]
+name = "stringer-rss/stringer"
+tier = "study"
+
+[[repo]]
+name = "stripe/ai"
+tier = "study"
+
+[[repo]]
+name = "stripe/stripe-dotnet"
+tier = "study"
+
+[[repo]]
+name = "studyzy/imewlconverter"
+tier = "study"
+
+[[repo]]
+name = "styled-components/styled-components"
+tier = "study"
+
+[[repo]]
+name = "succinctlabs/sp1"
+tier = "study"
+
+[[repo]]
+name = "superplanehq/superplane"
+tier = "study"
+
+[[repo]]
+name = "superradcompany/microsandbox"
+tier = "study"
+
+[[repo]]
+name = "surrealdb/surrealdb"
+tier = "study"
+
+[[repo]]
+name = "sushi-labs/sushiswap"
+tier = "study"
+
+[[repo]]
+name = "sverweij/dependency-cruiser"
+tier = "study"
+
+[[repo]]
+name = "swagger-api/swagger-editor"
+tier = "study"
+
+[[repo]]
+name = "swagger-api/swagger-ui"
+tier = "study"
+
+[[repo]]
+name = "SWE-agent/mini-swe-agent"
+tier = "study"
+
+[[repo]]
+name = "sweetpad-dev/sweetpad"
+tier = "study"
+
+[[repo]]
+name = "swoole/swoole-src"
+tier = "study"
+
+[[repo]]
+name = "Sylinko/Everywhere"
+tier = "study"
+
+[[repo]]
+name = "Sylius/Sylius"
+tier = "study"
+
+[[repo]]
+name = "sysadminsmedia/homebox"
+tier = "study"
+
+[[repo]]
+name = "sysown/proxysql"
+tier = "study"
+
+[[repo]]
+name = "t8y2/dbx"
+tier = "study"
+
+[[repo]]
+name = "tabulator-tables/tabulator"
+tier = "study"
+
+[[repo]]
+name = "Taiizor/Sucrose"
+tier = "study"
+
+[[repo]]
+name = "tailcallhq/forgecode"
+tier = "study"
+
+[[repo]]
+name = "TanStack/query"
+tier = "study"
+
+[[repo]]
+name = "tantaman/strut"
+tier = "study"
+
+[[repo]]
+name = "tashfeenahmed/freellmapi"
+tier = "study"
+
+[[repo]]
+name = "TastSong/CrazyCar"
+tier = "study"
+
+[[repo]]
+name = "tauri-apps/plugins-workspace"
+tier = "study"
+
+[[repo]]
+name = "tdewolff/canvas"
+tier = "study"
+
+[[repo]]
+name = "team9ai/team9"
+tier = "study"
+
+[[repo]]
+name = "TeamWiseFlow/xiaobei"
+tier = "study"
+
+[[repo]]
+name = "TecharoHQ/anubis"
+tier = "study"
+
+[[repo]]
+name = "tektoncd/pipeline"
+tier = "study"
+
+[[repo]]
+name = "temporalio/temporal"
+tier = "study"
+
+[[repo]]
+name = "Tencent/BrowserSkill"
+tier = "study"
+
+[[repo]]
+name = "Tencent/puerts"
+tier = "study"
+
+[[repo]]
+name = "Tencent/WeKnora"
+tier = "study"
+
+[[repo]]
+name = "TencentEdgeOne/edgeone-makers-tools"
+tier = "study"
+
+[[repo]]
+name = "TestableIO/System.IO.Abstractions"
+tier = "study"
+
+[[repo]]
+name = "Th0rgal/open-ralph-wiggum"
+tier = "study"
+
+[[repo]]
+name = "The-Vibe-Company/quivr"
+tier = "study"
+
+[[repo]]
+name = "TheOdinProject/theodinproject"
+tier = "study"
+
+[[repo]]
+name = "theonedev/onedev"
+tier = "study"
+
+[[repo]]
+name = "THU-MAIC/OpenMAIC"
+tier = "study"
+
+[[repo]]
+name = "THUDM/slime"
+tier = "study"
+
+[[repo]]
+name = "Tianyu199509/DeskBox"
+tier = "study"
+
+[[repo]]
+name = "tile-ai/tilelang"
+tier = "study"
+
+[[repo]]
+name = "TimefoldAI/timefold-solver"
+tier = "study"
+
+[[repo]]
+name = "Timmoth/RackPeek"
+tier = "study"
+
+[[repo]]
+name = "tinyauthapp/tinyauth"
+tier = "study"
+
+[[repo]]
+name = "tirrenotechnologies/tirreno"
+tier = "study"
+
+[[repo]]
+name = "tixl3d/tixl"
+tier = "study"
+
+[[repo]]
+name = "tldraw/tldraw"
+tier = "study"
+
+[[repo]]
+name = "tobymao/sqlglot"
+tier = "study"
+
+[[repo]]
+name = "tock/tock"
+tier = "study"
+
+[[repo]]
+name = "toeverything/AFFiNE"
+tier = "study"
+
+[[repo]]
+name = "tracewayapp/traceway"
+tier = "study"
+
+[[repo]]
+name = "trailofbits/publications"
+tier = "study"
+
+[[repo]]
+name = "transmission/transmission"
+tier = "study"
+
+[[repo]]
+name = "TriliumNext/Trilium"
+tier = "study"
+
+[[repo]]
+name = "trinodb/trino"
+tier = "study"
+
+[[repo]]
+name = "trpc-group/trpc-agent-go"
+tier = "study"
+
+[[repo]]
+name = "trpc/trpc"
+tier = "study"
+
+[[repo]]
+name = "truffleruby/truffleruby"
+tier = "study"
+
+[[repo]]
+name = "trufflesecurity/trufflehog"
+tier = "study"
+
+[[repo]]
+name = "trycua/cua"
+tier = "study"
+
+[[repo]]
+name = "TryGhost/Ghost"
+tier = "study"
+
+[[repo]]
+name = "tryzealot/zealot"
+tier = "study"
+
+[[repo]]
+name = "tsingyuai/growth-lab"
+tier = "study"
+
+[[repo]]
+name = "tsparticles/tsparticles"
+tier = "study"
+
+[[repo]]
+name = "tubearchivist/tubearchivist"
+tier = "study"
+
+[[repo]]
+name = "tui-cs/Terminal.Gui"
+tier = "study"
+
+[[repo]]
+name = "turbot/steampipe"
+tier = "study"
+
+[[repo]]
+name = "tursodatabase/turso"
+tier = "study"
+
+[[repo]]
+name = "Twigpine/zero"
+tier = "study"
+
+[[repo]]
+name = "typecho-fans/plugins"
+tier = "study"
+
+[[repo]]
+name = "typicms/typicms"
+tier = "study"
+
+[[repo]]
+name = "u14app/neo-chat"
+tier = "study"
+
+[[repo]]
+name = "ueberdosis/tiptap"
+tier = "study"
+
+[[repo]]
+name = "Ultimaker/CuraEngine"
+tier = "study"
+
+[[repo]]
+name = "ultralytics/ultralytics"
+tier = "study"
+
+[[repo]]
+name = "ultralytics/yolov5"
+tier = "study"
+
+[[repo]]
+name = "umbraco/Umbraco-CMS"
+tier = "study"
+
+[[repo]]
+name = "unicity-aos/aos-ce"
+tier = "study"
+
+[[repo]]
+name = "unicity-sphere/sphere"
+tier = "study"
+
+[[repo]]
+name = "unicity-sphere/sphere-sdk-connect-example"
+tier = "study"
+
+[[repo]]
+name = "UniClipboard/UniClipboard"
+tier = "study"
+
+[[repo]]
+name = "UnigramDev/Unigram"
+tier = "study"
+
+[[repo]]
+name = "unit8co/darts"
+tier = "study"
+
+[[repo]]
+name = "unoplatform/uno"
+tier = "study"
+
+[[repo]]
+name = "unslothai/unsloth"
+tier = "study"
+
+[[repo]]
+name = "untitleduico/react"
+tier = "study"
+
+[[repo]]
+name = "upstash/context7"
+tier = "study"
+
+[[repo]]
+name = "usekaneo/kaneo"
+tier = "study"
+
+[[repo]]
+name = "usestrix/strix"
+tier = "study"
+
+[[repo]]
+name = "uswds/uswds"
+tier = "study"
+
+[[repo]]
+name = "uutils/coreutils"
+tier = "study"
+
+[[repo]]
+name = "valhalla/valhalla"
+tier = "study"
+
+[[repo]]
+name = "validatorjs/validator.js"
+tier = "study"
+
+[[repo]]
+name = "Valkirie/HandheldCompanion"
+tier = "study"
+
+[[repo]]
+name = "vectordotdev/vector"
+tier = "study"
+
+[[repo]]
+name = "vectorize-io/hindsight"
+tier = "study"
+
+[[repo]]
+name = "vercel-labs/agent-skills"
+tier = "study"
+
+[[repo]]
+name = "vercel-labs/emulate"
+tier = "study"
+
+[[repo]]
+name = "vercel-labs/skills"
+tier = "study"
+
+[[repo]]
+name = "vercel/turborepo"
+tier = "study"
+
+[[repo]]
+name = "vernesong/OpenClash"
+tier = "study"
+
+[[repo]]
+name = "versatica/mediasoup"
+tier = "study"
+
+[[repo]]
+name = "vexip-ui/vexip-ui"
+tier = "study"
+
+[[repo]]
+name = "viatsko/awesome-vscode"
+tier = "study"
+
+[[repo]]
+name = "ViaVersion/ViaVersion"
+tier = "study"
+
+[[repo]]
+name = "videojs/video.js"
+tier = "study"
+
+[[repo]]
+name = "ViewComponent/view_component"
+tier = "study"
+
+[[repo]]
+name = "vimeo/psalm"
+tier = "study"
+
+[[repo]]
+name = "vitejs/vite"
+tier = "study"
+
+[[repo]]
+name = "vllm-project/vllm-metal"
+tier = "study"
+
+[[repo]]
+name = "VoidenHQ/voiden"
+tier = "study"
+
+[[repo]]
+name = "voidzero-dev/vite-plus"
+tier = "study"
+
+[[repo]]
+name = "vrana/adminer"
+tier = "study"
+
+[[repo]]
+name = "vstorm-co/full-stack-ai-agent-template"
+tier = "study"
+
+[[repo]]
+name = "vuetifyjs/vuetify"
+tier = "study"
+
+[[repo]]
+name = "vxcontrol/pentagi"
+tier = "study"
+
+[[repo]]
+name = "waditu/czsc"
+tier = "study"
+
+[[repo]]
+name = "wailsapp/wails"
+tier = "study"
+
+[[repo]]
+name = "wasm-bindgen/wasm-pack"
+tier = "study"
+
+[[repo]]
+name = "wasmerio/wasmer"
+tier = "study"
+
+[[repo]]
+name = "wavetermdev/waveterm"
+tier = "study"
+
+[[repo]]
+name = "wealthfolio/wealthfolio"
+tier = "study"
+
+[[repo]]
+name = "webdriverio/webdriverio"
+tier = "study"
+
+[[repo]]
+name = "WebGoat/WebGoat"
+tier = "study"
+
+[[repo]]
+name = "webhtv/webhtv"
+tier = "study"
+
+[[repo]]
+name = "webonyx/graphql-php"
+tier = "study"
+
+[[repo]]
+name = "wechat-miniprogram/miniprogram-demo"
+tier = "study"
+
+[[repo]]
+name = "Wilfred/difftastic"
+tier = "study"
+
+[[repo]]
+name = "wintercms/winter"
+tier = "study"
+
+[[repo]]
+name = "wiremock/wiremock"
+tier = "study"
+
+[[repo]]
+name = "wiremock/WireMock.Net"
+tier = "study"
+
+[[repo]]
+name = "withastro/astro"
+tier = "study"
+
+[[repo]]
+name = "withmarbleapp/os-taxonomy"
+tier = "study"
+
+[[repo]]
+name = "WiVRn/WiVRn"
+tier = "study"
+
+[[repo]]
+name = "wled/WLED"
+tier = "study"
+
+[[repo]]
+name = "wolfpld/tracy"
+tier = "study"
+
+[[repo]]
+name = "WordPress/wordpress-playground"
+tier = "study"
+
+[[repo]]
+name = "Wox-launcher/Wox"
+tier = "study"
+
+[[repo]]
+name = "wp-cli/wp-cli"
+tier = "study"
+
+[[repo]]
+name = "wshobson/agents"
+tier = "study"
+
+[[repo]]
+name = "wuwentao/midea_ac_lan"
+tier = "study"
+
+[[repo]]
+name = "wy-luke/All-Chinese-Character-Set"
+tier = "study"
+
+[[repo]]
+name = "xberg-io/xberg"
+tier = "study"
+
+[[repo]]
+name = "xbmc/xbmc"
+tier = "study"
+
+[[repo]]
+name = "xhongc/ai_story"
+tier = "study"
+
+[[repo]]
+name = "xingkongliang/skills-manager"
+tier = "study"
+
+[[repo]]
+name = "xixu-me/xget"
+tier = "study"
+
+[[repo]]
+name = "xonsh/xonsh"
+tier = "study"
+
+[[repo]]
+name = "xoofx/markdig"
+tier = "study"
+
+[[repo]]
+name = "xorbitsai/inference"
+tier = "study"
+
+[[repo]]
+name = "xqy2006/ModelTrace"
+tier = "study"
+
+[[repo]]
+name = "xtekky/gpt4free"
+tier = "study"
+
+[[repo]]
+name = "yagop/node-telegram-bot-api"
+tier = "study"
+
+[[repo]]
+name = "yang991178/fluent-reader"
+tier = "study"
+
+[[repo]]
+name = "yansongda/pay"
+tier = "study"
+
+[[repo]]
+name = "YaoApp/yao"
+tier = "study"
+
+[[repo]]
+name = "Yeachan-Heo/oh-my-claudecode"
+tier = "study"
+
+[[repo]]
+name = "yetone/magpie"
+tier = "study"
+
+[[repo]]
+name = "yihong0618/bilingual_book_maker"
+tier = "study"
+
+[[repo]]
+name = "yoannmoinet/nipplejs"
+tier = "study"
+
+[[repo]]
+name = "yologdev/yoyo-evolve"
+tier = "study"
+
+[[repo]]
+name = "yonahd/kor"
+tier = "study"
+
+[[repo]]
+name = "YouMind-OpenLab/nano-banana-pro-prompts-recommend-skill"
+tier = "study"
+
+[[repo]]
+name = "ytti/oxidized"
+tier = "study"
+
+[[repo]]
+name = "Yuan1z0825/nature-skills"
+tier = "study"
+
+[[repo]]
+name = "Z-Siqi/Clash-for-Windows_Chinese"
+tier = "study"
+
+[[repo]]
+name = "Zackriya-Solutions/meetily"
+tier = "study"
+
+[[repo]]
+name = "zakirkun/guardian-cli"
+tier = "study"
+
+[[repo]]
+name = "zama-ai/fhevm"
+tier = "study"
+
+[[repo]]
+name = "zarazhangrui/frontend-slides"
+tier = "study"
+
+[[repo]]
+name = "zeek/zeek"
+tier = "study"
+
+[[repo]]
+name = "zeroclaw-labs/zeroclaw"
+tier = "study"
+
+[[repo]]
+name = "zeromicro/go-zero"
+tier = "study"
+
+[[repo]]
+name = "zhangxiangliang/stock-api"
+tier = "study"
+
+[[repo]]
+name = "zhayujie/CowAgent"
+tier = "study"
+
+[[repo]]
+name = "zhnt/loushang"
+tier = "study"
+
+[[repo]]
+name = "zhouxiaoka/autoclip"
+tier = "study"
+
+[[repo]]
+name = "zhu1090093659/dsh-web"
+tier = "study"
+
+[[repo]]
+name = "zhukunpenglinyutong/jetbrains-cc-gui"
+tier = "study"
+
+[[repo]]
+name = "ZhuLinsen/daily_stock_analysis"
+tier = "study"
+
+[[repo]]
+name = "zhuyansen/new-term-radar"
+tier = "study"
+
+[[repo]]
+name = "Zie619/n8n-workflows"
+tier = "study"
+
+[[repo]]
+name = "zircote/swagger-php"
+tier = "study"
+
+[[repo]]
+name = "zizmorcore/zizmor"
+tier = "study"
+
+[[repo]]
+name = "ZLMediaKit/ZLMediaKit"
+tier = "study"
+
+[[repo]]
+name = "ZoneMinder/zoneminder"
+tier = "study"
+
+[[repo]]
+name = "zoolutions/sidekiq-unique-jobs"
+tier = "study"
+
+[[repo]]
+name = "ZSeven-W/openpencil"
+tier = "study"
+
+[[repo]]
+name = "zuiidea/antd-admin"
+tier = "study"
+
+[[repo]]
+name = "zumerlab/snapdom"
+tier = "study"
+
+[[repo]]
+name = "zylon-ai/private-gpt"
+tier = "study"
+
+[[repo]]
+name = "zzet/gortex"
+tier = "study"
+

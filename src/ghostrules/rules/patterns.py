@@ -71,7 +71,7 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:do\s+not|don'?t)\s+(?:tell|inform|mention|show|reveal)(?:\s+this)?(?:\s+to)?"
         r"\s+the\s+user(?!\s+(?:to|which|what|how|where|when|why)\b)(?!\s+that\b(?!\s+you\b))",
         r"\bwithout\s+(?:telling|notifying)\s+the\s+user",  # asking: permission, GR016
-        r"\b(?:silently|secretly|quietly)\s+(?:run|execute|add|send|install|modify)",
+        r"\b(?:silently|secretly|quietly)\s+(?:run|execute|add|send|install|modify)\b",
         r"\bdon'?t\s+mention\s+(?:this|these)",
         r"\bhide\s+(?:this|the)\s+(?:from|output)",
         r"\bno\s+(?:se\s+lo\s+)?(?:digas|menciones|muestres)\s+al\s+usuario",
@@ -115,6 +115,8 @@ _AI_RE = re.compile(r"\bAI\b")  # case-sensitive: "ai" is a common syllable/word
 
 _BASE64_RE = re.compile(r"[A-Za-z0-9+/]{60,}={0,2}")
 _HEX_RE = re.compile(r"\b[0-9a-fA-F]{80,}\b")
+_SRI_PREFIX = re.compile(r"sha(?:256|384|512)-$")  # Subresource Integrity: a digest, not a payload
+_HEX_MIN_ENTROPY = 2.5  # "AAAA...": padding (a buffer-overflow demo), not encoded bytes
 
 
 SHELL_LANGS = frozenset({"sh", "bash", "shell", "zsh", "fish", "console", "shell-session"})
@@ -149,6 +151,12 @@ def _looks_like_random_base64(run: str) -> bool:
     )
 
 
+def _in_url(text: str, offset: int) -> bool:
+    """Whether the (whitespace-delimited) token at ``offset`` is part of a URL."""
+    start = max(text.rfind(c, 0, offset) for c in " \t\n\"'`(<[") + 1
+    return "://" in text[start:offset]
+
+
 def find_encoded_runs(text: str) -> list[EncodedRun]:
     """Find base64 (>= 60 chars) and hex (>= 80 chars) runs worth reporting.
 
@@ -160,7 +168,7 @@ def find_encoded_runs(text: str) -> list[EncodedRun]:
     found: list[EncodedRun] = []
     for match in _BASE64_RE.finditer(text):
         before = text[: match.start()]
-        if before.endswith("base64,"):
+        if before.endswith("base64,") or _SRI_PREFIX.search(before) or _in_url(text, match.start()):
             continue
         run = match.group()
         padded = run + "=" * (-len(run) % 4) if "=" not in run else run
@@ -173,7 +181,7 @@ def find_encoded_runs(text: str) -> list[EncodedRun]:
         elif not before.endswith(("/", "=")) and _looks_like_random_base64(run):
             found.append(EncodedRun(match.start(), match.end(), None))
     for match in _HEX_RE.finditer(text):
-        if len(match.group()) % 2:
+        if len(match.group()) % 2 or shannon_entropy(match.group()) < _HEX_MIN_ENTROPY:
             continue
         decoded = _decode_text(bytes.fromhex(match.group()))
         if decoded is not None or len(match.group()) not in _DIGEST_HEX_LENGTHS:
