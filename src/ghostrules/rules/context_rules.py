@@ -1,4 +1,4 @@
-"""Import-graph rules GR020-GR025 (``docs/v0.2/RULES.md``).
+"""Import-graph rules GR020-GR025 (``docs/design/v0.2/RULES.md``).
 
 They look at ``@path`` imports across every modelled agent, so a payload cannot hide in a file
 that only an import reaches. Findings sit on the importing line; nothing the import points at is

@@ -77,13 +77,13 @@ def test_readme_section_order_follows_the_plan() -> None:
     assert [t for t in titles if t in expected] == expected
 
 
-def test_readme_opens_with_name_tagline_badges_and_the_gif() -> None:
+def test_readme_opens_with_name_tagline_badges_and_the_imports_gif() -> None:
     lines = README.splitlines()
     assert lines[0] == "# ghostrules"
     assert lines[2] == "*Know exactly what your AI agent reads — and approve every change to it.*"
-    assert (
-        lines[4] == "*Find the instructions your AI agent sees but you don't.*"
-    )  # the old one stays
+    assert "Find the instructions your AI agent sees but you don't" not in lines[4]  # one tagline
+    first_paragraph = README.split("[![License", 1)[1].split("\n\n", 2)[2]
+    assert first_paragraph.startswith("`ghostrules` finds the instructions your AI agent sees")
     head = README.split("## Why")[0]
     assert head.count("](https://") >= 4  # CI, PyPI, Python versions, license
     for badge in (
@@ -93,7 +93,23 @@ def test_readme_opens_with_name_tagline_badges_and_the_gif() -> None:
         "license-MIT",
     ):
         assert badge in head
-    assert head.index("badge") < head.index("demo/demo.gif")
+    # absolute URLs (PyPI renders the README outside GitHub); imports first, demo lower down
+    base = "https://raw.githubusercontent.com/BardLaudian/ghostrules/main/demo/"
+    assert head.index("badge") < head.index(base + "imports.gif")
+    assert README.index(base + "imports.gif") < README.index(base + "demo.gif")
+    assert README.index(base + "demo.gif") > README.index("## What it catches")
+    assert (ROOT / "demo" / "imports.gif").is_file() and (ROOT / "demo" / "demo.gif").is_file()
+
+
+def test_design_history_lives_in_docs_design() -> None:
+    for name in ("SPEC.md", "PLAN.md", "v0.1.1", "v0.2"):
+        assert (ROOT / "docs" / "design" / name).exists(), name
+        assert not (ROOT / "docs" / name).exists(), name
+    for name in ("RULES.md", "AGENT_MODELS.md", "DECISIONS.md"):
+        assert (ROOT / "docs" / name).is_file(), name
+    assert "design history" in (ROOT / "CONTRIBUTING.md").read_text("utf-8")
+    claude = (ROOT / "CLAUDE.md").read_text("utf-8")
+    assert "docs/design/SPEC.md" in claude and "docs/design/PLAN.md" in claude
 
 
 def test_readme_documents_every_scan_option() -> None:

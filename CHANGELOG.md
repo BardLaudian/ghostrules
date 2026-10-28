@@ -5,6 +5,52 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-28
+
+Precision release. A scan of 12 popular public repositories with 0.2.0 found no critical issue,
+but every `high` finding was a false positive, and `context` was wrong for the most common real
+setup. On those repositories 0.2.0 reported 9 high, 18 medium and 8 low findings; 0.2.1 reports
+1 medium and 3 low, with no high, no critical and no GR025.
+
+### Added
+- `ghostrules context --format json` entries carry `alias_of` (and `link_problem`) when a symlink is
+  involved; lock entries carry `link` for an alias. Both keys are omitted otherwise.
+- `ghostrules.rules.directive.classify`: the helper that tells directive, descriptive and example
+  text apart (used by GR011, GR014 and GR016).
+
+### Fixed
+- A symbolic link whose final target is a regular file inside the repository is now an **alias**:
+  `CLAUDE.md -> AGENTS.md` (the setup Claude Code documents) is loaded under the link's name,
+  `context` shows `CLAUDE.md → AGENTS.md (symlink)` and the `AGENTS.md` entry as already read, the
+  content is scanned once (findings say `via CLAUDE.md (symlink)`), and `lock` records the link and
+  its target. Chains of up to 8 links and in-repository directory links work the same way. Nothing
+  is opened before the resolved path is known to be inside the repository.
+  GR025 now fires only for links that leave the repository (`high`) or are broken, cyclic or too
+  long (`low`), instead of one `medium` per link, and adds an `info` note for a link checked out as
+  a text file (Windows with `core.symlinks=false`).
+- GR022 no longer reports npm scopes and mentions (`@n8n/design-system`, `@cline/llms`, `@types/node`)
+  as imports that do not load. It reports a token only if it has a file extension, starts with `./`,
+  `../`, `~/` or `/`, or its first directory exists next to the importing file.
+- GR011, GR014 and GR016 tell instructions from descriptions and examples. A match in prose that
+  describes something ("The scripts read `~/.npmrc`", "The harness runs Claude with
+  `bypassPermissions`") is at most `medium`; in a fenced block, in quotes or after "e.g.", "such
+  as", "a skill that ..." it is at most `low`; imperative text and decoded hidden text keep their
+  severity. A lowered finding says why.
+  - GR011: "do not tell the user to/which/what/how ..." is no longer concealment.
+  - GR014: the verb must govern the path (same clause, six words at most) and template files
+    (`.env.example`, `*.example`, `.env.ai-surfaces.example`) never fire.
+- GR012: `curl ... | python -c`, `| python -m`, `| python script.py`, `| sh -c '...'` use stdin as
+  data and are no longer reported; `| python`, `| python -` and `| sh` still are. The Claude Code
+  installer (`https://claude.ai/install.sh`) is a known installer. GR105 and GR107 share these
+  patterns and follow.
+
+### Changed
+- README: the new tagline is the only one (the old one opens the first paragraph), the import-chain
+  GIF comes first and the hidden-Unicode GIF sits further down, both by absolute URL.
+- The original `SPEC.md`, `PLAN.md` and the per-version design documents moved to `docs/design/`
+  (design history, not kept up to date). `RULES.md`, `AGENT_MODELS.md` and `DECISIONS.md` stay in
+  `docs/`.
+
 ## [0.2.0] - 2026-10-28
 
 Know exactly what your agent reads: `ghostrules` now models how each agent loads its instructions,
