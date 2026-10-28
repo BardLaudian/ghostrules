@@ -1,0 +1,31 @@
+{
+  "by_rule": {
+    "GR003": 10,
+    "GR005": 19,
+    "GR006": 9,
+    "GR010": 65,
+    "GR011": 3,
+    "GR012": 48,
+    "GR013": 4,
+    "GR014": 7,
+    "GR016": 26,
+    "GR022": 2,
+    "GR025": 4,
+    "GR102": 10,
+    "GR107": 4,
+    "GR108": 1
+  },
+  "by_severity": {
+    "high": 53,
+    "info": 1,
+    "low": 121,
+    "medium": 37
+  },
+  "date": "2026-10-28",
+  "findings": 212,
+  "gate": "pass",
+  "ghostrules_version": "0.3.0",
+  "repos": 300,
+  "tier": "regression",
+  "unlabelled_critical_high": 0
+}
