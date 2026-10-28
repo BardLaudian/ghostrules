@@ -772,3 +772,36 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   only: the human edits the list.
 - **Real check (2026-10-28).** `run.py --repos getsentry/sentry-python,anthropics/claude-agent-sdk-python`:
   both `ok`, 2 findings (low), `check.py` PASS.
+
+## v0.3 Phase 2 — first corpus run (2026-10-28, 300 repos, regression tier)
+- **Selection.** `discover.py`, 10 languages x 250 most-starred candidates (>= 2,000 stars, pushed
+  within 6 months), 1,112 with agent files; the 300 are 30 per language, round-robin, approved by the
+  user. Biased to popular repositories by construction.
+- **First run:** 323 findings, 240 critical/high in 37 repos, three repos produced 158 of them.
+  Nothing from GR001/GR004/GR015/GR101/GR021 at medium or above: no secret or hidden payload found.
+- **GR013 (82 critical).** Causes: `POST` matched as a verb (`curl -X POST`, `requests.post(`); a
+  verb, a word like "token" and a URL anywhere within 80/200 characters of normalised text (it joined
+  list items and code); prohibitions ("Never send credentials ..."); loopback URLs; "send the user
+  to". Fixed with a same-clause requirement, the other exclusions above and the directive /
+  descriptive / example severity. Known evasion: splitting the verb and the URL into two sentences
+  avoids the *prose* match; hidden decoded text is exempt from that filter.
+- **GR010 (67 high).** Defensive guidance quoting "ignore previous instructions". Now classified; and
+  `override system|safety` requires a following noun.
+- **GR012.** `curl ... | sh` named as a pattern (block lists, "must be rejected") is `low`.
+- **Disclosure:** none needed so far.
+- **Approved by the user (2026-10-28), changes to the contract:** (A) GR011 no longer matches
+  `without asking the user` and ignores matches under a prohibition; (B) GR014: `.env.default` is a
+  template, a local `copy` of a dotenv file does not fire, a bold/code-wrapped prohibition counts;
+  (C) a GR016 match in a Markdown table row is at most medium (not applied to GR010, so a table row
+  cannot hide an override). Known evasion: a real concealment preceded by an unrelated "not ..." within
+  the 40 characters before it is not reported.
+- **Approved by the user (2026-10-28), D and E:** (D) GR003 ignores a lone ZWSP between letters of
+  Khmer/Thai/Lao/Myanmar (found in the Khmer translation of an AGENTS.md); (E) GR005 is medium only
+  with `you must|always|never`, low when the comment only names the agent, high unchanged when it
+  matches GR010-GR016. Also fixed (bug, no contract change): GR012 folded a prose "curl" onto the
+  `curl ... | bash` of the next code block (spans that cross a code fence are dropped *before*
+  deduplication; dropping them afterwards would have lost the real command).
+- **More GR012 data pipes (corpus run 5):** `curl … | bash scripts/extract.sh "$tag"` runs a script from
+  a file (an argument with a `/` or a `.sh` suffix) and is not matched, like `python script.py`;
+  `| bash`, `| sh -s -- …` and `| sudo sh` still are. A pattern named inside a Markdown table cell
+  with an escaped pipe (`curl ... \| bash`) is also a mention.

@@ -16,6 +16,9 @@ from typing import NamedTuple
 from ghostrules.secrets import shannon_entropy
 from ghostrules.unicode_utils import is_mostly_printable
 
+# `| bash scripts/extract.sh "$tag"` runs a script from a file; stdin is only its data
+_SCRIPT_FILE_ARG = r"(?!\s+(?!-)\S*(?:/|\.(?:ba|z)?sh\b))"
+
 
 def _compile(*patterns: str) -> tuple[re.Pattern[str], ...]:
     return tuple(re.compile(p, re.IGNORECASE) for p in patterns)
@@ -25,7 +28,8 @@ _SECRET = (
     r"(?:\.env\b|environment\s+variables?|\benv\b|\bsecrets?\b|\btokens?\b|api[\s_-]?keys?"
     r"|\bcredentials\b|ssh\s+keys?|\bpasswords?\b)"
 )
-_EXFIL_VERB = r"\b(?:send|post|upload|append|include|exfiltrate|forward)\b"
+# `POST` in capitals is the HTTP method and `.post(` a call, not the verb "post"
+_EXFIL_VERB = r"(?<!\.)\b(?:send|(?-i:[Pp]ost)|upload|append|include|exfiltrate|forward)\b"
 _READ_VERB = (
     r"\b(?:read|print|cat|send|upload|post|show|display|dump|output|copy|exfiltrate|attach"
     r"|leak|paste|share)\b"
@@ -56,7 +60,8 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\bforget\s+(?:everything|your\s+instructions)",
         r"\bnew\s+(?:system\s+)?instructions\s*:",
         r"\byou\s+are\s+now\s+(?:in\s+)?(?:developer|dan|jailbreak)",
-        r"\boverride\s+(?:the\s+)?(?:system|safety)",
+        r"\boverride\s+(?:the\s+)?(?:system|safety)\s+(?:prompts?|instructions?|messages?|rules"
+        r"|guidelines|settings|filters?|checks|constraints|polic(?:y|ies))",
         r"\bignora\s+(?:todas\s+)?las\s+instrucciones\s+(?:anteriores|previas)",
         r"\bolvida\s+(?:tus|las)\s+instrucciones",
     ),
@@ -65,7 +70,7 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         # say, not concealment; "that" is concealment only as "that you ..."
         r"\b(?:do\s+not|don'?t)\s+(?:tell|inform|mention|show|reveal)(?:\s+this)?(?:\s+to)?"
         r"\s+the\s+user(?!\s+(?:to|which|what|how|where|when|why)\b)(?!\s+that\b(?!\s+you\b))",
-        r"\bwithout\s+(?:telling|asking|notifying)\s+the\s+user",
+        r"\bwithout\s+(?:telling|notifying)\s+the\s+user",  # asking: permission, GR016
         r"\b(?:silently|secretly|quietly)\s+(?:run|execute|add|send|install|modify)",
         r"\bdon'?t\s+mention\s+(?:this|these)",
         r"\bhide\s+(?:this|the)\s+(?:from|output)",
@@ -75,8 +80,8 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
     "GR012": _compile(
         # stdin is code only when the interpreter reads its program from it: `sh -c '...'` and
         # `python -c/-m/script` take the program from an argument, and stdin is data
-        r"\bcurl\b[^\n|]{0,200}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b(?!\s+-c\b)",
-        r"\bwget\b[^\n|]{0,200}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b(?!\s+-c\b)",
+        r"\bcurl\b[^\n|]{0,200}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b(?!\s+-c\b)" + _SCRIPT_FILE_ARG,
+        r"\bwget\b[^\n|]{0,200}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b(?!\s+-c\b)" + _SCRIPT_FILE_ARG,
         r"\bcurl\b[^\n|]{0,200}\|\s*(?:sudo\s+)?python[0-9.]*(?:[ \t]+-)?"
         r"(?=[ \t]*(?:[|;&)#]|\n|\Z))",
         r"\b(?:iwr|invoke-webrequest)\b[^\n|]{0,200}\|\s*(?:iex|invoke-expression)\b",
@@ -104,6 +109,7 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
     ),
 }
 
+_CUE_RE = re.compile(r"\b(?:you\s+must|always|never)\b", re.IGNORECASE)
 _IMPERATIVE_RE = re.compile(r"\b(?:you\s+must|always|never|assistant|agent|model)\b", re.IGNORECASE)
 _AI_RE = re.compile(r"\bAI\b")  # case-sensitive: "ai" is a common syllable/word elsewhere
 
@@ -178,6 +184,11 @@ def find_encoded_runs(text: str) -> list[EncodedRun]:
 def find_encoded_payloads(text: str) -> list[EncodedRun]:
     """The subset of ``find_encoded_runs`` that decodes to printable text."""
     return [run for run in find_encoded_runs(text) if run.decoded is not None]
+
+
+def has_instruction_cue(text: str) -> bool:
+    """True if the text carries an instruction cue (``you must``, ``always``, ``never``)."""
+    return bool(_CUE_RE.search(text))
 
 
 def has_agent_directed_language(text: str) -> bool:
