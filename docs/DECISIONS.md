@@ -875,3 +875,17 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   (an installer one-liner, an attack documented in a security skill, a flag named in a CLI guide).
   Nothing resembling a real secret or real malicious content appeared in either tier (no GR001,
   GR002, GR004, GR101 or GR021 finding), so there is nothing to disclose.
+
+- **Study charts and report (Phase 5).** Charts are drawn with matplotlib as SVG, one light and one
+  dark file each (`study/charts/NAME-light.svg` / `-dark.svg`), and the report picks one with a
+  `<picture>` and `prefers-color-scheme`. Single-series charts use the accent for the point and gray
+  for the context (emphasis), every value is labelled and the same numbers are in the report's tables.
+  The palette is the documented default one (slot 1 accent, the gray ramp); the palette validator
+  script could not be run here (no Node.js), so no categorical palette beyond that documented slot is
+  used. `study/report.py` writes `study/report.md` from the CSVs and a test checks the committed report
+  equals what the CSVs produce, so every number in it is a CSV number. matplotlib is an optional
+  `study` extra, not a runtime dependency.
+- **Triage claim wording.** The 475 findings of medium or above (both tiers) were triaged by class,
+  each class checked on its examples and approved by the maintainer; the report says "triaged by
+  class", not "read one by one", and notes that a `wontfix` is a judgement (GR016: a flag named in a
+  guide).

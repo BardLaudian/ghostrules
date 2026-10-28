@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+  "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg xmlns:xlink="http://www.w3.org/1999/xlink" width="619.2pt" height="257.76pt" viewBox="0 0 619.2 257.76" xmlns="http://www.w3.org/2000/svg" version="1.1">
+ <metadata>
+  <rdf:RDF xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+   <cc:Work>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:format>image/svg+xml</dc:format>
+    <dc:creator>
+     <cc:Agent>
+      <dc:title>ghostrules study/charts.py</dc:title>
+     </cc:Agent>
+    </dc:creator>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <style type="text/css">*{stroke-linejoin: round; stroke-linecap: butt}</style>
+ </defs>
+ <g id="figure_1">
+  <g id="patch_1">
+   <path d="M 0 257.76 
+L 619.2 257.76 
+L 619.2 0 
+L 0 0 
+z
+" style="fill: #1a1a19"/>
+  </g>
+  <g id="axes_1">
+   <g id="patch_2">
+    <path d="M 267.4944 226.8288 
+L 600.624 226.8288 
+L 600.624 59.616 
+L 267.4944 59.616 
+z
+" style="fill: #1a1a19"/>
+   </g>
+   <g id="patch_3">
+    <path d="M 267.4944 93.251724 
+L 480.825471 93.251724 
+L 480.825471 67.216582 
+L 267.4944 67.216582 
+z
+" clip-path="url(#p494ba6af12)" style="fill: #3987e5"/>
+   </g>
+   <g id="patch_4">
+    <path d="M 267.4944 135.243889 
+L 272.619471 135.243889 
+L 272.619471 109.208747 
+L 267.4944 109.208747 
+z
+" clip-path="url(#p494ba6af12)" style="fill: #6a6a65"/>
+   </g>
+   <g id="patch_5">
+    <path d="M 267.4944 177.236053 
+L 270.056935 177.236053 
+L 270.056935 151.200911 
+L 267.4944 151.200911 
+z
+" clip-path="url(#p494ba6af12)" style="fill: #6a6a65"/>
+   </g>
+   <g id="patch_6">
+    <path d="M 267.4944 219.228218 
+L 267.4944 219.228218 
+L 267.4944 193.193076 
+L 267.4944 193.193076 
+z
+" clip-path="url(#p494ba6af12)" style="fill: #6a6a65"/>
+   </g>
+   <g id="matplotlib.axis_1"/>
+   <g id="matplotlib.axis_2">
+    <g id="ytick_1">
+     <g id="line2d_1"/>
+     <g id="text_1">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: end; fill: #f0efec" x="263.9944" y="84.033372" transform="rotate(-0 263.9944 84.033372)">MCP configs that run an unpinned package</text>
+     </g>
+    </g>
+    <g id="ytick_2">
+     <g id="line2d_2"/>
+     <g id="text_2">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: end; fill: #f0efec" x="263.9944" y="126.025536" transform="rotate(-0 263.9944 126.025536)">Over-permissive agent settings</text>
+     </g>
+    </g>
+    <g id="ytick_3">
+     <g id="line2d_3"/>
+     <g id="text_3">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: end; fill: #f0efec" x="263.9944" y="168.017701" transform="rotate(-0 263.9944 168.017701)">Hidden Unicode characters</text>
+     </g>
+    </g>
+    <g id="ytick_4">
+     <g id="line2d_4"/>
+     <g id="text_4">
+      <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: end; fill: #f0efec" x="263.9944" y="210.009866" transform="rotate(-0 263.9944 210.009866)">Hardcoded secrets in agent files</text>
+     </g>
+    </g>
+   </g>
+   <g id="text_5">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #f0efec" x="484.823026" y="82.8322" transform="rotate(-0 484.823026 82.8322)">33.3%  (27 of 81)</text>
+   </g>
+   <g id="text_6">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #f0efec" x="276.617026" y="124.824365" transform="rotate(-0 276.617026 124.824365)">0.8%  (12 of 1,583)</text>
+   </g>
+   <g id="text_7">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #f0efec" x="274.054491" y="166.816529" transform="rotate(-0 274.054491 166.816529)">0.4%  (6 of 1,583)</text>
+   </g>
+   <g id="text_8">
+    <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #f0efec" x="271.491955" y="208.808694" transform="rotate(-0 271.491955 208.808694)">0.0%  (0 of 1,583)</text>
+   </g>
+  </g>
+  <g id="text_9">
+   <text style="font-weight: 700; font-size: 14px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #f0efec" x="12.384" y="19.659413" transform="rotate(-0 12.384 19.659413)">One in three repos with an MCP config runs an unpinned package</text>
+  </g>
+  <g id="text_10">
+   <text style="font-size: 10px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #c3c2b7" x="12.384" y="41.460037" transform="rotate(-0 12.384 41.460037)">Share of repositories (MCP: of the repositories that have an MCP config)</text>
+  </g>
+  <g id="text_11">
+   <text style="font-size: 8px; font-family: 'DejaVu Sans', 'Bitstream Vera Sans', 'Computer Modern Sans Serif', 'Lucida Grande', 'Verdana', 'Geneva', 'Lucid', 'Arial', 'Helvetica', 'Avant Garde', sans-serif; text-anchor: start; fill: #c3c2b7" x="12.384" y="250.682925" transform="rotate(-0 12.384 250.682925)">1,583 popular public repositories with at least one agent file · snapshot 2026-10-28</text>
+  </g>
+ </g>
+ <defs>
+  <clipPath id="p494ba6af12">
+   <rect x="267.4944" y="59.616" width="333.1296" height="167.2128"/>
+  </clipPath>
+ </defs>
+</svg>
