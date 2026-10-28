@@ -1,6 +1,6 @@
 # ghostrules v0.3 — Build plan
 
-Read first: `CLAUDE.md`, `docs/RULES.md`, `docs/AGENT_MODELS.md`, and `docs/v0.3/CORPUS.md`,
+Read first: `CLAUDE.md`, `docs/RULES.md`, `docs/AGENT_MODELS.md`, and `docs/design/v0.3/CORPUS.md`,
 `STUDY.md`, `PLAYGROUND.md`. One phase at a time; after each: tests + ruff + mypy, commit, stop and
 report. Branch `v0.3`.
 
