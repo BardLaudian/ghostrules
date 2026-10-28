@@ -178,7 +178,9 @@ files (`.env.example`, `.env.sample`, `.env.template`, `.env.ai-surfaces.example
 secrets and never fire (the same list as GR021). Severity by directive / descriptive / example (above).
 
 Since 0.3 (study) a match that spans a paragraph break is not reported, and `output` as a heading
-(`### Output`) or a noun (`Expected output`) is not a verb.
+(`### Output`) or a noun (`Expected output`) is not a verb. A clause connector between the verb and
+the path (`before|after|when|while|until`), a passive (`credentials are read from …`) and a noun use
+(`the image upload uses …`) are not reads.
 
 ### GR015 — Encoded payloads (medium → high)
 Base64 runs ≥ 60 chars (or hex ≥ 80) in instruction files. Decode; if the result is mostly

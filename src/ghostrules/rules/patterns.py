@@ -93,7 +93,8 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
     "GR013": EXFIL_PATTERNS + COLLECTOR_PATTERNS,
     # the verb governs the path: same clause (no `;` or sentence end), at most six words apart
     "GR014": _compile(
-        rf"{_READ_VERB}[:,]?(?:[ \t]+[^\s;]*[^\s;.!?]){{0,6}}?"
+        rf"{_READ_VERB}[:,]?"
+        r"(?:[ \t]+(?!(?:before|after|when|while|until)\b)[^\s;]*[^\s;.!?]){0,6}?"
         rf"[ \t]+[`'\"(\[\u201c]*(?:[^\s/`'\"]*/)*{_SENSITIVE_PATH}"
     ),
     "GR016": _compile(
