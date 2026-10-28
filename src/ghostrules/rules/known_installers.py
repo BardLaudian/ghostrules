@@ -31,6 +31,8 @@ KNOWN_INSTALLERS: tuple[Installer, ...] = (
     Installer("Docker convenience script", "get.docker.com"),
     Installer("Ollama", "ollama.com", "/install.sh"),
     Installer("Volta", "get.volta.sh"),
+    # https://code.claude.com/docs/en/setup (seen in anthropics/claude-agent-sdk-python)
+    Installer("Claude Code", "claude.ai", "/install.sh"),
 )
 
 _URL_RE = re.compile(r"(https?)://([^/?#\s'\"`)\]>|]*)([^\s'\"`)\]>|]*)", re.IGNORECASE)
