@@ -402,7 +402,7 @@ def test_check_prints_table_and_writes_step_summary(
         "| Severity | Findings |" in out and "**FAIL**" in out and f"{FP}: unlabelled high" in out
     )
     assert "o/a" not in out  # a violation names the fingerprint, not the repository
-    assert step.read_text() == out
+    assert step.read_text(encoding="utf-8") == out
 
 
 # --- triage -------------------------------------------------------------------------------------
