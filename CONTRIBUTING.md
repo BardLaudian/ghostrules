@@ -17,10 +17,12 @@ ghostrules scan examples/poisoned-repo   # must find issues, exit code 1
 ghostrules scan examples/clean-repo      # must report nothing, exit code 0
 ```
 
-The documents in `docs/` are the contract: `SPEC.md` (features), `RULES.md` (every rule),
-`AGENT_MODELS.md` (how each agent loads its instructions, with sources) and `DECISIONS.md`
-(choices made where they were ambiguous). `docs/v0.2/` holds the 0.2 design documents. If code and docs disagree, fix one of
-them in the same pull request.
+The documents in `docs/` are the contract: `RULES.md` (every rule), `AGENT_MODELS.md` (how each
+agent loads its instructions, with sources) and `DECISIONS.md` (choices made where they were
+ambiguous). `docs/design/` is the **design history**: the original `SPEC.md` and `PLAN.md` and the
+per-version design documents (`v0.1.1/`, `v0.2/`). They explain why things are the way they are and
+are not kept up to date. If code and the contract documents disagree, fix one of them in the same
+pull request.
 
 ## Add a rule in three steps
 

@@ -11,9 +11,9 @@ It is a **defensive** security tool. It only reads files and reports findings. I
 anything it finds, never makes network requests, and never phones home.
 
 ## Source-of-truth documents (read before coding)
-- `docs/SPEC.md` — features, CLI, file targets, output formats, config. **The contract.**
+- `docs/design/SPEC.md` — features, CLI, file targets, output formats, config. **The contract.**
 - `docs/RULES.md` — every detection rule: ID, severity, logic, true/false positive examples.
-- `docs/PLAN.md` — build order, phase by phase, with acceptance criteria.
+- `docs/design/PLAN.md` — build order, phase by phase, with acceptance criteria.
 
 If something in the code disagrees with these docs, the docs win unless the user says otherwise.
 If a doc is ambiguous, pick the simplest reasonable option and note it in `docs/DECISIONS.md`.
@@ -54,7 +54,7 @@ ghostrules scan examples/clean-repo      # must report zero findings
 - Never add code that executes, downloads or evaluates scanned content.
 
 ## Workflow
-- Work phase by phase following `docs/PLAN.md`. After each phase: run tests + ruff, then
+- Work phase by phase following `docs/design/PLAN.md`. After each phase: run tests + ruff, then
   stop and summarize what was done and what is next.
 - Commit after each phase with a conventional commit message (`feat:`, `test:`, `docs:`…).
 - Keep the README in English and keep it updated when CLI flags change.

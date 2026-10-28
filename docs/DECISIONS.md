@@ -1,6 +1,6 @@
 # Decisions
 
-Choices made where `SPEC.md`, `RULES.md` or `PLAN.md` were ambiguous or inconsistent.
+Choices made where `design/SPEC.md`, `RULES.md` or `design/PLAN.md` were ambiguous or inconsistent.
 Newest at the bottom of each section. "Phase N" says when the decision takes effect.
 
 ## Applied (Phases 0-1)
@@ -379,7 +379,7 @@ Stop condition of the plan ("if something already does exactly this") **not met*
 
 Limits of this search: README-level reading plus search snippets; I did not read any tool's source,
 so "does not follow imports" means "does not document it". `agent-skill-lock` and hardpoint, named in
-`docs/v0.2/SPEC.md` §1, were not looked at. Recommendation for the README comparison paragraph:
+`docs/design/v0.2/SPEC.md` §1, were not looked at. Recommendation for the README comparison paragraph:
 name cairnlock as the closest lockfile tool and state the difference factually (resolved context and
 per-agent seen text), without claiming it lacks features it may have.
 
@@ -715,3 +715,18 @@ emitted a GR025 `medium` per link, which claimed Claude reads nothing in the mos
   directory prefix (`~/`, `./`) and opening quote or backtick are allowed before the path. Template
   files are matched with the GR021 placeholder list (`sensitive.is_template_path`).
 - Poisoned demo checked before/after: the same 28 findings (rule, file, line, severity), 9 critical.
+
+### F5 — housekeeping
+- **Design history moved with `git mv`** (`docs/PLAN.md`, `docs/SPEC.md`, `docs/v0.1.1/`, `docs/v0.2/`
+  to `docs/design/`), so history follows the files. `docs/v0.2.1/` and `docs/v0.3/` were left where
+  they are: F5 does not list them and they are not committed yet.
+- **`CLAUDE.md` had to change** (its three links to `SPEC.md` and `PLAN.md` pointed at nothing), so
+  `.ghostrules.lock`, which locks `CLAUDE.md`, was regenerated with `ghostrules lock --update` in the
+  same commit, as the lock intends.
+- **GIFs.** `demo/imports.gif` was recorded with vhs 0.12.1 (18.4 s, under the tested 20 s). Running
+  vhs as root needs `VHS_NO_SANDBOX=true` for its headless browser. `demo/lock.gif` is still not
+  recorded and the README does not embed it. The hidden-Unicode GIF stays in "What it catches",
+  below the table, with a sentence that introduces it.
+- **Tagline.** The README has only the 0.2 tagline; the old sentence opens the first paragraph. The
+  package description in `pyproject.toml` and the CLI help keep the old one (F5 speaks of the README).
+- **Version** `0.2.1`; README snippets say `v0.2.1` (the tag does not exist yet).

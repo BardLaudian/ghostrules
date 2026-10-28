@@ -4,6 +4,7 @@
 `ttyd` on the PATH (see the vhs README for your platform).
 
 ```bash
+# as root, vhs's headless browser needs: export VHS_NO_SANDBOX=true
 pip install -e .                 # so `ghostrules` is on the PATH
 python scripts/make_demo.py      # regenerate examples/ (the invisible characters are generated)
 vhs demo/demo.tape               # writes demo/demo.gif from the repository root

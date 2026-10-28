@@ -2,21 +2,20 @@
 
 *Know exactly what your AI agent reads — and approve every change to it.*
 
-*Find the instructions your AI agent sees but you don't.*
-
 [![CI](https://github.com/BardLaudian/ghostrules/actions/workflows/ci.yml/badge.svg)](https://github.com/BardLaudian/ghostrules/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/ghostrules.svg)](https://pypi.org/project/ghostrules/)
 [![Python versions](https://img.shields.io/pypi/pyversions/ghostrules.svg)](https://pypi.org/project/ghostrules/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/BardLaudian/ghostrules/blob/main/LICENSE)
 
-![ghostrules finds an instruction hidden in an innocent-looking AGENTS.md](https://raw.githubusercontent.com/BardLaudian/ghostrules/main/demo/demo.gif)
+![A CLAUDE.md that looks clean imports a file that imports a file with a hidden instruction; ghostrules finds it and shows the chain](https://raw.githubusercontent.com/BardLaudian/ghostrules/main/demo/imports.gif)
 
-`ghostrules` scans a repository (and, if you ask, your machine) for **hidden instructions and risky
-configuration in the files AI coding agents read and obey**: `AGENTS.md`, `CLAUDE.md`,
-`.cursorrules`, Copilot instructions, skills, MCP configs and more. It models how each agent
-loads those files (imports, rules that apply to some paths, what it strips), so it scans what the
-agent really reads, and it can pin that and show every change to it. It runs as a CLI, a GitHub
-Action (with SARIF for the Security tab) and a pre-commit hook.
+`ghostrules` finds the instructions your AI agent sees but you don't. It scans a repository (and, if
+you ask, your machine) for **hidden instructions and risky configuration in the files AI coding
+agents read and obey**: `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, Copilot instructions, skills, MCP
+configs and more. It models how each agent loads those files (imports, rules that apply to some
+paths, what it strips), so it scans what the agent really reads, and it can pin that and show every
+change to it. It runs as a CLI, a GitHub Action (with SARIF for the Security tab) and a pre-commit
+hook.
 
 It is a defensive tool. It only **reads** files and reports findings: it never executes anything it
 finds, never makes network requests and never phones home. Secrets it finds are always printed
@@ -58,6 +57,11 @@ influences what the agent does, and a reviewer cannot see everything that is in 
 | **Hidden from humans** (GR001–GR006) | Invisible Unicode tag characters, variation selectors, zero-width characters and bidirectional controls; long HTML comments that address the AI; Latin/Cyrillic look-alike words and domains |
 | **Telling the agent to misbehave** (GR010–GR016) | "Ignore previous instructions", hiding actions from the user, `curl … \| sh`, sending `.env` or keys to a URL, reading `~/.ssh`, base64 payloads, `--dangerously-skip-permissions`; in English and Spanish |
 | **Risky configuration** (GR101–GR108) | Hardcoded tokens in MCP configs, unpinned `npx`/`uvx` servers, `http://` remotes, a filesystem server on `/`, shell wrappers, `docker --privileged`, `bypassPermissions`, auto-enabled project MCP servers |
+
+The oldest trick is still the hidden Unicode one: an innocent-looking `AGENTS.md` that carries an
+instruction only the model can read.
+
+![ghostrules finds an instruction hidden in an innocent-looking AGENTS.md](https://raw.githubusercontent.com/BardLaudian/ghostrules/main/demo/demo.gif)
 
 ### How it works
 
@@ -293,7 +297,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: BardLaudian/ghostrules@v0.2.0
+      - uses: BardLaudian/ghostrules@v0.2.1
         with:
           fail-on: high          # critical | high | medium | low | info | none
           all-files: "false"     # also check every text file for hidden Unicode
@@ -326,7 +330,7 @@ output `lock-exit-code` is `0` up to date, `1` changed, `2` the check could not 
 ```yaml
 repos:
   - repo: https://github.com/BardLaudian/ghostrules
-    rev: v0.2.0
+    rev: v0.2.1
     hooks:
       - id: ghostrules
 ```
