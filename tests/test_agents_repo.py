@@ -32,7 +32,7 @@ def test_kind(tmp_path) -> None:
 def test_symlinks_are_never_followed(tmp_path) -> None:
     write(tmp_path, "real/a.md", "secret")
     try:
-        os.symlink("real", tmp_path / "linkdir")
+        os.symlink("real", tmp_path / "linkdir", target_is_directory=True)
         os.symlink("real/a.md", tmp_path / "linkfile.md")
     except (OSError, NotImplementedError):
         pytest.skip("symlinks are not available here")
