@@ -7,4 +7,6 @@ exclude = [
   ".mypy_cache/**",
   ".ruff_cache/**",
   ".pytest_cache/**",
+  "corpus/.cache/**",  # API responses and clones are other people's text
+  "corpus/results/**",
 ]

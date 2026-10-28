@@ -31,6 +31,11 @@ def steps_of(workflow: dict):
 # --- action.yml ------------------------------------------------------------------------------
 
 
+def test_action_description_fits_the_marketplace_limit() -> None:
+    """The Marketplace rejects an action description of 125 characters or more."""
+    assert 0 < len(ACTION["description"]) < 125
+
+
 def test_action_inputs_follow_the_spec() -> None:
     inputs = ACTION["inputs"]
     assert {k: str(v["default"]) for k, v in inputs.items()} == {
@@ -42,7 +47,7 @@ def test_action_inputs_follow_the_spec() -> None:
         "lock-check": "false",
     }
     assert all(v["description"] for v in inputs.values())
-    assert ACTION["name"] == "ghostrules"
+    assert ACTION["name"] == "ghostrules scan"
 
 
 def test_action_is_a_composite_with_the_specified_steps_in_order() -> None:
@@ -311,7 +316,13 @@ def test_pre_commit_hook() -> None:
 
 
 def test_expected_workflows_exist() -> None:
-    assert {p.name for p in WORKFLOWS} == {"ci.yml", "self-test.yml", "release.yml"}
+    assert {p.name for p in WORKFLOWS} == {
+        "ci.yml",
+        "self-test.yml",
+        "release.yml",
+        "corpus.yml",
+        "pages.yml",
+    }
 
 
 def test_ci_runs_lint_tests_and_the_demo_smoke_test() -> None:
@@ -490,3 +501,12 @@ def test_every_repository_url_names_the_same_owner() -> None:
         owners |= found
     assert len(owners) == 1, owners
     assert PROJECT_URL.endswith(f"/{next(iter(owners))}/ghostrules")
+
+
+def test_corpus_workflow_never_runs_on_pull_requests_and_publishes_from_main_only() -> None:
+    corpus = load(ROOT / ".github/workflows/corpus.yml")
+    assert set(corpus.get("on", corpus.get(True))) == {"schedule", "workflow_dispatch"}
+    assert corpus["permissions"] == {"contents": "read"}
+    publish = corpus["jobs"]["publish"]
+    assert "refs/heads/main" in publish["if"]
+    assert publish["permissions"] == {"contents": "write"}

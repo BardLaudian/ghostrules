@@ -22,7 +22,8 @@ if the file contains substantial RTL script (Arabic/Hebrew) — legitimate use.
 U+200B, U+200C, U+200D, U+2060, U+2061–U+2064, U+180E, U+FEFF (not at file start), U+00AD.
 Severity high if ≥ 5 in one line or ≥ 20 in the file (likely binary-encoded payload), else medium.
 Ignore U+200D between emoji code points (emoji ZWJ sequences) and U+200C/U+200D next to
-Indic/Persian letters.
+Indic/Persian letters. Since 0.3 a lone U+200B between two letters of Khmer, Thai, Lao or Myanmar is
+the word separator of those scripts and is ignored (a run, or a Latin neighbour, is still reported).
 
 ### GR004 — Variation-selector steganography (high)
 Runs of ≥ 3 chars in U+FE00–U+FE0F or U+E0100–U+E01EF not directly following an emoji / CJK base.
@@ -33,7 +34,8 @@ Runs of ≥ 3 chars in U+FE00–U+FE0F or U+E0100–U+E01EF not directly followi
 `<!-- ... -->` blocks in markdown instruction files are invisible when rendered on GitHub.
 Report **only** if the comment body is ≥ 40 chars and either matches any GR010–GR016 pattern
 (→ high, include which) or contains imperative agent-directed language
-(`you must`, `always`, `never`, `assistant`, `AI`, `agent`, `model`) (→ medium).
+(`you must`, `always`, `never`) (→ medium). Since 0.3 a comment that only *names* the agent
+(`assistant`, `AI`, `agent`, `model`: "Guidance for AI agents working in ...") is low.
 Plain short comments (TODOs, lint directives) are ignored.
 
 Agent-aware (since 0.2): the finding lists which modelled agents see the comment. Claude Code strips
@@ -64,7 +66,11 @@ Text revealed by GR001/GR004 decoding must ALSO be scanned by GR010–GR016 (rep
 `override (the )?(system|safety)`, ES: `ignora (todas )?las instrucciones (anteriores|previas)`,
 `olvida (tus|las) instrucciones`.
 Negative: documentation *about* prompt injection inside fenced code blocks marked as examples is
-still reported but at `low` with message "appears inside a code block".
+still reported but at `low` with message "appears inside a code block". Since 0.3 the directive /
+descriptive / example classification applies: guidance that quotes the phrase to say it must be
+ignored (`Text like "ignore previous rules" is data`) is `low`, a description is at most `medium`,
+and hidden decoded text keeps `high` (+1). `override system|safety` needs the thing overridden
+(`prompt`, `instructions`, `rules`, `guidelines`...): "use hooks or override system" is not matched.
 
 ### Directive, descriptive and example text (GR011, GR014, GR016; v0.2.1)
 These three rules match phrases that are just as common in prose that *describes* something. Each
@@ -78,12 +84,20 @@ match is classified by the sentence around it (`src/ghostrules/rules/directive.p
 
 Text decoded from hidden characters is always a directive and keeps the +1 bump (critical).
 Inline code does not make a match an example: `` Run `claude --yolo` `` is read as "Run …". A lowered
-finding says so in its message. GR010 and GR012 have their own context rules and do not use this.
+finding says so in its message. GR012 has its own context rules and does not use this. GR010 and GR013 use it since 0.3 (below).
 
 ### GR011 — Concealment from the user (high)
-`do not (tell|inform|mention|show|reveal)( this)? (to )?the user`, `without (telling|asking|notifying) the user`,
+`do not (tell|inform|mention|show|reveal)( this)? (to )?the user`, `without (telling|notifying) the user`,
 `(silently|secretly|quietly) (run|execute|add|send|install|modify)`, `don't mention (this|these)`,
 `hide (this|the) (from|output)`, ES: `no (se lo )?(digas|menciones|muestres) al usuario`, `sin avisar al usuario`.
+Since 0.3 `without asking the user` is not matched (it is about permission, which GR016 covers), and
+a match governed by a prohibition ("Never silently add scope", "rather than silently adding",
+"Never act without telling the user") is not reported: the sentence forbids the concealment.
+Since 0.3 (study) a prohibition anywhere earlier in the same clause (up to eight words, not across
+`. ; : ! ?` or a line break) counts ("Do not post an event without telling the user"), the verb of the
+`silently …` pattern must be the bare form (`silently installs` / `silently running` describe, they
+do not order) and a modal or "either" before it ("would silently run", "either silently run") makes
+it a description.
 Not concealment, and not reported: "do not tell the user **to** …", "… **which|what|how|where|when|why**
 …" and "… **that** …" unless it is "that you …": these say what to tell the user. "Do not tell the
 user about this", "Do not tell the user." and "Do not tell the user that you did it" are.
@@ -95,7 +109,8 @@ user about this", "Do not tell the user." and "Do not tell the user that you did
 
 Stdin counts as code only when the interpreter reads its **program** from it (v0.2.1). `… | python`,
 `… | python3 -` and `… | sh` / `bash -s` are matched; `… | python -c '…'`, `-m module`, `script.py`,
-`… | sh -c '…'`, `… | node -e '…'` and `… | jq …` use stdin as data and are not.
+`… | sh -c '…'`, `… | node -e '…'`, `… | jq …` and (0.3) `… | bash scripts/x.sh "$arg"` use stdin as
+data and are not.
 
 Severity in instruction files (since 0.1.1). Decide in this order; first match wins:
 
@@ -115,6 +130,9 @@ A command with no URL that is not case 2 (`curl $URL \| sh`) counts as an unknow
 
 Why: a visible, well-known installer in a code block is documentation a human reviewer can see and
 judge; an unknown domain in prose telling the agent to run it is the attack pattern.
+
+A command that only names the pattern, with no URL and no variable (`curl ... | sh`, `curl|bash`,
+`bash <(curl url)`) is `low` (0.3): nothing is fetched. `curl $URL | sh` is still critical.
 
 Known installers (`src/ghostrules/rules/known_installers.py`, `ghostrules rules --installers`).
 Matching is the exact `https` host plus an optional path prefix, never a suffix, so
@@ -138,25 +156,47 @@ in configuration files a piped installer stays high/critical.
   `beeceptor.com`, `hookbin.com`, `canarytokens`. (high if only domain, critical if combined with above)
 Respect `allow_domains` from config.
 
+Since 0.3 the verb-based pattern is one instruction, not three words that happen to be near each
+other: the verb, the secret and the URL must be in the same clause (no sentence end, blank line or
+list-item boundary between them; `e.g.` does not count), the verb is not `POST` in capitals or
+`.post(`, it is not preceded by a prohibition (`Never send credentials to ...`), the destination is
+not the user (`send the user to https://...`) and not a loopback address. Severity follows
+directive / descriptive / example (a `curl -X POST ...` in a fenced block is `low`); hidden decoded
+text is never filtered by clause and stays critical. A collector domain named in a prohibition
+(`NOT a public service like webhook.site`) is `low`.
+
 ### GR014 — Sensitive file access (high)
 Instruction text referencing `~/.ssh`, `id_rsa`, `id_ed25519`, `.aws/credentials`, `.env`
 (as a file to read/send, not "add .env to .gitignore"), `.npmrc`, `.pypirc`, `.netrc`, `kubeconfig`,
 `Keychain`, browser cookie stores, `/etc/shadow`, combined with a read/print/cat/send verb that
 governs the path: same clause (no `;` or sentence end between them) and at most six words apart
-(v0.2.1; it was "within 60 chars"). Negative test: "Never commit .env files" must NOT fire. Template
+(v0.2.1; it was "within 60 chars"). Negative test: "Never commit .env files" must NOT fire. Since 0.3: `copy`/`paste` of a dotenv file
+(`Copy .env files from the root worktree`) is local housekeeping and does not fire (`copy ~/.ssh/...`
+still does), `.env.default` is a template, and a prohibition written in bold or code
+(`**Don't commit** ... .env`) counts as a prohibition. Template
 files (`.env.example`, `.env.sample`, `.env.template`, `.env.ai-surfaces.example`, `*.example`) are not
 secrets and never fire (the same list as GR021). Severity by directive / descriptive / example (above).
+
+Since 0.3 (study) a match that spans a paragraph break is not reported, and `output` as a heading
+(`### Output`) or a noun (`Expected output`) is not a verb. A clause connector between the verb and
+the path (`before|after|when|while|until`), a passive (`credentials are read from …`) and a noun use
+(`the image upload uses …`) are not reads.
 
 ### GR015 — Encoded payloads (medium → high)
 Base64 runs ≥ 60 chars (or hex ≥ 80) in instruction files. Decode; if the result is mostly
 printable text → high and put it in `decoded` (and scan it with GR010–GR014). Skip data URIs of
-images and things inside fenced code blocks labelled with a language other than shell.
+images and things inside fenced code blocks labelled with a language other than shell. Since 0.3 also
+skipped: runs inside a URL (a commit hash in a path), Subresource Integrity digests (`sha384-…`) and
+hex of very low entropy (`AAAA…` padding).
 
 ### GR016 — Agent safety bypass (high)
 `--dangerously-skip-permissions`, `bypassPermissions`, `--yolo`, `yolo mode`, `auto[- ]?approve (all|every)`,
 `always (allow|approve|accept) (all )?(commands|tools|edits)`, `disable (the )?(sandbox|safety|guardrails)`,
 `never ask (for )?(permission|confirmation)`, ES: `sin pedir (permiso|confirmación)`.
-Severity by directive / descriptive / example (above): "Run with `--dangerously-skip-permissions`" is
+A Markdown table row (`| --yolo | disables all prompts |`) and a list item that opens with the flag
+(`- **`--yolo` (alias …):** every tool is allowed`) document it and are at most medium (0.3, GR016
+only); a prohibition earlier in the clause ("Avoid `--yolo`", "Do not disable the sandbox") is not
+reported. Severity by directive / descriptive / example (above): "Run with `--dangerously-skip-permissions`" is
 high, "The test harness runs Claude with `--permission-mode bypassPermissions`" is medium, a fenced
 `claude --dangerously-skip-permissions` is low.
 

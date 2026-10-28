@@ -1,0 +1,7 @@
+metric,value
+repos_with_skills,794
+skill_files,20359
+median_skill_files_per_repo,4
+top1_repo_pct_of_files,9.8
+top3_repos_pct_of_files,29.3
+top10_repos_pct_of_files,51.3

@@ -1,7 +1,5 @@
-name: ghostrules
-description: >-
-  Find hidden instructions and risky configuration in the files AI coding agents read and obey
-  (AGENTS.md, CLAUDE.md, .cursorrules, skills, MCP configs...). Read-only: nothing is executed.
+name: ghostrules scan
+description: Find hidden instructions and risky settings in AGENTS.md, CLAUDE.md, .cursorrules, skills and MCP configs.
 author: Pablo Seoane Temprano
 branding:
   icon: eye-off

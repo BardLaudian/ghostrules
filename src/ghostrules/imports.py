@@ -23,6 +23,7 @@ _QUOTES = "\"'“”‘’"
 _LOOSE_BEFORE = "([{<,;:>=|*"
 _TRAILING = ".,;:!?)]}>*\"'”’"
 _KNOWN_EXTENSION = re.compile(r"\.[A-Za-z0-9]{1,6}$")
+_BARE_PREFIXES = frozenset({"/", "~/", "./", "../", "~", ".", ".."})
 _PATH_PREFIXES = ("./", "../", "~/", "/", ".\\", "..\\")
 
 
@@ -106,6 +107,8 @@ def find_imports(text: str, *, include_quoted: bool = False) -> list[Import]:
         raw, path = _read_token(text, at)
         if not path or path[0] == "@" or (quoted and not include_quoted):
             continue
+        if path in _BARE_PREFIXES:
+            continue  # "the loader does not resolve the @/ alias": a prefix, not a file
         line = bisect_right(line_starts, at)
         column = at - line_starts[line - 1] + 1
         found.append(

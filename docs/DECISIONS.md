@@ -742,3 +742,150 @@ out `low` (example), FIXES.md expects `medium`. Two changes:
   ..."), so the sentence is a description. A code span that is the whole clause, or is followed by a
   verb or "and", stays a directive (`` `cat ~/.ssh/id_rsa` `` is still high).
 Corpus after the change: n8n l.649 is `medium`; the other three remaining findings are unchanged.
+
+## v0.3 Phase 1 — corpus tooling
+
+- **Location and packaging.** `corpus/` is outside `src/`, so the wheel (which packages only
+  `src/ghostrules`) never contains it; the sdist excludes `/corpus` in `pyproject.toml`.
+  `tests/test_corpus_packaging.py` builds both with hatchling and checks the file lists (`hatchling`
+  is in the `dev` extra). The scripts import each other as top-level modules (`import common`), so they
+  run as `python corpus/x.py`; the tests add `corpus/` to `sys.path`.
+- **No shell, one injectable layer.** Every `git`, `gh` and `ghostrules` call goes through a `Runner`
+  (list of arguments, never a shell); tests use `tests/corpus_fakes.FakeRunner`. Repository names are
+  validated before they reach any command (no leading `-` or `.`, so never an option).
+- **Measurement is isolated.** `run.py` always passes `--config <empty file>` and runs from a directory
+  outside the clone, so a scanned repo's `.ghostrules.toml` cannot change the result. The command is
+  `python -I -c "from ghostrules.cli import app; app()"` because the package has no `__main__`.
+- **Stored results.** No `message` or `fix_hint`; `snippet` is re-masked with `mask_secrets` and passed
+  through `safe_text` (repository content may carry terminal escapes); `decoded` only for GR001/GR004;
+  context only as counts and readable paths. `triage.py` re-fetches the file with `gh api` for display
+  only.
+- **Labels and privacy.** `labels.toml` is committed, so `reported` and `tp` labels never name the
+  repository (only `fp` and `wontfix`, which are benign, do). Messages from `check.py` carry the
+  fingerprint, not the repository. An `fp` label must record its old severity and an existing test.
+- **check.py exit codes.** 1 = unlabelled critical/high, `fp` at or above its old severity, `fp`
+  without an existing test. 2 = a scan, context run or timeout failed (or no run exists). A failed
+  clone is reported but is not a gate: repositories get renamed or deleted.
+- **discover.py.** Responses (200/404/409/451) are cached forever in `corpus/.cache/` (`--refresh`
+  ignores it); a rate-limited reply sleeps until `X-RateLimit-Reset`. A truncated tree is `null`
+  ("unknown"). `--propose` picks round-robin across languages, most starred first, as a starting point
+  only: the human edits the list.
+- **Real check (2026-10-28).** `run.py --repos getsentry/sentry-python,anthropics/claude-agent-sdk-python`:
+  both `ok`, 2 findings (low), `check.py` PASS.
+
+## v0.3 Phase 2 — first corpus run (2026-10-28, 300 repos, regression tier)
+- **Selection.** `discover.py`, 10 languages x 250 most-starred candidates (>= 2,000 stars, pushed
+  within 6 months), 1,112 with agent files; the 300 are 30 per language, round-robin, approved by the
+  user. Biased to popular repositories by construction.
+- **First run:** 323 findings, 240 critical/high in 37 repos, three repos produced 158 of them.
+  Nothing from GR001/GR004/GR015/GR101/GR021 at medium or above: no secret or hidden payload found.
+- **GR013 (82 critical).** Causes: `POST` matched as a verb (`curl -X POST`, `requests.post(`); a
+  verb, a word like "token" and a URL anywhere within 80/200 characters of normalised text (it joined
+  list items and code); prohibitions ("Never send credentials ..."); loopback URLs; "send the user
+  to". Fixed with a same-clause requirement, the other exclusions above and the directive /
+  descriptive / example severity. Known evasion: splitting the verb and the URL into two sentences
+  avoids the *prose* match; hidden decoded text is exempt from that filter.
+- **GR010 (67 high).** Defensive guidance quoting "ignore previous instructions". Now classified; and
+  `override system|safety` requires a following noun.
+- **GR012.** `curl ... | sh` named as a pattern (block lists, "must be rejected") is `low`.
+- **Disclosure:** none needed so far.
+- **Approved by the user (2026-10-28), changes to the contract:** (A) GR011 no longer matches
+  `without asking the user` and ignores matches under a prohibition; (B) GR014: `.env.default` is a
+  template, a local `copy` of a dotenv file does not fire, a bold/code-wrapped prohibition counts;
+  (C) a GR016 match in a Markdown table row is at most medium (not applied to GR010, so a table row
+  cannot hide an override). Known evasion: a real concealment preceded by an unrelated "not ..." within
+  the 40 characters before it is not reported.
+- **Approved by the user (2026-10-28), D and E:** (D) GR003 ignores a lone ZWSP between letters of
+  Khmer/Thai/Lao/Myanmar (found in the Khmer translation of an AGENTS.md); (E) GR005 is medium only
+  with `you must|always|never`, low when the comment only names the agent, high unchanged when it
+  matches GR010-GR016. Also fixed (bug, no contract change): GR012 folded a prose "curl" onto the
+  `curl ... | bash` of the next code block (spans that cross a code fence are dropped *before*
+  deduplication; dropping them afterwards would have lost the real command).
+- **More GR012 data pipes (corpus run 5):** `curl … | bash scripts/extract.sh "$tag"` runs a script from
+  a file (an argument with a `/` or a `.sh` suffix) and is not matched, like `python script.py`;
+  `| bash`, `| sh -s -- …` and `| sudo sh` still are. A pattern named inside a Markdown table cell
+  with an escaped pipe (`curl ... \| bash`) is also a mention.
+
+## v0.3 Phase 3 — corpus CI and badge
+
+- **Badge text:** `corpus · 300 repos · 0 critical`, not "0 false positives". What the gate proves is
+  that no critical/high finding is unreviewed, so the badge reports the critical count of the latest
+  run and turns red ("gate failing") when `check.py` would fail.
+- **Published files:** `corpus/badge.py` writes `badge.json` and `summary.json` with counts only
+  (no repository names, paths, snippets or per-repository timings), so the public branch carries
+  nothing that identifies a repository or a finding. The full results stay in the workflow artifact
+  (30 days).
+- **Publishing:** weekly `schedule` and `workflow_dispatch`, never on pull requests. The `publish`
+  job runs only on `refs/heads/main` and writes `corpus/badge.json` and `corpus/summary.json` to
+  `gh-pages` with the job's `GITHUB_TOKEN` (`contents: write` on that job only). The README badge
+  reads `https://bardlaudian.github.io/ghostrules/corpus/badge.json`, which needs GitHub Pages
+  enabled on `gh-pages`.
+
+## v0.3 Phase 4 — web playground
+
+- **Core without typer/rich:** `reveal.py` and `reporters/context.py` mixed data and `rich` drawing.
+  The data moved to `reveal_data.py` and `reporters/context_data.py` (the old modules re-export), so
+  the core imports without `typer`/`rich` (tested in a subprocess with them blocked). The wheel
+  installs in Pyodide 0.27.7 with `micropip.install(..., deps=False)`; no in-memory filesystem
+  adapter was needed (Pyodide's emulated FS is enough).
+- **Bridge:** `ghostrules.playground` takes `{path: text}`, writes it to a temporary directory,
+  scans it and returns plain data (findings, per-agent context tree, revealed lines, JSON/Markdown/
+  SARIF reports). Paths with `..`, absolute paths and NULs are refused; limits are 5 MB and 500 files.
+- **Folder and GitHub loading:** the page lists paths first, asks Python which are agent files
+  (`agent_paths`, the target globs plus `.claude/rules/**/*.md`) and reads only those, then follows
+  `@imports` (relative to the importing file, up to 6 rounds, `imported_paths`). Files over 1 MB are
+  skipped.
+- **Rendering:** all file content is inserted with `textContent`, never as HTML. "What you see"
+  drops invisible characters and HTML comments; "What the agent reads" shows them as tokens.
+- **Deploy:** `pages.yml` (release tags and manual) builds the site with `scripts/build_site.py`,
+  runs the Playwright smoke test (`tests/web`, skipped when playwright is missing, GitHub calls
+  mocked) and deploys with SHA-pinned official actions. The demo's hidden text is generated in JS,
+  so no invisible characters are stored in the repository.
+
+## v0.3 Phase 5 — study tooling
+
+- **Selection (approved):** 3 stars strata (500-1999, 2000-9999, 10000+) x the 10 languages of the
+  regression tier (Rust, JavaScript, C++, Java, Ruby, Go, C#, Python, TypeScript, PHP), the 150
+  most-starred candidates per cell, public, non-fork, non-archived, pushed within 6 months, with at
+  least one agent file; about 500 repos per stratum, round-robin across languages. The regression
+  repos are excluded from `study` and the report uses both tiers together.
+- **`run.py` records more numbers:** per context entry its load kind, import depth, whether it is
+  conditional and which transforms apply; per file (`filestats.py`) kind (agent / imported), size,
+  lines, symlink and its in-repo target, a 16-hex content hash (to find duplicated files) and the
+  number of HTML comments. No text is stored. Symlinks are read with `lstat`/`readlink`, never followed.
+
+- **Study precision fixes (2026-10-28, first study run, 1,283 repos).** Real false positives, fixed
+  with tests in `tests/test_precision_study.py`: GR011 (prohibition anywhere in the clause; bare verb
+  only; modal / "either" before `silently`), GR016 (prohibition in the clause; a list item that opens
+  with the flag documents it, so medium), GR013 ("send X only to the fixed/official/configured …
+  origin" restricts where data goes, so it is descriptive, not critical), GR015 (runs inside URLs, SRI
+  digests, `AAAA…` padding), imports (a bare `@/`, `@~/`, `@./`, `@../` is a prefix, not a file).
+  Known evasions: a real concealment preceded by a prohibition in the same clause is not reported;
+  "send it only to the official https://attacker.example" is medium, not critical.
+- **Left as they are (labelled in triage, not rule bugs):** GR003 on characters that really are in
+  the text (word joiner before `mapbox://`, a ZWSP demonstration in a security skill), GR012 on known
+  installers (`curl … | sh`), GR014 "read the `.env`" instructions in a project's own file, GR107 allow
+  lists, GR105 `bash` wrappers, GR020 imports that really leave the repository.
+
+- **Study triage (2026-10-28, 1,283 study + 300 regression repos).** First study run: 1,072 findings
+  (13 critical, 296 high, 194 medium); after the precision fixes above: 945 (12 critical, 252 high,
+  119 medium). Every finding of medium or above was labelled by class (`study/label_classes.py`,
+  approved by the user): 129 tp and 254 wontfix findings, 0 fp, 0 unlabelled; `study/labels.toml` names
+  no repository or path. `wontfix` means the rule matched what it describes in a benign context
+  (an installer one-liner, an attack documented in a security skill, a flag named in a CLI guide).
+  Nothing resembling a real secret or real malicious content appeared in either tier (no GR001,
+  GR002, GR004, GR101 or GR021 finding), so there is nothing to disclose.
+
+- **Study charts and report (Phase 5).** Charts are drawn with matplotlib as SVG, one light and one
+  dark file each (`study/charts/NAME-light.svg` / `-dark.svg`), and the report picks one with a
+  `<picture>` and `prefers-color-scheme`. Single-series charts use the accent for the point and gray
+  for the context (emphasis), every value is labelled and the same numbers are in the report's tables.
+  The palette is the documented default one (slot 1 accent, the gray ramp); the palette validator
+  script could not be run here (no Node.js), so no categorical palette beyond that documented slot is
+  used. `study/report.py` writes `study/report.md` from the CSVs and a test checks the committed report
+  equals what the CSVs produce, so every number in it is a CSV number. matplotlib is an optional
+  `study` extra, not a runtime dependency.
+- **Triage claim wording.** The 475 findings of medium or above (both tiers) were triaged by class,
+  each class checked on its examples and approved by the maintainer; the report says "triaged by
+  class", not "read one by one", and notes that a `wontfix` is a judgement (GR016: a flag named in a
+  guide).
