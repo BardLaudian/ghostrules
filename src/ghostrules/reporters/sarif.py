@@ -41,7 +41,7 @@ def _rule_entry(rule: Rule) -> dict[str, Any]:
         "name": rule.title,
         "shortDescription": {"text": rule.title},
         "fullDescription": {"text": rule.description},
-        "helpUri": f"{PROJECT_URL}#{rule.id.lower()}",
+        "helpUri": f"{PROJECT_URL}/blob/main/docs/RULES.md#{rule.id.lower()}",
         "defaultConfiguration": {"level": _LEVEL[rule.severity]},
         "properties": {
             "security-severity": _SECURITY_SEVERITY[rule.severity],
