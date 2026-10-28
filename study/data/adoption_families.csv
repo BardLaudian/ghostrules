@@ -1,0 +1,13 @@
+family,repos,pct_of_repos,files
+agents_md,1119,70.7,3351
+skills,794,50.2,20359
+claude,781,49.3,1824
+copilot,301,19.0,565
+claude_dir,170,10.7,2620
+settings,143,9.0,147
+mcp,78,4.9,99
+cursor,66,4.2,261
+other,65,4.1,227
+gemini,51,3.2,51
+windsurf,10,0.6,10
+cline,6,0.4,24

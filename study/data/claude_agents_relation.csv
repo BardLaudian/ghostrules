@@ -1,0 +1,5 @@
+relation,repos,pct_of_repos_with_both
+import,189,38.5
+separate,154,31.4
+symlink,142,28.9
+duplicate,6,1.2

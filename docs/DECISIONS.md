@@ -866,3 +866,12 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   the text (word joiner before `mapbox://`, a ZWSP demonstration in a security skill), GR012 on known
   installers (`curl … | sh`), GR014 "read the `.env`" instructions in a project's own file, GR107 allow
   lists, GR105 `bash` wrappers, GR020 imports that really leave the repository.
+
+- **Study triage (2026-10-28, 1,283 study + 300 regression repos).** First study run: 1,072 findings
+  (13 critical, 296 high, 194 medium); after the precision fixes above: 945 (12 critical, 252 high,
+  119 medium). Every finding of medium or above was labelled by class (`study/label_classes.py`,
+  approved by the user): 129 tp and 254 wontfix findings, 0 fp, 0 unlabelled; `study/labels.toml` names
+  no repository or path. `wontfix` means the rule matched what it describes in a benign context
+  (an installer one-liner, an attack documented in a security skill, a flag named in a CLI guide).
+  Nothing resembling a real secret or real malicious content appeared in either tier (no GR001,
+  GR002, GR004, GR101 or GR021 finding), so there is nothing to disclose.

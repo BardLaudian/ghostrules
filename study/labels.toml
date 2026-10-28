@@ -1,0 +1,2646 @@
+
+[[label]]
+fingerprint = "8282171c6630d3ba"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "4fdcb4230f0abec7"
+label = "tp"
+rule = "GR020"
+severity = "high"
+reason = "import outside the repository or into the home directory"
+
+[[label]]
+fingerprint = "50650725da91ba67"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "ed7afb6f28b0975c"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "b1d420c9a90f6c8e"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "12902037ba311bec"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "91a8bdb3e8654dd6"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "7aed4e23971f5157"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "3b03fdf33d8d7d94"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "8e5873324928353e"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "8c0cef2b16f25dbb"
+label = "tp"
+rule = "GR016"
+severity = "high"
+reason = "tells the agent never to ask for permission or confirmation"
+
+[[label]]
+fingerprint = "8669a95bd386232e"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "2b85d31511c9ac53"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "8bb63105528596f4"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "7d65a31e0c45055d"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "c164f44ae15ef099"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "45449b25476b07e6"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "71c95b44ec49732c"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "d51cbdb33ec8a78e"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "2146b2db4baf8b97"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "62cb10aae676da24"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "7ba75b0d73818e06"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "85944816d1be8155"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "f3d548b67793c0d0"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "470f636680c6f79a"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "60b06b9cba34cde0"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "6c5a5fbeff591ffd"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "a4c053c2780de54a"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "3a373478a5b09296"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "b55e7b5839cfec73"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "bdb2bdd97af9fe32"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "44ea0ebb3f88ce1c"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "2ca35e01ceaf05a1"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "e9aecef1dd66ad98"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "5b4bb1cf829a37af"
+label = "tp"
+rule = "GR107"
+severity = "high"
+reason = "over-permissive agent settings"
+
+[[label]]
+fingerprint = "80ad26595efc04b6"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "0bd0c7c5771501d7"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "a77813e90660c7a3"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "49af9213f810b060"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "a01019287253a705"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "8ff9404dcf11e85e"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "9aa305c3076ec06e"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "c8ec8023b85bae3f"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "9b67d725f8b59b66"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "8854b86541962e8e"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "fd58cf8a195b808f"
+label = "wontfix"
+rule = "GR012"
+severity = "critical"
+reason = "offensive-security skill documents the attack with placeholder hosts"
+
+[[label]]
+fingerprint = "0fc33ca6fc829afc"
+label = "wontfix"
+rule = "GR012"
+severity = "critical"
+reason = "offensive-security skill documents the attack with placeholder hosts"
+
+[[label]]
+fingerprint = "2f4af2d78d48f2b0"
+label = "wontfix"
+rule = "GR012"
+severity = "critical"
+reason = "offensive-security skill documents the attack with placeholder hosts"
+
+[[label]]
+fingerprint = "5ea0a8df52d2c411"
+label = "wontfix"
+rule = "GR012"
+severity = "critical"
+reason = "offensive-security skill documents the attack with placeholder hosts"
+
+[[label]]
+fingerprint = "231f75e65e47eb84"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "705b3979c7b49f06"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "795c42aecbe1ec3f"
+label = "wontfix"
+rule = "GR011"
+severity = "high"
+reason = "describes what code does (plural subject), it does not order concealment"
+
+[[label]]
+fingerprint = "138cec225b43c343"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "14985b3ae0152757"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "55cc7770870a46f2"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "2fccfb8f24aa9882"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "3cfa4402581155c2"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "dc77e25bbfa8917c"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "1f12c0ccb86796f8"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "d33ef772289962ea"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "db95fefda9605945"
+label = "wontfix"
+rule = "GR015"
+severity = "medium"
+reason = "shellcode hex inside a security skill"
+
+[[label]]
+fingerprint = "dd36cbb2d8886b19"
+label = "wontfix"
+rule = "GR015"
+severity = "medium"
+reason = "shellcode hex inside a security skill"
+
+[[label]]
+fingerprint = "e8b3452e97898928"
+label = "tp"
+rule = "GR011"
+severity = "medium"
+reason = "tells the agent to withhold or not narrate something from the user (benign intent)"
+
+[[label]]
+fingerprint = "8440a927299f927d"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "817af75f1f008d69"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "e67928791734665c"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "7ac5ad578d1a943c"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "7c7787ff352efb86"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "246eff82b8efbd37"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "d9dacd3bc78fe3b5"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "503ac3bc51e8e586"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "883810140e53b625"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "fcc82481c14202ce"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "554fd56629c08e14"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "1ca1c65ac9019e03"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "b2954bbbf47e708f"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "1ac27b22333a7ec0"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "6547ac91443fbc49"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "2907e6e4ceab3d58"
+label = "tp"
+rule = "GR011"
+severity = "medium"
+reason = "tells the agent to withhold or not narrate something from the user (benign intent)"
+
+[[label]]
+fingerprint = "35c4606fb53973c8"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "1a78d90d70cbdf21"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "36ec94ca7ffba1bd"
+label = "tp"
+rule = "GR020"
+severity = "high"
+reason = "import outside the repository or into the home directory"
+
+[[label]]
+fingerprint = "fc3415c101c9a1f7"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "3ac8eadbc359fd14"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "3120bb6cdbba33fc"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "806469b92b51ba13"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "4e8b97f0d5acaff2"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "7999a1bf13ad4574"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "59f90fa9d5de985c"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "51ec6f25c5f1dd71"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "ec161caac6480463"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "5b9d32a4a90386c9"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "7403747ad7118f14"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "f982bbb96c2dd100"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "8daf8786e3aa93ef"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "7b57146a6472bc54"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "02b7e83c234f9fdf"
+label = "wontfix"
+rule = "GR011"
+severity = "high"
+reason = "describes what code does (plural subject), it does not order concealment"
+
+[[label]]
+fingerprint = "91eef85bfa09c843"
+label = "tp"
+rule = "GR011"
+severity = "high"
+reason = "tells the agent to withhold or not narrate something from the user (benign intent)"
+
+[[label]]
+fingerprint = "f37ff439964aa76c"
+label = "tp"
+rule = "GR011"
+severity = "high"
+reason = "tells the agent to withhold or not narrate something from the user (benign intent)"
+
+[[label]]
+fingerprint = "357c62676f59f81b"
+label = "tp"
+rule = "GR011"
+severity = "high"
+reason = "tells the agent to withhold or not narrate something from the user (benign intent)"
+
+[[label]]
+fingerprint = "a997ee40fc71b17e"
+label = "tp"
+rule = "GR011"
+severity = "high"
+reason = "tells the agent to withhold or not narrate something from the user (benign intent)"
+
+[[label]]
+fingerprint = "de01aabe2c4b9545"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "1a9f505faebd7801"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "40f9a1a006d10266"
+label = "wontfix"
+rule = "GR010"
+severity = "medium"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "2f39dd7668d9296e"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "c4eae4b312cfc996"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "710fdaf7b398cb46"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "be0a3f5207bff426"
+label = "tp"
+rule = "GR011"
+severity = "high"
+reason = "tells the agent to withhold or not narrate something from the user (benign intent)"
+
+[[label]]
+fingerprint = "1af87d4fc722361d"
+label = "tp"
+rule = "GR014"
+severity = "medium"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "15e9ef6fe06e6f13"
+label = "tp"
+rule = "GR107"
+severity = "high"
+reason = "over-permissive agent settings"
+
+[[label]]
+fingerprint = "8a00f7a3d5f88ea9"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "bdd40cf9ff701373"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "invisible character really present in the text"
+
+[[label]]
+fingerprint = "6837682e95e17ee9"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "4c1d86b18ebaec72"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "437e15a179f48162"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "8b242fc64b0b2187"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "235d538ca00198ca"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "9e458089ff0547cc"
+label = "tp"
+rule = "GR105"
+severity = "high"
+reason = "shell wrapper as an MCP server command"
+
+[[label]]
+fingerprint = "cf0bd5498e43decf"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "1e970bc42e373293"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "5c592332db0cb4b1"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "9820cab92c5a2221"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "2829e49294fb3904"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "65a6ee933a34d7b4"
+label = "tp"
+rule = "GR107"
+severity = "high"
+reason = "over-permissive agent settings"
+
+[[label]]
+fingerprint = "4fa35782c6e21f87"
+label = "tp"
+rule = "GR016"
+severity = "high"
+reason = "tells the agent never to ask for permission or confirmation"
+
+[[label]]
+fingerprint = "a8f7a37d0d649cc8"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "de696af41ddaf9ac"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "6dd4bef7e8e4684e"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "43f766f5e09319f0"
+label = "tp"
+rule = "GR108"
+severity = "medium"
+reason = "auto-enables project MCP servers"
+
+[[label]]
+fingerprint = "59f6492eef4dfa36"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "96f161217442d5ad"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "acc9b8721c159dc0"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "065876f1f1fa7928"
+label = "tp"
+rule = "GR011"
+severity = "high"
+reason = "tells the agent to withhold or not narrate something from the user (benign intent)"
+
+[[label]]
+fingerprint = "9596d9f37363edc0"
+label = "tp"
+rule = "GR011"
+severity = "high"
+reason = "tells the agent to withhold or not narrate something from the user (benign intent)"
+
+[[label]]
+fingerprint = "87b6c6fd274c6bdb"
+label = "wontfix"
+rule = "GR010"
+severity = "medium"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "127d98e90dfa3a8c"
+label = "wontfix"
+rule = "GR013"
+severity = "medium"
+reason = "documents where a key is sent (a fixed host over HTTPS), not an exfiltration"
+
+[[label]]
+fingerprint = "07a12ecc99ed3ab4"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "c2221d60db5e25f8"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "3545561a9c1f5872"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "291dd17f6a451f3e"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "93df852850aaa225"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "2de54223791421e8"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "2fea2a9593211fd6"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "73cdb79f66f9a06f"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "78052564d4710dde"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "d1e3b1f8efdc0714"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "a07a4b44340ca97a"
+label = "tp"
+rule = "GR107"
+severity = "high"
+reason = "over-permissive agent settings"
+
+[[label]]
+fingerprint = "e117fda7ecdf2811"
+label = "tp"
+rule = "GR107"
+severity = "high"
+reason = "over-permissive agent settings"
+
+[[label]]
+fingerprint = "e96be6d975568044"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "1f52bac1b5eca9f1"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "e84c8a46978ca299"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "3b230a1b9910e879"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "cfb011e7ea33cfe6"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "29082341b580a57e"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "73f80d67314ca963"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "3a3d0f0ae30decd5"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "3ccd2a33963fb47d"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "24c3c51071b988ac"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "cfbbb37b3e61d6a2"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "753ea5fca408f94f"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "272aae424b8d2347"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "bcac84a02d9aaed4"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "a76ed359b3832e88"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "835851a4f80aab21"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "76e071471856ebd5"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "6250ed3bbd1cb5ff"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "8769e499200d8254"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "6a21d51e35766482"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "34260b4c4d3365fd"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "616b923c3dd89043"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "6e9fad2c3cd8d392"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "e183659f9d1c15e3"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "d007090013ad55e6"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "fb890744f50b50a6"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "7c48e228792409bf"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "834731d06c68d113"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "cc9862830932b466"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "8772224db25152ad"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "e823eb06b95613d6"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "b0f89b18506d3872"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "192e3e01e2e51c0d"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "1859b40565df29b4"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "892128eab61cea85"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "134d2ff512873830"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "521131c17ac67c9e"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "e528b597f0a7525b"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "2cd13da19e8ed1b4"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "1c2840f3f976e15c"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "9fd25e6bd028e6dd"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "d6f4ae767458143d"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "e898700f85afeec1"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "5916c5c2ed2d4d51"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "05504ee9f5b07676"
+label = "tp"
+rule = "GR011"
+severity = "high"
+reason = "tells the agent to withhold or not narrate something from the user (benign intent)"
+
+[[label]]
+fingerprint = "5160f2f6b3fccd0c"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "442fcff0eb32c00b"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "b9da2660e7be2bc8"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "261febce7ec298aa"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "d54166985154586c"
+label = "tp"
+rule = "GR016"
+severity = "high"
+reason = "tells the agent never to ask for permission or confirmation"
+
+[[label]]
+fingerprint = "c93ef8c284dd45b2"
+label = "tp"
+rule = "GR011"
+severity = "high"
+reason = "tells the agent to withhold or not narrate something from the user (benign intent)"
+
+[[label]]
+fingerprint = "ff039640c861a430"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "4e1d24d97487238c"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "d2913ca571b93637"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "8b98a7f28f7e6704"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "eb818aeb5dd326d0"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "invisible character really present in the text"
+
+[[label]]
+fingerprint = "5bafa29a9db7ebd3"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "241d882f210d8cef"
+label = "tp"
+rule = "GR108"
+severity = "medium"
+reason = "auto-enables project MCP servers"
+
+[[label]]
+fingerprint = "ef8b30875f810ff4"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "7a35f4b3b5d79d4f"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "1ceb08cf89b2ab78"
+label = "tp"
+rule = "GR107"
+severity = "high"
+reason = "over-permissive agent settings"
+
+[[label]]
+fingerprint = "d90647b16f6375ce"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "299c496b884d7a90"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "f810f03d37aa4414"
+label = "wontfix"
+rule = "GR011"
+severity = "high"
+reason = "describes what code does (plural subject), it does not order concealment"
+
+[[label]]
+fingerprint = "93d097c5285d3b82"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "383de83cc1cfe02b"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "39496a1595885f63"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "b6d3896d2b73a60a"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "2ff79ad723681866"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "f784cde3369dd115"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "cb38f4a53703b3f8"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "1e06223eea47f2f4"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "2ed7864abe04f246"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "2436117320918b43"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden HTML comment with instructions (benign: maintainer notes, licence-header rule)"
+
+[[label]]
+fingerprint = "9d430ba1b9cbb53e"
+label = "wontfix"
+rule = "GR013"
+severity = "critical"
+reason = "cloud-metadata URL inside a vulnerability or exploit description"
+
+[[label]]
+fingerprint = "1e16b4595e30ffe8"
+label = "wontfix"
+rule = "GR013"
+severity = "critical"
+reason = "cloud-metadata URL inside a vulnerability or exploit description"
+
+[[label]]
+fingerprint = "95da880da323ca62"
+label = "wontfix"
+rule = "GR013"
+severity = "critical"
+reason = "cloud-metadata URL inside a vulnerability or exploit description"
+
+[[label]]
+fingerprint = "b4c03a9843456135"
+label = "wontfix"
+rule = "GR013"
+severity = "critical"
+reason = "cloud-metadata URL inside a vulnerability or exploit description"
+
+[[label]]
+fingerprint = "b5a0fec1d4f4ca9c"
+label = "wontfix"
+rule = "GR013"
+severity = "critical"
+reason = "cloud-metadata URL inside a vulnerability or exploit description"
+
+[[label]]
+fingerprint = "522bb8d1d5d56bb3"
+label = "wontfix"
+rule = "GR013"
+severity = "critical"
+reason = "cloud-metadata URL inside a vulnerability or exploit description"
+
+[[label]]
+fingerprint = "d1de7857ac930712"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "6fc0d64388a7ec87"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "1a70cfbbe7b37961"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "f97b034656830659"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "fd89cbcf3fae903d"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "05fd9351b7a5a51c"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "f6255c9459d72a81"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "2abf60c1bdaf0730"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "ffd456a1e1f7a9c2"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "9ec1ef228fd6cf9a"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "264a42c0d8bb429a"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "8d3921dfbced928a"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "369c9068a83a5919"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "d1a16fdedefb53c1"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "c61bf2c9e8356562"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "b763f7653cc9c8f9"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "6027fd65c0f42171"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "88cbb7269848fff4"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "caee88036a03a1d5"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "649ff473b0ba0f42"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "d4045b076d9a207f"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "4c3d7913d7101044"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "9363f5ddeef4208c"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "5719b339c39203c9"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "efeacfe4d657902f"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "94c62851b95fdf88"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "3aa2af45701ed437"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "f98148cc6c9218e0"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "727e60e049796ff1"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "15fcb629f02ad508"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "c797fd30708d75d9"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "72b6f36c53ba0509"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "d6374cd720a2caec"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "66c9babe08d27113"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "5e2256704b6a16d1"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "105aa53cf31f2b4a"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "04ebcd9a5dc75f8d"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "28221f2c9708c58e"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "86e25ad15b305f7f"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "bc4e9460e854e8fc"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "d62f631b38550231"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "748f538356492f72"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "accd40d44a64b426"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "7629dee20b2d60f1"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "51cb6606830b885c"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "99a591c4520cb91f"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "ad4956d6c9b322fc"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "545a7b546e65fe59"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "ecc6c95427814e36"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "5ae8dda34acbc233"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "e70433bdddfe4ee4"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "a34ac3c939b3aed9"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "4e10e239c13630bd"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "3513f547da881a47"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "3c87a2b6f36b5437"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "bd0210b42871ecc5"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "50dee91ce10991e8"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "5f920e3255dcfada"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "f9d287066c2adf0f"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "68b30d67e3f49043"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "9c943872646568cf"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "1c5cbeaf4a025344"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "d733b3022f60b368"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "e8e3fca6215323ad"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "1d5cbfc3842c6349"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "0d48cf8bd86f6821"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "04f237d5e2367cad"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "c70c79cfa54b0553"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "1f51c94c8c745bfc"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "3c3dc33a6af32a50"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "fb1c3f2f617a1631"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "5503a6e213ba9383"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+reason = "table or blocked-command list that documents the file"
+
+[[label]]
+fingerprint = "2d4b996a6f7dadaa"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "4c45b657505ec6a8"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "3f9e1772f1c47284"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "14b9bd4a91abf803"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "7829850dc5c92c35"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "cb7c74ecd97389af"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+reason = "quotes the phrase to teach, detect or forbid it"
+
+[[label]]
+fingerprint = "96d114ab51af4ab3"
+label = "wontfix"
+rule = "GR013"
+severity = "medium"
+reason = "documents where a key is sent (a fixed host over HTTPS), not an exfiltration"
+
+[[label]]
+fingerprint = "1f7dd692d4c0013d"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "d521ce7664067e4a"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "bb12f2b35807872b"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "62697a093eeb5c68"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "invisible character really present in the text"
+
+[[label]]
+fingerprint = "e5ce27ac744ac1b5"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "dc642e8fc0515791"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "d67a7108c97ce6ba"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "77ce44d8d3e9af76"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "ea09e7ed0edbdebd"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "invisible character really present in the text"
+
+[[label]]
+fingerprint = "f3b33103dfc4ce8a"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "b495ab365ee2d19e"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "invisible character really present in the text"
+
+[[label]]
+fingerprint = "6ce2504213ba201f"
+label = "wontfix"
+rule = "GR013"
+severity = "medium"
+reason = "documents where a key is sent (a fixed host over HTTPS), not an exfiltration"
+
+[[label]]
+fingerprint = "31c3722c120ad4f7"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "ad501c7a189a4751"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "67c3c08b5220e265"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "invisible character really present in the text"
+
+[[label]]
+fingerprint = "a7f3dc88aaae2bc9"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "10a414f2070b19f8"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "55ecdc5d94c194e4"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "55c203bee900b877"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "d598f61318f3e953"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "invisible character really present in the text"
+
+[[label]]
+fingerprint = "ad9535e808c39144"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "89734c076581452f"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "invisible character really present in the text"
+
+[[label]]
+fingerprint = "848e2f8c84f7912a"
+label = "wontfix"
+rule = "GR013"
+severity = "medium"
+reason = "documents where a key is sent (a fixed host over HTTPS), not an exfiltration"
+
+[[label]]
+fingerprint = "5b6a24ba4af5e557"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "f5ba4dab260ae42e"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "5eb765fae225746d"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "invisible character really present in the text"
+
+[[label]]
+fingerprint = "f0beb0d807b5fc06"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "2d52548dd73afcb6"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "f0512934cc2d44f1"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "50e270c2283e5e39"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "8bc9addb5091b9ab"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "invisible character really present in the text"
+
+[[label]]
+fingerprint = "a8d11a95c0ae3390"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "162199d133042106"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "invisible character really present in the text"
+
+[[label]]
+fingerprint = "646ee8534744907c"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "6421b66cc900c508"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "3e72d0c388152fba"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "eb1f0d488131b484"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "9e23d0b12544d7e0"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "34c469b9c7685885"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "80a7a2d197674edd"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "281fe11e3f3d538f"
+label = "tp"
+rule = "GR016"
+severity = "high"
+reason = "tells the agent never to ask for permission or confirmation"
+
+[[label]]
+fingerprint = "9e12fb6dfa599ab3"
+label = "tp"
+rule = "GR016"
+severity = "high"
+reason = "tells the agent never to ask for permission or confirmation"
+
+[[label]]
+fingerprint = "ee26f6a40d1d5f2c"
+label = "tp"
+rule = "GR016"
+severity = "high"
+reason = "tells the agent never to ask for permission or confirmation"
+
+[[label]]
+fingerprint = "23a117ca341882a4"
+label = "tp"
+rule = "GR016"
+severity = "high"
+reason = "tells the agent never to ask for permission or confirmation"
+
+[[label]]
+fingerprint = "ac299e219a279a5d"
+label = "tp"
+rule = "GR016"
+severity = "high"
+reason = "tells the agent never to ask for permission or confirmation"
+
+[[label]]
+fingerprint = "be443c0ce988f9b6"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "8918275c26cb81ce"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "131dcb2395f608d7"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "eddf0f44dbe01ec7"
+label = "tp"
+rule = "GR014"
+severity = "high"
+reason = "instruction to read or print an env or credentials file"
+
+[[label]]
+fingerprint = "970db1d89bce76f8"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "8a54d61e6b6f56c5"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+reason = "documents or names a permission-bypass flag or mode, it does not instruct it"
+
+[[label]]
+fingerprint = "b5ee7755e519f424"
+label = "wontfix"
+rule = "GR012"
+severity = "critical"
+reason = "offensive-security skill documents the attack with placeholder hosts"
+
+[[label]]
+fingerprint = "1e8791c901421a86"
+label = "wontfix"
+rule = "GR012"
+severity = "critical"
+reason = "offensive-security skill documents the attack with placeholder hosts"
+
+[[label]]
+fingerprint = "2763d083603cdd1e"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "a9ed4c4412219800"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "57bb5606ad30f8d8"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "ed9d645abc126f1b"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "a6d47ca4ea8bf700"
+label = "tp"
+rule = "GR107"
+severity = "high"
+reason = "over-permissive agent settings"
+
+[[label]]
+fingerprint = "44044989115c026b"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "e0f523abe8b42291"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "451fe8ee24783b9c"
+label = "wontfix"
+rule = "GR013"
+severity = "high"
+reason = "request-collector service named in penetration-testing documentation"
+
+[[label]]
+fingerprint = "8407d856264aa3cd"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "b578058e57cebc22"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "b7dfcd02d27dc7fc"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "d4ec837c22e2f1ba"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "9e2a5549184768b7"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "8bacf66c43e951e8"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "9a62973e658532d2"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "cb418611a130f573"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+reason = "documented installer one-liner (curl | sh) or a placeholder in security docs"
+
+[[label]]
+fingerprint = "a0e649458ef9cd93"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "MCP server started with an unpinned package"
+
+[[label]]
+fingerprint = "8381dbc9b677dd70"
+label = "tp"
+rule = "GR108"
+severity = "medium"
+reason = "auto-enables project MCP servers"

