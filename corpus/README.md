@@ -19,6 +19,7 @@ python corpus/triage.py                           # label unlabelled findings >=
 | `discover.py` | `gh api` search + one Git trees call per candidate; cached in `.cache/`, resumable, waits for the rate limit. Prints a TOML proposal; never writes `repos.toml`. |
 | `run.py` | Shallow clone (`--depth 1 --filter=blob:limit=2m`), `scan` + `context --no-scan`, with an empty `--config` so a repo's own `.ghostrules.toml` cannot change the measurement. Deletes the clone. |
 | `check.py` | The gate: fails on an unlabelled critical/high finding, an `fp` still at its old severity, an `fp` without an existing test, or a crashed scan. |
+| `badge.py` | Writes the shields.io endpoint badge and an aggregate summary (counts only, no repository names). |
 | `triage.py` | Walks unlabelled findings, shows snippet and context (fetched for display, never stored). |
 | `repos.toml`, `labels.toml` | The pinned corpus and the triaged findings (keyed by fingerprint). |
 | `results/` | Gitignored, except `latest-summary.json`. |

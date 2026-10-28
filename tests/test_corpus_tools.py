@@ -12,6 +12,7 @@ from ghostrules._compat import tomllib
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "corpus"))
 
+import badge  # noqa: E402
 import check  # noqa: E402
 import common  # noqa: E402
 import discover  # noqa: E402
@@ -479,3 +480,69 @@ def test_gh_fetch_sanitises_and_validates(tmp_path: Path) -> None:
     assert triage.gh_fetch(runner)("-bad/x", "abc123", "A.md", 1) == ""
     assert triage.gh_fetch(runner)("o/a", "abc;rm", "A.md", 1) == ""
     assert len(runner.calls) == 1
+
+
+# --- badge ---------------------------------------------------------------------------------------
+
+
+def _summary(critical: int = 0) -> dict:
+    return {
+        "date": "2026-10-28",
+        "tier": "regression",
+        "ghostrules_version": "0.3.0",
+        "repos": 300,
+        "findings": 5,
+        "by_rule": {"GR010": 5},
+        "by_severity": {"critical": critical, "low": 5},
+        "failures": [{"repo": "o/secret-name", "status": "clone_failed"}],
+        "seconds": {"o/secret-name": 1.0},
+    }
+
+
+def test_badge_states_what_is_measured() -> None:
+    shield = badge.badge(_summary(), passed=True)
+    assert shield == {
+        "schemaVersion": 1,
+        "label": "corpus",
+        "message": "300 repos · 0 critical",
+        "color": "brightgreen",
+    }
+    assert badge.badge(_summary(2), passed=True)["color"] == "yellow"
+    failing = badge.badge(_summary(), passed=False)
+    assert failing["message"] == "gate failing" and failing["color"] == "red"
+
+
+def test_public_summary_has_counts_only() -> None:
+    pub = badge.public_summary(_summary(), {"unlabelled_blocking": 0}, passed=True)
+    assert "failures" not in pub and "seconds" not in pub
+    assert "o/secret-name" not in json.dumps(pub)
+    assert pub["gate"] == "pass" and pub["unlabelled_critical_high"] == 0
+
+
+def test_badge_main_writes_files_and_fails_without_run(tmp_path: Path) -> None:
+    out = tmp_path / "out"
+    assert badge.main(["--out", str(out), "--results", str(tmp_path / "none")]) == 2
+    day = tmp_path / "results" / "2026-10-28"
+    day.mkdir(parents=True)
+    (day / "summary.json").write_text(json.dumps(_summary()), encoding="utf-8")
+    (day / "o__r.json").write_text(
+        json.dumps({"repo": "o/r", "status": "ok", "findings": []}), encoding="utf-8"
+    )
+    labels = tmp_path / "labels.toml"
+    labels.write_text("", encoding="utf-8")
+    args = ["--out", str(out), "--results", str(tmp_path / "results"), "--labels", str(labels)]
+    assert badge.main(args) == 0
+    assert json.loads((out / "badge.json").read_text())["color"] == "brightgreen"
+    assert "secret-name" not in (out / "summary.json").read_text()
+    (day / "o__r.json").write_text(
+        json.dumps(
+            {
+                "repo": "o/r",
+                "status": "ok",
+                "findings": [{"fingerprint": "f" * 16, "severity": "high", "rule_id": "GR010"}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    assert badge.main(args) == 0
+    assert json.loads((out / "badge.json").read_text())["message"] == "gate failing"

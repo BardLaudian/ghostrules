@@ -1,0 +1,79 @@
+name: Corpus
+
+# Runs ghostrules against the public repositories listed in corpus/repos.toml (the only networked
+# part of the project). Never on pull requests.
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: corpus
+  cancel-in-progress: false
+
+jobs:
+  corpus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install ghostrules from this checkout
+        run: pip install -e ".[dev]"
+      - name: Scan the regression tier
+        run: python corpus/run.py --tier regression
+      - name: Gate against labels.toml
+        run: python corpus/check.py
+      - name: Aggregate files (badge and summary, counts only)
+        if: always() && hashFiles('corpus/results/latest-summary.json') != ''
+        run: python corpus/badge.py --out corpus-public
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: corpus-results
+          path: |
+            corpus/results
+            corpus-public
+          retention-days: 30
+          if-no-files-found: ignore
+
+  publish:
+    # Only the default branch publishes; the badge reads corpus/badge.json from gh-pages.
+    needs: corpus
+    if: always() && needs.corpus.result != 'skipped' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: corpus-results
+          path: artifact
+      - name: Publish to gh-pages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          test -f artifact/corpus-public/badge.json
+          git clone --quiet --depth 1 --branch gh-pages \
+            "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" site \
+            || { mkdir site && git -C site init --quiet -b gh-pages \
+              && git -C site remote add origin \
+              "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git"; }
+          mkdir -p site/corpus
+          cp artifact/corpus-public/badge.json artifact/corpus-public/summary.json site/corpus/
+          cd site
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add corpus
+          git diff --cached --quiet || git commit --quiet -m "corpus: weekly summary"
+          git push origin gh-pages
