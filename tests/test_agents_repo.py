@@ -29,7 +29,7 @@ def test_kind(tmp_path) -> None:
     assert repo.kind("") is None
 
 
-def test_symlinks_are_never_followed(tmp_path) -> None:
+def test_symlinks_are_resolved_by_hand_inside_the_tree(tmp_path) -> None:
     write(tmp_path, "real/a.md", "secret")
     try:
         os.symlink("real", tmp_path / "linkdir", target_is_directory=True)
@@ -39,11 +39,24 @@ def test_symlinks_are_never_followed(tmp_path) -> None:
     repo = Repo(tmp_path)
     assert repo.kind("linkfile.md") == "symlink"
     assert repo.kind("linkdir/a.md") == "symlink"
-    assert repo.read("linkfile.md") is None and repo.read("linkdir/a.md") is None
+    assert repo.read("linkfile.md") == b"secret" and repo.read("linkdir/a.md") == b"secret"
     assert repo.symlink_target("linkfile.md") == "real/a.md"
-    assert "linkdir" in repo.linked_dirs
-    assert "linkdir/a.md" not in repo.files
-    assert not repo.link_leaves_tree("linkfile.md")
+    assert "linkdir" in repo.linked_dirs  # never walked into: its files are listed as aliases
+    assert "linkdir/a.md" in repo.files
+
+
+def test_a_symlink_out_of_the_tree_is_never_read(tmp_path) -> None:
+    outside = tmp_path / "outside.md"
+    outside.write_text("secret", encoding="utf-8")
+    inner = tmp_path / "repo"
+    inner.mkdir()
+    try:
+        os.symlink(outside, inner / "link.md")
+    except (OSError, NotImplementedError):
+        pytest.skip("symlinks are not available here")
+    repo = Repo(inner)
+    assert repo.kind("link.md") == "symlink" and repo.read("link.md") is None
+    assert repo.resolve("link.md").status == "outside"
 
 
 def test_label_uses_the_prefix(tmp_path) -> None:

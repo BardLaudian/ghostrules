@@ -330,12 +330,11 @@ def symlink(root: Path, name: str, target: str, *, is_dir: bool = False) -> None
         pytest.skip("symlinks are not available here")
 
 
-def test_gr025_symlinked_instruction_file(tmp_path: Path) -> None:
+def test_gr025_is_silent_for_a_symlink_to_a_file_in_the_repo(tmp_path: Path) -> None:
+    """Changed in 0.2.1 (F1): an alias is not a finding (it was one medium per link in 0.2.0)."""
     make(tmp_path, {"AGENTS.md": "real"})
     symlink(tmp_path, "CLAUDE.md", "AGENTS.md")
-    (finding,) = by_rule(scan(tmp_path), "GR025")
-    assert finding.path == "CLAUDE.md" and finding.severity is Severity.MEDIUM
-    assert "AGENTS.md" in finding.message and "not followed" not in finding.snippet
+    assert by_rule(scan(tmp_path), "GR025") == []
 
 
 def test_gr025_is_high_when_the_link_leaves_the_repo(tmp_path: Path) -> None:
@@ -346,17 +345,19 @@ def test_gr025_is_high_when_the_link_leaves_the_repo(tmp_path: Path) -> None:
     assert finding.severity is Severity.HIGH and "outside the repository" in finding.message
 
 
-def test_gr025_symlinked_rules_directory_and_imported_link(tmp_path: Path) -> None:
-    make(tmp_path, {"shared/r.md": "x", "CLAUDE.md": "@link.md", "real.md": "x"})
-    symlink(tmp_path, ".claude/rules", os.path.join("..", "shared"), is_dir=True)
-    symlink(tmp_path, "link.md", "real.md")
-    paths = sorted(f.path for f in by_rule(scan(tmp_path), "GR025"))
+def test_gr025_symlinked_rules_directory_and_imported_link_out_of_the_repo(tmp_path: Path) -> None:
+    make(tmp_path / "out", {"r.md": "x", "real.md": "x"})
+    repo = make(tmp_path / "repo", {"CLAUDE.md": "@link.md"})
+    symlink(repo, ".claude/rules", str(tmp_path / "out"), is_dir=True)
+    symlink(repo, "link.md", str(tmp_path / "out" / "real.md"))
+    paths = sorted(f.path for f in by_rule(scan(repo), "GR025"))
     assert paths == [".claude/rules", "link.md"]
 
 
 def test_gr025_respects_exclude(tmp_path: Path) -> None:
     make(tmp_path, {"AGENTS.md": "real"})
-    symlink(tmp_path, "CLAUDE.md", "AGENTS.md")
+    symlink(tmp_path, "CLAUDE.md", "missing.md")
+    assert by_rule(scan(tmp_path), "GR025") != []
     assert by_rule(scan(tmp_path, config=Config(exclude=("CLAUDE.md",))), "GR025") == []
 
 

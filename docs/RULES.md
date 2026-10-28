@@ -215,10 +215,17 @@ through imports gets the tag `reached-via-import` and the import chain in `via`.
 a payload hidden in an imported file visible. Adding `GR024` to `disable` (or `--no-follow-imports`)
 stops ghostrules from scanning imported files.
 
-### GR025 — Symlinked instruction source (medium)
-An instruction file, imported file or rules directory that is a symlink. ghostrules never follows
-symlinks, so what the agent reads through it is not scanned. High when the link target is outside
-the repository (Claude Code treats such links like external imports).
+### GR025 — Symlinked instruction source (high outside the repository, low broken or cyclic, info checked out as text)
+An instruction file, imported file or rules directory that is a symlink the agent would follow but
+ghostrules cannot (v0.2.1). A symlink whose final target is a regular file inside the repository is
+an **alias** (`CLAUDE.md -> AGENTS.md`): the agent reads the target under the link's name, ghostrules
+scans it once, and **no finding** is produced.
+- `high`: a hop points outside the repository root (absolute, or through `..`). Claude Code treats
+  such links like external imports. The target is never read.
+- `low`: the link is broken, part of a cycle, or crosses more than 8 links.
+- `info`: a file whose whole content is one relative path to an existing file in the repository
+  (`CLAUDE.md` containing `AGENTS.md`): probably a symlink checked out as text (Windows with
+  `core.symlinks=false`); the agent will read only that path string.
 
 ## Severity calibration targets (acceptance)
 - `examples/clean-repo` (realistic AGENTS.md, CLAUDE.md, .mcp.json with `${GITHUB_TOKEN}`, pinned

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from ghostrules.agents.base import ContextGraph
 from ghostrules.models import ScanTarget
@@ -23,6 +24,7 @@ class ScanContext:
     targets: dict[str, ScanTarget] = field(default_factory=dict)
     label: Callable[[str], str] = lambda path: path
     excluded: Callable[[str], bool] = lambda path: False
+    root: Path | None = None
 
     def target(self, path: str) -> ScanTarget | None:
         """The scanned file for a graph path, if there is one."""

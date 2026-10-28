@@ -104,9 +104,25 @@ since v2.1.309. Do not model truncation; add a `note` on on-demand entries over 
 **Symlinks**: `.claude/rules/` supports symlinks (circular ones are handled). A symlink whose target
 is outside the working directory is treated like an external import: it does not load until
 external imports are approved, and afterwards only rules **without** `paths` load. UNC/network paths
-(`\\server\share`, `/net`, `/Network`) are never followed. ghostrules never follows symlinks; report
-them (GR025). **[0-28]** `CLAUDE.md -> AGENTS.md` symlinks are a documented pattern: report as
-GR025 `medium` but, when the target is inside the repo, name it as the documented pattern.
+(`\\server\share`, `/net`, `/Network`) are never followed. **[0-28]** `CLAUDE.md -> AGENTS.md`
+symlinks are a documented pattern (Claude reads `CLAUDE.md` through the link).
+
+**ghostrules symlink policy (v0.2.1, all agent models).** Links are resolved by hand, hop by hop,
+and only inside the repository root; nothing is opened before the resolved path is known to be
+inside it.
+- A link whose **final target is a regular file inside the root** is an **alias**: the agent reads
+  the target's content under the link's name (`CLAUDE.md → AGENTS.md (symlink)`). Chains are
+  followed up to 8 hops, every hop inside the root, no cycles. The precedence rules apply to the
+  link's name (a `CLAUDE.md` exists, so `AGENTS.md` is skipped), and the separate `AGENTS.md`
+  entry is shown as skipped, "already read through CLAUDE.md (symlink)", so it is not counted
+  twice. Imports in the target are resolved relative to the link's directory.
+- Files under a **directory** link that stays inside the root (`.claude/rules/shared ->
+  ../shared-rules`) are aliases by the same rule.
+- A link that points **outside** the root (absolute or through `..`), is **broken**, loops or
+  crosses more than 8 links is not read (GR025: `high` outside, `low` otherwise).
+- Windows with `core.symlinks=false` checks a link out as a small text file holding the target's
+  path; if an agent file's whole content is one relative path to an existing file, GR025 `info`
+  notes that the agent reads only that path string.
 
 **Out of scope, document as limitation [0-28]:** `claudeMdExcludes` (settings in user, project,
 local or managed layers; absolute-path globs) can remove files from the context — ghostrules does

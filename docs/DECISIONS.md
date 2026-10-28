@@ -625,3 +625,43 @@ New: `globs.py` and the `agents/` package (`repo`, `base`, `claude_code`, `copil
   `CLAUDE.md` now needs `ghostrules lock --update` in the same commit, which is the point.
 - **Version.** `0.2.0`; README snippets say `v0.2.0` (the tag does not exist yet: the maintainer tags
   after merging).
+
+## v0.2.1
+
+### F1 — symlinks inside the repository are aliases
+Source: `docs/v0.2.1/FIXES.md`. 0.2.0 marked `CLAUDE.md -> AGENTS.md` as skipped in `context` and
+emitted a GR025 `medium` per link, which claimed Claude reads nothing in the most common real setup.
+
+- **Policy** (also in `docs/AGENT_MODELS.md`): a link ending at a regular file inside the root is an
+  alias read under the link's name; chains up to 8 hops, every hop inside the root, no cycles;
+  directory links inside the root make the files under them aliases. `Repo.resolve` follows links by
+  hand, one component at a time, and decides *before* anything is opened; `Repo.read` and `size` go
+  through it, so no code path can open a file outside the root.
+- **Only one level of directory-link expansion in `Repo.files`.** A file under a link to a directory
+  is listed under the link's name, computed from the real files of the walk. Links inside the target
+  directory are not expanded again, which keeps a link to an ancestor from growing the listing.
+- **No double counting.** The `AGENTS.md` that a loaded `CLAUDE.md` link points at is a blocked entry
+  ("already read through CLAUDE.md (symlink)") in every instructions mode, including
+  `claude-md-and-agents-md` (Claude would read the same text twice; reading it once is what matters
+  for a scan). The same goes for a file imported under two names: the second one is a `duplicate`.
+- **Scan.** Entries are keyed by their resolved path, so the content is scanned once, under the real
+  file. Findings in a file an agent reads through a link get `via: ["CLAUDE.md (symlink)"]` and
+  `agents`; they do not get the `reached-via-import` tag, because nothing was imported. Findings
+  elsewhere keep their 0.1 shape. `via` items without a line number are ignored by the SARIF
+  `relatedLocations` builder, as before.
+- **Lock.** An alias entry carries `link` (the resolved target) next to the hashes of the target's
+  content. The key is omitted when there is no link, so locks without links are byte-identical to
+  0.2.0, and `lock_version` stays 1: a 0.2.0 lock read by 0.2.1 differs only where the code now
+  resolves a link. Retargeting a link to a file with the same text is reported as a change of
+  `symlink target`.
+- **GR025.** The registry severity is `high` (the worst case, as for GR012); findings are `high`
+  outside the root, `low` for broken, cyclic or too-long links, `info` for the text checkout. An
+  alias produces nothing.
+- **Windows text checkout.** Any readable entry (not reached by an import, not an alias) whose
+  whole text is one line naming an existing file inside the root, relative to its own directory, is
+  reported as `info`. Targets starting with `@` or `#`, or leaving the root, are ignored. It reads
+  the repository only through `Repo.is_file`.
+- **0.2 tests changed on purpose** (they asserted "symlinks are never followed"):
+  `test_agents_claude.py` (4 tests), `test_agents_repo.py` (1), `test_lock.py` (1) and
+  `test_scan_imports.py` (3) now describe the alias behaviour; the outside-the-root cases they
+  covered are kept. `README.md`'s rules table is regenerated.
