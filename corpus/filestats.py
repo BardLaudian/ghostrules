@@ -10,7 +10,7 @@ import hashlib
 import os
 import re
 from collections.abc import Iterable
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any
 
 from common import safe_text
@@ -49,8 +49,11 @@ def file_stats(clone: Path, rel: str, kind: str) -> dict[str, Any] | None:
         return None
     out: dict[str, Any] = {"path": rel, "kind": kind, "symlink": path.is_symlink()}
     if out["symlink"]:
-        target = os.path.normpath(os.path.join(os.path.dirname(rel), os.readlink(path)))
-        inside = not os.path.isabs(os.readlink(path)) and not target.startswith("..")
+        raw = os.readlink(path)
+        target = os.path.normpath(os.path.join(os.path.dirname(rel), raw))
+        # A leading slash is rooted on Windows too, but os.path.isabs() says no there since 3.13.
+        rooted = os.path.isabs(raw) or raw.startswith(("/", "\\")) or PureWindowsPath(raw).drive
+        inside = not rooted and not target.startswith("..")
         out["link_target"] = Path(target).as_posix() if inside else None
         return out
     out["size"] = info.st_size
