@@ -17,3 +17,4 @@ ghostrules.sarif
 corpus/.cache/
 corpus/results/*
 !corpus/results/latest-summary.json
+_site/
