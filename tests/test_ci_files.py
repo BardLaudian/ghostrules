@@ -31,6 +31,11 @@ def steps_of(workflow: dict):
 # --- action.yml ------------------------------------------------------------------------------
 
 
+def test_action_description_fits_the_marketplace_limit() -> None:
+    """The Marketplace rejects an action description of 125 characters or more."""
+    assert 0 < len(ACTION["description"]) < 125
+
+
 def test_action_inputs_follow_the_spec() -> None:
     inputs = ACTION["inputs"]
     assert {k: str(v["default"]) for k, v in inputs.items()} == {
@@ -42,7 +47,7 @@ def test_action_inputs_follow_the_spec() -> None:
         "lock-check": "false",
     }
     assert all(v["description"] for v in inputs.values())
-    assert ACTION["name"] == "ghostrules"
+    assert ACTION["name"] == "ghostrules scan"
 
 
 def test_action_is_a_composite_with_the_specified_steps_in_order() -> None:
