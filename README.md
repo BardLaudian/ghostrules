@@ -61,8 +61,9 @@ influences what the agent does, and a reviewer cannot see everything that is in 
 
 ### How it works
 
-1. It finds the agent files (see [Supported agents and files](#supported-agents-and-files)). Symbolic
-   links are never followed.
+1. It finds the agent files (see [Supported agents and files](#supported-agents-and-files)). A
+   symbolic link is an alias only when it ends at a file inside the repository (`CLAUDE.md ->
+   AGENTS.md`); it is never followed out of it.
 2. It runs the rules on each one. Rules are pure functions over the text: no I/O, no execution.
 3. Hidden text (tag characters, variation selectors, base64) is **decoded and scanned again**, and
    what it contains is reported one severity level higher.
@@ -112,8 +113,8 @@ Findings ───────────────────────�
 
 The imported file is scanned like any instruction file, and its findings carry the chain that
 leads to it. Imports are followed the way the agent follows them: relative to the importing file,
-not inside code spans or code blocks, to the documented depth, never through a symbolic link and
-never outside the repository (GR020 reports those). An import of a credentials file such as `.env`
+not inside code spans or code blocks, to the documented depth, never outside the repository
+(GR020 reports those) and never through a symbolic link that leaves it (GR025). An import of a credentials file such as `.env`
 is reported (GR021) and the file is never read.
 
 | `context` option | Default | Meaning |
@@ -366,7 +367,7 @@ the URLs in any file.
 | <a id="gr022"></a>`GR022` | low | instructions | **Import that silently does not load.** An @path the agent ignores: missing file, too deep, quoted path or a path cut at a space. |
 | <a id="gr023"></a>`GR023` | info | instructions | **Import cycle.** Files that import each other in a loop. Agents stop at the depth limit; it is only noise. |
 | <a id="gr024"></a>`GR024` | info | instructions | **Payload reached only through an import.** Not a detector: findings in a file that only an @import reaches carry the import chain and the tag reached-via-import. Disabling it stops ghostrules from following imports. |
-| <a id="gr025"></a>`GR025` | medium | instructions | **Symlinked instruction source.** An instruction file or rules directory that is a symlink. ghostrules never follows it. |
+| <a id="gr025"></a>`GR025` | high | instructions | **Symlinked instruction source.** An instruction file or rules directory that is a symlink the agent would follow out of the repository, a broken or cyclic one, or a symlink checked out as a text file. A link whose target is a file inside the repository is an alias and is not reported. |
 | <a id="gr101"></a>`GR101` | critical | config | **Hardcoded secret in agent config.** API keys and tokens written into MCP server env/args/headers/URLs or agent settings env. |
 | <a id="gr102"></a>`GR102` | medium | config | **Unpinned package execution.** MCP servers launched with npx/uvx/etc. without an exact version run whatever is latest. |
 | <a id="gr103"></a>`GR103` | high | config | **Insecure remote MCP transport.** Remote MCP servers reached over plain http:// expose traffic and credentials. |
@@ -400,7 +401,11 @@ Matching is case-insensitive on file names. `--home` adds the user-level files m
 On top of these patterns, `ghostrules` scans every file the modelled agents load: files reached
 through `@path` imports and `.claude/rules/**/*.md`, for instance.
 
-Symbolic links are never followed during repository scans. Known agent files are always scanned
+A symbolic link whose final target is a file inside the repository (`CLAUDE.md -> AGENTS.md`, or a
+`.claude/rules/shared -> ../shared-rules` directory) is an **alias**: the agent reads the target
+under the link's name, `context` shows `CLAUDE.md → AGENTS.md (symlink)`, the content is scanned
+once, and findings say they were reached through the link. A link that leaves the repository, is
+broken or loops is never read (GR025). Known agent files are always scanned
 whatever their size, so padding a file cannot hide it; the 2 MB and binary-file limits only
 apply to the extra files `--all-files` adds.
 
@@ -470,7 +475,8 @@ request can update it; what it gives you is that any change to what the agents r
 explicit, reviewable diff. Put `.ghostrules.lock` and the instruction files in `CODEOWNERS`.
 
 **Does it follow imports that leave the repository?** No. `@/etc/hosts` and `@~/notes.md` are
-reported (GR020) and never read, and `ghostrules` never follows a symbolic link (GR025).
+reported (GR020) and never read, and `ghostrules` never follows a symbolic link out of the
+repository (GR025).
 
 **Which files does it look at?** The agent files in the table above. `--all-files` extends the
 hidden-Unicode checks to every text file; `exclude` and `extra_targets` in the configuration adjust
@@ -491,8 +497,8 @@ running server.
 The agent models follow each agent's public documentation and say `(unverified)` where it is
 silent. They do not see what lives outside the repository or the machine: Cursor user and team
 rules, managed policy files, Claude Code's `claudeMdExcludes` and `--add-dir`, instructions turned
-off inside Copilot with `/instructions`. A `CLAUDE.md` that is a symbolic link is reported but not
-read. The lock is a visibility control, not a barrier (see above).
+off inside Copilot with `/instructions`. A symbolic link that leaves the repository is reported but
+not read. The lock is a visibility control, not a barrier (see above).
 
 ## Roadmap
 

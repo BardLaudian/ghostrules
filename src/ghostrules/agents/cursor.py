@@ -52,15 +52,7 @@ class Cursor:
                 unverified=True,
                 follow=False,
             )
-        if repo.kind(_RULES_DIR) == "symlink":
-            b.add_blocked(
-                repo,
-                _RULES_DIR,
-                "rules directory",
-                "symlinked directory: not followed",
-                symlink_target=repo.symlink_target(_RULES_DIR) or "?",
-                leaves_tree=repo.link_leaves_tree(_RULES_DIR),
-            )
+        b.note_linked_dir(repo, _RULES_DIR, "rules directory")
         for rel in repo.files:
             if rel.startswith(_RULES_DIR + "/"):
                 self._rule(b, rel)

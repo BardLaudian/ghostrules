@@ -7,11 +7,13 @@ ever read here.
 
 from __future__ import annotations
 
+import posixpath
 from collections import defaultdict
 from collections.abc import Iterator
 from dataclasses import replace
 
 from ghostrules.agents.base import ContextEntry, ImportEdge
+from ghostrules.agents.repo import MAX_LINK_HOPS, Repo
 from ghostrules.models import Finding, Severity
 from ghostrules.rules.helpers import build_finding
 from ghostrules.rules.registry import graph_rule
@@ -266,34 +268,47 @@ def _symlinked(ctx: ScanContext) -> dict[str, list[tuple[str, ContextEntry]]]:
     found: dict[str, list[tuple[str, ContextEntry]]] = defaultdict(list)
     for agent, graph in ctx.graphs.items():
         for entry in graph.entries:
-            if entry.symlink_target:
+            if entry.link_problem:
                 found[entry.path].append((agent, entry))
     return found
 
 
+_PROBLEMS = {
+    "outside": "which is outside the repository",
+    "broken": "which does not exist (broken link)",
+    "cycle": "which leads back to a link already followed (link cycle)",
+    "too_deep": f"after more than {MAX_LINK_HOPS} links",
+}
+_SYMLINK_AS_TEXT_MAX = 260
+
+
 @graph_rule(
     "GR025",
-    Severity.MEDIUM,
+    Severity.HIGH,
     "Symlinked instruction source",
-    "An instruction file or rules directory that is a symlink. ghostrules never follows it.",
+    "An instruction file or rules directory that is a symlink the agent would follow out of the "
+    "repository, a broken or cyclic one, or a symlink checked out as a text file. A link whose "
+    "target is a file inside the repository is an alias and is not reported.",
 )
 def gr025_symlink(ctx: ScanContext) -> Iterator[Finding]:
-    """Medium; high when the link leaves the repository."""
+    """High when the link leaves the repository, low when it is broken or loops, info for a link
+    checked out as text. Links to files inside the repository are aliases: no finding."""
     for path, items in _symlinked(ctx).items():
         entry = items[0][1]
         if ctx.excluded(path):
             continue
-        outside = any(e.leaves_tree for _, e in items)
+        outside = any(e.link_problem == "outside" for _, e in items)
+        problem = "outside" if outside else entry.link_problem
         target = entry.symlink_target
+        where = _PROBLEMS.get(problem, "that cannot be followed")
         message = (
-            f"'{path}' is a symlink to '{target}'"
-            + (", which is outside the repository" if outside else "")
-            + ". ghostrules does not follow symlinks, so what the agent reads through it is not "
-            "scanned here" + ("; Claude Code treats it like an external import" if outside else "")
+            f"'{path}' is a symlink to '{target}', {where}"
+            + ". ghostrules does not read it"
+            + ("; Claude Code treats it like an external import" if outside else "")
         )
         yield Finding(
             rule_id="GR025",
-            severity=Severity.HIGH if outside else Severity.MEDIUM,
+            severity=Severity.HIGH if outside else Severity.LOW,
             title="Symlinked instruction source",
             message=message,
             path=path,
@@ -301,10 +316,54 @@ def gr025_symlink(ctx: ScanContext) -> Iterator[Finding]:
             column=1,
             end_column=1,
             snippet=f"{path} -> {target}",
-            fix_hint="Commit the real file, or scan the link target explicitly.",
+            fix_hint="Point the link at a file inside the repository, or commit the real file.",
             via=entry.via,
             agents=tuple(sorted({a for a, _ in items})),
         )
+    yield from _links_checked_out_as_text(ctx)
+
+
+def _links_checked_out_as_text(ctx: ScanContext) -> Iterator[Finding]:
+    """Windows with ``core.symlinks=false`` checks a link out as a small file holding the target's
+    path; the agent then reads just that string."""
+    if ctx.root is None:
+        return
+    repo = Repo(ctx.root)
+    seen: set[str] = set()
+    for graph in ctx.graphs.values():
+        for entry in graph.entries:
+            if entry.path in seen or not entry.readable or entry.alias_of or entry.via:
+                continue
+            seen.add(entry.path)
+            target = _text_checkout_target(repo, entry)
+            if target is None or ctx.excluded(entry.path):
+                continue
+            yield Finding(
+                rule_id="GR025",
+                severity=Severity.INFO,
+                title="Symlink checked out as text",
+                message=(
+                    f"'{entry.path}' contains only the path '{target}': probably a symlink checked "
+                    "out as text (core.symlinks=false, typical on Windows); the agent will read "
+                    "only this path string, not the file it names"
+                ),
+                path=entry.path,
+                line=1,
+                column=1,
+                end_column=1,
+                snippet=entry.text.strip(),
+                fix_hint="Enable symlinks (git config core.symlinks true) or commit a real file.",
+            )
+
+
+def _text_checkout_target(repo: Repo, entry: ContextEntry) -> str | None:
+    text = entry.text.strip()
+    if not text or "\n" in text or len(text) > _SYMLINK_AS_TEXT_MAX:
+        return None
+    joined = posixpath.normpath(posixpath.join(posixpath.dirname(entry.path), text))
+    if joined == entry.path or joined.startswith(("..", "/")) or text.startswith(("@", "#")):
+        return None
+    return text if repo.is_file(joined) and repo.kind(joined) == "file" else None
 
 
 def run_graph_rules(ctx: ScanContext, rule_ids: set[str]) -> list[Finding]:

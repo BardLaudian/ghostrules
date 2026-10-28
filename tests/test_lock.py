@@ -327,15 +327,16 @@ def test_custom_lock_file_name(tmp_path: Path) -> None:
     assert (tmp_path / "other.lock").exists()
 
 
-def test_symlinks_are_recorded_without_hashes(tmp_path: Path) -> None:
-    make(tmp_path, {"AGENTS.md": "real\n"})
+def test_symlinks_out_of_the_repo_are_recorded_without_hashes(tmp_path: Path) -> None:
+    make(tmp_path / "outside", {"x.md": "secret\n"})
+    make(tmp_path / "repo", {"AGENTS.md": "real\n"})
     try:
-        os.symlink("AGENTS.md", tmp_path / "CLAUDE.md")
+        os.symlink(tmp_path / "outside" / "x.md", tmp_path / "repo" / "CLAUDE.md")
     except (OSError, NotImplementedError):
         pytest.skip("symlinks are not available here")
     entry = next(
         e
-        for e in build_snapshot(tmp_path, Config()).lock.agents["claude-code"]
+        for e in build_snapshot(tmp_path / "repo", Config()).lock.agents["claude-code"]
         if e.path == "CLAUDE.md"
     )
     assert entry.load == "blocked" and entry.raw_sha256 is None

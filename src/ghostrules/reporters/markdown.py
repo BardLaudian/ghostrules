@@ -31,7 +31,8 @@ def _row(f: Finding) -> str:
         detail += f"<br>**Decoded hidden text:** `{_cell(f.decoded)}`"
     if f.via:
         loaded = f" (loaded by {_cell(', '.join(f.agents))})" if f.agents else ""
-        detail += f"<br>**Reached via import:** `{_cell(via_text(f))}`{loaded}"
+        label = "Read through" if f.via[0].endswith("(symlink)") else "Reached via import"
+        detail += f"<br>**{label}:** `{_cell(via_text(f))}`{loaded}"
     return (
         f"| {_ICON[f.severity]} {f.severity.label} | `{f.rule_id}` | {where} | "
         f"**{_cell(f.title)}**<br>{detail} |"

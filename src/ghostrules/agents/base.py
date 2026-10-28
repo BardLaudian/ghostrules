@@ -15,7 +15,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Literal, NamedTuple, Protocol
 
-from ghostrules.agents.repo import Repo
+from ghostrules.agents.repo import MAX_LINK_HOPS, Repo, Resolution
 from ghostrules.imports import Import, find_imports
 from ghostrules.markdown_utils import (
     RemovedBlock,
@@ -65,6 +65,8 @@ class ContextEntry:
     removed: tuple[RemovedBlock, ...] = ()
     symlink_target: str = ""
     leaves_tree: bool = False
+    alias_of: str = ""  # a symlink to a file in the tree: the agent reads that file as this name
+    link_problem: str = ""  # why a symlink is not followed: outside, broken, cycle or too_deep
 
     @property
     def hop(self) -> int:
@@ -261,6 +263,9 @@ def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+_LINK_PROBLEMS = ("outside", "broken", "cycle", "too_deep")
+
+
 class Builder:
     """Collects entries and edges for one agent. Models call ``add_file``/``add_blocked``."""
 
@@ -280,11 +285,16 @@ class Builder:
         self.policy = policy or ImportPolicy()
         self.graph = ContextGraph(agent, cwd, target)
         self._by_path: dict[str, ContextEntry] = {}
+        self._by_real: dict[str, str] = {}
         self._stack: list[str] = []
 
     def has(self, label: str) -> bool:
         """Whether a file (by displayed path) is already in the context."""
         return label in self._by_path
+
+    def loaded_as(self, repo: Repo, rel: str) -> str | None:
+        """The name ``rel`` was loaded under (its own, or that of a symlink to it), if any."""
+        return self._by_real.get(repo.label(rel))
 
     # --- adding files ------------------------------------------------------------------------
 
@@ -303,6 +313,7 @@ class Builder:
         via: tuple[str, ...] = (),
         symlink_target: str = "",
         leaves_tree: bool = False,
+        link_problem: str = "",
     ) -> ContextEntry:
         """Record a file the agent skips or refuses, or that ghostrules will not read."""
         return self._append(
@@ -316,6 +327,7 @@ class Builder:
                 readable=False,
                 symlink_target=symlink_target,
                 leaves_tree=leaves_tree,
+                link_problem=link_problem,
             )
         )
 
@@ -347,10 +359,24 @@ class Builder:
             return None, "missing"
         if kind == "dir":
             return None, "directory"
-        if kind in ("symlink", "other"):
-            return self._blocked_link(repo, rel, kind, reason, via), "symlink"
+        alias_of = ""
+        real = rel
+        if kind == "symlink":
+            res = repo.resolve(rel)
+            if res.status == "dir":
+                return None, "directory"
+            if res.status != "file":
+                return self._blocked_link(repo, rel, res, reason, via), "symlink"
+            real = alias_of = res.target
+            earlier = self._by_real.get(repo.label(real))
+            if earlier is not None:  # the file is already in the context under another name
+                return self._by_path[earlier], "duplicate"
+        elif kind == "other":
+            return self.add_blocked(repo, rel, reason, "not a regular file: skipped", via=via), (
+                "symlink"
+            )
         size_limit = self.policy.max_bytes
-        if size_limit is not None and repo.size(rel) > size_limit:
+        if size_limit is not None and repo.size(real) > size_limit:
             entry = self.add_blocked(
                 repo,
                 rel,
@@ -394,24 +420,47 @@ class Builder:
                 matches=matches,
                 line_map=rendered.line_map,
                 removed=rendered.removed,
+                symlink_target=alias_of,
+                alias_of=alias_of,
             )
         )
+        self._by_real.setdefault(repo.label(real), label)
         if follow and (via or self.policy.imports_from(rel)):
             self._expand(repo, entry, raw_text)
         return entry, "loaded"
 
     def _blocked_link(
-        self, repo: Repo, rel: str, kind: str, reason: str, via: tuple[str, ...]
+        self, repo: Repo, rel: str, res: Resolution, reason: str, via: tuple[str, ...]
     ) -> ContextEntry:
-        if kind == "symlink":
-            target = repo.symlink_target(rel) or ""
-            outside = repo.link_leaves_tree(rel)
-            where = " outside the tree" if outside else ""
-            note = f"symlink{' -> ' + target if target else ''}{where}: not followed"
-            return self.add_blocked(
-                repo, rel, reason, note, via=via, symlink_target=target or "?", leaves_tree=outside
-            )
-        return self.add_blocked(repo, rel, reason, "not a regular file: skipped", via=via)
+        """A symlink that is not followed: it leaves the tree, is broken, loops or is too long."""
+        written = res.written or repo.symlink_target(rel) or ""
+        arrow = f" -> {written}" if written else ""
+        why = {
+            "outside": " outside the tree: not followed",
+            "broken": " is broken: the target does not exist",
+            "cycle": " is part of a cycle",
+            "too_deep": f" crosses more than {MAX_LINK_HOPS} links",
+        }.get(res.status, ": not followed")
+        problem = res.status if res.status in _LINK_PROBLEMS else "broken"
+        return self.add_blocked(
+            repo,
+            rel,
+            reason,
+            f"symlink{arrow}{why}",
+            via=via,
+            symlink_target=written or "?",
+            leaves_tree=res.status == "outside",
+            link_problem=problem,
+        )
+
+    def note_linked_dir(self, repo: Repo, rel: str, reason: str) -> None:
+        """A directory the agent reads that is a symlink: fine inside the tree (its files are
+        aliases), recorded as a blocked entry when it leaves the tree, is broken or loops."""
+        if repo.kind(rel) != "symlink":
+            return
+        res = repo.resolve(rel)
+        if res.status != "dir":
+            self._blocked_link(repo, rel, res, reason, ())
 
     # --- imports -----------------------------------------------------------------------------
 
@@ -475,7 +524,7 @@ class Builder:
             return
         rel = resolved.rel
         label = repo.label(rel)
-        if not imp.certain and repo.kind(rel) != "file":
+        if not imp.certain and not repo.is_file(rel):
             return  # a loose candidate that is not a file is just text
         if hop > self.policy.max_hops and hop not in self.policy.uncertain_hops:
             self._edge(parent, imp, label, "depth", f"deeper than {self.policy.max_hops} hops")
@@ -562,7 +611,7 @@ class Builder:
             candidate = f"{candidate} {word}"
             for trimmed in (candidate, candidate.rstrip(".,;:!?)")):
                 resolved = resolve_import(trimmed, parent_rel)
-                if resolved.kind == "repo" and repo.kind(resolved.rel) == "file":
+                if resolved.kind == "repo" and repo.is_file(resolved.rel):
                     escaped = trimmed.replace(" ", "\\ ")
                     return f"the path is cut at an unescaped space; write @{escaped}"
         return ""
