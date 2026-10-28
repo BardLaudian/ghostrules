@@ -3,7 +3,7 @@ description: Find hidden instructions and risky settings in AGENTS.md, CLAUDE.md
 author: Pablo Seoane Temprano
 branding:
   icon: eye-off
-  color: gray-dark
+  color: purple
 
 inputs:
   path:
