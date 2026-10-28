@@ -145,7 +145,7 @@ ghostrules/
 ├── demo/demo.tape            (charmbracelet/vhs script to record the GIF)
 ├── action.yml  .pre-commit-hooks.yaml
 ├── .github/workflows/ci.yml  release.yml
-├── docs/  SPEC.md RULES.md PLAN.md DECISIONS.md
+├── docs/  RULES.md AGENT_MODELS.md DECISIONS.md   (SPEC.md and PLAN.md moved to docs/design/)
 ├── README.md  LICENSE (MIT)  SECURITY.md  CONTRIBUTING.md  CHANGELOG.md
 └── pyproject.toml
 ```

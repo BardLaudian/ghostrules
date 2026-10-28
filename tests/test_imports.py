@@ -115,7 +115,7 @@ def test_email_is_never_reported_even_as_loose() -> None:
 
 def test_mentions_and_npm_scopes_are_returned_but_do_not_look_like_paths() -> None:
     found = {i.path: i.looks_like_path for i in find_imports("ping @alice, use @types/node\n")}
-    assert found == {"alice": False, "types/node": True}
+    assert found == {"alice": False, "types/node": False}
 
 
 @pytest.mark.parametrize(

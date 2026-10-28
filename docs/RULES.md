@@ -66,15 +66,36 @@ Text revealed by GR001/GR004 decoding must ALSO be scanned by GR010–GR016 (rep
 Negative: documentation *about* prompt injection inside fenced code blocks marked as examples is
 still reported but at `low` with message "appears inside a code block".
 
+### Directive, descriptive and example text (GR011, GR014, GR016; v0.2.1)
+These three rules match phrases that are just as common in prose that *describes* something. Each
+match is classified by the sentence around it (`src/ghostrules/rules/directive.py`):
+
+| Kind | What it is | Severity |
+|---|---|---|
+| directive | An imperative sentence or clause ("Read …", "Always send …", "Silently run …"), "you must/should …", anything that does not start like a description, and **all decoded hidden text** | the rule's normal severity |
+| descriptive | A third-person description ("The scripts read …", "Claude then uses …", "With `~/.npmrc` moved aside it exits 1") | at most medium |
+| example | Inside a fenced block or in quotes, or a sentence introduced by "e.g.", "for example", "such as", "a skill that …", "… instructs the agent to …" | at most low |
+
+Text decoded from hidden characters is always a directive and keeps the +1 bump (critical).
+Inline code does not make a match an example: `` Run `claude --yolo` `` is read as "Run …". A lowered
+finding says so in its message. GR010 and GR012 have their own context rules and do not use this.
+
 ### GR011 — Concealment from the user (high)
 `do not (tell|inform|mention|show|reveal)( this)? (to )?the user`, `without (telling|asking|notifying) the user`,
 `(silently|secretly|quietly) (run|execute|add|send|install|modify)`, `don't mention (this|these)`,
 `hide (this|the) (from|output)`, ES: `no (se lo )?(digas|menciones|muestres) al usuario`, `sin avisar al usuario`.
+Not concealment, and not reported: "do not tell the user **to** …", "… **which|what|how|where|when|why**
+…" and "… **that** …" unless it is "that you …": these say what to tell the user. "Do not tell the
+user about this", "Do not tell the user." and "Do not tell the user that you did it" are.
 
 ### GR012 — Remote code execution patterns (context-aware in instructions, high elsewhere)
 `curl … | (ba|z)?sh`, `wget … -O- | sh`, `curl … | python`, `iwr|Invoke-WebRequest … | iex`,
 `powershell … -e(nc|ncodedcommand) <base64>`, `base64 (-d|--decode) … | (ba)?sh`,
 `bash <(curl …)`, `eval "$(curl …)"`. Snippet must show the full command.
+
+Stdin counts as code only when the interpreter reads its **program** from it (v0.2.1). `… | python`,
+`… | python3 -` and `… | sh` / `bash -s` are matched; `… | python -c '…'`, `-m module`, `script.py`,
+`… | sh -c '…'`, `… | node -e '…'` and `… | jq …` use stdin as data and are not.
 
 Severity in instruction files (since 0.1.1). Decide in this order; first match wins:
 
@@ -100,7 +121,8 @@ Matching is the exact `https` host plus an optional path prefix, never a suffix,
 `astral.sh.attacker.example` does not match: Astral uv/ruff `astral.sh`, rustup `sh.rustup.rs`,
 Bun `bun.sh`, Deno `deno.land`, pnpm `get.pnpm.io`, Poetry `install.python-poetry.org`, Homebrew
 `raw.githubusercontent.com/Homebrew/install/`, nvm `raw.githubusercontent.com/nvm-sh/nvm/`, SDKMAN
-`get.sdkman.io`, Docker `get.docker.com`, Ollama `ollama.com/install.sh`, Volta `get.volta.sh`.
+`get.sdkman.io`, Docker `get.docker.com`, Ollama `ollama.com/install.sh`, Volta `get.volta.sh`,
+Claude Code `claude.ai/install.sh`.
 
 GR105 and GR107 reuse the GR012 patterns for MCP server commands and hooks and are not affected:
 in configuration files a piped installer stays high/critical.
@@ -119,8 +141,11 @@ Respect `allow_domains` from config.
 ### GR014 — Sensitive file access (high)
 Instruction text referencing `~/.ssh`, `id_rsa`, `id_ed25519`, `.aws/credentials`, `.env`
 (as a file to read/send, not "add .env to .gitignore"), `.npmrc`, `.pypirc`, `.netrc`, `kubeconfig`,
-`Keychain`, browser cookie stores, `/etc/shadow`, combined with a read/print/cat/send verb within
-60 chars. Negative test: "Never commit .env files" must NOT fire.
+`Keychain`, browser cookie stores, `/etc/shadow`, combined with a read/print/cat/send verb that
+governs the path: same clause (no `;` or sentence end between them) and at most six words apart
+(v0.2.1; it was "within 60 chars"). Negative test: "Never commit .env files" must NOT fire. Template
+files (`.env.example`, `.env.sample`, `.env.template`, `.env.ai-surfaces.example`, `*.example`) are not
+secrets and never fire (the same list as GR021). Severity by directive / descriptive / example (above).
 
 ### GR015 — Encoded payloads (medium → high)
 Base64 runs ≥ 60 chars (or hex ≥ 80) in instruction files. Decode; if the result is mostly
@@ -131,6 +156,9 @@ images and things inside fenced code blocks labelled with a language other than 
 `--dangerously-skip-permissions`, `bypassPermissions`, `--yolo`, `yolo mode`, `auto[- ]?approve (all|every)`,
 `always (allow|approve|accept) (all )?(commands|tools|edits)`, `disable (the )?(sandbox|safety|guardrails)`,
 `never ask (for )?(permission|confirmation)`, ES: `sin pedir (permiso|confirmación)`.
+Severity by directive / descriptive / example (above): "Run with `--dangerously-skip-permissions`" is
+high, "The test harness runs Claude with `--permission-mode bypassPermissions`" is medium, a fenced
+`claude --dangerously-skip-permissions` is low.
 
 ---
 
@@ -203,8 +231,11 @@ when the import itself is uncertain (inside an HTML comment, or after punctuatio
 ### GR022 — Import that silently does not load (low)
 An `@path` the agent ignores: the file does not exist, is a directory, is deeper than the depth
 limit, is wrapped in quotes, or is cut at an unescaped space (`@Design Docs/a.md`; the finding says
-to write `@Design\ Docs/a.md`). Only tokens that look like paths are reported (`@alice` is a
-mention; `@types/node` is reported).
+to write `@Design\ Docs/a.md`). Only tokens that look like an intended file reference are reported
+(v0.2.1): a file extension (`@docs/missing.md`), a prefix `./`, `../`, `~/` or `/` (`@./notes`), or
+a first path segment that exists next to the importing file (`@docs/missing` with a `docs/`
+directory). `@alice` is a mention and `@types/node`, `@n8n/design-system` are npm scopes: none is
+reported.
 
 ### GR023 — Import cycle (info)
 `A → B → A`, reported once on the import that closes the loop. Agents stop at the depth limit.
@@ -215,10 +246,17 @@ through imports gets the tag `reached-via-import` and the import chain in `via`.
 a payload hidden in an imported file visible. Adding `GR024` to `disable` (or `--no-follow-imports`)
 stops ghostrules from scanning imported files.
 
-### GR025 — Symlinked instruction source (medium)
-An instruction file, imported file or rules directory that is a symlink. ghostrules never follows
-symlinks, so what the agent reads through it is not scanned. High when the link target is outside
-the repository (Claude Code treats such links like external imports).
+### GR025 — Symlinked instruction source (high outside the repository, low broken or cyclic, info checked out as text)
+An instruction file, imported file or rules directory that is a symlink the agent would follow but
+ghostrules cannot (v0.2.1). A symlink whose final target is a regular file inside the repository is
+an **alias** (`CLAUDE.md -> AGENTS.md`): the agent reads the target under the link's name, ghostrules
+scans it once, and **no finding** is produced.
+- `high`: a hop points outside the repository root (absolute, or through `..`). Claude Code treats
+  such links like external imports. The target is never read.
+- `low`: the link is broken, part of a cycle, or crosses more than 8 links.
+- `info`: a file whose whole content is one relative path to an existing file in the repository
+  (`CLAUDE.md` containing `AGENTS.md`): probably a symlink checked out as text (Windows with
+  `core.symlinks=false`); the agent will read only that path string.
 
 ## Severity calibration targets (acceptance)
 - `examples/clean-repo` (realistic AGENTS.md, CLAUDE.md, .mcp.json with `${GITHUB_TOKEN}`, pinned

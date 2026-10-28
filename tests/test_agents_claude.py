@@ -509,14 +509,14 @@ def link(tmp_path: Path, name: str, target: str, *, is_dir: bool = False) -> Non
         pytest.skip("symlinks are not available here")
 
 
-def test_a_symlinked_claude_md_is_reported_and_not_read(tmp_path) -> None:
+def test_a_symlinked_claude_md_inside_the_repo_is_an_alias_and_is_read(tmp_path) -> None:
+    """Changed in 0.2.1 (F1): 0.2.0 reported the link and did not read it."""
     make(tmp_path, {"AGENTS.md": "real"})
     link(tmp_path, "CLAUDE.md", "AGENTS.md")
     g = ClaudeCode().build(Repo(tmp_path))
     e = entry(g, "CLAUDE.md")
-    assert e.load == "blocked" and not e.readable
-    assert "symlink -> AGENTS.md" in e.note and "outside" not in e.note
-    assert entry(g, "AGENTS.md").load == "blocked"  # a CLAUDE.md exists, so AGENTS.md is skipped
+    assert e.load == "always" and e.readable and e.text == "real" and e.alias_of == "AGENTS.md"
+    assert entry(g, "AGENTS.md").load == "blocked"  # read once, through CLAUDE.md
 
 
 def test_a_symlink_leaving_the_tree_is_called_out(tmp_path) -> None:
@@ -526,27 +526,47 @@ def test_a_symlink_leaving_the_tree_is_called_out(tmp_path) -> None:
     repo_dir.mkdir()
     link(repo_dir, "CLAUDE.md", str(outside))
     e = entry(ClaudeCode().build(Repo(repo_dir)), "CLAUDE.md")
-    assert "outside the tree" in e.note and e.text == ""
+    assert "outside the tree" in e.note and e.text == "" and e.link_problem == "outside"
 
 
-def test_an_imported_symlink_is_not_followed(tmp_path) -> None:
+def test_an_imported_symlink_to_a_file_in_the_repo_is_loaded(tmp_path) -> None:
     make(tmp_path, {"CLAUDE.md": "@link.md", "real.md": "x"})
     link(tmp_path, "link.md", "real.md")
     g = ClaudeCode().build(Repo(tmp_path))
+    assert [(e.target, e.status) for e in g.edges] == [("link.md", "loaded")]
+    assert entry(g, "link.md").readable
+
+
+def test_an_imported_symlink_out_of_the_repo_is_not_followed(tmp_path) -> None:
+    outside = tmp_path / "outside.md"
+    outside.write_text("secret", encoding="utf-8")
+    repo_dir = tmp_path / "repo"
+    make(repo_dir, {"CLAUDE.md": "@link.md"})
+    link(repo_dir, "link.md", str(outside))
+    g = ClaudeCode().build(Repo(repo_dir))
     assert [(e.target, e.status) for e in g.edges] == [("link.md", "symlink")]
     assert entry(g, "link.md").load == "blocked"
 
 
-def test_a_symlinked_directory_is_never_entered(tmp_path) -> None:
+def test_an_import_through_a_directory_link_in_the_repo_is_loaded(tmp_path) -> None:
     make(tmp_path, {"CLAUDE.md": "@docs/a.md", "real/a.md": "x"})
     link(tmp_path, "docs", "real", is_dir=True)
     g = ClaudeCode().build(Repo(tmp_path))
-    assert [(e.target, e.status) for e in g.edges] == [("docs/a.md", "symlink")]
+    assert [(e.target, e.status) for e in g.edges] == [("docs/a.md", "loaded")]
 
 
-def test_a_symlinked_rules_directory_is_reported(tmp_path) -> None:
+def test_a_symlinked_rules_directory_in_the_repo_provides_its_rules(tmp_path) -> None:
     make(tmp_path, {"shared/r.md": "x"})
     link(tmp_path, ".claude/rules", os.path.join("..", "shared"), is_dir=True)
     g = ClaudeCode().build(Repo(tmp_path))
-    e = entry(g, ".claude/rules")
-    assert e.load == "blocked" and "symlinked directory" in e.note
+    assert entry(g, ".claude/rules/r.md").readable
+    assert not any(e.path == ".claude/rules" for e in g.entries)
+
+
+def test_a_symlinked_rules_directory_out_of_the_repo_is_reported(tmp_path) -> None:
+    make(tmp_path / "elsewhere", {"r.md": "x"})
+    repo_dir = tmp_path / "repo"
+    make(repo_dir, {"CLAUDE.md": "x"})
+    link(repo_dir, ".claude/rules", str(tmp_path / "elsewhere"), is_dir=True)
+    e = entry(ClaudeCode().build(Repo(repo_dir)), ".claude/rules")
+    assert e.load == "blocked" and "outside the tree" in e.note and e.link_problem == "outside"
