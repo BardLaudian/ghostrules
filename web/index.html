@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ghostrules playground</title>
+<meta name="description" content="See what your AI agent sees. Runs the real ghostrules scanner in your browser; your files never leave it.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap bar">
+    <a class="brand" href="https://github.com/BardLaudian/ghostrules">ghostrules</a>
+    <nav class="links">
+      <a href="https://github.com/BardLaudian/ghostrules">GitHub</a>
+      <button id="theme" type="button" aria-label="Switch between light and dark theme">Theme</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <h1>See what your AI agent sees.</h1>
+    <p>Paste an <code>AGENTS.md</code>, drop a folder or name a public repo. The real ghostrules scanner runs
+      in your browser and shows the instructions hidden in the files your agent obeys.</p>
+    <p id="boot" class="boot" role="status" aria-live="polite">Loading the scanner (a few seconds)…</p>
+  </section>
+
+  <div class="tabs" role="tablist" aria-label="Input">
+    <button role="tab" id="tab-paste" aria-controls="panel-paste" aria-selected="true">Paste a file</button>
+    <button role="tab" id="tab-folder" aria-controls="panel-folder" aria-selected="false" tabindex="-1">Drop a folder</button>
+    <button role="tab" id="tab-github" aria-controls="panel-github" aria-selected="false" tabindex="-1">Public GitHub repo</button>
+  </div>
+
+  <section id="panel-paste" role="tabpanel" aria-labelledby="tab-paste" class="panel">
+    <label for="filename">File name</label>
+    <input id="filename" value="AGENTS.md" spellcheck="false" autocomplete="off">
+    <label for="text">Text</label>
+    <textarea id="text" rows="12" spellcheck="false"></textarea>
+    <div class="row">
+      <button id="scan-paste" class="primary" type="button" disabled>Scan</button>
+      <button id="demo" type="button">Load the demo</button>
+    </div>
+  </section>
+
+  <section id="panel-folder" role="tabpanel" aria-labelledby="tab-folder" class="panel" hidden>
+    <div id="drop" class="drop" tabindex="0">
+      <p><strong>Drop a folder here</strong> or choose one.</p>
+      <input id="pick" type="file" webkitdirectory multiple aria-label="Choose a folder">
+      <p class="note">Only agent files (<code>AGENTS.md</code>, <code>CLAUDE.md</code>, rules, MCP configs…) and
+        the files they import are read, up to 5 MB. Nothing is uploaded.</p>
+    </div>
+    <div class="row"><button id="demo-folder" type="button">Try the import-chain demo</button></div>
+  </section>
+
+  <section id="panel-github" role="tabpanel" aria-labelledby="tab-github" class="panel" hidden>
+    <p class="warn">This is the only feature that uses the network, and it talks only to GitHub
+      (<code>api.github.com</code> and <code>raw.githubusercontent.com</code>). It makes unauthenticated
+      requests: GitHub allows 60 per hour per IP address.</p>
+    <label for="repo">Repository (<code>owner/repo</code> or URL)</label>
+    <input id="repo" placeholder="owner/repo" spellcheck="false" autocomplete="off">
+    <div class="row"><button id="scan-github" class="primary" type="button" disabled>Fetch and scan</button></div>
+  </section>
+
+  <p id="status" class="status" role="status" aria-live="polite"></p>
+  <section id="results" aria-live="polite"></section>
+</main>
+
+<footer class="wrap foot">
+  <p>Runs entirely in your browser. No data is sent anywhere, no analytics, no cookies.
+    (Exception: the GitHub tab fetches files from GitHub.)</p>
+  <p>Install: <code>pip install ghostrules</code> ·
+    <a href="https://github.com/BardLaudian/ghostrules">Source and star on GitHub</a></p>
+</footer>
+<script type="module" src="app.js"></script>
+</body>
+</html>

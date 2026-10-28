@@ -820,3 +820,24 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   `gh-pages` with the job's `GITHUB_TOKEN` (`contents: write` on that job only). The README badge
   reads `https://bardlaudian.github.io/ghostrules/corpus/badge.json`, which needs GitHub Pages
   enabled on `gh-pages`.
+
+## v0.3 Phase 4 — web playground
+
+- **Core without typer/rich:** `reveal.py` and `reporters/context.py` mixed data and `rich` drawing.
+  The data moved to `reveal_data.py` and `reporters/context_data.py` (the old modules re-export), so
+  the core imports without `typer`/`rich` (tested in a subprocess with them blocked). The wheel
+  installs in Pyodide 0.27.7 with `micropip.install(..., deps=False)`; no in-memory filesystem
+  adapter was needed (Pyodide's emulated FS is enough).
+- **Bridge:** `ghostrules.playground` takes `{path: text}`, writes it to a temporary directory,
+  scans it and returns plain data (findings, per-agent context tree, revealed lines, JSON/Markdown/
+  SARIF reports). Paths with `..`, absolute paths and NULs are refused; limits are 5 MB and 500 files.
+- **Folder and GitHub loading:** the page lists paths first, asks Python which are agent files
+  (`agent_paths`, the target globs plus `.claude/rules/**/*.md`) and reads only those, then follows
+  `@imports` (relative to the importing file, up to 6 rounds, `imported_paths`). Files over 1 MB are
+  skipped.
+- **Rendering:** all file content is inserted with `textContent`, never as HTML. "What you see"
+  drops invisible characters and HTML comments; "What the agent reads" shows them as tokens.
+- **Deploy:** `pages.yml` (release tags and manual) builds the site with `scripts/build_site.py`,
+  runs the Playwright smoke test (`tests/web`, skipped when playwright is missing, GitHub calls
+  mocked) and deploys with SHA-pinned official actions. The demo's hidden text is generated in JS,
+  so no invisible characters are stored in the repository.

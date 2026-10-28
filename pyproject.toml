@@ -39,6 +39,7 @@ dev = [
     "pyyaml>=6",
     "hatchling",
 ]
+web-test = ["playwright>=1.45"]
 
 [project.urls]
 Homepage = "https://github.com/BardLaudian/ghostrules"

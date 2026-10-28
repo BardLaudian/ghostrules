@@ -311,7 +311,13 @@ def test_pre_commit_hook() -> None:
 
 
 def test_expected_workflows_exist() -> None:
-    assert {p.name for p in WORKFLOWS} == {"ci.yml", "self-test.yml", "release.yml", "corpus.yml"}
+    assert {p.name for p in WORKFLOWS} == {
+        "ci.yml",
+        "self-test.yml",
+        "release.yml",
+        "corpus.yml",
+        "pages.yml",
+    }
 
 
 def test_ci_runs_lint_tests_and_the_demo_smoke_test() -> None:
