@@ -1,5 +1,6 @@
 """The core must import and work without typer/rich: the browser playground runs it in Pyodide."""
 
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -32,12 +33,17 @@ for module in sys.argv[1:]:
 """
 
 
+def _system_env() -> dict[str, str]:
+    """Windows cannot start Python without SYSTEMROOT; nothing else is passed through."""
+    return {k: os.environ[k] for k in ("SYSTEMROOT",) if k in os.environ}
+
+
 @pytest.mark.parametrize("module", CORE)
 def test_core_module_imports_without_typer_or_rich(module: str) -> None:
     src = str(Path(__file__).resolve().parent.parent / "src")
     proc = subprocess.run(
         [sys.executable, "-c", SCRIPT, module],
-        env={"PYTHONPATH": src, "PATH": ""},
+        env={"PYTHONPATH": src, "PATH": "", **_system_env()},
         capture_output=True,
         text=True,
         timeout=60,
