@@ -221,7 +221,7 @@ def test_sarif_rules_come_from_the_registry(poisoned_result: ScanResult) -> None
     gr001 = next(r for r in driver["rules"] if r["id"] == "GR001")
     assert gr001["shortDescription"]["text"]
     assert gr001["fullDescription"]["text"]
-    assert gr001["helpUri"] == f"{PROJECT_URL}#gr001"
+    assert gr001["helpUri"] == f"{PROJECT_URL}/blob/main/docs/RULES.md#gr001"
     assert gr001["defaultConfiguration"]["level"] == "error"
     assert gr001["properties"]["security-severity"] == "9.5"
     assert run["columnKind"] == "unicodeCodePoints"

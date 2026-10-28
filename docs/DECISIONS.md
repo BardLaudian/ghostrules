@@ -899,3 +899,18 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   next to the v0.1.1 and v0.2 ones. This supersedes the F5 note that left `docs/v0.3/` uncommitted.
   The session hand-off note (`HANDOFF.md`) was dropped: it was tied to one working session.
   `docs/v0.2.1/FIXES.md` stays uncommitted because it quotes lines of public repositories.
+
+## README restructure
+
+- **README is a landing page** (under 200 lines, absolute URLs because PyPI renders it outside
+  GitHub): banner (`<picture>`, light and dark PNG from `assets/`), tagline, badges, imports GIF,
+  one line of study numbers, install and run, why, `context`, hidden Unicode, `lock`, Action and
+  pre-commit, precision and study, documentation links.
+- **Moved, not dropped:** option tables, exit codes, `context`/`lock` detail, Action inputs, supported
+  files, configuration, FAQ, limits and roadmap are in `docs/USAGE.md`; the README links each one.
+- **The rules table lives only in `docs/RULES.md`** (between the `rules-table` markers, a "Rule
+  index" section). `scripts/gen_rules_table.py` writes and checks it there, a test fails on drift,
+  and the SARIF `helpUri` is now `PROJECT_URL/blob/main/docs/RULES.md#gr001` (the `#gr001` anchors
+  moved with the table). Findings already uploaded to code scanning keep the old README link.
+- **Tagline in `CLAUDE.md`** follows the README, so `.ghostrules.lock` was regenerated.
+

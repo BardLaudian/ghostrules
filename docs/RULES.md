@@ -6,6 +6,51 @@ Patterns are case-insensitive unless noted. Keep false positives low: a noisy sc
 
 ---
 
+## Rule index
+
+Rules `GR00x`–`GR01x` look at the content of instruction files; `GR02x` look at `@path` imports
+and symbolic links in the context the agents build; `GR1xx` look at MCP and agent configuration. The full logic of each rule, with true and false positive examples, follows the index. Severity is the typical
+one: several rules escalate or relax with context (for example GR010 inside a code block is `low`).
+Text revealed by GR001, GR004 or GR015 is re-scanned by GR010–GR016 and reported with one level more
+severity.
+
+\* With `--all-files`: GR001–GR004 check every text file, GR005 every Markdown file and GR006
+the URLs in any file.
+
+<!-- rules-table:start -->
+| ID | Severity | Checks | What it finds |
+|---|---|---|---|
+| <a id="gr001"></a>`GR001` | critical | instructions, config, any file* | **Unicode tag characters (ASCII smuggling).** Characters in U+E0000-U+E007F render as nothing but spell ASCII text that models read. |
+| <a id="gr002"></a>`GR002` | high | instructions, config, any file* | **Bidirectional control characters (Trojan Source).** Bidi controls reorder how text is displayed, so what you read differs from what is parsed. |
+| <a id="gr003"></a>`GR003` | medium | instructions, config, any file* | **Zero-width / invisible formatting characters.** Zero-width characters are invisible and can encode hidden data or split keywords. |
+| <a id="gr004"></a>`GR004` | high | instructions, config, any file* | **Variation-selector steganography.** Runs of variation selectors can hide arbitrary bytes behind a single visible character. |
+| <a id="gr005"></a>`GR005` | medium | instructions, any file* | **Hidden HTML comment with instructions.** HTML comments are invisible when Markdown is rendered but are read by AI agents. |
+| <a id="gr006"></a>`GR006` | low | instructions, config, any file* | **Mixed-script homoglyph word.** Latin words with Cyrillic/Greek lookalikes disguise keywords and domains. |
+| <a id="gr010"></a>`GR010` | high | instructions | **Instruction override.** Text telling the agent to ignore, forget or override its previous or system instructions. |
+| <a id="gr011"></a>`GR011` | high | instructions | **Concealment from the user.** Text telling the agent to hide what it does from the user. |
+| <a id="gr012"></a>`GR012` | critical | instructions | **Remote code execution pattern.** Commands that download and execute remote code (curl \| sh, iex, encoded PowerShell...); severity depends on the source and context. |
+| <a id="gr013"></a>`GR013` | critical | instructions | **Data exfiltration.** Instructions to send secrets to a URL, markdown-image exfiltration, collector domains. |
+| <a id="gr014"></a>`GR014` | high | instructions | **Sensitive file access.** Instructions to read, print or send credentials files (~/.ssh, .env, .npmrc...). |
+| <a id="gr015"></a>`GR015` | medium | instructions | **Encoded payload.** Long base64 or hex strings in instruction files, which hide their content from reviewers. |
+| <a id="gr016"></a>`GR016` | high | instructions | **Agent safety bypass.** Instructions to skip permission prompts, disable sandboxes or auto-approve everything. |
+| <a id="gr020"></a>`GR020` | high | instructions | **External import.** An @path import that resolves outside the repository (absolute, ~/ or ../ above the root). |
+| <a id="gr021"></a>`GR021` | critical | instructions | **Sensitive file imported into context.** An @path import of a secrets or credentials file (.env, ~/.ssh/*, .npmrc, *.pem...). |
+| <a id="gr022"></a>`GR022` | low | instructions | **Import that silently does not load.** An @path the agent ignores: missing file, too deep, quoted path or a path cut at a space. |
+| <a id="gr023"></a>`GR023` | info | instructions | **Import cycle.** Files that import each other in a loop. Agents stop at the depth limit; it is only noise. |
+| <a id="gr024"></a>`GR024` | info | instructions | **Payload reached only through an import.** Not a detector: findings in a file that only an @import reaches carry the import chain and the tag reached-via-import. Disabling it stops ghostrules from following imports. |
+| <a id="gr025"></a>`GR025` | high | instructions | **Symlinked instruction source.** An instruction file or rules directory that is a symlink the agent would follow out of the repository, a broken or cyclic one, or a symlink checked out as a text file. A link whose target is a file inside the repository is an alias and is not reported. |
+| <a id="gr101"></a>`GR101` | critical | config | **Hardcoded secret in agent config.** API keys and tokens written into MCP server env/args/headers/URLs or agent settings env. |
+| <a id="gr102"></a>`GR102` | medium | config | **Unpinned package execution.** MCP servers launched with npx/uvx/etc. without an exact version run whatever is latest. |
+| <a id="gr103"></a>`GR103` | high | config | **Insecure remote MCP transport.** Remote MCP servers reached over plain http:// expose traffic and credentials. |
+| <a id="gr104"></a>`GR104` | medium | config | **Overly broad filesystem scope.** Filesystem MCP servers given the whole disk or the whole home directory. |
+| <a id="gr105"></a>`GR105` | high | config | **Shell wrapper in server command.** MCP servers started through a shell command string can run arbitrary commands. |
+| <a id="gr106"></a>`GR106` | high | config | **Dangerous Docker options.** Docker-based MCP servers started with options that break container isolation. |
+| <a id="gr107"></a>`GR107` | high | config | **Over-permissive agent settings.** Agent settings that skip permission prompts, allow unrestricted tools, or run risky hooks. |
+| <a id="gr108"></a>`GR108` | medium | config | **Auto-enabled project MCP servers.** Settings that start MCP servers from a cloned repository without review. |
+<!-- rules-table:end -->
+
+---
+
 ## Hidden / invisible content
 
 ### GR001 — Unicode tag characters (critical)

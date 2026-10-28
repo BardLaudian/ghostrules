@@ -55,7 +55,7 @@ pull request.
 
 3. **Document it.** Describe the rule in `docs/RULES.md` (ID, severity, logic, true and false
    positive examples), note any judgement call in `docs/DECISIONS.md`, add a line to
-   `CHANGELOG.md`, then refresh the README table:
+   `CHANGELOG.md`, then refresh the rule index in `docs/RULES.md`:
 
    ```bash
    python scripts/make_demo.py
