@@ -132,7 +132,8 @@ def analyze(records: list[dict[str, Any]], out: Path) -> dict[str, Any]:
     strata = Counter(f["tier"] for f in feats)
     write_csv(out / "sample.csv", ["tier", "repos"], sorted(strata.items()))
 
-    mcp = sum(1 for f in feats if "mcp" in f["families"])
+    # A repository has an MCP config when it has an mcp file or a rule about one fired.
+    mcp = sum(1 for f in feats if "mcp" in f["families"] or f["risk"]["mcp"])
     unpinned = sum(1 for f in feats if "GR102" in f["rules"])
     return {
         "repos_scanned": n,

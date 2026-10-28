@@ -131,8 +131,10 @@ def gr011_concealment(target: ScanTarget) -> Iterator[Finding]:
     """Instructions to act without telling, showing or asking the user. High for an instruction,
     medium when the text describes something, low for an example or a quotation."""
     for span in _spans(target, INJECTION_PATTERNS["GR011"]):
-        if _negated_before(target.text, span[0]):
+        if _prohibited_in_clause(target.text, span[0]):
             continue  # "Never silently add scope": the sentence forbids it
+        if _MODAL_BEFORE.search(target.text[max(0, span[0] - 12) : span[0]]):
+            continue  # "operations either silently run on CPU": a description, not an order
         kind = classify(target, span)
         yield _finding(
             target,
@@ -276,6 +278,13 @@ def _loopback(host: str) -> bool:
         return False
 
 
+_RESTRICTION = re.compile(
+    r"\b(?:only|solely|exclusively)\s+to\s+the\s+"
+    r"(?:fixed|official|configured|documented|expected|intended|trusted|same)\b",
+    re.IGNORECASE,
+)
+
+
 def _forbids_or_local(target: ScanTarget, span: tuple[int, int], text: str) -> bool:
     """Not an exfiltration instruction: the sentence forbids it ("Never send credentials to ..."),
     or every URL in it is on this machine (``curl -X POST http://127.0.0.1:8080``)."""
@@ -323,6 +332,8 @@ def gr013_exfiltration(target: ScanTarget) -> Iterator[Finding]:
             continue
         exfil.append(span)
         kind = classify(target, span)
+        if kind == "directive" and _RESTRICTION.search(text):
+            kind = "descriptive"  # "send the API key only to the fixed origin" limits where it goes
         yield _finding(
             target,
             "GR013",
@@ -368,6 +379,40 @@ def _negated_before(text: str, start: int) -> bool:
     """Whether a prohibition ("Never", "Don't", "rather than") governs the text at ``start``;
     emphasis marks are ignored (``**Don't commit** .env``)."""
     return bool(_NEGATION_BEFORE.search(_EMPHASIS.sub("", text[max(0, start - 40) : start])))
+
+
+_CLAUSE_END = re.compile(r"[.;:!?\n]")
+_PROHIBITION = re.compile(
+    r"(?:never|do\s+not|don'?t|must\s+not|should\s+not|shouldn'?t|mustn'?t|avoid|nunca|evita"
+    r"|rather\s+than|instead\s+of)\s+(?:[a-z']+\s+){0,8}$",
+    re.IGNORECASE,
+)
+
+
+def _prohibited_in_clause(text: str, start: int) -> bool:
+    """Whether a prohibition governs ``start`` somewhere earlier in the same clause (up to eight
+    words back, not across ``. ; : ! ?`` or a line break): "Do not post a test event without
+    telling the user", "Never claim success or silently add it"."""
+    before = _EMPHASIS.sub("", text[max(0, start - 90) : start])
+    ends = list(_CLAUSE_END.finditer(before))
+    clause = before[ends[-1].end() :] if ends else before
+    return bool(_PROHIBITION.search(clause))
+
+
+# "silently run on CPU": a modal or "either" before it makes the sentence a description.
+_MODAL_BEFORE = re.compile(
+    r"\b(?:would|will|may|might|can|could|either|often|which|that)\s+$", re.IGNORECASE
+)
+
+# "- **`--yolo` (alias `--dangerously-skip-permissions`):** every tool is allowed": a list item
+# that opens with a flag documents it, aliases included.
+_FLAG_ITEM = re.compile(r"^[ \t]*(?:[-*+]|\d+[.)])[ \t]+[*_`]*--?[A-Za-z][\w-]*")
+
+
+def _documents_flag(text: str, start: int) -> bool:
+    line_start = text.rfind("\n", 0, start) + 1
+    line_end = text.find("\n", start)
+    return bool(_FLAG_ITEM.match(text[line_start : line_end if line_end >= 0 else len(text)]))
 
 
 # "Copy .env.example to .env.local": the sensitive path is the destination, not what is read.
@@ -482,8 +527,12 @@ def gr016_safety_bypass(target: ScanTarget) -> Iterator[Finding]:
     """Flags that or instructions which switch off the agent's safety checks. High for an
     instruction, medium when prose documents that something runs that way, low for an example."""
     for span in _spans(target, INJECTION_PATTERNS["GR016"]):
+        if _prohibited_in_clause(target.text, span[0]):
+            continue  # "Avoid --yolo", "Do not disable the sandbox"
         kind = classify(target, span)
-        if kind == "directive" and _in_table_row(target.text, span[0]):
+        if kind == "directive" and (
+            _in_table_row(target.text, span[0]) or _documents_flag(target.text, span[0])
+        ):
             kind = "descriptive"  # "| --yolo | disables all prompts |" documents a flag
         yield _finding(
             target,
