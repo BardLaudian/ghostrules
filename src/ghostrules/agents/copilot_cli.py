@@ -1,6 +1,6 @@
 """GitHub Copilot CLI: repository and agent files, path-specific instructions and ``@`` references.
 
-Source of truth: ``docs/v0.2/AGENT_MODELS.md`` (section copilot-cli), from GitHub Docs "Adding
+Source of truth: ``docs/AGENT_MODELS.md`` (section copilot-cli), from GitHub Docs "Adding
 custom instructions for GitHub Copilot CLI". Several details are undocumented (the base of relative
 imports, the depth limit, code-span handling, comment stripping) and are modelled conservatively:
 imported entries are marked unverified.

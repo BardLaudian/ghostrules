@@ -180,7 +180,7 @@ cloned repo's `.mcp.json` would start servers without review.
 ## Import graph (0.2)
 
 Agents build their context by following `@path` imports, so these rules look at every modelled
-agent's context (`docs/v0.2/AGENT_MODELS.md`), not only at a fixed list of files. Findings sit on the
+agent's context (`docs/AGENT_MODELS.md`), not only at a fixed list of files. Findings sit on the
 importing line, and nothing an import points at outside the repository is ever read. Files an
 import reaches are scanned as instruction files and their findings carry the chain
 (`via CLAUDE.md:12 → docs/style.md:3`) and the agents that load them. An `ghostrules-ignore` marker

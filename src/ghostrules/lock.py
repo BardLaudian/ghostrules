@@ -26,7 +26,8 @@ from ghostrules import __version__
 from ghostrules.agents import ContextEntry, Repo, get_model
 from ghostrules.agents.claude_code import DEFAULT_MODE
 from ghostrules.config import Config
-from ghostrules.targets import discover, matches_any
+from ghostrules.contextscan import is_excluded
+from ghostrules.targets import discover
 
 LOCK_VERSION = 1
 LOCK_FILENAME = ".ghostrules.lock"
@@ -139,7 +140,7 @@ def build_snapshot(
         graph = get_model(name, instructions_mode=instructions_mode).build(repo, cwd="", home=None)
         records = []
         for entry in graph.entries:
-            if matches_any(entry.path, config.exclude):
+            if is_excluded(entry, config.exclude):
                 continue
             record = _record(entry)
             records.append(record)

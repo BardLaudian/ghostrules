@@ -28,7 +28,7 @@ agent-skill-lock, hardpoint's trust/verify). ghostrules' difference is that its 
 ## 2. Non-goals
 - Still no network, no execution, no LLM. `context` and `lock` are pure local file analysis.
 - Do not emulate undocumented agent behaviour. Every loading rule must come from
-  `docs/v0.2/AGENT_MODELS.md`, which cites its source. Unknown behaviour is shown as such.
+  `docs/AGENT_MODELS.md`, which cites its source. Unknown behaviour is shown as such.
 
 ## 3. Concepts
 

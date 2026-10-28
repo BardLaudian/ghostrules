@@ -11,7 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ghostrules.agents import ContextGraph, Repo, get_model
+from ghostrules.agents import ContextEntry, ContextGraph, Repo, get_model
 from ghostrules.config import Config
 from ghostrules.models import AgentView
 from ghostrules.targets import matches_any
@@ -77,7 +77,7 @@ def collect_meta(contexts: list[RootContext], config: Config) -> dict[str, FileM
             for entry in graph.entries:
                 if not entry.readable or not rc.in_scope(entry.path, entry.via):
                     continue
-                if not entry.path.startswith("~/") and matches_any(entry.path, config.exclude):
+                if is_excluded(entry, config.exclude):
                     continue
                 label = rc.label_of(entry.path)
                 item = meta.setdefault(label, FileMeta(rc.abs_path(entry.path), entry.path))
@@ -99,6 +99,18 @@ def collect_meta(contexts: list[RootContext], config: Config) -> dict[str, FileM
                 else:
                     item.rooted = True
     return meta
+
+
+def is_excluded(entry: ContextEntry, exclude: tuple[str, ...]) -> bool:
+    """Whether the user excluded this file, or a file whose import chain leads to it.
+
+    A file that only an excluded file imports is not part of the context being checked either.
+    User-level files (``~/``) are never excluded.
+    """
+    if not exclude or entry.path.startswith("~/"):
+        return False
+    chain = [step.rsplit(":", 1)[0] for step in entry.via]
+    return any(matches_any(path, exclude) for path in (entry.path, *chain))
 
 
 def relabel_via(via: str, label_of: Callable[[str], str]) -> str:

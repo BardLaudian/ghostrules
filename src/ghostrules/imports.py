@@ -1,7 +1,7 @@
 """Find ``@path`` imports in instruction files, following Claude Code's documented rules.
 
 This only *finds* the tokens. Whether a token resolves to a file, how deep the chain goes and
-which agents honour it is the context engine's job (``docs/v0.2/AGENT_MODELS.md``).
+which agents honour it is the context engine's job (``docs/AGENT_MODELS.md``).
 
 Documented: an import is not parsed inside code spans or fenced code blocks; the path ends at the
 first unescaped space (``\\ `` escapes one); a path wrapped in quotes is not imported. The rest is

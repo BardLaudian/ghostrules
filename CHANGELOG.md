@@ -5,6 +5,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-28
+
+Know exactly what your agent reads: `ghostrules` now models how each agent loads its instructions,
+scans exactly that, shows it, and pins it.
+
 ### Added
 - GitHub Action inputs `follow-imports` (default `true`) and `lock-check` (default `false`). With
   `lock-check` the action runs `ghostrules lock --check`, puts the differences in the job summary
@@ -36,6 +41,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   discovery globs do not list them. New config keys `follow_imports` and `agents`.
 - JSON findings gain optional `via`, `agents` and `tags`; SARIF results gain `relatedLocations` for
   the chain and `properties.agents`/`tags`; the table and Markdown reports show the chain.
+
+- `docs/AGENT_MODELS.md`: how each agent loads its instructions, with the documentation it is based on
+  and what is still unverified; `CONTRIBUTING.md` explains how to add a model.
+- `ghostrules` locks its own `CLAUDE.md` (`.ghostrules.lock`), checked in CI.
 
 ### Changed
 - GR005 is agent-aware: it says which agents see a hidden comment. Claude Code strips block-level

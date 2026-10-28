@@ -334,7 +334,7 @@ Newest at the bottom of each section. "Phase N" says when the decision takes eff
 ## v0.2 Phase 0 — agent models and prior art (checked 2026-10-28)
 
 ### Agent models re-checked against the official docs
-Details and quotes are in `docs/v0.2/AGENT_MODELS.md` (changes marked `[0-28]`). Pages were read
+Details and quotes are in `docs/AGENT_MODELS.md` (changes marked `[0-28]`). Pages were read
 through a summarising fetch tool, so re-read a page before relying on a detail that sets a severity.
 
 - **claude-code:** the draft was right on load order, AGENTS.md precedence, imports and HTML-comment
@@ -600,3 +600,28 @@ New: `globs.py` and the `agents/` package (`repo`, `base`, `claude_code`, `copil
 - **Tests edited.** `test_action_inputs_follow_the_spec` (two new inputs), the step-order test (one
   new step) and `test_self_test_runs_the_local_action_on_the_demos` (looks at the `action` job, not
   every job). Everything else from 0.1 is unchanged.
+
+## v0.2 Phase 7 — docs and release preparation
+
+- **README.** New tagline first (the 0.1 one stays as the subtitle), two new sections between
+  "What it catches" and "Install" ("What your agents actually read", "Review every change to what your
+  agents read"), the Action table and snippet with `follow-imports` and `lock-check`, FAQ entries for
+  the agent-aware GR005, for what the lock does not do and for external imports, new Limits and
+  Roadmap lines. The `context` tree and the `lock --check` output in the README are checked against
+  the real output by a test. The hero GIF is still the 0.1 one: the two new tapes have not been
+  recorded (no vhs here), and the README does not embed GIFs that do not exist.
+- **`docs/AGENT_MODELS.md`** moved out of `docs/v0.2/` (the plan links it from the README); the other
+  v0.2 design documents stay in `docs/v0.2/`. Code and docs reference the new path.
+- **Correction to Phase 3.** The note said `examples/import-chain-repo` would cover GR020-GR025. It
+  covers GR001 plus its re-scan findings, GR020 and GR021; GR022, GR023 and GR025 are tested in
+  `tests/test_scan_imports.py` (a portable demo cannot hold a symlink, and a cycle there would clutter
+  the story).
+- **`exclude` cascades through imports.** Found by locking this repository: its own `exclude` hides
+  `examples/**`, but the external import of the demo (`/opt/acme/tooling.md`) is not under
+  `examples/` and leaked into the lock. A file now counts as excluded if any file in its import chain
+  is, in `lock` and in `scan`. User-level files (`~/`) are never excluded.
+- **Dogfooding.** `.ghostrules.lock` is committed (it holds `CLAUDE.md` for Claude Code and Copilot
+  CLI), CI runs `ghostrules lock --check` next to the self-scan, and a test does the same. Editing
+  `CLAUDE.md` now needs `ghostrules lock --update` in the same commit, which is the point.
+- **Version.** `0.2.0`; README snippets say `v0.2.0` (the tag does not exist yet: the maintainer tags
+  after merging).
