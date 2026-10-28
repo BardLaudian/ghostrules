@@ -122,3 +122,17 @@ def test_label_classes_labels_by_class_without_naming_repos() -> None:
     }
     assert [f["rule_id"] for f in unmatched] == ["GR999"]  # low severity is ignored, not unmatched
     assert all(lb.repo == "" for lb in labels) and sum(counts.values()) == 3
+
+
+def test_committed_report_is_what_the_csvs_produce() -> None:
+    import report
+
+    data = ROOT / "study" / "data"
+    assert (ROOT / "study" / "report.md").read_text(encoding="utf-8") == report.render(data)
+
+
+def test_committed_csvs_name_no_repository_or_path() -> None:
+    text = "".join(p.read_text(encoding="utf-8") for p in (ROOT / "study" / "data").glob("*.csv"))
+    labels = (ROOT / "study" / "labels.toml").read_text(encoding="utf-8")
+    for needle in ("github.com", "SKILL.md/", ".md:", "repo ="):
+        assert needle not in text and needle not in labels

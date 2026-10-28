@@ -100,20 +100,27 @@ def analyze(
         ["metric", "repos", "pct_of_repos"],
         [
             ["uses_at_imports", len(importers), pct(len(importers), n)],
-            ["imports_a_non_agent_file", sum(1 for f in feats if f["imported_non_agent_files"]),
-             pct(sum(1 for f in feats if f["imported_non_agent_files"]), n)],
+            [
+                "imports_a_non_agent_file",
+                sum(1 for f in feats if f["imported_non_agent_files"]),
+                pct(sum(1 for f in feats if f["imported_non_agent_files"]), n),
+            ],
             *[[f"max_depth_{d}", c, pct(c, len(importers))] for d, c in sorted(depth.items())],
         ],
-    )  # fmt: skip
+    )
     entries = sum(f["entries"] for f in feats)
     cond = sum(f["conditional_entries"] for f in feats)
     cond_repos = sum(1 for f in feats if f["conditional_entries"])
     write_csv(
         out / "conditional_rules.csv",
         ["metric", "value"],
-        [["repos_with_conditional_entries", cond_repos], ["pct_of_repos", pct(cond_repos, n)],
-         ["conditional_entries", cond], ["pct_of_entries", pct(cond, entries)]],
-    )  # fmt: skip
+        [
+            ["repos_with_conditional_entries", cond_repos],
+            ["pct_of_repos", pct(cond_repos, n)],
+            ["conditional_entries", cond],
+            ["pct_of_entries", pct(cond, entries)],
+        ],
+    )
     rule_repos: Counter[str] = Counter()
     rule_findings: Counter[tuple[str, str]] = Counter()
     for r in ok:
@@ -124,9 +131,11 @@ def analyze(
     write_csv(
         out / "findings_by_rule.csv",
         ["rule", "severity", "findings", "repos_with_rule", "pct_of_repos"],
-        [[rule, sev, c, rule_repos[rule], pct(rule_repos[rule], n)]
-         for (rule, sev), c in sorted(rule_findings.items())],
-    )  # fmt: skip
+        [
+            [rule, sev, c, rule_repos[rule], pct(rule_repos[rule], n)]
+            for (rule, sev), c in sorted(rule_findings.items())
+        ],
+    )
     if labels is not None:
         counts: dict[str, Counter[str]] = {}
         for r in ok:
@@ -140,9 +149,11 @@ def analyze(
         write_csv(
             out / "precision_by_rule.csv",
             ["rule", "findings_medium_plus", "tp", "wontfix", "fp", "unlabelled"],
-            [[rule, sum(c.values()), c["tp"], c["wontfix"], c["fp"], c["unlabelled"]]
-             for rule, c in sorted(counts.items())],
-        )  # fmt: skip
+            [
+                [rule, sum(c.values()), c["tp"], c["wontfix"], c["fp"], c["unlabelled"]]
+                for rule, c in sorted(counts.items())
+            ],
+        )
     risk = {k: sum(1 for f in feats if f["risk"][k]) for k in RISK_RULES}
     write_csv(
         out / "risk_indicators.csv",
@@ -153,8 +164,69 @@ def analyze(
     write_csv(out / "sample.csv", ["tier", "repos"], sorted(strata.items()))
 
     # A repository has an MCP config when it has an mcp file or a rule about one fired.
+    skill_counts = sorted((f["family_files"].get("skills", 0) for f in feats), reverse=True)
+    skill_total = sum(skill_counts)
+    skill_repos = [c for c in skill_counts if c]
+    write_csv(
+        out / "skills_concentration.csv",
+        ["metric", "value"],
+        [
+            ["repos_with_skills", len(skill_repos)],
+            ["skill_files", skill_total],
+            [
+                "median_skill_files_per_repo",
+                sorted(skill_repos)[len(skill_repos) // 2] if skill_repos else 0,
+            ],
+            ["top1_repo_pct_of_files", pct(sum(skill_counts[:1]), skill_total)],
+            ["top3_repos_pct_of_files", pct(sum(skill_counts[:3]), skill_total)],
+            ["top10_repos_pct_of_files", pct(sum(skill_counts[:10]), skill_total)],
+        ],
+    )
     mcp = sum(1 for f in feats if "mcp" in f["families"] or f["risk"]["mcp"])
     unpinned = sum(1 for f in feats if "GR102" in f["rules"])
+    multi = sum(f["multi_tool"] for f in feats)
+    over = sum(f["claude_over_limit"] for f in claude_repos)
+    html = sum(f["claude_html_comments"] for f in claude_repos)
+    non_agent = sum(1 for f in feats if f["imported_non_agent_files"])
+    silent = sum("GR022" in f["rules"] for f in feats)
+    numbers = [
+        ("multi_tool", "repos targeting two or more tools", multi, n),
+        (
+            "claude_md_over_200",
+            "repos whose root CLAUDE.md has more than 200 lines",
+            over,
+            len(claude_repos),
+        ),
+        ("at_imports", "repos using @ imports", len(importers), n),
+        ("non_agent_import", "repos importing a file that is not an agent file", non_agent, n),
+        ("conditional_rules", "repos with conditional rules (paths/globs)", cond_repos, n),
+        (
+            "claude_html_comments",
+            "repos whose CLAUDE.md has HTML comments Claude strips",
+            html,
+            len(claude_repos),
+        ),
+        ("unloaded_import", "repos with an import that silently does not load (GR022)", silent, n),
+        (
+            "mcp_unpinned",
+            "repos with an MCP config that runs an unpinned package (GR102)",
+            unpinned,
+            mcp,
+        ),
+        (
+            "risky_settings",
+            "repos with over-permissive agent settings (GR107/GR108)",
+            risk["settings"],
+            n,
+        ),
+        ("hidden_unicode", "repos with hidden Unicode (GR001-GR004)", risk["hidden_unicode"], n),
+        ("secrets", "repos with a hardcoded-secret finding (GR101)", risk["secrets"], n),
+    ]
+    write_csv(
+        out / "numbers.csv",
+        ["id", "metric", "repos", "of", "pct"],
+        [[i, m, a, b, pct(a, b)] for i, m, a, b in numbers],
+    )
     return {
         "repos_scanned": n,
         "repos_failed": len(records) - n,

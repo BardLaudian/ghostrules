@@ -31,6 +31,20 @@ FAMILIES: tuple[tuple[str, str], ...] = (
 # Families that are instructions for one tool (AGENTS.md is the shared, tool-neutral one).
 TOOLS = ("agents_md", "claude", "gemini", "cursor", "copilot", "windsurf", "cline")
 INSTRUCTION_FAMILIES = ("agents_md", "claude", "gemini", "cursor", "copilot", "windsurf", "cline")
+FAMILY_NAMES = {
+    "agents_md": "AGENTS.md",
+    "skills": "Skills (SKILL.md)",
+    "claude": "CLAUDE.md",
+    "copilot": "GitHub Copilot",
+    "claude_dir": ".claude/ (commands, agents, rules)",
+    "settings": ".claude/settings*.json",
+    "mcp": "MCP config",
+    "cursor": "Cursor rules",
+    "other": "Other agent files",
+    "gemini": "GEMINI.md",
+    "windsurf": "Windsurf",
+    "cline": "Cline / Roo",
+}
 CLAUDE_LINE_LIMIT = 200
 RISK_RULES = {
     "mcp": ("GR102", "GR103", "GR104", "GR105", "GR106"),

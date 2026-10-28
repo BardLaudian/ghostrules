@@ -1,0 +1,5 @@
+tier,run,repos,findings,critical,high,medium
+regression,first run,300,323,84,156,
+regression,after precision fixes,300,212,0,53,37
+study,first run,1283,1072,13,296,194
+study,after precision fixes,1283,945,12,252,119
