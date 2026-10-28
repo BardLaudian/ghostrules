@@ -23,6 +23,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
+import filestats
 from common import (
     CORPUS_DIR,
     STORE_DECODED_FOR,
@@ -82,6 +83,17 @@ def summarize_context(context: dict[str, Any]) -> dict[str, Any]:
         entries = model.get("entries") or []
         agents[name] = {
             "loads": dict(Counter(str(e.get("load", "")) for e in entries)),
+            "entries": [
+                {
+                    "path": safe_text(str(e.get("path", ""))),
+                    "load": str(e.get("load", "")),
+                    "depth": len(e.get("via") or []),
+                    "conditional": bool(e.get("condition")),
+                    "transforms": [str(t) for t in e.get("transforms") or []],
+                    "readable": bool(e.get("readable")),
+                }
+                for e in entries
+            ],
             "imported": sum(1 for e in entries if e.get("via")),
             "edges": len(model.get("edges") or []),
             "cycles": len(model.get("cycles") or []),
@@ -155,6 +167,8 @@ def process_repo(
         result["scanned_files"] = scan_data.get("scanned_files", 0)
         result["findings"] = [sanitize_finding(name, f) for f in scan_data.get("findings", [])]
         result["context"] = summarize_context(ctx_data)
+        context_paths = {e["path"] for a in result["context"].values() for e in a["entries"]}
+        result["files"] = filestats.collect(clone, context_paths)
         return result
     finally:
         result["seconds"] = round(time.monotonic() - started, 2)

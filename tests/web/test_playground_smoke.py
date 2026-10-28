@@ -80,7 +80,7 @@ def test_demo_scan_shows_the_hidden_instruction(page: Page) -> None:
 def test_folder_demo_shows_the_import_chain(page: Page) -> None:
     page.click("#tab-folder")
     page.click("#demo-folder")
-    page.wait_for_selector(".tree details")
+    page.wait_for_function("document.getElementById('status').textContent.includes('Import-chain')")
     text = page.inner_text("#results")
     assert "CLAUDE.md:3 → docs/style.md:5" in text
     assert "docs/extra.md" in page.inner_text(".tree")
