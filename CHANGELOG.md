@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- `ghostrules lock`: writes `.ghostrules.lock`, a deterministic record (sorted keys, no timestamps,
+  CRLF-normalised hashes) of every file in each modelled agent's context, how it is reached, and
+  the text the agent actually receives, plus a hash of every MCP and agent settings file.
+  `lock --check` recomputes it and shows what changed (added, changed, removed, and changes that
+  only touch text an agent strips), with invisible characters revealed; exit 0 up to date, 1
+  changed, 2 error. `--format text|markdown|json`, `--update`, `--lockfile`; config key `lockfile`.
 - `ghostrules context [TARGET]`: shows what an agent reads when it works on a file (the files it
   loads at session start, the rules its `paths`/`globs` select, the directories that load on
   demand, the imports it follows and the files it skips, with the reason) and scans exactly that.

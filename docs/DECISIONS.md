@@ -529,3 +529,37 @@ New: `globs.py` and the `agents/` package (`repo`, `base`, `claude_code`, `copil
   characters revealed (the `reveal` view); Markdown wraps it in `<details>`.
 - **Exit codes** as `scan`: 1 when a finding in the displayed context reaches `--fail-on`
   (default `high`), 2 on bad arguments or a failed scan, 0 otherwise. `--no-scan` never fails.
+
+## v0.2 Phase 5 — `ghostrules lock`
+
+- **Where the old text comes from.** The lock must show *which lines are new* (with invisible
+  characters revealed, which a pull-request diff cannot do) but must not keep the text. Each entry
+  therefore stores `lines`: one 64-bit hash per line of the seen text, space separated on a single
+  JSON line. A check aligns those with the current lines (`difflib`) and prints the lines that are
+  new, with their number in the original file (comment stripping is mapped back); removed lines
+  are only counted ("1 line removed (was line 3 of the locked text)"). Alternatives rejected:
+  storing the text (bloats and duplicates the repo), asking git for the old blob (needs history
+  and a ref, shells out). Cost: about 17 bytes per line; files over 5,000 lines have no `lines`
+  and are reported as "too large to compare line by line". The file-level hashes, not the line
+  hashes, decide whether something changed: a line-hash collision could only hide a line from the
+  display, never a change.
+- **`via` in the lock is a list of paths**, not `path:line`. Adding a line above an import would
+  otherwise change the identity of every file below it. The check prints the current lines.
+- **What is recorded.** For each agent of the config: every entry of the context at the root
+  (session start, conditional and on-demand files, imports), including entries ghostrules does not
+  read (symlinks, external or sensitive imports, files the agent skips), with `null` hashes. That way
+  "AGENTS.md was skipped and now loads" and "an import of `.env` appeared" are changes. Files in
+  `exclude` are left out; user-level files (`--home`) are not in the lock. `conditions` is the
+  `paths`/`globs` text. Notes, `unverified` and reasons are not stored, so improving a model's
+  wording never invalidates a lock.
+- **Comparison.** Per agent and per `(path, via)`: added, removed, changed (seen text, load state or
+  condition differ) or hidden (the file differs but the text the agent receives does not, e.g. a
+  comment Claude Code strips). Agents affected in the same way are merged into one row; if some
+  agents see a change and others do not, the file appears in both sections. A lock made for other
+  agents than the configuration models is itself a change. A different `generator` is only noted.
+- **Exit codes** as specified: 0 up to date, 1 changed, 2 error (missing, corrupt or unsupported lock,
+  `--check` with `--update`, bad arguments). Plain `lock` and `--update` overwrite the file and
+  print what changed relative to the old one.
+- **Scope.** No `--cwd`/`--home`: the lock is repository-wide at the root. It does not run the
+  rules; `scan` and `context` do. The README (Phase 7) must say it is a visibility control and
+  recommend CODEOWNERS on the lock and on instruction files, since a pull request can update it too.

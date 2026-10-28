@@ -18,6 +18,7 @@ _KNOWN_KEYS = {
     "trust_known_installers",
     "follow_imports",
     "agents",
+    "lockfile",
 }
 AGENT_NAMES = ("claude-code", "copilot-cli", "cursor", "generic")
 
@@ -39,6 +40,7 @@ class Config:
     trust_known_installers: bool = True
     follow_imports: bool = True
     agents: tuple[str, ...] = AGENT_NAMES
+    lockfile: str = ".ghostrules.lock"
     source: str | None = None
 
 
@@ -78,6 +80,9 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
             f"unknown agent(s) in 'agents': {', '.join(unknown_agents)} "
             f"(expected: {', '.join(AGENT_NAMES)})"
         )
+    lockfile = table.get("lockfile", ".ghostrules.lock")
+    if not isinstance(lockfile, str) or not lockfile.strip():
+        raise ConfigError("'lockfile' must be a non-empty string")
     return Config(
         disable=frozenset(rule.strip().upper() for rule in _string_list(table, "disable")),
         fail_on=fail_on,
@@ -88,6 +93,7 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
         trust_known_installers=trust,
         follow_imports=follow,
         agents=agents,
+        lockfile=lockfile.strip(),
         source=source,
     )
 
