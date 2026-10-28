@@ -53,7 +53,7 @@ ghostrules = "ghostrules.cli:app"
 path = "src/ghostrules/__init__.py"
 
 [tool.hatch.build.targets.sdist]
-exclude = ["/corpus"]
+exclude = ["/corpus", "corpus/**"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/ghostrules"]

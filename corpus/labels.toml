@@ -5,3 +5,682 @@
 # [[label]]
 # fingerprint = "0123456789abcdef"
 # label = "fp"
+
+[[label]]
+fingerprint = "7fbd659848dbfdcc"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "stray invisible character, benign but real"
+
+[[label]]
+fingerprint = "8c5e76e4813fb1ea"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "7c02f5db0dd17a03"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "6c85dff9550a03e6"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "d661f380dcdf2279"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "38ba64ec20cd0946"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "dc3c697a1aa8e39e"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "reads a dotenv file for configuration; legitimate reference"
+
+[[label]]
+fingerprint = "c43133243bcd79fb"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "4454dfd6bad54cd0"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "reads a dotenv file for configuration; legitimate reference"
+
+[[label]]
+fingerprint = "fb486179d1efe09b"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "aeef6244eb0880ae"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "951bd14d8af3192a"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "3bbd097fe0f55744"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "48a234ca59a759c4"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "06fbc79d729ea084"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+repo = "NousResearch/hermes-agent"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "75fc45f3af9b3585"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+repo = "NousResearch/hermes-agent"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "9b52308e92be788e"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+repo = "NousResearch/hermes-agent"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "31e1a29710e58d42"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+repo = "NousResearch/hermes-agent"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "0f0b1018a043e095"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+repo = "NousResearch/hermes-agent"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "8105d29c9f2591e5"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+repo = "NousResearch/hermes-agent"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "5dc9c43d3af19f11"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+repo = "NousResearch/hermes-agent"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "6a07f77af9064f37"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+repo = "NousResearch/hermes-agent"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "ee6c46fecf34e7f4"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+repo = "NousResearch/hermes-agent"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "4642bb6c98e6b13e"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+repo = "NousResearch/hermes-agent"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "ed677b7a88bdc48b"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+repo = "Shubhamsaboo/awesome-llm-apps"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "600c409234e051ce"
+label = "tp"
+rule = "GR016"
+severity = "high"
+reason = "instruction to always bypass permissions, detected as intended"
+
+[[label]]
+fingerprint = "c2ccb42e3ad1badf"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "alibaba/nacos"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "6e42e0bdd3df75aa"
+label = "wontfix"
+rule = "GR011"
+severity = "medium"
+repo = "anomalyco/opencode"
+reason = "descriptive or benign wording, not concealment"
+
+[[label]]
+fingerprint = "7a622bb3943990e1"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+repo = "bytedance/deer-flow"
+reason = "reads a dotenv file for configuration; legitimate reference"
+
+[[label]]
+fingerprint = "cc11a8d0c33e05f9"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+repo = "bytedance/deer-flow"
+reason = "reads a dotenv file for configuration; legitimate reference"
+
+[[label]]
+fingerprint = "e60f6e41e0a6594a"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden comment addressed to agents, detected as intended"
+
+[[label]]
+fingerprint = "4fb968f7320176b7"
+label = "wontfix"
+rule = "GR011"
+severity = "high"
+repo = "coollabsio/coolify"
+reason = "descriptive or benign wording, not concealment"
+
+[[label]]
+fingerprint = "a13526562d5066a1"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "dataease/dataease"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "5e50961c496e1c9e"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "unpinned package execution, detected as intended"
+
+[[label]]
+fingerprint = "577b75d80cda3491"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+repo = "deepseek-ai/deepseek-harness"
+reason = "reads a dotenv file for configuration; legitimate reference"
+
+[[label]]
+fingerprint = "4bb7ef1524edd2c9"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "stray invisible character, benign but real"
+
+[[label]]
+fingerprint = "3d58808c6d69c6cc"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "unpinned package execution, detected as intended"
+
+[[label]]
+fingerprint = "5314cc74c9a50676"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "google-gemini/gemini-cli"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "71db275c8614604a"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "google-gemini/gemini-cli"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "831c690ff20a985d"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "iOfficeAI/OfficeCLI"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "d641a7239c43ab40"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "iOfficeAI/OfficeCLI"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "9244208f976e920c"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "iOfficeAI/OfficeCLI"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "2b747b3352737712"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "iOfficeAI/OfficeCLI"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "b7a0846a02b62ebd"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "iOfficeAI/OfficeCLI"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "536eb1b29979276c"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "iOfficeAI/OfficeCLI"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "82fbaaba9fc2434d"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "iOfficeAI/OfficeCLI"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "344e1e6939bd009b"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "iOfficeAI/OfficeCLI"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "5e5db24860d4452f"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "iOfficeAI/OfficeCLI"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "23cedb4e2647128a"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "iOfficeAI/OfficeCLI"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "48d5a39967eb4075"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "iOfficeAI/OfficeCLI"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "2e077bfb26644831"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "iOfficeAI/OfficeCLI"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "10b07493f0cc8e77"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "itwanger/toBeBetterJavaer"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "3eedd61b3febab23"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "itwanger/toBeBetterJavaer"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "4e4d1b769da8e61a"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+repo = "itwanger/toBeBetterJavaer"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "f9690d32f9c4f161"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "unpinned package execution, detected as intended"
+
+[[label]]
+fingerprint = "17c0cbf32a8a08b3"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "unpinned package execution, detected as intended"
+
+[[label]]
+fingerprint = "27bf0ebd2894e8b3"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "unpinned package execution, detected as intended"
+
+[[label]]
+fingerprint = "866f01e399e847fc"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "unpinned package execution, detected as intended"
+
+[[label]]
+fingerprint = "5737327508c0946d"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "unpinned package execution, detected as intended"
+
+[[label]]
+fingerprint = "140d695fe7e9ca34"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "meteor/meteor"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "12d9caafbe620f52"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "microsoft/vscode"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "33527891e5f998a1"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+repo = "microsoft/vscode"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "d249eff7d298c7d3"
+label = "wontfix"
+rule = "GR016"
+severity = "high"
+repo = "microsoft/vscode"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "28341c738757bdb3"
+label = "wontfix"
+rule = "GR014"
+severity = "high"
+repo = "midudev/autoskills"
+reason = "reads a dotenv file for configuration; legitimate reference"
+
+[[label]]
+fingerprint = "39d501d8bceda606"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "moby/moby"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "910214bed676d71c"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "unpinned package execution, detected as intended"
+
+[[label]]
+fingerprint = "e5f296dced797852"
+label = "wontfix"
+rule = "GR014"
+severity = "medium"
+repo = "n8n-io/n8n"
+reason = "reads a dotenv file for configuration; legitimate reference"
+
+[[label]]
+fingerprint = "bb21805290bb3b98"
+label = "wontfix"
+rule = "GR016"
+severity = "medium"
+repo = "n8n-io/n8n"
+reason = "documents or describes a flag; does not instruct its use"
+
+[[label]]
+fingerprint = "0b1e21f6bdce2784"
+label = "tp"
+rule = "GR016"
+severity = "high"
+reason = "instruction to always bypass permissions, detected as intended"
+
+[[label]]
+fingerprint = "1906f09a486973d3"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "stray invisible character, benign but real"
+
+[[label]]
+fingerprint = "3910e8761c266b1f"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "stray invisible character, benign but real"
+
+[[label]]
+fingerprint = "01760c4d41cb7969"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "stray invisible character, benign but real"
+
+[[label]]
+fingerprint = "cb0b1b90d669e5cf"
+label = "tp"
+rule = "GR003"
+severity = "medium"
+reason = "stray invisible character, benign but real"
+
+[[label]]
+fingerprint = "2f14441c01187d7c"
+label = "wontfix"
+rule = "GR011"
+severity = "high"
+repo = "pbakaus/impeccable"
+reason = "descriptive or benign wording, not concealment"
+
+[[label]]
+fingerprint = "2fbacabb6a317eb8"
+label = "wontfix"
+rule = "GR011"
+severity = "high"
+repo = "pbakaus/impeccable"
+reason = "descriptive or benign wording, not concealment"
+
+[[label]]
+fingerprint = "2354b3d2f4464f3e"
+label = "wontfix"
+rule = "GR010"
+severity = "high"
+repo = "ruvnet/RuView"
+reason = "list entry describing a detection category"
+
+[[label]]
+fingerprint = "f0c9a87c2f550b73"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "unpinned package execution, detected as intended"
+
+[[label]]
+fingerprint = "ba6781dddd93937d"
+label = "tp"
+rule = "GR108"
+severity = "medium"
+reason = "auto-enabled project MCP servers, detected as intended"
+
+[[label]]
+fingerprint = "f669b49783bf154a"
+label = "tp"
+rule = "GR107"
+severity = "high"
+reason = "permissive agent setting, detected as intended"
+
+[[label]]
+fingerprint = "6310361abeb6258b"
+label = "tp"
+rule = "GR107"
+severity = "high"
+reason = "permissive agent setting, detected as intended"
+
+[[label]]
+fingerprint = "044456d188285133"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "thedotmack/claude-mem"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "be7717570b7bd95f"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "thedotmack/claude-mem"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "9d08630d627dff99"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "thedotmack/claude-mem"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "ff4858695d86809c"
+label = "wontfix"
+rule = "GR012"
+severity = "high"
+repo = "thedotmack/claude-mem"
+reason = "visible installer or named pattern in a code block; documented behaviour"
+
+[[label]]
+fingerprint = "0d33e9d0e189acb9"
+label = "tp"
+rule = "GR107"
+severity = "high"
+reason = "permissive agent setting, detected as intended"
+
+[[label]]
+fingerprint = "05efd7bc11ca58db"
+label = "tp"
+rule = "GR107"
+severity = "high"
+reason = "permissive agent setting, detected as intended"
+
+[[label]]
+fingerprint = "ea878ae168175068"
+label = "tp"
+rule = "GR005"
+severity = "medium"
+reason = "hidden comment addressed to agents, detected as intended"
+
+[[label]]
+fingerprint = "8730d16b0d511ed2"
+label = "tp"
+rule = "GR102"
+severity = "medium"
+reason = "unpinned package execution, detected as intended"

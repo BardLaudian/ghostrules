@@ -3,3 +3,1205 @@
 # [[repo]]
 # name = "owner/repo"
 # tier = "regression"   # or "study"
+
+# proposed: 300 repos, tier regression, 2026-10-28
+[[repo]]
+name = "78/xiaozhi-esp32"
+tier = "regression"
+
+[[repo]]
+name = "aaif-goose/goose"
+tier = "regression"
+
+[[repo]]
+name = "abpframework/abp"
+tier = "regression"
+
+[[repo]]
+name = "activeadmin/activeadmin"
+tier = "regression"
+
+[[repo]]
+name = "addyosmani/agent-skills"
+tier = "regression"
+
+[[repo]]
+name = "affaan-m/ECC"
+tier = "regression"
+
+[[repo]]
+name = "AlexsJones/llmfit"
+tier = "regression"
+
+[[repo]]
+name = "alibaba/arthas"
+tier = "regression"
+
+[[repo]]
+name = "alibaba/druid"
+tier = "regression"
+
+[[repo]]
+name = "alibaba/nacos"
+tier = "regression"
+
+[[repo]]
+name = "alibaba/open-code-review"
+tier = "regression"
+
+[[repo]]
+name = "angular/angular"
+tier = "regression"
+
+[[repo]]
+name = "anomalyco/opencode"
+tier = "regression"
+
+[[repo]]
+name = "ant-design/ant-design"
+tier = "regression"
+
+[[repo]]
+name = "anthropics/claude-code"
+tier = "regression"
+
+[[repo]]
+name = "anthropics/skills"
+tier = "regression"
+
+[[repo]]
+name = "antiwork/gumroad"
+tier = "regression"
+
+[[repo]]
+name = "apache/dubbo"
+tier = "regression"
+
+[[repo]]
+name = "apache/flink"
+tier = "regression"
+
+[[repo]]
+name = "apache/kafka"
+tier = "regression"
+
+[[repo]]
+name = "apache/shardingsphere"
+tier = "regression"
+
+[[repo]]
+name = "apache/skywalking"
+tier = "regression"
+
+[[repo]]
+name = "apolloconfig/apollo"
+tier = "regression"
+
+[[repo]]
+name = "App-vNext/Polly"
+tier = "regression"
+
+[[repo]]
+name = "ardalis/CleanArchitecture"
+tier = "regression"
+
+[[repo]]
+name = "argotorg/solidity"
+tier = "regression"
+
+[[repo]]
+name = "astral-sh/ruff"
+tier = "regression"
+
+[[repo]]
+name = "astral-sh/uv"
+tier = "regression"
+
+[[repo]]
+name = "aureuserp/aureuserp"
+tier = "regression"
+
+[[repo]]
+name = "AvaloniaUI/Avalonia"
+tier = "regression"
+
+[[repo]]
+name = "avelino/awesome-go"
+tier = "regression"
+
+[[repo]]
+name = "axios/axios"
+tier = "regression"
+
+[[repo]]
+name = "babalae/better-genshin-impact"
+tier = "regression"
+
+[[repo]]
+name = "bagisto/bagisto"
+tier = "regression"
+
+[[repo]]
+name = "basecamp/fizzy"
+tier = "regression"
+
+[[repo]]
+name = "bazelbuild/bazel"
+tier = "regression"
+
+[[repo]]
+name = "ben-manes/caffeine"
+tier = "regression"
+
+[[repo]]
+name = "bilawalsidhu/gods-eye-view"
+tier = "regression"
+
+[[repo]]
+name = "binarywang/WxJava"
+tier = "regression"
+
+[[repo]]
+name = "bitwarden/server"
+tier = "regression"
+
+[[repo]]
+name = "boykopovar/AnyPS5"
+tier = "regression"
+
+[[repo]]
+name = "browser-use/browser-use"
+tier = "regression"
+
+[[repo]]
+name = "bytedance/deer-flow"
+tier = "regression"
+
+[[repo]]
+name = "caddyserver/caddy"
+tier = "regression"
+
+[[repo]]
+name = "carbon-language/carbon-lang"
+tier = "regression"
+
+[[repo]]
+name = "career-ops-hq/career-ops"
+tier = "regression"
+
+[[repo]]
+name = "CarGuo/GSYVideoPlayer"
+tier = "regression"
+
+[[repo]]
+name = "Chalarangelo/30-seconds-of-code"
+tier = "regression"
+
+[[repo]]
+name = "chatwoot/chatwoot"
+tier = "regression"
+
+[[repo]]
+name = "chef/chef"
+tier = "regression"
+
+[[repo]]
+name = "clash-verge-rev/clash-verge-rev"
+tier = "regression"
+
+[[repo]]
+name = "cli/cli"
+tier = "regression"
+
+[[repo]]
+name = "cloudflare/security-audit-skill"
+tier = "regression"
+
+[[repo]]
+name = "codewhale-hq/Codewhale"
+tier = "regression"
+
+[[repo]]
+name = "Comfy-Org/ComfyUI"
+tier = "regression"
+
+[[repo]]
+name = "conductor-oss/conductor"
+tier = "regression"
+
+[[repo]]
+name = "coollabsio/coolify"
+tier = "regression"
+
+[[repo]]
+name = "CoplayDev/unity-mcp"
+tier = "regression"
+
+[[repo]]
+name = "coreyhaines31/marketingskills"
+tier = "regression"
+
+[[repo]]
+name = "d2phap/ImageGlass"
+tier = "regression"
+
+[[repo]]
+name = "D4Vinci/Scrapling"
+tier = "regression"
+
+[[repo]]
+name = "dataease/dataease"
+tier = "regression"
+
+[[repo]]
+name = "datawhalechina/hello-agents"
+tier = "regression"
+
+[[repo]]
+name = "dbeaver/dbeaver"
+tier = "regression"
+
+[[repo]]
+name = "debpalash/VoiceStudio"
+tier = "regression"
+
+[[repo]]
+name = "deepseek-ai/deepseek-harness"
+tier = "regression"
+
+[[repo]]
+name = "denoland/deno"
+tier = "regression"
+
+[[repo]]
+name = "dependabot/dependabot-core"
+tier = "regression"
+
+[[repo]]
+name = "Devolutions/UniGetUI"
+tier = "regression"
+
+[[repo]]
+name = "DietrichGebert/ponytail"
+tier = "regression"
+
+[[repo]]
+name = "DioxusLabs/dioxus"
+tier = "regression"
+
+[[repo]]
+name = "discourse/discourse"
+tier = "regression"
+
+[[repo]]
+name = "django/django"
+tier = "regression"
+
+[[repo]]
+name = "doocs/leetcode"
+tier = "regression"
+
+[[repo]]
+name = "doorkeeper-gem/doorkeeper"
+tier = "regression"
+
+[[repo]]
+name = "dotnet/aspnetcore"
+tier = "regression"
+
+[[repo]]
+name = "dotnet/AspNetCore.Docs"
+tier = "regression"
+
+[[repo]]
+name = "dotnet/csharplang"
+tier = "regression"
+
+[[repo]]
+name = "dotnet/efcore"
+tier = "regression"
+
+[[repo]]
+name = "dotnet/maui"
+tier = "regression"
+
+[[repo]]
+name = "dotnet/roslyn"
+tier = "regression"
+
+[[repo]]
+name = "dragonflydb/dragonfly"
+tier = "regression"
+
+[[repo]]
+name = "duckdb/duckdb"
+tier = "regression"
+
+[[repo]]
+name = "earendil-works/pi"
+tier = "regression"
+
+[[repo]]
+name = "electron/electron"
+tier = "regression"
+
+[[repo]]
+name = "envoyproxy/envoy"
+tier = "regression"
+
+[[repo]]
+name = "ethereum/go-ethereum"
+tier = "regression"
+
+[[repo]]
+name = "excalidraw/excalidraw"
+tier = "regression"
+
+[[repo]]
+name = "facebook/rocksdb"
+tier = "regression"
+
+[[repo]]
+name = "fastapi/fastapi"
+tier = "regression"
+
+[[repo]]
+name = "fastlane/fastlane"
+tier = "regression"
+
+[[repo]]
+name = "fatedier/frp"
+tier = "regression"
+
+[[repo]]
+name = "filamentphp/filament"
+tier = "regression"
+
+[[repo]]
+name = "files-community/Files"
+tier = "regression"
+
+[[repo]]
+name = "firecrawl/firecrawl"
+tier = "regression"
+
+[[repo]]
+name = "firefly-iii/firefly-iii"
+tier = "regression"
+
+[[repo]]
+name = "floci-io/floci"
+tier = "regression"
+
+[[repo]]
+name = "fluent/fluentd"
+tier = "regression"
+
+[[repo]]
+name = "forem/forem"
+tier = "regression"
+
+[[repo]]
+name = "freeCodeCamp/freeCodeCamp"
+tier = "regression"
+
+[[repo]]
+name = "Freika/dawarich"
+tier = "regression"
+
+[[repo]]
+name = "FreshRSS/FreshRSS"
+tier = "regression"
+
+[[repo]]
+name = "fruitcake/laravel-debugbar"
+tier = "regression"
+
+[[repo]]
+name = "FuelLabs/fuel-core"
+tier = "regression"
+
+[[repo]]
+name = "garrytan/gstack"
+tier = "regression"
+
+[[repo]]
+name = "ggml-org/llama.cpp"
+tier = "regression"
+
+[[repo]]
+name = "ggml-org/whisper.cpp"
+tier = "regression"
+
+[[repo]]
+name = "github-linguist/linguist"
+tier = "regression"
+
+[[repo]]
+name = "github/spec-kit"
+tier = "regression"
+
+[[repo]]
+name = "go-gitea/gitea"
+tier = "regression"
+
+[[repo]]
+name = "gogs/gogs"
+tier = "regression"
+
+[[repo]]
+name = "gohugoio/hugo"
+tier = "regression"
+
+[[repo]]
+name = "golang/go"
+tier = "regression"
+
+[[repo]]
+name = "google-gemini/gemini-cli"
+tier = "regression"
+
+[[repo]]
+name = "Graphify-Labs/graphify"
+tier = "regression"
+
+[[repo]]
+name = "greatghoul/remote-working"
+tier = "regression"
+
+[[repo]]
+name = "grokability/snipe-it"
+tier = "regression"
+
+[[repo]]
+name = "grpc/grpc"
+tier = "regression"
+
+[[repo]]
+name = "guzzle/guzzle"
+tier = "regression"
+
+[[repo]]
+name = "hakimel/reveal.js"
+tier = "regression"
+
+[[repo]]
+name = "halo-dev/halo"
+tier = "regression"
+
+[[repo]]
+name = "harry0703/MoneyPrinterTurbo"
+tier = "regression"
+
+[[repo]]
+name = "herdrdev/herdr"
+tier = "regression"
+
+[[repo]]
+name = "home-assistant/core"
+tier = "regression"
+
+[[repo]]
+name = "Homebrew/brew"
+tier = "regression"
+
+[[repo]]
+name = "Homebrew/homebrew-cask"
+tier = "regression"
+
+[[repo]]
+name = "Homebrew/homebrew-core"
+tier = "regression"
+
+[[repo]]
+name = "huggingface/transformers"
+tier = "regression"
+
+[[repo]]
+name = "hyprwm/Hyprland"
+tier = "regression"
+
+[[repo]]
+name = "icsharpcode/ILSpy"
+tier = "regression"
+
+[[repo]]
+name = "iluwatar/java-design-patterns"
+tier = "regression"
+
+[[repo]]
+name = "infiniflow/ragflow"
+tier = "regression"
+
+[[repo]]
+name = "Intervention/image"
+tier = "regression"
+
+[[repo]]
+name = "iOfficeAI/OfficeCLI"
+tier = "regression"
+
+[[repo]]
+name = "itwanger/toBeBetterJavaer"
+tier = "regression"
+
+[[repo]]
+name = "jeecgboot/JeecgBoot"
+tier = "regression"
+
+[[repo]]
+name = "jesseduffield/lazygit"
+tier = "regression"
+
+[[repo]]
+name = "jgraph/drawio-desktop"
+tier = "regression"
+
+[[repo]]
+name = "juanfont/headscale"
+tier = "regression"
+
+[[repo]]
+name = "JuliusBrussee/caveman"
+tier = "regression"
+
+[[repo]]
+name = "k1tbyte/Wand-Enhancer"
+tier = "regression"
+
+[[repo]]
+name = "Kareadita/Kavita"
+tier = "regression"
+
+[[repo]]
+name = "keepassxreboot/keepassxc"
+tier = "regression"
+
+[[repo]]
+name = "kestra-io/kestra"
+tier = "regression"
+
+[[repo]]
+name = "keycloak/keycloak"
+tier = "regression"
+
+[[repo]]
+name = "koala73/worldmonitor"
+tier = "regression"
+
+[[repo]]
+name = "koel/koel"
+tier = "regression"
+
+[[repo]]
+name = "krayin/laravel-crm"
+tier = "regression"
+
+[[repo]]
+name = "kubernetes/kubernetes"
+tier = "regression"
+
+[[repo]]
+name = "langchain-ai/langchain"
+tier = "regression"
+
+[[repo]]
+name = "langflow-ai/langflow"
+tier = "regression"
+
+[[repo]]
+name = "langgenius/dify"
+tier = "regression"
+
+[[repo]]
+name = "Leantime/leantime"
+tier = "regression"
+
+[[repo]]
+name = "leonardomso/33-js-concepts"
+tier = "regression"
+
+[[repo]]
+name = "Leonxlnx/taste-skill"
+tier = "regression"
+
+[[repo]]
+name = "livewire/livewire"
+tier = "regression"
+
+[[repo]]
+name = "LizardByte/Sunshine"
+tier = "regression"
+
+[[repo]]
+name = "lostindark/DriverStoreExplorer"
+tier = "regression"
+
+[[repo]]
+name = "lostisland/faraday"
+tier = "regression"
+
+[[repo]]
+name = "louislam/uptime-kuma"
+tier = "regression"
+
+[[repo]]
+name = "MaterialDesignInXAML/MaterialDesignInXamlToolkit"
+tier = "regression"
+
+[[repo]]
+name = "matomo-org/matomo"
+tier = "regression"
+
+[[repo]]
+name = "matteocrippa/awesome-swift"
+tier = "regression"
+
+[[repo]]
+name = "mautic/mautic"
+tier = "regression"
+
+[[repo]]
+name = "meilisearch/meilisearch"
+tier = "regression"
+
+[[repo]]
+name = "meteor/meteor"
+tier = "regression"
+
+[[repo]]
+name = "MHSanaei/3x-ui"
+tier = "regression"
+
+[[repo]]
+name = "microsoft/garnet"
+tier = "regression"
+
+[[repo]]
+name = "microsoft/playwright"
+tier = "regression"
+
+[[repo]]
+name = "microsoft/terminal"
+tier = "regression"
+
+[[repo]]
+name = "microsoft/vscode"
+tier = "regression"
+
+[[repo]]
+name = "microsoft/Web-Dev-For-Beginners"
+tier = "regression"
+
+[[repo]]
+name = "microsoft/winget-cli"
+tier = "regression"
+
+[[repo]]
+name = "microsoft/WSL"
+tier = "regression"
+
+[[repo]]
+name = "midudev/autoskills"
+tier = "regression"
+
+[[repo]]
+name = "milvus-io/milvus"
+tier = "regression"
+
+[[repo]]
+name = "ml-explore/mlx"
+tier = "regression"
+
+[[repo]]
+name = "moby/moby"
+tier = "regression"
+
+[[repo]]
+name = "modelcontextprotocol/servers"
+tier = "regression"
+
+[[repo]]
+name = "moment/moment"
+tier = "regression"
+
+[[repo]]
+name = "MonoGame/MonoGame"
+tier = "regression"
+
+[[repo]]
+name = "morluto/rea"
+tier = "regression"
+
+[[repo]]
+name = "mozilla-ai/llamafile"
+tier = "regression"
+
+[[repo]]
+name = "mozilla/pdf.js"
+tier = "regression"
+
+[[repo]]
+name = "mudler/LocalAI"
+tier = "regression"
+
+[[repo]]
+name = "mui/material-ui"
+tier = "regression"
+
+[[repo]]
+name = "multica-ai/multica"
+tier = "regression"
+
+[[repo]]
+name = "n8n-io/n8n"
+tier = "regression"
+
+[[repo]]
+name = "nektos/act"
+tier = "regression"
+
+[[repo]]
+name = "netdata/netdata"
+tier = "regression"
+
+[[repo]]
+name = "nextcloud/all-in-one"
+tier = "regression"
+
+[[repo]]
+name = "nextcloud/server"
+tier = "regression"
+
+[[repo]]
+name = "nextlevelbuilder/ui-ux-pro-max-skill"
+tier = "regression"
+
+[[repo]]
+name = "nexu-io/open-design"
+tier = "regression"
+
+[[repo]]
+name = "Niko1221/Strata"
+tier = "regression"
+
+[[repo]]
+name = "nodejs/node"
+tier = "regression"
+
+[[repo]]
+name = "NousResearch/hermes-agent"
+tier = "regression"
+
+[[repo]]
+name = "nushell/nushell"
+tier = "regression"
+
+[[repo]]
+name = "odysseus-dev/odysseus"
+tier = "regression"
+
+[[repo]]
+name = "ollama/ollama"
+tier = "regression"
+
+[[repo]]
+name = "openai/codex"
+tier = "regression"
+
+[[repo]]
+name = "openclaw/openclaw"
+tier = "regression"
+
+[[repo]]
+name = "OpenCut-app/OpenCut"
+tier = "regression"
+
+[[repo]]
+name = "opendatalab/MinerU"
+tier = "regression"
+
+[[repo]]
+name = "opendataloader-project/opendataloader-pdf"
+tier = "regression"
+
+[[repo]]
+name = "OpenHands/OpenHands"
+tier = "regression"
+
+[[repo]]
+name = "openinterpreter/openinterpreter"
+tier = "regression"
+
+[[repo]]
+name = "opf/openproject"
+tier = "regression"
+
+[[repo]]
+name = "oracle/graal"
+tier = "regression"
+
+[[repo]]
+name = "ossrs/srs"
+tier = "regression"
+
+[[repo]]
+name = "OtterMind/Chat2DB"
+tier = "regression"
+
+[[repo]]
+name = "oven-sh/bun"
+tier = "regression"
+
+[[repo]]
+name = "PaddlePaddle/Paddle"
+tier = "regression"
+
+[[repo]]
+name = "PaddlePaddle/PaddleOCR"
+tier = "regression"
+
+[[repo]]
+name = "Panniantong/Agent-Reach"
+tier = "regression"
+
+[[repo]]
+name = "paperclipai/paperclip"
+tier = "regression"
+
+[[repo]]
+name = "pbakaus/impeccable"
+tier = "regression"
+
+[[repo]]
+name = "peass-ng/PEASS-ng"
+tier = "regression"
+
+[[repo]]
+name = "pestphp/pest"
+tier = "regression"
+
+[[repo]]
+name = "phaserjs/phaser"
+tier = "regression"
+
+[[repo]]
+name = "phpstan/phpstan"
+tier = "regression"
+
+[[repo]]
+name = "pnpm/pnpm"
+tier = "regression"
+
+[[repo]]
+name = "PowerShell/PowerShell"
+tier = "regression"
+
+[[repo]]
+name = "PrestaShop/PrestaShop"
+tier = "regression"
+
+[[repo]]
+name = "prometheus/prometheus"
+tier = "regression"
+
+[[repo]]
+name = "puppeteer/puppeteer"
+tier = "regression"
+
+[[repo]]
+name = "pytorch/pytorch"
+tier = "regression"
+
+[[repo]]
+name = "qbittorrent/qBittorrent"
+tier = "regression"
+
+[[repo]]
+name = "QL-Win/QuickLook"
+tier = "regression"
+
+[[repo]]
+name = "Qloapps/QloApps"
+tier = "regression"
+
+[[repo]]
+name = "QuantumNous/new-api"
+tier = "regression"
+
+[[repo]]
+name = "rails/rails"
+tier = "regression"
+
+[[repo]]
+name = "rapid7/metasploit-framework"
+tier = "regression"
+
+[[repo]]
+name = "rclone/rclone"
+tier = "regression"
+
+[[repo]]
+name = "react/react"
+tier = "regression"
+
+[[repo]]
+name = "react/react-native"
+tier = "regression"
+
+[[repo]]
+name = "rectorphp/rector"
+tier = "regression"
+
+[[repo]]
+name = "remoteintech/remote-jobs"
+tier = "regression"
+
+[[repo]]
+name = "router-for-me/CLIProxyAPI"
+tier = "regression"
+
+[[repo]]
+name = "rtk-ai/rtk"
+tier = "regression"
+
+[[repo]]
+name = "rubocop/rubocop"
+tier = "regression"
+
+[[repo]]
+name = "ruby-grape/grape"
+tier = "regression"
+
+[[repo]]
+name = "rustdesk/rustdesk"
+tier = "regression"
+
+[[repo]]
+name = "ruvnet/RuView"
+tier = "regression"
+
+[[repo]]
+name = "saadeghi/daisyui"
+tier = "regression"
+
+[[repo]]
+name = "SeleniumHQ/selenium"
+tier = "regression"
+
+[[repo]]
+name = "serbanghita/Mobile-Detect"
+tier = "regression"
+
+[[repo]]
+name = "serverless/serverless"
+tier = "regression"
+
+[[repo]]
+name = "shadcn-ui/ui"
+tier = "regression"
+
+[[repo]]
+name = "shadps4-emu/shadPS4"
+tier = "regression"
+
+[[repo]]
+name = "ShareX/ShareX"
+tier = "regression"
+
+[[repo]]
+name = "Shubhamsaboo/awesome-llm-apps"
+tier = "regression"
+
+[[repo]]
+name = "Significant-Gravitas/AutoGPT"
+tier = "regression"
+
+[[repo]]
+name = "Sonarr/Sonarr"
+tier = "regression"
+
+[[repo]]
+name = "spacedriveapp/spacedrive"
+tier = "regression"
+
+[[repo]]
+name = "SpartnerNL/Laravel-Excel"
+tier = "regression"
+
+[[repo]]
+name = "spatie/laravel-permission"
+tier = "regression"
+
+[[repo]]
+name = "spree/spree"
+tier = "regression"
+
+[[repo]]
+name = "spring-projects/spring-framework"
+tier = "regression"
+
+[[repo]]
+name = "stablyai/orca"
+tier = "regression"
+
+[[repo]]
+name = "Stirling-Tools/Stirling-PDF"
+tier = "regression"
+
+[[repo]]
+name = "storybookjs/storybook"
+tier = "regression"
+
+[[repo]]
+name = "storytold/artcraft"
+tier = "regression"
+
+[[repo]]
+name = "storytold/photocraft"
+tier = "regression"
+
+[[repo]]
+name = "SubtitleEdit/subtitleedit"
+tier = "regression"
+
+[[repo]]
+name = "supabase/supabase"
+tier = "regression"
+
+[[repo]]
+name = "sveltejs/svelte"
+tier = "regression"
+
+[[repo]]
+name = "sxyazi/yazi"
+tier = "regression"
+
+[[repo]]
+name = "symfony/symfony"
+tier = "regression"
+
+[[repo]]
+name = "telegramdesktop/tdesktop"
+tier = "regression"
+
+[[repo]]
+name = "tensorflow/tensorflow"
+tier = "regression"
+
+[[repo]]
+name = "tesseract-ocr/tesseract"
+tier = "regression"
+
+[[repo]]
+name = "TheAlgorithms/Python"
+tier = "regression"
+
+[[repo]]
+name = "thedotmack/claude-mem"
+tier = "regression"
+
+[[repo]]
+name = "thoughtbot/guides"
+tier = "regression"
+
+[[repo]]
+name = "tinyhumansai/openhuman"
+tier = "regression"
+
+[[repo]]
+name = "traefik/traefik"
+tier = "regression"
+
+[[repo]]
+name = "tt-a1i/archify"
+tier = "regression"
+
+[[repo]]
+name = "tw93/Pake"
+tier = "regression"
+
+[[repo]]
+name = "ultraworkers/claw-code"
+tier = "regression"
+
+[[repo]]
+name = "unclecode/crawl4ai"
+tier = "regression"
+
+[[repo]]
+name = "unopim/unopim"
+tier = "regression"
+
+[[repo]]
+name = "usebruno/bruno"
+tier = "regression"
+
+[[repo]]
+name = "usememos/memos"
+tier = "regression"
+
+[[repo]]
+name = "v8/v8"
+tier = "regression"
+
+[[repo]]
+name = "vercel-labs/agent-browser"
+tier = "regression"
+
+[[repo]]
+name = "vercel/next.js"
+tier = "regression"
+
+[[repo]]
+name = "vinta/awesome-python"
+tier = "regression"
+
+[[repo]]
+name = "vllm-project/vllm"
+tier = "regression"
+
+[[repo]]
+name = "w7corp/easywechat"
+tier = "regression"
+
+[[repo]]
+name = "warpdotdev/warp"
+tier = "regression"
+
+[[repo]]
+name = "we-promise/sure"
+tier = "regression"
+
+[[repo]]
+name = "webpack/webpack"
+tier = "regression"
+
+[[repo]]
+name = "Wei-Shaw/sub2api"
+tier = "regression"
+
+[[repo]]
+name = "williamfiset/algorithms"
+tier = "regression"
+
+[[repo]]
+name = "woocommerce/woocommerce"
+tier = "regression"
+
+[[repo]]
+name = "wpscanteam/wpscan"
+tier = "regression"
+
+[[repo]]
+name = "yangshun/tech-interview-handbook"
+tier = "regression"
+
+[[repo]]
+name = "zammad/zammad"
+tier = "regression"
+
+[[repo]]
+name = "zed-industries/zed"
+tier = "regression"
+

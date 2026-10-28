@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import re
 
-_PLACEHOLDER = re.compile(r"(?:^|[._-])(?:example|sample|template|dist)(?:$|[._-])", re.IGNORECASE)
+_PLACEHOLDER = re.compile(
+    r"(?:^|[._-])(?:example|sample|template|dist|default)(?:$|[._-])", re.IGNORECASE
+)
 _PRIVATE_KEY = re.compile(r"^id_(?:rsa|ed25519|ecdsa|dsa)(?:[._-].*)?$", re.IGNORECASE)
 _EXACT_NAMES = frozenset(
     {

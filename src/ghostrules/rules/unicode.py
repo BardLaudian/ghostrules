@@ -10,7 +10,11 @@ from typing import NamedTuple
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
 from ghostrules.rules.helpers import build_finding, clean_hint, group_by_line
-from ghostrules.rules.patterns import has_agent_directed_language, match_injection
+from ghostrules.rules.patterns import (
+    has_agent_directed_language,
+    has_instruction_cue,
+    match_injection,
+)
 from ghostrules.rules.registry import rule
 from ghostrules.unicode_utils import (
     BIDI,
@@ -162,6 +166,13 @@ _JOINER_SCRIPT_RANGES = (  # Persian/Arabic and the Indic scripts, where ZWNJ/ZW
     (0xFE70, 0xFEFF),
     (0x0900, 0x0DFF),
 )
+_WORD_SEPARATOR_RANGES = (  # scripts written without spaces, where ZWSP separates words
+    (0x0E00, 0x0EFF),  # Thai, Lao
+    (0x1000, 0x109F),  # Myanmar
+    (0x1780, 0x17FF),  # Khmer
+    (0x19E0, 0x19FF),  # Khmer symbols
+)
+_ZWSP = "\u200b"
 _ZWJ, _ZWNJ = "\u200d", "\u200c"
 _ZW_HIGH_PER_LINE = 5
 _ZW_HIGH_PER_FILE = 20
@@ -183,6 +194,13 @@ def _is_legit_joiner(text: str, start: int, end: int) -> bool:
     ch = text[start]
     prev = text[start - 1] if start > 0 else ""
     nxt = text[end] if end < len(text) else ""
+    if ch == _ZWSP:  # between two letters of Khmer, Thai, Lao or Myanmar text
+        return bool(
+            prev
+            and nxt
+            and _in_ranges(prev, _WORD_SEPARATOR_RANGES)
+            and _in_ranges(nxt, _WORD_SEPARATOR_RANGES)
+        )
     if (
         ch == _ZWJ
         and prev
@@ -344,9 +362,12 @@ def gr005_html_comments(target: ScanTarget) -> Iterator[Finding]:
         if matched:
             severity = Severity.HIGH
             reason = f"matches {', '.join(matched)} patterns"
-        elif has_agent_directed_language(body):
+        elif has_instruction_cue(body):
             severity = Severity.MEDIUM
             reason = "addresses the AI agent"
+        elif has_agent_directed_language(body):
+            severity = Severity.LOW
+            reason = "mentions the AI agent"
         else:
             continue
         unterminated = not match.group().endswith("-->")
