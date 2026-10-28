@@ -805,3 +805,18 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   a file (an argument with a `/` or a `.sh` suffix) and is not matched, like `python script.py`;
   `| bash`, `| sh -s -- …` and `| sudo sh` still are. A pattern named inside a Markdown table cell
   with an escaped pipe (`curl ... \| bash`) is also a mention.
+
+## v0.3 Phase 3 — corpus CI and badge
+
+- **Badge text:** `corpus · 300 repos · 0 critical`, not "0 false positives". What the gate proves is
+  that no critical/high finding is unreviewed, so the badge reports the critical count of the latest
+  run and turns red ("gate failing") when `check.py` would fail.
+- **Published files:** `corpus/badge.py` writes `badge.json` and `summary.json` with counts only
+  (no repository names, paths, snippets or per-repository timings), so the public branch carries
+  nothing that identifies a repository or a finding. The full results stay in the workflow artifact
+  (30 days).
+- **Publishing:** weekly `schedule` and `workflow_dispatch`, never on pull requests. The `publish`
+  job runs only on `refs/heads/main` and writes `corpus/badge.json` and `corpus/summary.json` to
+  `gh-pages` with the job's `GITHUB_TOKEN` (`contents: write` on that job only). The README badge
+  reads `https://bardlaudian.github.io/ghostrules/corpus/badge.json`, which needs GitHub Pages
+  enabled on `gh-pages`.

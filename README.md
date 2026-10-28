@@ -5,6 +5,7 @@
 [![CI](https://github.com/BardLaudian/ghostrules/actions/workflows/ci.yml/badge.svg)](https://github.com/BardLaudian/ghostrules/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/ghostrules.svg)](https://pypi.org/project/ghostrules/)
 [![Python versions](https://img.shields.io/pypi/pyversions/ghostrules.svg)](https://pypi.org/project/ghostrules/)
+[![Corpus](https://img.shields.io/endpoint?url=https%3A%2F%2Fbardlaudian.github.io%2Fghostrules%2Fcorpus%2Fbadge.json)](corpus/README.md)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/BardLaudian/ghostrules/blob/main/LICENSE)
 
 ![A CLAUDE.md that looks clean imports a file that imports a file with a hidden instruction; ghostrules finds it and shows the chain](https://raw.githubusercontent.com/BardLaudian/ghostrules/main/demo/imports.gif)

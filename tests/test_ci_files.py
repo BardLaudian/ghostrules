@@ -311,7 +311,7 @@ def test_pre_commit_hook() -> None:
 
 
 def test_expected_workflows_exist() -> None:
-    assert {p.name for p in WORKFLOWS} == {"ci.yml", "self-test.yml", "release.yml"}
+    assert {p.name for p in WORKFLOWS} == {"ci.yml", "self-test.yml", "release.yml", "corpus.yml"}
 
 
 def test_ci_runs_lint_tests_and_the_demo_smoke_test() -> None:
@@ -490,3 +490,12 @@ def test_every_repository_url_names_the_same_owner() -> None:
         owners |= found
     assert len(owners) == 1, owners
     assert PROJECT_URL.endswith(f"/{next(iter(owners))}/ghostrules")
+
+
+def test_corpus_workflow_never_runs_on_pull_requests_and_publishes_from_main_only() -> None:
+    corpus = load(ROOT / ".github/workflows/corpus.yml")
+    assert set(corpus.get("on", corpus.get(True))) == {"schedule", "workflow_dispatch"}
+    assert corpus["permissions"] == {"contents": "read"}
+    publish = corpus["jobs"]["publish"]
+    assert "refs/heads/main" in publish["if"]
+    assert publish["permissions"] == {"contents": "write"}
