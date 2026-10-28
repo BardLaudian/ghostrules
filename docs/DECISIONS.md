@@ -330,3 +330,298 @@ Newest at the bottom of each section. "Phase N" says when the decision takes eff
 - **URL scope:** `bash <(curl URL)` and `eval "$(curl URL)"` have the URL after the matched
   text, so those matches are judged on the rest of the line.
 - **Inline code span:** `ScanTarget.code_span_at` wraps the existing CommonMark-style span finder.
+
+## v0.2 Phase 0 — agent models and prior art (checked 2026-10-28)
+
+### Agent models re-checked against the official docs
+Details and quotes are in `docs/AGENT_MODELS.md` (changes marked `[0-28]`). Pages were read
+through a summarising fetch tool, so re-read a page before relying on a detail that sets a severity.
+
+- **claude-code:** the draft was right on load order, AGENTS.md precedence, imports and HTML-comment
+  stripping. New: invalid rule frontmatter loads the rule unconditionally; per-file truncation limit
+  for on-demand files (40,000 chars on 200K windows); AGENTS.md needs v2.1.277+; external
+  symlinked rules load only without `paths` after approval; `claudeMdExcludes` can remove files
+  (documented limitation, not modelled).
+- **claude-code, external imports are relative to the working directory, not the repo root.** SPEC
+  and RULES define GR020 against the repository root. They agree when `--cwd` is the repo root
+  (the default). Decision: GR020 is evaluated against `--cwd` for claude-code and against the repo
+  root for copilot-cli ("must stay inside the repository"); the message says which.
+- **claude-code, depth:** official docs say four hops (guides quoting five are wrong). The docs do
+  not say whether a direct import is hop 0 or 1: modelled as hop 1, with chains of exactly 4–5
+  hops marked `(unverified)`.
+- **claude-code, HTML comments:** documented only for CLAUDE.md files. AGENTS.md read via the
+  setting, rules and imported files are modelled as "seen" so GR005 never downgrades on a guess.
+  This narrows the headline claim of the agent-aware GR005: it is exact for CLAUDE.md,
+  CLAUDE.local.md and .claude/CLAUDE.md.
+- **copilot-cli:** unchanged and re-confirmed. Still UNVERIFIED: import base path, depth limit,
+  code-span handling, `excludeAgent` effect in the CLI.
+- **cursor:** the draft was a guess; now verified. Rule types match. Differences: `.cursor/rules`
+  rules must be `.mdc` (plain `.md` is ignored), `@file` in rules is **not** an import (so the Cursor
+  model has no import edges), AGENTS.md is supported at root and nested. `.cursorrules` is not on the
+  page: kept as `always`, `(unverified)`. User and Team Rules live outside the repo: documented
+  limitation.
+- **generic (agents.md):** only "nearest file wins" is documented; reading ancestors is not. The
+  nearest is verified, the others `always (unverified)` so a security scan does not miss them.
+
+### Prior art: does anything already resolve `@` imports for security scanning?
+Searched (web, 2026-10-28) for scanners that follow `@path` imports, compute an agent's effective
+context, or lock it. Found nothing that does; none of the READMEs read mention imports.
+Stop condition of the plan ("if something already does exactly this") **not met**.
+
+| Tool | Link | What it does | How v0.2 differs |
+|---|---|---|---|
+| cairnlock 0.5.0 (Python, MIT) | https://github.com/pennacle-security/cairnlock | Static analyzer plus lockfile for AGENTS.md, CLAUDE.md, MCP configs and skill folders; `verify --base` checks against a git ref, SARIF output, 21 rules, many agents. README: discovery by fixed names and globs; lock stores a SHA-256 per tracked file; it "does not execute, import, or install anything it scans". | Closest competitor. No import following, no per-agent view, no stripped-text awareness found in its README; its lock hashes files on disk, ours would hash the resolved context and what each agent *sees*. Its `--include-ancestors` covers parent folders. Source code not read. |
+| agentcheck (Node, MIT) | https://github.com/DhanushNehru/agentcheck | Pattern scanner over CLAUDE.md, AGENTS.md, GEMINI.md, `.cursor/rules`, MCP configs; hidden Unicode, HTML comments, exfil endpoints. No lockfile. | Fixed file list; no import resolution or load model. |
+| AgentShield (TS, MIT) | https://github.com/affaan-m/agentshield | Scanner for agent configs, MCP servers and permissions; baseline of hashed finding fingerprints (drift of findings, not of context). | No import following found; baseline is not a context lock. |
+| SkillSpector (NVIDIA) | https://github.com/nvidia/skillspector | Scans agent skills for injection and exfiltration. | Skills, not instruction context. |
+| CLAUDE.md Security Auditor (Apify) | https://apify.com/ianymu/claudemd-security-auditor | Hosted check of CLAUDE.md and `.claude/hooks`. | Single files. |
+| secure-devtools issue #25 | https://github.com/IsaacBell/secure-devtools/issues/25 | A proposal that names `@path` imports as a surface to scan. The page returned 404 when fetched; known only from a search snippet. | Idea only, nothing shipped as far as found. |
+
+Limits of this search: README-level reading plus search snippets; I did not read any tool's source,
+so "does not follow imports" means "does not document it". `agent-skill-lock` and hardpoint, named in
+`docs/v0.2/SPEC.md` §1, were not looked at. Recommendation for the README comparison paragraph:
+name cairnlock as the closest lockfile tool and state the difference factually (resolved context and
+per-agent seen text), without claiming it lacks features it may have.
+
+## v0.2 Phase 1 — Markdown primitives
+
+New: `markdown_utils.py` (`strip_html_comments`, `parse_frontmatter`, `strip_frontmatter`,
+`Stripped` with a line map back to the original file) and `imports.py` (`find_imports`). No rule or
+scan behaviour changes yet. Inline code spans already existed from 0.1.1.
+
+- **Import start (UNVERIFIED approximation).** Claude Code documents what is skipped, not the exact
+  token grammar. `find_imports` calls an import *certain* when `@` starts a line or follows
+  whitespace (so `user@example.com` and `git@github.com` never match) and *loose* when it follows
+  `( [ { < , ; : > = | *` (markdown links, emphasis). Loose ones are returned with
+  `certain=False`; Phase 2 should scan them but label them `(unverified)`, so a guess about the
+  grammar cannot hide a payload.
+- **Trailing punctuation** (`. , ; : ! ? ) ] } > *` and quotes) is not part of the path, except a
+  balanced `)` (`@docs/a(1).md`). Also unverified; the cost of being wrong is a missing file (GR022).
+- **`@mentions` and npm scopes** are returned like any token. `Import.looks_like_path` (has `/` or
+  `\`, starts with `.` or `~`, or ends in an extension) is what Phase 3 uses to decide whether a
+  token that resolves to nothing is worth a GR022. `@README` has none of those and is still a real
+  import when the file exists; resolution decides.
+- **Quoted paths** are not imports (documented). `find_imports(include_quoted=True)` returns them
+  with `quoted=True` for GR022.
+- **Imports inside block-level HTML comments** are returned with `in_comment=True`. The docs do not
+  say whether Claude Code expands imports before or after stripping comments, so the context
+  engine should follow them but mark them unverified.
+- **HTML comment stripping** models a CommonMark type-2 HTML block: the comment starts a line
+  (up to three spaces of indent) and ends at the line holding `-->`. Text after `-->` stays. Not
+  stripped, on purpose: comments in fenced code (documented), mid-paragraph or in a list item or
+  blockquote (the docs only say "block-level"), and comments that never close. Anything not stripped
+  counts as *seen*, which is the safe direction for GR005 and the lock.
+- **Front matter** supports `key: value`, flow lists, block lists, quoted strings and `true/false`;
+  numbers stay strings. Anything else sets `unparsed` with the reasons. A plain value starting with
+  `*`, `&`, `!`, `|`, `>`, `{`, `[`, `%`, `@` or a backtick, or containing `: `, is flagged because a
+  strict YAML parser rejects it; that matters because the docs say Claude Code then loads a rule
+  as if it had no `paths` (an unquoted `paths: **/*.ts` silently becomes an always-on rule). The raw
+  value is kept in `data`. Cursor's parser may be more lenient than the one in Claude Code; consumers
+  should treat `unparsed` as "behaviour differs per agent".
+- **Line numbers.** `Stripped.line_map` gives the original line of every kept line, and
+  `removed` records what was cut (kind, original lines, text), which Phase 5 needs for "changed, not
+  visible to <agent>".
+
+## v0.2 Phase 2 — context engine
+
+New: `globs.py` and the `agents/` package (`repo`, `base`, `claude_code`, `copilot_cli`, `cursor`,
+`generic`). Nothing is wired into `scan` yet.
+
+- **Entries vs edges.** `ContextGraph.entries` is the ordered list of files the agent loads, each
+  imported file placed right after its importer; `edges` records every `@` occurrence (status
+  `loaded`, `duplicate`, `missing`, `directory`, `quoted`, `external`, `blocked`, `symlink`,
+  `too_large`, `depth`, `cycle`) in file order, so GR020/GR022/GR023 can be derived without
+  re-parsing. A file reached twice is one entry plus a `duplicate` edge; its `via` is the first chain.
+- **Unreadable entries.** An import that leaves the tree (`/abs`, `~/x`, `../out`) becomes an entry
+  with `readable=False` and no text (never read). Claude Code keeps the importer's load state and
+  the note "requires approval"; Copilot CLI marks it `blocked`. Symlinks, over-4-MiB files and
+  AGENTS.md files the agent skips are `blocked` entries too, so `context` can show them with the reason.
+- **Hop counting.** Refined from Phase 0: hops 1-4 load, hop 5 is loaded and `(unverified)`, hop 6+ is
+  not loaded (see AGENT_MODELS). Copilot: limit 4, every imported entry unverified (base path, depth
+  and code-span rules are undocumented).
+- **External = outside the working directory** for Claude Code (a file inside the repo but outside
+  `--cwd` is readable and carries the approval note); **outside the repository** for Copilot, where it
+  is blocked. User-scope files (`~/...`) never show the approval note.
+- **Imports inside rules** (`.claude/rules/*.md`) are followed for Claude Code and marked like other
+  imports: the docs only describe imports in CLAUDE.md/AGENTS.md. Ancestor-directory rules (between
+  the repo root and `--cwd`) are not documented either: assumed `always`, unverified.
+- **CLAUDE.md symlinks.** ghostrules does not read them (even `CLAUDE.md -> AGENTS.md`, a documented
+  pattern), so the entry is `blocked` and the symlink still counts as "a CLAUDE.md exists" for the
+  AGENTS.md rule. `context` will therefore under-report such a repo; GR025 will say why.
+- **Unparseable rule front matter** (Claude Code): the rule is `always`, unverified, with the whole
+  file as text. Cursor is lenient: the front matter data is used and removed, unverified.
+- **Copilot `*.instructions.md` without `applyTo`** are `manual` (unverified): the docs say
+  path-specific files apply only when `applyTo` matches. `applyTo` is matched against the target
+  path relative to the repository root.
+- **Cursor:** `.md` files in `.cursor/rules` are `blocked` ("ignored"), `.cursorrules` is `always`
+  unverified, nested `AGENTS.md` below the working directory is `on_demand`, and no imports exist.
+- **Generic:** the nearest `AGENTS.md` to the target (or the working directory) is verified, the
+  ones above it on the path are `always` unverified, the rest `on_demand`.
+- **Globs.** One matcher for every agent: anchored, `*` stays in a segment, `**/` spans directories,
+  braces expand up to 1,000 patterns (then stay literal), bad `[` makes one pattern invalid, dotfiles
+  match, case-sensitive by default. Cursor and Copilot have their own matchers in reality; this
+  approximation is the same for all and is the main source of `matches` being wrong in edge cases.
+- **Not modelled:** managed policy files, `claudeMdExcludes`, `--add-dir`, `COPILOT_CUSTOM_INSTRUCTIONS_DIRS`,
+  `/instructions`, directories above the repo root; each is listed in `ContextGraph.notes` or
+  AGENT_MODELS.
+
+## v0.2 Phase 3 — scan integration and import rules
+
+- **What becomes a scan target.** For every scan root the models of the configured agents (default
+  all four) are run with the session at the root. Every readable file in those contexts is scanned
+  as `instructions`: imported files, and also files the 0.1 globs did not know (`.claude/rules/**`).
+  A file an agent loads by itself is "standalone" and gets no `via`; only a file that imports alone
+  reach gets `via`, `agents` and the tag. `exclude` applies to these files too. `--no-follow-imports`
+  drops the imported files but keeps GR020-GR023, which only read the importing line.
+- **`agents` in findings** is filled only when the file was reached through an import. 0.1 JSON/SARIF
+  output (and a 0.1 test that pins the exact key set) stays byte-for-byte the same for everything
+  else, and `via`/`agents`/`tags` are omitted from JSON when empty.
+- **GR024 is registered** (so `ghostrules rules`, the README table and SARIF list it) but is a tag, not
+  a detector: its check never runs. Putting it in `disable` is equivalent to `--no-follow-imports`.
+- **Graph rules** (`scope="graph"`) receive a `ScanContext` (every agent's graph plus the loaded
+  targets). Findings are placed on the importing line, so the importer's own `ghostrules-ignore`
+  markers apply to GR020-GR023 and nothing else; a marker never reaches the imported file. GR025 has
+  no line to suppress and reports on the link's own path.
+- **GR020** uses each agent's own definition of "outside" (Claude Code: outside the working
+  directory, which at scan time is the root; Copilot CLI: outside the repository), so it is
+  info for user-level files and never reads the target.
+- **GR021** looks at the path as written. The context engine itself never reads a sensitive file: an
+  in-repo `@.env` becomes an unreadable `sensitive` entry, so the file is not hashed or scanned either.
+  High instead of critical when the import is uncertain (inside an HTML comment or after punctuation).
+- **GR022** skips `@mention`-like tokens (no `/`, no extension, no leading `.`/`~`), missing targets of
+  uncertain imports, and anything outside the tree (that is GR020). The "cut at an unescaped space"
+  hint is computed by the engine when a missing path becomes an existing one with the next words
+  appended (at most four).
+- **GR005** gets `AgentView`s on the `ScanTarget`: the comment line ranges each agent strips. Default
+  config models all four agents, and Copilot CLI sees CLAUDE.md comments, so the severity only
+  drops to info for teams that set `agents = ["claude-code"]`. Files no model covers behave as in 0.1.
+- **Edited 0.1 test.** `test_every_rule_fires_somewhere_in_the_poisoned_repo` now checks the 0.1 rules
+  (`id < GR020`): the poisoned demo stays frozen at 7 files / 28 findings (other 0.1 tests pin that)
+  and has no imports or symlinks. `examples/import-chain-repo` (Phase 6) will carry the same check for
+  GR020-GR025. Nothing else in the 0.1 suite changed.
+
+## v0.2 Phase 4 — `ghostrules context`
+
+- **Demo repo created early.** `examples/import-chain-repo` (generated by `scripts/make_demo.py`,
+  checked for staleness like the other two) exists now so the tree can be shown; Phase 6 adds the
+  `lock` scenario and the tapes. It has the SPEC §7 chain, a `.env` import (GR021, the file holds a
+  fake value and is never read), an import outside the repository (GR020), a conditional rule, an
+  on-demand `src/legacy/CLAUDE.md` and an `AGENTS.md` that Claude Code skips. Imports resolve
+  relative to the importing file, so `docs/setup.md` writes `@../.env`.
+- **`--agent all` = one tree per agent**, not a merged tree: what loads, when, and how a file is
+  transformed differ per agent, and a merged tree would hide that. (The SPEC's "union, each entry
+  tagged with its agents" is what `scan` findings carry in `agents`; `lock` will use per-agent lists.)
+  `all` means the agents of the config (`agents = [...]`), all four by default.
+- **Root and paths.** `--root` defaults to the enclosing git root, else the current directory, so
+  inside `examples/` the git root is the ghostrules repo itself: use `--root` for the demos (or
+  make them their own repo). `TARGET` and `--cwd` are read relative to the current directory and
+  to the root; of the readings inside the root, the one that exists wins. Symlinks are not resolved.
+- **What is scanned.** The whole root is scanned with the config of the root and the shown agents,
+  and findings are kept for files that appear in a displayed context. The rest are only counted
+  ("+N findings in files these agents do not load"). Files in `exclude` still appear in the tree but
+  are not scanned, as in `scan`.
+- **Tree.** Imported files hang under their importer in the order the imports are written.
+  Imports that do not load are leaves where they were written (`✕ missing`, `↺ cycle`, `✕ too deep`...)
+  except mention-like tokens (`@alice`). Findings from one hidden text (GR001 and what it decodes
+  to) are shown as one block with the decoded text, like the `scan` table. `(unverified)` marks
+  everything the docs leave open, which makes the Copilot CLI tree noisy on purpose.
+- **`--show-text`** prints the text each agent receives, once per distinct text, with invisible
+  characters revealed (the `reveal` view); Markdown wraps it in `<details>`.
+- **Exit codes** as `scan`: 1 when a finding in the displayed context reaches `--fail-on`
+  (default `high`), 2 on bad arguments or a failed scan, 0 otherwise. `--no-scan` never fails.
+
+## v0.2 Phase 5 — `ghostrules lock`
+
+- **Where the old text comes from.** The lock must show *which lines are new* (with invisible
+  characters revealed, which a pull-request diff cannot do) but must not keep the text. Each entry
+  therefore stores `lines`: one 64-bit hash per line of the seen text, space separated on a single
+  JSON line. A check aligns those with the current lines (`difflib`) and prints the lines that are
+  new, with their number in the original file (comment stripping is mapped back); removed lines
+  are only counted ("1 line removed (was line 3 of the locked text)"). Alternatives rejected:
+  storing the text (bloats and duplicates the repo), asking git for the old blob (needs history
+  and a ref, shells out). Cost: about 17 bytes per line; files over 5,000 lines have no `lines`
+  and are reported as "too large to compare line by line". The file-level hashes, not the line
+  hashes, decide whether something changed: a line-hash collision could only hide a line from the
+  display, never a change.
+- **`via` in the lock is a list of paths**, not `path:line`. Adding a line above an import would
+  otherwise change the identity of every file below it. The check prints the current lines.
+- **What is recorded.** For each agent of the config: every entry of the context at the root
+  (session start, conditional and on-demand files, imports), including entries ghostrules does not
+  read (symlinks, external or sensitive imports, files the agent skips), with `null` hashes. That way
+  "AGENTS.md was skipped and now loads" and "an import of `.env` appeared" are changes. Files in
+  `exclude` are left out; user-level files (`--home`) are not in the lock. `conditions` is the
+  `paths`/`globs` text. Notes, `unverified` and reasons are not stored, so improving a model's
+  wording never invalidates a lock.
+- **Comparison.** Per agent and per `(path, via)`: added, removed, changed (seen text, load state or
+  condition differ) or hidden (the file differs but the text the agent receives does not, e.g. a
+  comment Claude Code strips). Agents affected in the same way are merged into one row; if some
+  agents see a change and others do not, the file appears in both sections. A lock made for other
+  agents than the configuration models is itself a change. A different `generator` is only noted.
+- **Exit codes** as specified: 0 up to date, 1 changed, 2 error (missing, corrupt or unsupported lock,
+  `--check` with `--update`, bad arguments). Plain `lock` and `--update` overwrite the file and
+  print what changed relative to the old one.
+- **Scope.** No `--cwd`/`--home`: the lock is repository-wide at the root. It does not run the
+  rules; `scan` and `context` do. The README (Phase 7) must say it is a visibility control and
+  recommend CODEOWNERS on the lock and on instruction files, since a pull request can update it too.
+
+## v0.2 Phase 6 — Action, config, demos
+
+- **Action.** New inputs `follow-imports` (default `true`; `false` passes `--no-follow-imports` to the
+  scan and to the summary) and `lock-check` (default `false`). The "Check the lock" step runs
+  `ghostrules lock --check --root "$INPUT_PATH" --format markdown`, records the exit code in the
+  new output `lock-exit-code`, and appends the report to the job summary under "What your agents
+  read changed in this PR" (a missing lock is reported there too). Like the scan step it never fails
+  by itself; the last step fails the job with the worse of the two results (scan 1/2, lock 1/2), so
+  the SARIF upload and the summaries still happen. 0.1 inputs and outputs are untouched. As before,
+  no `${{ }}` inside `run:` scripts, only environment variables.
+- **Config.** `follow_imports`, `agents` and `lockfile` already existed (added with the features
+  that needed them in Phases 3 and 5); this phase only documents `lockfile` in the README block.
+- **Self-test.** The existing job keeps its three runs (so its test still reads "three"); a second
+  job `import-chain` runs the local action on `examples/import-chain-repo` with imports followed (SARIF must
+  carry GR001 with `relatedLocations` CLAUDE.md → docs/style.md and the tag `reached-via-import`,
+  plus GR020 and GR021) and with `follow-imports: "false"` (SARIF empty). It then builds the
+  lock scenario in `$RUNNER_TEMP`, locks `base/`, copies the lock to `pr/`, and runs the action with
+  `lock-check` on both: `base` must pass with `lock-exit-code` 0, `pr` must fail the step with 1.
+  The lock is created inside the job, not committed under `examples/`: it embeds the ghostrules
+  version, which would make the "examples are up to date" test fail after every release.
+- **Lock scenario.** `python scripts/make_demo.py --lock-scenario DEST` writes `DEST/base` (the
+  import-chain repo) and `DEST/pr` (the same plus a pull request that edits `shared/team-rules.md`:
+  a visible rewording and a new bullet with a hidden sentence). It does not run ghostrules, so the
+  generator stays dependency-free.
+- **Tapes.** The 0.1 `demo/demo.tape` (and the `demo.gif` already in the repository, recorded from
+  it) is left as it is: it tells the hidden-Unicode story and its test pins it. The 0.2 stories are two
+  new tapes, `demo/imports.tape` (cat CLAUDE.md, `scan --no-follow-imports` finds nothing,
+  `scan | head -12` shows the payload with its chain, `context ... --agent claude-code`) and
+  `demo/lock.tape` (a `diff | sed` view of the pull request as a reviewer sees it, which drops
+  everything that is not printable ASCII, then `lock --check`). Both are under 20 seconds by the
+  repository's own estimate. The plan said to replace `demo.tape`; keeping both lets the Phase 7 README
+  choose which GIF leads. **Neither new GIF has been recorded**: vhs, ffmpeg and ttyd are not
+  available in this environment.
+- **Tests edited.** `test_action_inputs_follow_the_spec` (two new inputs), the step-order test (one
+  new step) and `test_self_test_runs_the_local_action_on_the_demos` (looks at the `action` job, not
+  every job). Everything else from 0.1 is unchanged.
+
+## v0.2 Phase 7 — docs and release preparation
+
+- **README.** New tagline first (the 0.1 one stays as the subtitle), two new sections between
+  "What it catches" and "Install" ("What your agents actually read", "Review every change to what your
+  agents read"), the Action table and snippet with `follow-imports` and `lock-check`, FAQ entries for
+  the agent-aware GR005, for what the lock does not do and for external imports, new Limits and
+  Roadmap lines. The `context` tree and the `lock --check` output in the README are checked against
+  the real output by a test. The hero GIF is still the 0.1 one: the two new tapes have not been
+  recorded (no vhs here), and the README does not embed GIFs that do not exist.
+- **`docs/AGENT_MODELS.md`** moved out of `docs/v0.2/` (the plan links it from the README); the other
+  v0.2 design documents stay in `docs/v0.2/`. Code and docs reference the new path.
+- **Correction to Phase 3.** The note said `examples/import-chain-repo` would cover GR020-GR025. It
+  covers GR001 plus its re-scan findings, GR020 and GR021; GR022, GR023 and GR025 are tested in
+  `tests/test_scan_imports.py` (a portable demo cannot hold a symlink, and a cycle there would clutter
+  the story).
+- **`exclude` cascades through imports.** Found by locking this repository: its own `exclude` hides
+  `examples/**`, but the external import of the demo (`/opt/acme/tooling.md`) is not under
+  `examples/` and leaked into the lock. A file now counts as excluded if any file in its import chain
+  is, in `lock` and in `scan`. User-level files (`~/`) are never excluded.
+- **Dogfooding.** `.ghostrules.lock` is committed (it holds `CLAUDE.md` for Claude Code and Copilot
+  CLI), CI runs `ghostrules lock --check` next to the self-scan, and a test does the same. Editing
+  `CLAUDE.md` now needs `ghostrules lock --update` in the same commit, which is the point.
+- **Version.** `0.2.0`; README snippets say `v0.2.0` (the tag does not exist yet: the maintainer tags
+  after merging).

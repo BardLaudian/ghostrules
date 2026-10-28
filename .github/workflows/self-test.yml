@@ -71,3 +71,83 @@ jobs:
           results = json.load(open("ghostrules.sarif"))["runs"][0]["results"]
           assert results == [], results
           PY
+
+  import-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Import-chain demo, following imports (default)
+        uses: ./
+        with:
+          path: examples/import-chain-repo
+          fail-on: none
+          upload-sarif: "false"
+
+      - name: SARIF must carry the hidden payload with the import chain that reaches it
+        run: |
+          python - <<'PY'
+          import json
+          results = json.load(open("ghostrules.sarif"))["runs"][0]["results"]
+          ids = {r["ruleId"] for r in results}
+          assert {"GR001", "GR020", "GR021"} <= ids, ids
+          hidden = next(r for r in results if r["ruleId"] == "GR001")
+          chain = [l["physicalLocation"]["artifactLocation"]["uri"] for l in hidden["relatedLocations"]]
+          assert chain == ["CLAUDE.md", "docs/style.md"], chain
+          assert hidden["locations"][0]["physicalLocation"]["artifactLocation"]["uri"] == "shared/team-rules.md"
+          assert "reached-via-import" in hidden["properties"]["tags"]
+          print(f"ok: {len(results)} results")
+          PY
+
+      - name: Import-chain demo with follow-imports off (a 0.1-style scan finds nothing)
+        uses: ./
+        with:
+          path: examples/import-chain-repo
+          follow-imports: "false"
+          upload-sarif: "false"
+
+      - name: SARIF must be empty
+        run: |
+          python - <<'PY'
+          import json
+          results = json.load(open("ghostrules.sarif"))["runs"][0]["results"]
+          assert results == [], results
+          PY
+
+      - name: Lock a copy of the demo, then make a pull-request-like change to another copy
+        run: |
+          python scripts/make_demo.py --lock-scenario "$RUNNER_TEMP/acme"
+          ghostrules lock --root "$RUNNER_TEMP/acme/base"
+          cp "$RUNNER_TEMP/acme/base/.ghostrules.lock" "$RUNNER_TEMP/acme/pr/"
+
+      - name: Lock check on the unchanged repository (must pass)
+        id: unchanged
+        uses: ./
+        with:
+          path: ${{ runner.temp }}/acme/base
+          fail-on: none
+          lock-check: "true"
+          upload-sarif: "false"
+
+      - name: The unchanged lock exit code is 0
+        env:
+          LOCK_EXIT_CODE: ${{ steps.unchanged.outputs.lock-exit-code }}
+        run: test "$LOCK_EXIT_CODE" = "0"
+
+      - name: Lock check after the pull request (must fail the step)
+        id: changed
+        uses: ./
+        continue-on-error: true
+        with:
+          path: ${{ runner.temp }}/acme/pr
+          fail-on: none
+          lock-check: "true"
+          upload-sarif: "false"
+
+      - name: The changed lock must have failed with exit code 1
+        env:
+          OUTCOME: ${{ steps.changed.outcome }}
+          LOCK_EXIT_CODE: ${{ steps.changed.outputs.lock-exit-code }}
+        run: |
+          test "$OUTCOME" = "failure"
+          test "$LOCK_EXIT_CODE" = "1"

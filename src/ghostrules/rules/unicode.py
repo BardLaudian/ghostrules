@@ -293,6 +293,31 @@ _COMMENT_MIN_CHARS = 40
 _MARKDOWN_SUFFIXES = (".md", ".mdc", ".markdown", ".mdx")
 
 
+def _agent_view_of_comment(
+    target: ScanTarget, offset: int, severity: Severity
+) -> tuple[Severity, str]:
+    """Which modelled agents actually see a comment, and the severity that follows.
+
+    Claude Code strips block-level comments from CLAUDE.md files before the model sees them; an
+    agent that does not is assumed to see them. When no agent sees it, the finding is info.
+    Without agent data (a file no model covers) nothing changes.
+    """
+    if not target.agent_views:
+        return severity, ""
+    line = target.position(offset)[0]
+    seen = [v.agent for v in target.agent_views if not v.hides_line(line)]
+    hidden = [v.agent for v in target.agent_views if v.hides_line(line)]
+    parts = []
+    if seen:
+        parts.append(f"seen by: {', '.join(seen)}")
+    if hidden:
+        parts.append(f"not seen by: {', '.join(hidden)} (stripped before reaching the model)")
+    note = f" ({'; '.join(parts)})."
+    if not seen:
+        return Severity.INFO, f" Stripped by {', '.join(hidden)} before reaching the model" + note
+    return severity, note
+
+
 @rule(
     "GR005",
     Severity.MEDIUM,
@@ -325,6 +350,7 @@ def gr005_html_comments(target: ScanTarget) -> Iterator[Finding]:
         else:
             continue
         unterminated = not match.group().endswith("-->")
+        severity, seen_note = _agent_view_of_comment(target, match.start(), severity)
         yield build_finding(
             target=target,
             rule_id="GR005",
@@ -337,6 +363,7 @@ def gr005_html_comments(target: ScanTarget) -> Iterator[Finding]:
                     if unterminated
                     else ""
                 )
+                + seen_note
             ),
             start=match.start(),
             end=match.end(),

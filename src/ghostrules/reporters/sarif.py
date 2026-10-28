@@ -63,6 +63,10 @@ def _result(finding: Finding, rule_index: dict[str, int]) -> dict[str, Any]:
         properties["decodedHiddenText"] = safe(finding.decoded)
     if finding.fix_hint:
         properties["fixHint"] = safe(finding.fix_hint)
+    if finding.agents:
+        properties["agents"] = list(finding.agents)
+    if finding.tags:
+        properties["tags"] = list(finding.tags)
     result: dict[str, Any] = {
         "ruleId": finding.rule_id,
         "level": _LEVEL[finding.severity],
@@ -82,7 +86,33 @@ def _result(finding: Finding, rule_index: dict[str, int]) -> dict[str, Any]:
     }
     if finding.rule_id in rule_index:
         result["ruleIndex"] = rule_index[finding.rule_id]
+    related = _related_locations(finding)
+    if related:
+        result["relatedLocations"] = related
     return result
+
+
+def _related_locations(finding: Finding) -> list[dict[str, Any]]:
+    """The import chain: one location per ``path:line`` in ``finding.via`` (repo files only)."""
+    out: list[dict[str, Any]] = []
+    for step in finding.via:
+        path, _, line = step.rpartition(":")
+        if not is_repo_relative(path) or not line.isdigit():
+            continue
+        out.append(
+            {
+                "id": len(out),
+                "physicalLocation": {
+                    "artifactLocation": {
+                        "uri": quote(safe(path), safe="/"),
+                        "uriBaseId": "%SRCROOT%",
+                    },
+                    "region": {"startLine": max(int(line), 1)},
+                },
+                "message": {"text": "imports the next file in the chain"},
+            }
+        )
+    return out
 
 
 def to_dict(result: ScanResult) -> dict[str, Any]:

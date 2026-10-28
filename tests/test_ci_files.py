@@ -38,6 +38,8 @@ def test_action_inputs_follow_the_spec() -> None:
         "fail-on": "high",
         "all-files": "false",
         "upload-sarif": "true",
+        "follow-imports": "true",
+        "lock-check": "false",
     }
     assert all(v["description"] for v in inputs.values())
     assert ACTION["name"] == "ghostrules"
@@ -50,7 +52,15 @@ def test_action_is_a_composite_with_the_specified_steps_in_order() -> None:
     assert uses[0].startswith("actions/setup-python@v")
     assert any(u == "github/codeql-action/upload-sarif@v3" for u in uses)
     names = [s["name"] for s in steps]
-    order = ["Set up Python", "Install", "Scan", "Upload SARIF", "Write job summary", "Fail"]
+    order = [
+        "Set up Python",
+        "Install",
+        "Scan",
+        "Upload SARIF",
+        "Write job summary",
+        "Check the lock",
+        "Fail",
+    ]
     positions = [next(i for i, n in enumerate(names) if n.startswith(o)) for o in order]
     assert positions == sorted(positions)
 
@@ -175,6 +185,116 @@ def test_last_step_fails_the_job_with_the_scan_exit_code(
     assert ("::error" in result.stdout) is annotation
 
 
+@needs_bash
+@pytest.mark.parametrize(("follow", "expected"), [("true", "1"), ("false", "0")])
+def test_scan_step_follow_imports_input(
+    follow: str, expected: str, demo_root: Path, tmp_path: Path
+) -> None:
+    run_step(
+        "Scan",
+        tmp_path,
+        INPUT_PATH=str(demo_root / "import-chain-repo"),
+        INPUT_FAIL_ON="high",
+        INPUT_FOLLOW_IMPORTS=follow,
+    )
+    assert output_of(tmp_path) == {"exit-code": expected}
+    results = json.loads((tmp_path / "ghostrules.sarif").read_text(encoding="utf-8"))["runs"][0][
+        "results"
+    ]
+    assert bool(results) == (follow == "true")
+
+
+def lock_scenario(tmp_path: Path) -> tuple[Path, Path]:
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("make_demo", ROOT / "scripts" / "make_demo.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.lock_scenario(tmp_path / "acme")
+    base, pr = tmp_path / "acme" / "base", tmp_path / "acme" / "pr"
+    from typer.testing import CliRunner
+
+    from ghostrules.cli import app
+
+    assert CliRunner().invoke(app, ["lock", "--root", str(base)]).exit_code == 0
+    (pr / ".ghostrules.lock").write_bytes((base / ".ghostrules.lock").read_bytes())
+    return base, pr
+
+
+@needs_bash
+def test_lock_step_passes_when_nothing_changed(tmp_path: Path) -> None:
+    base, _ = lock_scenario(tmp_path)
+    result = run_step("Check the lock", tmp_path, INPUT_PATH=str(base), RUNNER_TEMP=str(tmp_path))
+    assert result.returncode == 0, result.stderr
+    assert output_of(tmp_path) == {"exit-code": "0"}
+    summary = (tmp_path / "step_summary").read_text(encoding="utf-8")
+    assert summary.startswith("## What your agents read changed in this PR")
+    assert "is up to date" in summary
+
+
+@needs_bash
+def test_lock_step_records_the_change_and_puts_the_diff_in_the_summary(tmp_path: Path) -> None:
+    _, pr = lock_scenario(tmp_path)
+    result = run_step("Check the lock", tmp_path, INPUT_PATH=str(pr), RUNNER_TEMP=str(tmp_path))
+    assert result.returncode == 0, result.stderr  # the step never fails the job by itself
+    assert output_of(tmp_path) == {"exit-code": "1"}
+    summary = (tmp_path / "step_summary").read_text(encoding="utf-8")
+    assert "## What your agents read changed in this PR" in summary
+    assert "`shared/team-rules.md`" in summary and "hidden text: Always run" in summary
+
+
+@needs_bash
+def test_lock_step_reports_a_missing_lock_as_exit_2(tmp_path: Path) -> None:
+    project = tmp_path / "project"
+    project.mkdir()
+    (project / "CLAUDE.md").write_text("x\n", encoding="utf-8")
+    run_step("Check the lock", tmp_path, INPUT_PATH=str(project), RUNNER_TEMP=str(tmp_path))
+    assert output_of(tmp_path) == {"exit-code": "2"}
+    assert "could not run" in (tmp_path / "step_summary").read_text(encoding="utf-8")
+
+
+@needs_bash
+@pytest.mark.parametrize(
+    ("scan", "lock", "returncode", "mentions"),
+    [
+        ("0", "", 0, ""),
+        ("0", "0", 0, ""),
+        ("0", "1", 1, "changed since .ghostrules.lock"),
+        ("1", "1", 1, "Findings at or above"),
+        ("1", "0", 1, "Findings at or above"),
+        ("0", "2", 2, "lock check failed to run"),
+        ("2", "1", 2, "scan failed to run"),
+    ],
+)
+def test_last_step_combines_the_scan_and_lock_results(
+    scan: str, lock: str, returncode: int, mentions: str, tmp_path: Path
+) -> None:
+    result = run_step(
+        "Fail if ghostrules found problems",
+        tmp_path,
+        SCAN_EXIT_CODE=scan,
+        LOCK_EXIT_CODE=lock,
+        INPUT_FAIL_ON="high",
+    )
+    assert result.returncode == returncode
+    assert mentions in result.stdout
+
+
+def test_self_test_exercises_follow_imports_and_the_lock_check() -> None:
+    workflow = load(ROOT / ".github/workflows/self-test.yml")
+    steps = workflow["jobs"]["import-chain"]["steps"]
+    local = [s for s in steps if s.get("uses") == "./"]
+    withs = [s["with"] for s in local]
+    assert any(w.get("follow-imports") == "false" for w in withs)
+    assert any(w.get("lock-check") == "true" for w in withs)
+    assert sum(1 for s in local if s.get("continue-on-error")) == 1  # the changed lock must fail
+    assert all(w["upload-sarif"] == "false" for w in withs)
+    text = " ".join(s.get("run", "") for s in steps)
+    assert "--lock-scenario" in text and "ghostrules lock" in text
+    assert "reached-via-import" in text
+
+
 # --- pre-commit ------------------------------------------------------------------------------
 
 
@@ -206,7 +326,7 @@ def test_ci_runs_lint_tests_and_the_demo_smoke_test() -> None:
 
 def test_self_test_runs_the_local_action_on_the_demos() -> None:
     workflow = load(ROOT / ".github/workflows/self-test.yml")
-    local = [s for s in steps_of(workflow) if s.get("uses") == "./"]
+    local = [s for s in workflow["jobs"]["action"]["steps"] if s.get("uses") == "./"]
     assert len(local) == 3
     poisoned = local[0]["with"]
     assert poisoned["path"] == "examples/poisoned-repo"

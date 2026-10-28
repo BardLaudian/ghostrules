@@ -21,6 +21,11 @@ def safe(text: str) -> str:
     return text.encode("utf-8", errors="replace").decode("utf-8")
 
 
+def via_text(finding: Finding) -> str:
+    """The import chain of a finding as ``CLAUDE.md:12 → docs/style.md:3`` (empty if none)."""
+    return " → ".join(finding.via)
+
+
 def severity_counts(findings: list[Finding]) -> dict[str, int]:
     """Finding count per severity label, most severe first, omitting zeros."""
     counts = Counter(f.severity for f in findings)

@@ -5,6 +5,51 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-28
+
+Know exactly what your agent reads: `ghostrules` now models how each agent loads its instructions,
+scans exactly that, shows it, and pins it.
+
+### Added
+- GitHub Action inputs `follow-imports` (default `true`) and `lock-check` (default `false`). With
+  `lock-check` the action runs `ghostrules lock --check`, puts the differences in the job summary
+  under "What your agents read changed in this PR" and fails the job if there are any; new output
+  `lock-exit-code`.
+- Config keys `follow_imports`, `agents` and `lockfile`.
+- `python scripts/make_demo.py --lock-scenario DEST` and the tapes `demo/imports.tape` and
+  `demo/lock.tape` for the 0.2 GIFs.
+- `ghostrules lock`: writes `.ghostrules.lock`, a deterministic record (sorted keys, no timestamps,
+  CRLF-normalised hashes) of every file in each modelled agent's context, how it is reached, and
+  the text the agent actually receives, plus a hash of every MCP and agent settings file.
+  `lock --check` recomputes it and shows what changed (added, changed, removed, and changes that
+  only touch text an agent strips), with invisible characters revealed; exit 0 up to date, 1
+  changed, 2 error. `--format text|markdown|json`, `--update`, `--lockfile`; config key `lockfile`.
+- `ghostrules context [TARGET]`: shows what an agent reads when it works on a file (the files it
+  loads at session start, the rules its `paths`/`globs` select, the directories that load on
+  demand, the imports it follows and the files it skips, with the reason) and scans exactly that.
+  Output as a tree, JSON or Markdown; `--agent`, `--cwd`, `--root`, `--show-text`, `--no-scan`,
+  `--home`, `--fail-on`.
+- `examples/import-chain-repo`: a CLAUDE.md that looks clean and reaches a hidden payload through two
+  imports, plus a `.env` import and one outside the repository.
+- `scan` follows `@path` imports by default: files an instruction file imports are scanned as
+  instructions, and their findings carry the import chain (`via`), the agents that load them and the
+  tag `reached-via-import`. `--no-follow-imports` (or `follow_imports = false`) turns it off.
+- Rules GR020 (external import), GR021 (sensitive file imported), GR022 (import that silently does
+  not load), GR023 (import cycle), GR024 (tag for payloads reached through an import) and GR025
+  (symlinked instruction source).
+- The files each modelled agent loads (including `.claude/rules/**`) are scanned even when the
+  discovery globs do not list them. New config keys `follow_imports` and `agents`.
+- JSON findings gain optional `via`, `agents` and `tags`; SARIF results gain `relatedLocations` for
+  the chain and `properties.agents`/`tags`; the table and Markdown reports show the chain.
+
+- `docs/AGENT_MODELS.md`: how each agent loads its instructions, with the documentation it is based on
+  and what is still unverified; `CONTRIBUTING.md` explains how to add a model.
+- `ghostrules` locks its own `CLAUDE.md` (`.ghostrules.lock`), checked in CI.
+
+### Changed
+- GR005 is agent-aware: it says which agents see a hidden comment. Claude Code strips block-level
+  comments from CLAUDE.md files, so the finding is info when no configured agent sees the comment.
+
 ## [0.1.1] - 2026-10-27
 
 ### Changed

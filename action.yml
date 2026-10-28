@@ -24,6 +24,17 @@ inputs:
       Upload the SARIF report to GitHub code scanning (needs "security-events: write" and a
       repository where code scanning is available).
     default: "true"
+  follow-imports:
+    description: >-
+      Also scan the files that instruction files import with @path (CLAUDE.md can pull in files no
+      agent-file pattern lists). Set to "false" for the 0.1 behaviour.
+    default: "true"
+  lock-check:
+    description: >-
+      Compare what the agents read with .ghostrules.lock (create it with "ghostrules lock"). The
+      differences go to the job summary under "What your agents read changed in this PR" and the
+      job fails if there are any.
+    default: "false"
 
 outputs:
   exit-code:
@@ -32,6 +43,9 @@ outputs:
   sarif-file:
     description: Path of the SARIF report.
     value: ghostrules.sarif
+  lock-exit-code:
+    description: "Exit code of the lock check: 0 up to date, 1 changed, 2 error. Empty if lock-check is off."
+    value: ${{ steps.lock.outputs.exit-code }}
 
 runs:
   using: composite
@@ -52,11 +66,13 @@ runs:
         INPUT_PATH: ${{ inputs.path }}
         INPUT_FAIL_ON: ${{ inputs.fail-on }}
         INPUT_ALL_FILES: ${{ inputs.all-files }}
+        INPUT_FOLLOW_IMPORTS: ${{ inputs.follow-imports }}
       run: |
         # The SARIF report is written whatever the result; the job is failed in the last step,
         # after the report has been uploaded and summarised.
         args=("$INPUT_PATH" --fail-on "$INPUT_FAIL_ON")
         if [ "$INPUT_ALL_FILES" = "true" ]; then args+=(--all-files); fi
+        if [ "$INPUT_FOLLOW_IMPORTS" = "false" ]; then args+=(--no-follow-imports); fi
         set +e
         ghostrules scan "${args[@]}" --format sarif --output ghostrules.sarif
         code=$?
@@ -77,21 +93,56 @@ runs:
       env:
         INPUT_PATH: ${{ inputs.path }}
         INPUT_ALL_FILES: ${{ inputs.all-files }}
+        INPUT_FOLLOW_IMPORTS: ${{ inputs.follow-imports }}
       run: |
         args=("$INPUT_PATH" --fail-on none)
         if [ "$INPUT_ALL_FILES" = "true" ]; then args+=(--all-files); fi
+        if [ "$INPUT_FOLLOW_IMPORTS" = "false" ]; then args+=(--no-follow-imports); fi
         ghostrules scan "${args[@]}" --format markdown >> "$GITHUB_STEP_SUMMARY" || true
+
+    - name: Check the lock
+      id: lock
+      if: ${{ inputs.lock-check == 'true' && !cancelled() }}
+      shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+      run: |
+        # Exit code 1 means "the agents' context changed since .ghostrules.lock"; the job is
+        # failed in the last step, after the differences are in the summary.
+        report="${RUNNER_TEMP:-/tmp}/ghostrules-lock.md"
+        set +e
+        ghostrules lock --check --root "$INPUT_PATH" --format markdown > "$report"
+        code=$?
+        set -e
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        {
+          echo "## What your agents read changed in this PR"
+          echo
+          if [ "$code" = "2" ]; then
+            echo "The lock check could not run (is .ghostrules.lock committed? create it with \`ghostrules lock\`)."
+          else
+            cat "$report"
+          fi
+        } >> "$GITHUB_STEP_SUMMARY"
 
     - name: Fail if ghostrules found problems
       if: ${{ !cancelled() }}
       shell: bash
       env:
         SCAN_EXIT_CODE: ${{ steps.scan.outputs.exit-code }}
+        LOCK_EXIT_CODE: ${{ steps.lock.outputs.exit-code }}
         INPUT_FAIL_ON: ${{ inputs.fail-on }}
       run: |
+        final=0
         case "$SCAN_EXIT_CODE" in
           0) ;;
-          1) echo "::error title=ghostrules::Findings at or above '$INPUT_FAIL_ON' severity. See the job summary and the Security tab." ;;
-          *) echo "::error title=ghostrules::The scan failed to run (exit code '$SCAN_EXIT_CODE')." ;;
+          1) echo "::error title=ghostrules::Findings at or above '$INPUT_FAIL_ON' severity. See the job summary and the Security tab."; final=1 ;;
+          *) echo "::error title=ghostrules::The scan failed to run (exit code '$SCAN_EXIT_CODE')."; final=2 ;;
         esac
-        exit "${SCAN_EXIT_CODE:-2}"
+        case "$LOCK_EXIT_CODE" in
+          ""|0) ;;
+          1) echo "::error title=ghostrules::What your agents read changed since .ghostrules.lock. Review the job summary; if the changes are intended, run 'ghostrules lock --update'."
+             if [ "$final" = 0 ]; then final=1; fi ;;
+          *) echo "::error title=ghostrules::The lock check failed to run (exit code '$LOCK_EXIT_CODE')."; final=2 ;;
+        esac
+        exit "$final"
