@@ -11,6 +11,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   --config-from-ref REF`, `--trusted-config FILE`, `--no-inline-suppressions` and
   `--suppressions-from-ref REF`. They close two ways a change could silence the scanner for its own
   payload: a `ghostrules-ignore` comment on the malicious line and `exclude` in `.ghostrules.toml`.
+- **Fewer false positives from the independent review** (W4): installers of the project's own
+  GitHub organisation and homepage are known installers (read from the base ref when the scan has
+  one); Azure CLI, Flox, golangci-lint, Foundry, Flux and Linkerd are known installers; "do not tell
+  the user they …" is not concealment.
 - **`ghostrules baseline` and `scan --baseline / --no-baseline / --baseline-from-ref`**: record
   today's findings as fingerprints (no line numbers, no snippets) and fail only on new ones. Hidden
   text is never baselined. The Action reads the baseline at the base commit on pull requests, and

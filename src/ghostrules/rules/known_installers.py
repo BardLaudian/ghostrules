@@ -33,6 +33,19 @@ KNOWN_INSTALLERS: tuple[Installer, ...] = (
     Installer("Volta", "get.volta.sh"),
     # https://code.claude.com/docs/en/setup (seen in anthropics/claude-agent-sdk-python)
     Installer("Claude Code", "claude.ai", "/install.sh"),
+    # Official install pages, checked 2026-10-29:
+    # https://learn.microsoft.com/cli/azure/install-azure-cli-linux
+    Installer("Azure CLI", "aka.ms", "/InstallAzureCLIDeb"),
+    # https://install.flox.dev/ hosts the script that https://flox.dev/docs/install-flox points to
+    Installer("Flox", "install.flox.dev"),
+    # https://golangci-lint.run/welcome/install/
+    Installer("golangci-lint", "raw.githubusercontent.com", "/golangci/golangci-lint/"),
+    # https://book.getfoundry.sh/getting-started/installation
+    Installer("Foundry", "foundry.paradigm.xyz"),
+    # https://fluxcd.io/flux/installation/
+    Installer("Flux", "fluxcd.io", "/install.sh"),
+    # https://linkerd.io/2/getting-started/
+    Installer("Linkerd", "run.linkerd.io", "/install"),
 )
 
 _URL_RE = re.compile(r"(https?)://([^/?#\s'\"`)\]>|]*)([^\s'\"`)\]>|]*)", re.IGNORECASE)
@@ -78,11 +91,12 @@ def is_risky_url(url: Url) -> bool:
     )
 
 
-def known_installer(url: Url) -> Installer | None:
-    """The installer entry matching this URL exactly, or ``None``."""
+def known_installer(url: Url, first_party: tuple[Installer, ...] = ()) -> Installer | None:
+    """The installer entry matching this URL exactly, or ``None``. ``first_party`` adds the
+    scanned project's own hosts."""
     if url.scheme != "https" or url.port not in ("", "443"):
         return None
-    for entry in KNOWN_INSTALLERS:
+    for entry in (*KNOWN_INSTALLERS, *first_party):
         if url.host == entry.host and url.path.startswith(entry.path_prefix):
             return entry
     return None

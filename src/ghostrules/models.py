@@ -132,6 +132,7 @@ class ScanTarget:
     origin: str | None = None
     allow_domains: tuple[str, ...] = ()
     trust_known_installers: bool = True
+    first_party: tuple[Any, ...] = ()
     agent_views: tuple[AgentView, ...] = ()
     lines: list[str] = field(init=False)
 

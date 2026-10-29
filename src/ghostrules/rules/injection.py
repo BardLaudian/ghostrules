@@ -240,7 +240,7 @@ def _gr012_verdict(
     if not target.trust_known_installers:
         return Severity.CRITICAL, _GR012_BASE, []
     where = "a code block" if _in_code(target, span[0]) else "prose"
-    known = [known_installer(u) for u in urls]
+    known = [known_installer(u, target.first_party) for u in urls]
     if urls and all(known):
         projects = sorted({k.project for k in known if k})
         message = f"curl … | sh from a well-known installer ({', '.join(projects)}) in {where}"
