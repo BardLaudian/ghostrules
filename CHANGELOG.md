@@ -16,6 +16,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `.codex/config.toml` and `.codex/hooks.json` are scanned; GR107 reports Codex
   `sandbox_mode = "danger-full-access"` and `approval_policy = "never"` and Gemini's bare
   `run_shell_command` allow and `enablePermanentToolApproval`.
+- **Instructions split across two sentences** (W5.5): GR013 reports a secret in one sentence and a send
+  to a URL in the next, with a new `confidence: medium` field on the finding.
 - **A benchmark you can check** (W6): `bench/` has 81 defanged attack cases written from public
   sources (recall per technique and per rule, misses listed, four cases from the independent review as
   known misses) and the 100-repository held-out set run once, with precision for a user per rule. The

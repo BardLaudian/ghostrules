@@ -112,7 +112,7 @@ measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghos
 [full results](https://github.com/BardLaudian/ghostrules/blob/main/bench/RESULTS.md)). Nothing below was tuned on the data it is measured on.
 
 <!-- bench:start -->
-**Recall: 101 attack cases** written from public sources and defanged. 80 are reported (79%); 46 (46%) fail the default `--fail-on high` check, because visible prose is `low` by default (hidden text and configuration are not). The 21 misses include paraphrases, other languages, scripts and files that nothing points the scanner to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed in the results. 4 cases come from the independent review; its other 14 are not in the repository yet.
+**Recall: 101 attack cases** written from public sources and defanged. 83 are reported (82%); 46 (46%) fail the default `--fail-on high` check, because visible prose is `low` by default (hidden text and configuration are not). The 18 misses include paraphrases, other languages, scripts and files that nothing points the scanner to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed in the results. 4 cases come from the independent review; its other 14 are not in the repository yet.
 
 | Technique | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
@@ -120,7 +120,7 @@ measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghos
 | bidi | 3 | 3 | 3 |
 | concealment | 4 | 3 | 0 |
 | encoded-payload | 3 | 3 | 3 |
-| exfiltration | 9 | 4 | 0 |
+| exfiltration | 9 | 7 | 0 |
 | homoglyph | 3 | 3 | 1 |
 | hook-scripts | 7 | 7 | 6 |
 | html-comment | 4 | 4 | 3 |
