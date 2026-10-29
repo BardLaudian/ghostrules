@@ -441,7 +441,7 @@ Matching is case-insensitive on file names. `--home` adds the user-level files m
 | Windsurf | `.windsurfrules`, `.windsurf/rules/**`; `~/.codeium/windsurf/mcp_config.json` |
 | Cline / Roo Code | `.clinerules` (file) and `.clinerules/**`, `.roo/rules*/**`, `.roorules`, `.roo/mcp.json` |
 | Gemini CLI | `GEMINI.md`, `.gemini/**/*.md`, `.gemini/settings.json`; `~/.gemini/settings.json`, `~/.gemini/GEMINI.md` |
-| Codex CLI | `AGENTS.override.md` (any directory), `.codex/config.toml`, `.codex/hooks.json`; `~/.codex/config.toml`, `~/.codex/AGENTS.md`, `~/.codex/AGENTS.override.md` |
+| Codex CLI | `AGENTS.override.md` (any directory), `.codex/config.toml`, `.codex/hooks.json`, `.cursor/hooks.json`; `~/.codex/config.toml`, `~/.codex/AGENTS.md`, `~/.codex/AGENTS.override.md` |
 | JetBrains Junie | `.junie/guidelines.md` |
 | Kiro | `.kiro/steering/**/*.md` |
 | Continue | `.continue/rules/**` |

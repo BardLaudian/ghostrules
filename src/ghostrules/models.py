@@ -17,7 +17,7 @@ _HTML_COMMENT_RE = re.compile(r"<!--.*?(?:-->|\Z)", re.DOTALL)
 if TYPE_CHECKING:
     from ghostrules.mcp_config import ServerDef
 
-Kind = Literal["instructions", "config", "other"]
+Kind = Literal["instructions", "config", "other", "script"]
 """What a scanned file is: agent instructions, agent/MCP config, or any other text file."""
 
 

@@ -7,13 +7,13 @@ measured and how. Nothing here was tuned on the held-out set.
 
 | Technique | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
-| agent-settings | 9 | 7 | 6 |
+| agent-settings | 9 | 8 | 7 |
 | bidi | 3 | 3 | 3 |
 | concealment | 4 | 3 | 0 |
 | encoded-payload | 3 | 3 | 3 |
 | exfiltration | 9 | 4 | 0 |
 | homoglyph | 3 | 3 | 1 |
-| hook-scripts | 7 | 0 | 0 |
+| hook-scripts | 7 | 7 | 6 |
 | html-comment | 4 | 4 | 3 |
 | imports | 5 | 5 | 5 |
 | instruction-override | 9 | 6 | 0 |
@@ -24,13 +24,13 @@ measured and how. Nothing here was tuned on the held-out set.
 | safety-bypass | 3 | 3 | 0 |
 | scanner-evasion | 2 | 0 | 0 |
 | sensitive-file | 5 | 3 | 0 |
-| skill-scripts | 3 | 0 | 0 |
+| skill-scripts | 3 | 2 | 2 |
 | unicode-tags | 7 | 7 | 7 |
 | variation-selectors | 3 | 3 | 3 |
 | zero-width | 3 | 3 | 1 |
-| **All** | 101 | 70 (69%) | 37 (37%) |
+| **All** | 101 | 80 (79%) | 46 (46%) |
 
-70 of 101 cases are detected and 31 are known misses.
+80 of 101 cases are detected and 21 are known misses.
 
 | Rule | Cases naming it | Reported | Fails the default check |
 |---|---:|---:|---:|
@@ -58,16 +58,15 @@ measured and how. Nothing here was tuned on the held-out set.
 | GR106 | 1 | 1 | 1 |
 | GR107 | 7 | 6 | 6 |
 | GR108 | 1 | 1 | 0 |
-| GR110 | 8 | 0 | 0 |
-| GR111 | 1 | 0 | 0 |
-| GR112 | 2 | 0 | 0 |
-| GR113 | 1 | 0 | 0 |
+| GR110 | 8 | 6 | 6 |
+| GR111 | 1 | 1 | 0 |
+| GR112 | 2 | 2 | 2 |
+| GR113 | 1 | 1 | 1 |
 
 Known misses:
 
 - `referenced-bootstrap-file` (referenced-files, review): A file reached by a prose reference, not an import (REMEDIATION W5.4 plans GR026).
 - `referenced-script-by-name` (referenced-files, ours): Scripts the agent is told to run are not scanned (REMEDIATION W5.1, W5.2).
-- `settings-hook-runs-repo-script` (agent-settings, public): The hook command looks harmless and the script is not read (REMEDIATION W5.1).
 - `settings-base-url-override` (agent-settings, public): CVE-2026-21852 shape; no rule looks at endpoint overrides in settings.
 - `mcp-tool-description-poisoning` (mcp-server-content, public): Tool descriptions come from a running server and are never read (docs/USAGE.md, Limits).
 - `evasion-ignore-end-of-line` (scanner-evasion, review): In the default scan; with --suppressions-from-ref or the Action on a pull request it is reported.
@@ -82,15 +81,6 @@ Known misses:
 - `sensitive-npmrc` (sensitive-file, public): Found when the bench ran: 'Open ~/.npmrc' is not matched, even at info; the read-verb list lacks 'open'.
 - `sensitive-paraphrase` (sensitive-file, ours): No path or file name to match: a description of the file.
 - `rce-python-urlopen-exec` (remote-code-execution, ours): GR012 knows shell pipes, PowerShell and eval of curl; not exec(urlopen(...)).
-- `gemini-hook-script` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
-- `claude-hook-python-aws` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
-- `claude-hook-script-curl-sh` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
-- `claude-hook-obfuscated-eval` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
-- `claude-hook-reads-ssh-key` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
-- `cursor-hook-script` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
-- `codex-hook-script` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
-- `skill-python-script-env-post` (skill-scripts, public): Scripts that SKILL.md references are not read yet (REMEDIATION W5.2).
-- `skill-shell-script-curl-sh` (skill-scripts, public): Scripts that SKILL.md references are not read yet (REMEDIATION W5.2).
 - `skill-script-not-mentioned` (skill-scripts, ours): Only scripts that SKILL.md references are scanned (REMEDIATION W5.2), by design.
 - `referenced-see-and-do` (referenced-files, ours): Files that prose points to are not read yet (REMEDIATION W5.4).
 - `referenced-follow-instructions-in` (referenced-files, ours): Files that prose points to are not read yet (REMEDIATION W5.4).

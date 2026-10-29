@@ -350,7 +350,7 @@ def gr005_html_comments(target: ScanTarget) -> Iterator[Finding]:
     ignored. An unterminated ``<!--`` hides the rest of the document and is treated as a comment
     to the end.
     """
-    if target.kind == "other" and not target.path.lower().endswith(_MARKDOWN_SUFFIXES):
+    if target.kind in ("other", "script") and not target.path.lower().endswith(_MARKDOWN_SUFFIXES):
         return
     for match in _HTML_COMMENT_RE.finditer(target.text):
         body = match.group(1).strip()

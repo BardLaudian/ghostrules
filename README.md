@@ -112,17 +112,17 @@ measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghos
 [full results](https://github.com/BardLaudian/ghostrules/blob/main/bench/RESULTS.md)). Nothing below was tuned on the data it is measured on.
 
 <!-- bench:start -->
-**Recall: 101 attack cases** written from public sources and defanged. 70 are reported (69%); 37 (37%) fail the default `--fail-on high` check, because visible prose is `low` by default (hidden text and configuration are not). The 31 misses include paraphrases, other languages, scripts and files that nothing points the scanner to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed in the results. 4 cases come from the independent review; its other 14 are not in the repository yet.
+**Recall: 101 attack cases** written from public sources and defanged. 80 are reported (79%); 46 (46%) fail the default `--fail-on high` check, because visible prose is `low` by default (hidden text and configuration are not). The 21 misses include paraphrases, other languages, scripts and files that nothing points the scanner to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed in the results. 4 cases come from the independent review; its other 14 are not in the repository yet.
 
 | Technique | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
-| agent-settings | 9 | 7 | 6 |
+| agent-settings | 9 | 8 | 7 |
 | bidi | 3 | 3 | 3 |
 | concealment | 4 | 3 | 0 |
 | encoded-payload | 3 | 3 | 3 |
 | exfiltration | 9 | 4 | 0 |
 | homoglyph | 3 | 3 | 1 |
-| hook-scripts | 7 | 0 | 0 |
+| hook-scripts | 7 | 7 | 6 |
 | html-comment | 4 | 4 | 3 |
 | imports | 5 | 5 | 5 |
 | instruction-override | 9 | 6 | 0 |
@@ -133,7 +133,7 @@ measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghos
 | safety-bypass | 3 | 3 | 0 |
 | scanner-evasion | 2 | 0 | 0 |
 | sensitive-file | 5 | 3 | 0 |
-| skill-scripts | 3 | 0 | 0 |
+| skill-scripts | 3 | 2 | 2 |
 | unicode-tags | 7 | 7 | 7 |
 | variation-selectors | 3 | 3 | 3 |
 | zero-width | 3 | 3 | 1 |

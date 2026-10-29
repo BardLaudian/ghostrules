@@ -18,6 +18,7 @@ from ghostrules.ignores import IGNORE_RE as _IGNORE_RE
 from ghostrules.ignores import ReviewedMarks, normalise_line
 from ghostrules.jsonloc import strip_jsonc
 from ghostrules.models import Finding, ScanResult, ScanTarget
+from ghostrules.reach import ScriptRef, hook_scripts, skill_scripts
 from ghostrules.rules import Rule, all_rules
 from ghostrules.scancontext import ScanContext
 from ghostrules.secrets import mask_secrets
@@ -157,7 +158,12 @@ def _run_rules(target: ScanTarget, rules: Iterable[Rule], errors: list[str]) -> 
     """Run applicable rules; a crashing rule is recorded in ``errors`` rather than aborting."""
     found: list[Finding] = []
     for r in rules:
-        if r.scope != "file" or target.kind not in r.applies_to:
+        if r.scope != "file":
+            continue
+        # code that an agent runs gets the generic "any file" checks (hidden characters) as well
+        if target.kind not in r.applies_to and not (
+            target.kind == "script" and "other" in r.applies_to
+        ):
             continue
         try:
             found.extend(r.check(target))
@@ -352,6 +358,46 @@ def _run_change_rules(
     return found
 
 
+_REACH_TAGS = {"hook command": "reached-via-hook", "skill script": "reached-via-skill"}
+
+
+def _scan_reached_scripts(
+    base: Path,
+    by_label: dict[str, ScanTarget],
+    config: Config,
+    rule_list: list[Rule],
+    result: ScanResult,
+) -> list[Finding]:
+    """Scripts that hooks and skills run: read from inside the tree only, scanned as code, and
+    reported with the chain that reaches them. Never read through a link that leaves the tree."""
+    repo = Repo(base)
+    refs: dict[str, ScriptRef] = {}
+    for label, target in by_label.items():
+        if target.kind == "config":
+            for ref in hook_scripts(label, target.text, repo.is_file):
+                refs.setdefault(ref.path, ref)
+        elif target.path.endswith("SKILL.md"):
+            for ref in skill_scripts(label, target.text, repo.is_file):
+                refs.setdefault(ref.path, ref)
+    code_rules = [r for r in rule_list if "script" in r.applies_to]
+    found: list[Finding] = []
+    for ref in refs.values():
+        data = repo.read(ref.path)
+        if data is None:
+            continue
+        script = ScanTarget(ref.path, "script", data.decode("utf-8", errors="surrogateescape"))
+        known = ref.path in by_label  # already read under --all-files: only the code rules are new
+        if not known:
+            result.scanned_files += 1
+        kept, _, errors = scan_target(
+            script, config, code_rules if known else rule_list, _NO_IGNORES
+        )
+        tag = _REACH_TAGS.get(ref.why, "reached-via-hook")
+        found.extend(replace(f, via=(ref.via,), tags=(*f.tags, tag)) for f in kept)
+        result.errors.extend(errors)
+    return found
+
+
 def _relabel_finding(finding: Finding, label_of: Callable[[str], str], ctx: ScanContext) -> Finding:
     """Rules work on graph paths; reports use the labels (they differ with several roots)."""
     if ctx.target(finding.path) is not None:
@@ -473,6 +519,8 @@ def scan_paths(
         result.suppressed += suppressed
         result.errors.extend(errors)
 
+    if len(roots) == 1 and roots[0].is_dir():
+        findings.extend(_scan_reached_scripts(roots[0], by_label, config, rule_list, result))
     findings.extend(
         _run_graph_rules(
             contexts,

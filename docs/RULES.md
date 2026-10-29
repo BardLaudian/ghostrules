@@ -49,6 +49,10 @@ the URLs in any file.
 | <a id="gr106"></a>`GR106` | high | config | **Dangerous Docker options.** Docker-based MCP servers started with options that break container isolation. |
 | <a id="gr107"></a>`GR107` | high | config | **Over-permissive agent settings.** Agent settings that skip permission prompts, allow unrestricted tools, or run risky hooks. |
 | <a id="gr108"></a>`GR108` | medium | config | **Auto-enabled project MCP servers.** Settings that start MCP servers from a cloned repository without review. |
+| <a id="gr110"></a>`GR110` | high |  | **Script sends the environment or a secret.** A script that a hook or a skill runs posts the environment, a token or a credentials file to a remote host. |
+| <a id="gr111"></a>`GR111` | medium |  | **Script reads credential files.** A script that a hook or a skill runs reads credentials (~/.ssh, ~/.aws, .npmrc, the keychain). |
+| <a id="gr112"></a>`GR112` | high |  | **Script downloads and runs code.** A script that a hook or a skill runs downloads code and executes it (curl \| sh, eval of a download, exec of urlopen). |
+| <a id="gr113"></a>`GR113` | high |  | **Script hides what it runs.** A script that a hook or a skill runs decodes an encoded string and executes it (eval of base64, exec of a decoded blob). |
 <!-- rules-table:end -->
 
 ---
@@ -384,6 +388,26 @@ Never suppressed inline (like GR001 and GR002), and the change cannot disable it
 `--config-from-ref` its own `disable` is not read. Only the caller can, with `--disable GR030`.
 Removing a config or a lockfile is not reported (removing the config falls back to the defaults).
 No positive result without a base: a plain `ghostrules scan` never reports it.
+
+## Code that agents run (0.4)
+
+### Scripts that hooks and skills run
+A hook (`.claude/settings*.json`, `.gemini/settings.json`, `.cursor/hooks.json`, `.codex/hooks.json`,
+`.codex/config.toml`) or a `SKILL.md` names a repository script; the script is scanned as code, with the
+chain that reaches it (`via`, tag `reached-via-hook` / `reached-via-skill`). Scripts nobody points to,
+paths that leave the repository and inline `bash -c` code are not read. Agent-reachable code, not a SAST.
+
+### GR110 — Script sends the environment or a secret (high)
+ a network send together with the environment, a token or a credentials file (Python: same data flow).
+
+### GR111 — Script reads credential files (medium)
+ reads `~/.ssh`, `~/.aws`, `.npmrc`, the keychain.
+
+### GR112 — Script downloads and runs code (high)
+ downloads and runs code (`curl | sh`, `eval` of a download, `exec(urlopen())`).
+
+### GR113 — Script hides what it runs (high)
+ decodes an encoded string and executes it.
 
 ## Severity calibration targets (acceptance)
 - `examples/clean-repo` (realistic AGENTS.md, CLAUDE.md, .mcp.json with `${GITHUB_TOKEN}`, pinned

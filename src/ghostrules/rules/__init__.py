@@ -6,6 +6,7 @@ from ghostrules.rules import (
     injection,
     mcp,
     scanner_config,
+    scripts,
     unicode,
 )
 from ghostrules.rules.registry import Rule, all_rules, get_rule, register, rule
@@ -21,5 +22,6 @@ __all__ = [
     "register",
     "rule",
     "scanner_config",
+    "scripts",
     "unicode",
 ]
