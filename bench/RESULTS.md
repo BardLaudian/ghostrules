@@ -82,7 +82,7 @@ Known misses:
 
 ## Precision on the held-out set
 
-100 of 100 repositories scanned (874 agent files), ghostrules 0.3.0 at commit 8ce68eb, 2026-10-29, default settings and an empty configuration. 21 findings shown by default; 2 repositories would fail `--fail-on high`; 0 findings unlabelled.
+100 of 100 repositories scanned (851 agent files), ghostrules 0.4.0 at commit 9dbd494, 2026-10-29, default settings and an empty configuration. 21 findings shown by default; 2 repositories would fail `--fail-on high`; 0 findings unlabelled.
 
 | Rule | Findings | True positive | Benign context | False positive | Unlabelled | Precision for a user |
 |---|---:|---:|---:|---:|---:|---:|

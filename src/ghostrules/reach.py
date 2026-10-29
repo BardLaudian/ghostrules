@@ -231,3 +231,44 @@ def hook_scripts(path: str, text: str, exists: Exists) -> list[ScriptRef]:
         if script is not None and script not in refs:
             refs[script] = ScriptRef(script, f"{path}:{_line_of(text, command)}", "hook command")
     return list(refs.values())
+
+
+@dataclass(frozen=True)
+class InlineCode:
+    """Code written in a hook command itself (``python3 -c``, ``node -e``, ``bash -c``)."""
+
+    code: str
+    language: str  # "python", "node" or "shell" (anything else is read as shell)
+    line: int  # of the command in the settings file
+
+
+def _language(interpreter: str) -> str:
+    if interpreter in ("python", "python3", "py"):
+        return "python"
+    return "node" if interpreter in ("node", "nodejs", "deno") else "shell"
+
+
+def inline_code(path: str, text: str) -> list[InlineCode]:
+    """The code that the hook commands of a settings file carry inline, so it can be read as a
+    script. A command with several interpreters (``a && python3 -c ...``) yields each of them."""
+    if not any(path.endswith(c) for c in HOOK_CONFIGS):
+        return []
+    data = _parse(path, text)
+    hooks = data.get("hooks") if isinstance(data, dict) else None
+    found: list[InlineCode] = []
+    for command in _commands(hooks):
+        try:
+            tokens = shlex.split(_PROJECT_DIR_VARS.sub(".", command), posix=True)
+        except ValueError:
+            continue
+        for position, token in enumerate(tokens):
+            interpreter = _interpreter(token)
+            flags = _INLINE_FLAGS.get(interpreter)
+            if not flags:
+                continue
+            for offset, flag in enumerate(tokens[position + 1 : position + 4], 1):
+                if flag.lower() in flags and position + offset + 1 < len(tokens):
+                    code = tokens[position + offset + 1]
+                    found.append(InlineCode(code, _language(interpreter), _line_of(text, command)))
+                    break
+    return found
