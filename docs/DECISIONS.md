@@ -1070,7 +1070,10 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   `allow_domains` and it is the maintainer's.
 - **New known installers** each come from the project's own install page, with the URL in the
   source. The corpus's other installers (`d.officecli.ai`, `strix.ai`, ...) are first-party in their
-  own repositories and need no entry. Flox: the script lives at `install.flox.dev` (flox.dev docs).
+  own repositories and need no entry. Flox: the install page documents `get.flox.dev`, and `install.flox.dev` serves the same script (both
+  checked 2026-10-29). The first version of this change had only `install.flox.dev`, taken from a
+  search result, and missed the host on the official page. PostHog's `downloads.flox.dev/by-env/stable/install.sh`
+  is not an installer: that path returns 404, so it stays unknown.
   I did not re-fetch every page on the day; the URLs are in `known_installers.py` for a reader to
   check.
 - **GR011 and "they".** `tell the user they|he|she|them|their …` describes wording; "that you …"
