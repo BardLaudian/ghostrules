@@ -231,6 +231,59 @@ No imports, no transforms (HTML comments are **seen**).
 
 ---
 
+## codex
+Sources, read 2026-10-29: https://developers.openai.com/codex/guides/agents-md (now served from
+https://learn.chatgpt.com/docs/agent-configuration/agents-md) and the config reference.
+
+**Documented:** Codex reads, per directory, **at most one file**: `AGENTS.override.md`, then
+`AGENTS.md`, then each name in `project_doc_fallback_filenames` (a setting of `~/.codex/config.toml`);
+"Codex uses only the first non-empty file". It starts at the project root (typically the Git root)
+and walks down to the working directory, and "stops searching once it reaches your current
+directory"; files closer to the working directory come later in the combined prompt. The global
+scope is `~/.codex` (or `CODEX_HOME`): `AGENTS.override.md` first, then `AGENTS.md`, first non-empty
+only. Empty files are skipped, and Codex "stops adding files once the combined size reaches" the
+limit, `project_doc_max_bytes`, **32 KiB by default**. The chain is built once per run. **No imports
+and no transforms are described.** Project-scoped `.codex/` layers (config, hooks, rules) load only
+for a trusted project (`projects.<path>.trust_level`).
+
+Model (`src/ghostrules/agents/codex.py`):
+- global: the first non-empty of `~/.codex/AGENTS.override.md`, `~/.codex/AGENTS.md`; the other is
+  `blocked` ("ignored");
+- each directory from the root to `--cwd`: the first non-empty of override, `AGENTS.md`, the
+  fallback names; the rest in that directory are `blocked` (ignored, or empty);
+- nothing below `--cwd` and nothing in other branches is in the context;
+- the combined size counts toward the limit (global files do not: the docs name only project
+  instructions); a file that crosses it is `always` with a note and `(unverified)` ("may be
+  truncated"), later ones are `blocked`;
+- no imports; HTML comments are not documented either way, so they count as seen.
+**UNVERIFIED:** whether the global files count toward the limit; whether `project_doc_fallback_filenames`
+set in a project `.codex/config.toml` is honoured (the docs name the user-level file only, so only
+that one is read); how a file that crosses the limit is cut.
+
+## gemini-cli
+Sources, read 2026-10-29: https://geminicli.com/docs/cli/gemini-md/ and
+https://geminicli.com/docs/reference/configuration/.
+
+**Documented:** the CLI "concatenates the contents of all found files" from `~/.gemini/GEMINI.md`
+(global), the workspace directories and their parents, and, "just in time", the directories a tool
+touches and their ancestors "up to a trusted root". `@file.md` lines import files ("supports both
+relative and absolute paths"). `context.fileName` in `settings.json` (a name or a list) changes the
+file names; `.gemini/settings.json` in the project overrides the user's. **Not documented:** import
+depth, cycles, whether imports are processed inside code blocks, what a "trusted root" is.
+
+Model (`src/ghostrules/agents/gemini_cli.py`): global files, then each directory from the root to
+`--cwd` for every configured name (`always`), then the same names in other directories (`on_demand`,
+`condition` = the directory). Imports are followed to 4 hops and **all are `(unverified)`**; a path
+outside the tree is recorded and never read. No transforms are described.
+
+**Security settings (rules, not context).** Gemini's reference has no `yolo` key (YOLO is a command
+line flag, `security.disableYoloMode` can forbid it); the settings that skip confirmation are
+`tools.allowed` entries such as a bare `run_shell_command`, `security.enablePermanentToolApproval`
+and `mcpServers.<name>.trust`. GR107 and GR108 cover them. The older `yolo` check stays.
+
+The two models are **opt-in** (`agents = ["claude-code", "codex"]` or `context --agent codex`): adding
+an agent to the default would change every existing lockfile.
+
 ## Prior art for import-aware scanning (searched 2026-10-28, corrected 2026-10-29)
 The 2026-10-28 search concluded that no tool resolved `@` imports. **That was wrong**: cfgaudit has
 scanned the files that Claude Code instruction files import with `@path` since commit `5099798`
@@ -250,6 +303,6 @@ receives. Details and the original table are in `docs/DECISIONS.md` ("v0.2 Phase
 ---
 
 ## Out of scope for v0.2 (document as roadmap)
-Windsurf, Cline/Roo, Gemini CLI (`GEMINI.md` imports), Codex CLI, Junie, Kiro, Continue, Aider.
+Windsurf, Cline/Roo, Junie, Kiro, Continue, Aider (Codex CLI and Gemini CLI have models since 0.4).
 Their files are still scanned by `scan` exactly as in 0.1; they just have no `context` model yet.
 Adding one = one module + one section here + tests (put this in CONTRIBUTING.md).

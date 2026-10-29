@@ -295,7 +295,12 @@ critical if the command string also matches GR012.
 `.claude/settings*.json`: `permissions.defaultMode == "bypassPermissions"`; `permissions.allow`
 containing `Bash`, `Bash(*)`, `Bash(curl:*)`, `Bash(sudo:*)`, `Bash(rm:*)`, or `WebFetch` without domain;
 `hooks` whose command matches GR012/GR013 (→ critical).
-Other agents: equivalent keys if trivial to support (e.g. Gemini `"yolo": true`), otherwise skip.
+Other agents: Gemini `"yolo": true` (kept although the reference lists no such key).
+Since 0.4: Codex `.codex/config.toml` with `sandbox_mode = "danger-full-access"` or
+`approval_policy = "never"` (high; a commented-out line is not reported, the safe values are not),
+and Gemini `.gemini/settings.json` with a bare `run_shell_command` in `tools.allowed` or
+`security.enablePermanentToolApproval: true` (high). MCP servers in `[mcp_servers.*]` of a Codex
+config get GR101-GR106, and `mcpServers.<name>.trust` GR108.
 
 ### GR108 — Auto-enable project MCP servers (medium)
 `enableAllProjectMcpServers: true` in settings, or equivalent auto-trust flags. Explains that any

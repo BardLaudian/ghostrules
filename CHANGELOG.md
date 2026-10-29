@@ -11,6 +11,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   --config-from-ref REF`, `--trusted-config FILE`, `--no-inline-suppressions` and
   `--suppressions-from-ref REF`. They close two ways a change could silence the scanner for its own
   payload: a `ghostrules-ignore` comment on the malicious line and `exclude` in `.ghostrules.toml`.
+- **Codex and Gemini CLI** (W5.3): `context` models for both (`--agent codex`, `--agent gemini-cli`;
+  opt-in through `agents`, so existing lockfiles do not change); `AGENTS.override.md`,
+  `.codex/config.toml` and `.codex/hooks.json` are scanned; GR107 reports Codex
+  `sandbox_mode = "danger-full-access"` and `approval_policy = "never"` and Gemini's bare
+  `run_shell_command` allow and `enablePermanentToolApproval`.
 - **A benchmark you can check** (W6): `bench/` has 81 defanged attack cases written from public
   sources (recall per technique and per rule, misses listed, four cases from the independent review as
   known misses) and the 100-repository held-out set run once, with precision for a user per rule. The

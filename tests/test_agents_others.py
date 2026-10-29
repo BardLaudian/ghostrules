@@ -37,7 +37,7 @@ def front(block: str, body: str = "body\n") -> str:
 
 
 def test_registry() -> None:
-    assert AGENT_NAMES == ("claude-code", "copilot-cli", "cursor", "generic")
+    assert AGENT_NAMES == ("claude-code", "copilot-cli", "cursor", "generic", "codex", "gemini-cli")
     assert isinstance(get_model("claude-code"), ClaudeCode)
     assert isinstance(get_model("copilot-cli"), CopilotCli)
     assert isinstance(get_model("cursor"), Cursor)
