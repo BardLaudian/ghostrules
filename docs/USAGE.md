@@ -86,12 +86,46 @@ ghostrules scan . --format markdown >> "$GITHUB_STEP_SUMMARY"
 | `--disable GR010,GR012` | | Disable rules |
 | `--follow-imports`, `--no-follow-imports` | on | Scan the files that `@path` imports in instruction files reach |
 | `--config FILE` | auto | Config file (default: `.ghostrules.toml` in the scan root) |
+| `--trusted-config FILE` | | Use this config file and never the scanned repository's own config |
+| `--config-from-ref REF` | | Read `.ghostrules.toml` (or `[tool.ghostrules]`) from this git ref, never the working tree |
+| `--no-inline-suppressions` | off | Ignore every `ghostrules-ignore` comment |
+| `--suppressions-from-ref REF` | | Honour an ignore only if the same line already had it at this git ref |
 | `--no-color` | off | Plain output |
 
 Exit codes: `0` nothing at or above `--fail-on`, `1` findings at or above it, `2` usage or runtime
 error (including a path that does not exist or a rule that crashed, so a broken scan can never look
 clean). For `json`, `sarif` and `markdown`, stdout carries only the report; diagnostics go to
 stderr.
+
+### Scanning a pull request: settings the change cannot rewrite
+
+The configuration and the `ghostrules-ignore` comments live in the repository being scanned, so a
+pull request can switch the scanner off for its own payload: an ignore comment at the end of the
+malicious line (Claude Code strips it, the payload still reaches the model), or
+`exclude = ["AGENTS.md"]` in `.ghostrules.toml`. Four options take those settings from what was
+already reviewed:
+
+```bash
+ghostrules scan . --config-from-ref origin/main --suppressions-from-ref origin/main
+ghostrules scan . --trusted-config /path/to/trusted.toml --no-inline-suppressions
+```
+
+- `--config-from-ref REF` reads `.ghostrules.toml`, else `[tool.ghostrules]` in `pyproject.toml`,
+  as they are at `REF` (with no config there, the defaults apply). `--trusted-config FILE` uses
+  a file you point at instead. Neither reads the working tree's config, and they cannot be
+  combined with each other or with `--config`.
+- `--no-inline-suppressions` honours no ignore comment. `--suppressions-from-ref REF` honours one
+  only if the same line (whitespace collapsed, so the ignore itself is part of it) existed at `REF`.
+  A marker also covers the line after it, so that line is covered only if the pair of lines already
+  existed: editing a reviewed line, or inserting a new one under a reviewed marker, loses the
+  protection. The report says how many ignore comments were not honoured.
+- A ref that cannot be resolved (a typo, or a shallow clone that did not fetch it) is an error with
+  exit code `2` and a hint to fetch it; it is never a silent pass. These options take exactly one
+  path to scan.
+- Only `git rev-parse` and `git cat-file` run, with fixed arguments. Nothing from the repository
+  is executed.
+
+The Action does not use these options yet. Until it does, run the CLI in a step of your own.
 
 ## What it catches
 

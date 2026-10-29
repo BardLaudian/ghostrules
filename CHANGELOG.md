@@ -5,6 +5,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Settings a pull request cannot rewrite** (W2 of docs/design/v0.4/REMEDIATION.md): `scan
+  --config-from-ref REF`, `--trusted-config FILE`, `--no-inline-suppressions` and
+  `--suppressions-from-ref REF`. They close two ways a change could silence the scanner for its own
+  payload: a `ghostrules-ignore` comment on the malicious line and `exclude` in `.ghostrules.toml`.
+  The Action does not use them yet.
+
 ### Changed
 
 - **Corrected claims** (W1 of [docs/design/v0.4/REMEDIATION.md](docs/design/v0.4/REMEDIATION.md)).

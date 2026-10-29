@@ -935,3 +935,22 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   `docs/AGENT_MODELS.md`; ghostrules no longer claims to be the first or the only tool to follow imports.
 - The MCP share in the study stays documented as an upper bound: a correct denominator needs a new
   scan that records whether a server is configured, which W1 does not do.
+
+## v0.4 W2 — settings the scanned change cannot rewrite
+
+- **`git cat-file blob REF:path`, not `git show`.** Same content, but no pager, textconv or other
+  repository-configured helper can run. Only `rev-parse` and `cat-file` are used, with fixed
+  arguments and a ref that may not start with `-`.
+- **A reviewed ignore is a line, not a comment.** `--suppressions-from-ref` honours a marker if the
+  same line (whitespace collapsed) carried it at the ref; the line after the marker is covered only
+  if the pair (marker line, next line) already existed. Otherwise a payload could be inserted right
+  under a reviewed marker.
+- **Fail closed.** An unresolvable ref, a missing `git` or a path the ref cannot map (home files,
+  absolute paths) never reads as "nothing to report": the first two exit 2, the last leaves the
+  ignore unhonoured. The report counts the ignore comments that were not honoured.
+- **`--trusted-config` does not refuse a file inside the scanned tree.** It only guarantees that the
+  repository's own `.ghostrules.toml` is not read; where the trusted file lives is the caller's job
+  (the Action will take it from the base ref).
+- **The two modes are independent.** `--no-inline-suppressions` wins over `--suppressions-from-ref`.
+  The config options exclude each other and `--config`. Both ref options take exactly one path.
+
