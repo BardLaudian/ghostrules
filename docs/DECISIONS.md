@@ -368,6 +368,18 @@ Searched (web, 2026-10-28) for scanners that follow `@path` imports, compute an 
 context, or lock it. Found nothing that does; none of the READMEs read mention imports.
 Stop condition of the plan ("if something already does exactly this") **not met**.
 
+> **Correction, 2026-10-29.** The conclusion above was wrong. cfgaudit has followed `@path` imports
+> (4 hops, with the chain) since commit `5099798` on 2026-10-24, four days before this search; the
+> search read READMEs and missed it. The table below keeps its original wording for the record, and
+> every "no import following found" in it must be read as "not found in a README", not as "absent".
+> Also relevant: agnix parses `@` imports and cycles; Claude Code's `/context` shows the memory files
+> it loaded; cairnlock has `verify --base <ref>` (a lockfile rehashed in the same PR cannot hide
+> edits). rulesentry and promptwarden also look for hidden Unicode. Checked 2026-10-29 against the
+> repositories' descriptions; only cfgaudit (one commit) and cairnlock (its README) were read.
+> What ghostrules claims now: a multi-agent context model (conditional rules, precedence, on-demand
+> loading, per-agent transforms, symlink aliases) usable offline and before an agent runs, and a lock
+> of the resolved text. It does not claim to be the first or the only tool to follow imports.
+
 | Tool | Link | What it does | How v0.2 differs |
 |---|---|---|---|
 | cairnlock 0.5.0 (Python, MIT) | https://github.com/pennacle-security/cairnlock | Static analyzer plus lockfile for AGENTS.md, CLAUDE.md, MCP configs and skill folders; `verify --base` checks against a git ref, SARIF output, 21 rules, many agents. README: discovery by fixed names and globs; lock stores a SHA-256 per tracked file; it "does not execute, import, or install anything it scans". | Closest competitor. No import following, no per-agent view, no stripped-text awareness found in its README; its lock hashes files on disk, ours would hash the resolved context and what each agent *sees*. Its `--include-ancestors` covers parent folders. Source code not read. |
@@ -914,3 +926,12 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   moved with the table). Findings already uploaded to code scanning keep the old README link.
 - **Tagline in `CLAUDE.md`** follows the README, so `.ghostrules.lock` was regenerated.
 
+
+## v0.4 W1 — corrected claims
+
+- The v0.4 remediation plan lives in `docs/design/v0.4/REMEDIATION.md`, next to the other design
+  notes (it was written under `docs/v0.4/` and moved before being committed).
+- The prior-art conclusion of v0.2 Phase 0 is corrected in place (see the note under it) and in
+  `docs/AGENT_MODELS.md`; ghostrules no longer claims to be the first or the only tool to follow imports.
+- The MCP share in the study stays documented as an upper bound: a correct denominator needs a new
+  scan that records whether a server is configured, which W1 does not do.
