@@ -11,6 +11,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   --config-from-ref REF`, `--trusted-config FILE`, `--no-inline-suppressions` and
   `--suppressions-from-ref REF`. They close two ways a change could silence the scanner for its own
   payload: a `ghostrules-ignore` comment on the malicious line and `exclude` in `.ghostrules.toml`.
+- **GR030, scanner configuration changed** (high): with a base ref, the change adds or edits
+  `.ghostrules.toml`, `[tool.ghostrules]`, the lockfile or a `ghostrules-ignore` comment. Reported
+  even when legitimate, never suppressible inline, and the change cannot disable it. A new `change`
+  scope of rules compares the scanned tree with the base.
 - **Breaking: the Action reads settings from the base commit on pull requests.** On
   `pull_request` and `pull_request_target` events it passes `--config-from-ref` and
   `--suppressions-from-ref` with the base SHA, fetching that commit if the checkout is shallow, and

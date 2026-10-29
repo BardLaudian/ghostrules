@@ -9,7 +9,8 @@ Patterns are case-insensitive unless noted. Keep false positives low: a noisy sc
 ## Rule index
 
 Rules `GR00x`–`GR01x` look at the content of instruction files; `GR02x` look at `@path` imports
-and symbolic links in the context the agents build; `GR1xx` look at MCP and agent configuration. The full logic of each rule, with true and false positive examples, follows the index. Severity is the typical
+and symbolic links in the context the agents build; `GR030` at what a change did to the scanner's own
+settings; `GR1xx` look at MCP and agent configuration. The full logic of each rule, with true and false positive examples, follows the index. Severity is the typical
 one: several rules escalate or relax with context (for example GR010 inside a code block is `low`).
 Text revealed by GR001, GR004 or GR015 is re-scanned by GR010–GR016 and reported with one level more
 severity.
@@ -39,6 +40,7 @@ the URLs in any file.
 | <a id="gr023"></a>`GR023` | info | instructions | **Import cycle.** Files that import each other in a loop. Agents stop at the depth limit; it is only noise. |
 | <a id="gr024"></a>`GR024` | info | instructions | **Payload reached only through an import.** Not a detector: findings in a file that only an @import reaches carry the import chain and the tag reached-via-import. Disabling it stops ghostrules from following imports. |
 | <a id="gr025"></a>`GR025` | high | instructions | **Symlinked instruction source.** An instruction file or rules directory that is a symlink the agent would follow out of the repository, a broken or cyclic one, or a symlink checked out as a text file. A link whose target is a file inside the repository is an alias and is not reported. |
+| <a id="gr030"></a>`GR030` | high | instructions, config | **Scanner configuration changed.** The change adds or edits .ghostrules.toml, [tool.ghostrules], the lockfile or a ghostrules-ignore comment. Reported even when legitimate, so a reviewer always sees it. Needs a base: --config-from-ref or --suppressions-from-ref. |
 | <a id="gr101"></a>`GR101` | critical | config | **Hardcoded secret in agent config.** API keys and tokens written into MCP server env/args/headers/URLs or agent settings env. |
 | <a id="gr102"></a>`GR102` | medium | config | **Unpinned package execution.** MCP servers launched with npx/uvx/etc. without an exact version run whatever is latest. |
 | <a id="gr103"></a>`GR103` | high | config | **Insecure remote MCP transport.** Remote MCP servers reached over plain http:// expose traffic and credentials. |
@@ -342,6 +344,30 @@ scans it once, and **no finding** is produced.
 - `info`: a file whose whole content is one relative path to an existing file in the repository
   (`CLAUDE.md` containing `AGENTS.md`): probably a symlink checked out as text (Windows with
   `core.symlinks=false`); the agent will read only that path string.
+
+## Scanner configuration (0.4)
+
+### GR030 — Scanner configuration changed (high)
+The change under review adds or edits the scanner's own settings. Reported **even when the change is
+legitimate**, so a reviewer always sees it: the rule does not judge, it makes sure someone looks. It
+needs a base to compare with, so it exists only when the scan is given `--config-from-ref` or
+`--suppressions-from-ref` (the GitHub Action does on pull requests). With one ref, everything is
+compared with it; with two, the configuration and the lockfile with `--config-from-ref` and the
+ignore comments with `--suppressions-from-ref`.
+- `.ghostrules.toml` added or edited. The finding lists the keys whose value changed
+  (`changed: exclude`) and sits on the first changed line.
+- `[tool.ghostrules]` in `pyproject.toml` added or edited. Changes elsewhere in the pyproject are not
+  reported.
+- The lockfile (`lockfile` in the config, `.ghostrules.lock` by default) added or edited. Its diff is
+  the list of what the agents now read.
+- A `ghostrules-ignore` comment on a line that did not carry it at the base: new, or an edited line.
+  Comments that were already there are not reported. Applies to every file that was scanned, imported
+  files included.
+
+Never suppressed inline (like GR001 and GR002), and the change cannot disable it: with
+`--config-from-ref` its own `disable` is not read. Only the caller can, with `--disable GR030`.
+Removing a config or a lockfile is not reported (removing the config falls back to the defaults).
+No positive result without a base: a plain `ghostrules scan` never reports it.
 
 ## Severity calibration targets (acceptance)
 - `examples/clean-repo` (realistic AGENTS.md, CLAUDE.md, .mcp.json with `${GITHUB_TOKEN}`, pinned
