@@ -18,3 +18,6 @@ corpus/.cache/
 corpus/results/*
 !corpus/results/latest-summary.json
 _site/
+
+# benchmark: findings of third-party repositories
+bench/.cache/
