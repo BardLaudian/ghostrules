@@ -447,7 +447,18 @@ def test_triage_writes_labels(tmp_path: Path) -> None:
     ]
     written, path = run_triage(
         tmp_path,
-        ["tp", "real", "fp", "doc text", GOOD_TEST, "reported", "wontfix", "known", "s", "q"],
+        [
+            "tp",
+            "real",
+            "fp",
+            "doc text",
+            GOOD_TEST,
+            "reported",
+            "benign-context",
+            "known",
+            "s",
+            "q",
+        ],
         fs,
     )
     assert written == 4
@@ -458,7 +469,7 @@ def test_triage_writes_labels(tmp_path: Path) -> None:
     assert (
         "o/a" not in path.read_text().split('fingerprint = "' + "c" * 16)[1].split("[[label]]")[0]
     )
-    assert labels["d" * 16].label == "wontfix"
+    assert labels["d" * 16].label == "benign-context"
     assert "e" * 16 not in labels  # skipped, then quit
 
 

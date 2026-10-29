@@ -19,7 +19,7 @@ corpus/
 ├── repos.toml           the pinned corpus: [[repo]] name = "owner/repo", tier = "regression" | "study"
 ├── discover.py          build/refresh candidate list with the GitHub API (gh CLI auth)
 ├── run.py               clone shallow, scan, write results
-├── triage.py            interactive labelling of findings (tp / fp / wontfix + reason)
+├── triage.py            interactive labelling of findings (tp / fp / benign-context + reason)
 ├── labels.toml          triaged findings, keyed by stable fingerprint
 ├── check.py             regression gate: compares a run with labels.toml
 └── results/             gitignored except the latest summary JSON
@@ -51,7 +51,7 @@ corpus/
 - Finding fingerprint: `sha256(repo, path, rule_id, normalized snippet)` (no line numbers, so it
   survives unrelated edits).
 - `triage.py` walks unlabelled findings ≥ medium, shows the snippet with context (re-fetch the single
-  file via the API for display only, not stored), and records `tp` / `fp` / `wontfix` + a one-line
+  file via the API for display only, not stored), and records `tp` / `fp` / `benign-context` + a one-line
   reason in `labels.toml`.
 - Rule for contributors: every `fp` must link to a test in `tests/` that reproduces it synthetically
   (`test = "tests/test_rules_injection.py::test_gr011_tell_user_to"`). `check.py` verifies the test

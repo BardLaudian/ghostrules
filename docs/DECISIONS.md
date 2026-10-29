@@ -1103,3 +1103,11 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 - **Not done:** pinning the pip bootstrap itself (`setup-python` provides it), and verifying
   Dependabot's pull requests, which a maintainer reviews like any other.
 
+
+## v0.4 W6.4 — labels
+
+- **`wontfix` is now `benign-context`**, in `corpus/labels.toml`, `study/labels.toml`, the triage and
+  gate tools, `study/` and the `precision_by_rule.csv` column (`benign_context`). The old word said
+  "we will not fix it"; the label says what it is: the rule matched the right pattern in a harmless
+  place, which for a user is noise. No alias is kept: the committed files were migrated. Precision
+  for a user is tp / (tp + benign-context + fp), as in the study report.
