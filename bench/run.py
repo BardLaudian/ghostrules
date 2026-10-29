@@ -55,6 +55,22 @@ def fingerprint(f: dict[str, Any]) -> str:
     )
 
 
+def _share(count: int, total: int) -> str:
+    return f"{count} ({count / total:.0%})" if total else "0"
+
+
+def origin_markdown(outcomes: list[lib.Outcome]) -> str:
+    """Recall by who wrote or chose the case; only the independent origin is a headline."""
+    rows = [
+        f"| {r['origin']}{' (independent)' if r['origin'] == lib.INDEPENDENT else ''} | {r['cases']} "
+        f"| {_share(r['reported'], r['cases'])} | {_share(r['fails_ci'], r['cases'])} |"
+        for r in lib.origin_table(outcomes)
+    ]
+    return "\n".join(
+        ["| Origin | Cases | Reported | Fails the default check |", "|---|---:|---:|---:|", *rows]
+    )
+
+
 def attacks_report(outcomes: list[lib.Outcome]) -> str:
     rows = lib.recall_table(outcomes)
     by_rule = lib.recall_by_rule(outcomes)
@@ -63,6 +79,8 @@ def attacks_report(outcomes: list[lib.Outcome]) -> str:
     fails = sum(o.fails_ci for o in outcomes)
     detected = [o for o in outcomes if o.case.status == "detected"]
     lines = [
+        origin_markdown(outcomes),
+        "",
         "| Technique | Cases | Reported | Fails the default check |",
         "|---|---:|---:|---:|",
         *(f"| {r['technique']} | {r['cases']} | {r['reported']} | {r['fails_ci']} |" for r in rows),
@@ -215,34 +233,97 @@ def render_results(data: dict[str, Any], labels: dict[str, str]) -> str:
 
 
 def readme_block(outcomes: list[lib.Outcome]) -> str:
-    """The recall paragraph and table of the README, from the attack set."""
-    total = len(outcomes)
-    reported = sum(o.reported for o in outcomes)
-    fails = sum(o.fails_ci for o in outcomes)
+    """The recall paragraph and tables of the README. The headline counts the independent cases
+    only: the author wrote the others knowing what the rules match."""
+    mine = [o for o in outcomes if o.case.origin == lib.INDEPENDENT]
+    reported = sum(o.reported for o in mine)
+    fails = sum(o.fails_ci for o in mine)
     rows = "\n".join(
         f"| {r['technique']} | {r['cases']} | {r['reported']} | {r['fails_ci']} |"
         for r in lib.recall_table(outcomes)
     )
-    by_origin = {o: sum(1 for x in outcomes if x.case.origin == o) for o in lib.ORIGINS}
+    total, all_reported = len(outcomes), sum(o.reported for o in outcomes)
     return (
-        f"**Recall: {total} attack cases** written from public sources and defanged. {reported} are "
-        f"reported ({reported / total:.0%}); {fails} ({fails / total:.0%}) fail the default "
-        "`--fail-on high` check, because visible prose is `low` by default (hidden text and "
-        f"configuration are not). The {total - reported} misses include paraphrases, other languages, "
-        "scripts and files that nothing points the scanner to, tool descriptions served by a running "
-        "MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; "
-        f"each is listed in the results. {by_origin['review']} cases come from the independent review; "
-        "its other 14 are not in the repository yet.\n\n"
+        f"**Recall on independent cases: {reported} of {len(mine)} reported "
+        f"({_pct(reported, len(mine))}); {fails} fail the default `--fail-on high` check.** They "
+        f"are {len(mine)} of the {lib.REVIEW_TOTAL} cases an independent review wrote; the other "
+        f"{lib.REVIEW_TOTAL - len(mine)} are not in the repository yet, so this is a small sample. "
+        f"The {total - len(mine)} cases written by the author or taken from public sources are "
+        f"shown separately because the author knew what the rules match: of all {total} cases "
+        f"{all_reported} are reported ({_pct(all_reported, total)}). Visible prose is `low` by "
+        "default, so the check fails less often than the rules report (hidden text and configuration "
+        "are not lowered). The misses include paraphrases, other languages, scripts and files that "
+        "nothing points the scanner to, tool descriptions served by a running MCP server, two "
+        "scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed "
+        "in the results.\n\n" + origin_markdown(outcomes) + "\n\nAll origins, by technique:\n\n"
         "| Technique | Cases | Reported | Fails the default check |\n|---|---:|---:|---:|\n" + rows
     )
 
 
-def write_readme(outcomes: list[lib.Outcome]) -> None:
+def _pct(count: int, total: int) -> str:
+    return f"{count / total:.0%}" if total else "n/a"
+
+
+def precision_block(data: dict[str, Any], labels: dict[str, str]) -> str:
+    """The README paragraph on the held-out set, from the committed results and labels."""
+    rows, unlabelled = lib.precision_table(data["findings"], labels)
+    tp = sum(r["tp"] for r in rows)
+    total = sum(r["tp"] + r["benign-context"] + r["fp"] for r in rows)
+    per_rule = "; ".join(
+        f"{r['rule']} {r['tp']} of {r['tp'] + r['benign-context'] + r['fp']}"
+        for r in sorted(rows, key=lambda r: (-r["tp"], r["rule"]))
+    )
+    return (
+        f"**Precision: {data['repos_scanned']} repositories** frozen before any v0.4 tuning "
+        f"({data['files_scanned']} agent files, default settings). They gave {len(data['findings'])} "
+        f"findings, and {data['repos_failing_default_check']} repositories would fail the default "
+        "check. Precision for a user is true positives over everything reported, because a right "
+        f"pattern in a harmless place is still something to read: **{tp} of {total} "
+        f"({_pct(tp, total).replace('%', ' %')})**, from labels given by the assistant that ran the "
+        f"benchmark and **not reviewed by a human** ({unlabelled} findings unlabelled). Per rule: "
+        f"{per_rule}. {len(data['findings'])} findings are too few for a percentage per rule to "
+        "mean much."
+    )
+
+
+def bench_readme_blocks(outcomes: list[lib.Outcome], data: dict[str, Any]) -> dict[str, str]:
+    """The sentences of bench/README.md that carry numbers."""
+    counts = {r["origin"]: r["cases"] for r in lib.origin_table(outcomes)}
+    return {
+        "cases": (
+            f"{len(outcomes)} cases ({counts['author']} by the author, {counts['review']} from the "
+            f"independent review, {counts['public']} from public sources), each a technique written "
+            "from a public description"
+        ),
+        "provenance": (f"Only **{counts['review']} of the review's {lib.REVIEW_TOTAL} cases**"),
+        "heldout": (f"{data['repos_scanned']} repositories gave {len(data['findings'])} findings"),
+    }
+
+
+def fill(text: str, name: str, content: str) -> str:
+    """``text`` with what sits between ``<!-- bench:NAME:start -->`` and ``<!-- bench:NAME:end -->``
+    replaced by ``content``."""
+    start, end = f"<!-- bench:{name}:start -->", f"<!-- bench:{name}:end -->"
+    a, b = text.index(start) + len(start), text.index(end)
+    sep = "\n" if text[a] == "\n" else ""
+    return text[:a] + sep + content + sep + text[b:]
+
+
+def block_of(text: str, name: str) -> str:
+    start, end = f"<!-- bench:{name}:start -->", f"<!-- bench:{name}:end -->"
+    return text.split(start)[1].split(end)[0].strip("\n")
+
+
+def write_readme(outcomes: list[lib.Outcome], data: dict[str, Any], labels: dict[str, str]) -> None:
+    """Rewrite every number the README and bench/README.md quote from the data."""
     path = HERE.parent / "README.md"
-    text = path.read_text(encoding="utf-8")
-    a, b = text.index("<!-- bench:start -->\n"), text.index("\n<!-- bench:end -->")
-    start = a + len("<!-- bench:start -->\n")
-    path.write_text(text[:start] + readme_block(outcomes) + text[b:], encoding="utf-8")
+    text = fill(path.read_text(encoding="utf-8"), "recall", readme_block(outcomes))
+    path.write_text(fill(text, "precision", precision_block(data, labels)), encoding="utf-8")
+    bench = HERE / "README.md"
+    text = bench.read_text(encoding="utf-8")
+    for name, content in bench_readme_blocks(outcomes, data).items():
+        text = fill(text, name, content)
+    bench.write_text(text, encoding="utf-8")
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -256,10 +337,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         if not results.exists():
             print("no held-out results: run `python bench/run.py heldout` first", file=sys.stderr)
             return 2
-        text = render_results(json.loads(results.read_text("utf-8")), load_labels())
+        data = json.loads(results.read_text("utf-8"))
+        text = render_results(data, load_labels())
         if args.write:
             (HERE / "RESULTS.md").write_text(text, encoding="utf-8")
-            write_readme(lib.run_attacks(lib.load_cases()))
+            write_readme(lib.run_attacks(lib.load_cases()), data, load_labels())
             print("bench/RESULTS.md and the README recall table written")
         else:
             print(text, end="")

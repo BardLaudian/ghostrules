@@ -164,10 +164,34 @@ def test_every_heldout_finding_has_a_label_and_the_files_name_no_repository() ->
     assert not any(name in committed for name in names)
 
 
-def test_the_readme_recall_block_is_what_the_runner_generates() -> None:
+def test_the_numbers_in_the_readmes_are_what_the_runner_generates() -> None:
+    """Every number the README and bench/README.md quote comes from the data: a stale one fails."""
     run = load_bench_run()
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    block = readme.split("<!-- bench:start -->\n")[1].split("\n<!-- bench:end -->")[0]
-    assert block == run.readme_block(lib.run_attacks(CASES))
+    outcomes = lib.run_attacks(CASES)
     data = json.loads((ROOT / "bench" / "heldout-results.json").read_text(encoding="utf-8"))
-    assert f"They gave {len(data['findings'])} findings" in readme
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert run.block_of(readme, "recall") == run.readme_block(outcomes)
+    assert run.block_of(readme, "precision") == run.precision_block(data, run.load_labels())
+    bench = (ROOT / "bench" / "README.md").read_text(encoding="utf-8")
+    for name, content in run.bench_readme_blocks(outcomes, data).items():
+        assert run.block_of(bench, name) == content
+
+
+def test_the_headline_counts_only_the_independent_cases() -> None:
+    run = load_bench_run()
+    outcomes = lib.run_attacks(CASES)
+    review = [o for o in outcomes if o.case.origin == lib.INDEPENDENT]
+    head = run.readme_block(outcomes).split("**")[1]
+    assert head.startswith(
+        f"Recall on independent cases: {sum(o.reported for o in review)} of {len(review)} reported"
+    )
+    assert str(len(outcomes)) not in head  # the whole set is never the headline
+
+
+def test_the_origin_table_has_every_origin_and_adds_up() -> None:
+    outcomes = lib.run_attacks(CASES)
+    rows = lib.origin_table(outcomes)
+    assert [r["origin"] for r in rows] == list(lib.ORIGINS)
+    assert sum(r["cases"] for r in rows) == len(outcomes)
+    assert sum(r["reported"] for r in rows) == sum(o.reported for o in outcomes)
+    assert "ours" not in lib.ORIGINS

@@ -362,7 +362,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: BardLaudian/ghostrules@v0.4.0
+      - uses: BardLaudian/ghostrules@v0.4.1
         with:
           fail-on: high          # critical | high | medium | low | info | none
           all-files: "false"     # also check every text file for hidden Unicode
@@ -388,7 +388,7 @@ jobs:
 | `inline-suppressions` | `base` | `base`: on pull requests, only ignore comments that already existed at the base commit. `off`: none. `all`: every comment (0.3) |
 
 **Pinning the Action.** `BardLaudian/ghostrules@v0` follows the latest stable `0.x.y` release (the
-release workflow moves that tag), an exact tag such as `@v0.4.0` stays put, and a full commit SHA is
+release workflow moves that tag), an exact tag such as `@v0.4.1` stays put, and a full commit SHA is
 the strictest choice. Inside, the Action's own dependencies and build backend are installed from a
 file with a hash for each (`--require-hashes`), and every action it uses is pinned to a commit.
 
@@ -438,7 +438,7 @@ output `lock-exit-code` is `0` up to date, `1` changed, `2` the check could not 
 ```yaml
 repos:
   - repo: https://github.com/BardLaudian/ghostrules
-    rev: v0.4.0
+    rev: v0.4.1
     hooks:
       - id: ghostrules
 ```

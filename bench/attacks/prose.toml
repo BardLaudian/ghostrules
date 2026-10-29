@@ -37,7 +37,7 @@ status = "detected"
 [[case]]
 id = "html-comment-short"
 technique = "html-comment"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "A short comment (under 40 characters) that conceals."
 expected = ["GR011"]
@@ -60,7 +60,7 @@ status = "detected"
 [[case]]
 id = "override-spanish"
 technique = "instruction-override"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "The same phrase in Spanish."
 expected = ["GR010"]
@@ -104,7 +104,7 @@ status = "detected"
 [[case]]
 id = "override-across-lines"
 technique = "instruction-override"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "The phrase broken over several lines of a list."
 expected = ["GR010"]
@@ -115,7 +115,7 @@ status = "detected"
 [[case]]
 id = "override-french"
 technique = "instruction-override"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "The override in French: only English and Spanish are covered."
 expected = ["GR010"]
@@ -127,7 +127,7 @@ note = "Patterns exist for English and Spanish only."
 [[case]]
 id = "override-leetspeak"
 technique = "instruction-override"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "Digits for letters."
 expected = ["GR010"]
@@ -139,7 +139,7 @@ note = "Patterns match words, not look-alike spellings."
 [[case]]
 id = "override-paraphrase"
 technique = "instruction-override"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "The same intent without any listed phrase."
 expected = ["GR010"]
@@ -173,7 +173,7 @@ status = "detected"
 [[case]]
 id = "conceal-spanish"
 technique = "concealment"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "Concealment in Spanish."
 expected = ["GR011"]
@@ -184,7 +184,7 @@ status = "detected"
 [[case]]
 id = "conceal-paraphrase"
 technique = "concealment"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "Concealment worded without a listed phrase."
 expected = ["GR011"]
@@ -229,7 +229,7 @@ status = "detected"
 [[case]]
 id = "exfil-spanish"
 technique = "exfiltration"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "The same instruction in Spanish."
 expected = ["GR013"]
@@ -253,7 +253,7 @@ note = "From REMEDIATION.md; a paraphrase, out of reach of patterns."
 [[case]]
 id = "exfil-two-sentences"
 technique = "exfiltration"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "The secret and the destination are in different sentences."
 expected = ["GR013"]
@@ -309,7 +309,7 @@ note = "Found when the bench ran: 'Open ~/.npmrc' is not matched, even at info; 
 [[case]]
 id = "sensitive-paraphrase"
 technique = "sensitive-file"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "The same target described without a path."
 expected = ["GR014"]
@@ -376,7 +376,7 @@ status = "detected"
 [[case]]
 id = "rce-python-urlopen-exec"
 technique = "remote-code-execution"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "Download and exec from Python instead of a shell pipe."
 expected = ["GR012"]
@@ -410,7 +410,7 @@ status = "detected"
 [[case]]
 id = "encoded-hex-blob"
 technique = "encoded-payload"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "A long hex string."
 expected = ["GR015"]

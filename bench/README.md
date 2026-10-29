@@ -6,7 +6,7 @@ Two measurements, both reported with their misses and without tuning on them (W6
 
 ## Recall: the attack set (`attacks/`)
 
-81 cases, each a technique written from a public description (sources in `attacks/sources.toml`:
+<!-- bench:cases:start -->101 cases (28 by the author, 4 from the independent review, 69 from public sources), each a technique written from a public description<!-- bench:cases:end --> (sources in `attacks/sources.toml`:
 Rehberger and Butler on Unicode smuggling, Trojan Source, Pillar's Rules File Backdoor, Invariant
 Labs on MCP tool poisoning, Check Point's Claude Code CVEs, OWASP's malicious-skills entry), with
 the rule that should catch it and whether it does today (`status = "detected"` or `"known-miss"`).
@@ -21,7 +21,7 @@ the rule that should catch it and whether it does today (`status = "detected"` o
 - **Misses stay in the base and are listed.** A test fails when a declared status stops matching what
   the scanner does, so a miss that gets fixed must be updated, and a detection that regresses shows.
 - **Provenance.** `origin` is `public` (a public technique), `review` (a case from the independent
-  review) or `ours` (written by the maintainer). Only **4 of the review's 18 cases** are included:
+  review) or `author` (written by the maintainer, who knew what the rules match: not independent). <!-- bench:provenance:start -->Only **4 of the review's 18 cases**<!-- bench:provenance:end --> are included:
   the ones `REMEDIATION.md` describes. The other 14 are not in the repository and are not
   invented here; add them as `origin = "review"` cases when the list is available. Ideally someone
   who has not seen the rules writes another 20.
@@ -38,7 +38,7 @@ right pattern in a harmless place is still something someone has to read.
 - **The labels are provisional.** They were given by the assistant that ran the benchmark, from the
   finding and the lines around it, and no human has reviewed them. Borderline calls are noted in
   [RESULTS.md](RESULTS.md).
-- **The set is small.** 100 repositories gave 18 findings: a per-rule percentage on 1 to 6 findings
+- **The set is small.** <!-- bench:heldout:start -->100 repositories gave 21 findings<!-- bench:heldout:end -->: a per-rule percentage on 1 to 6 findings
   is an anecdote, not an estimate.
 - **Never tune on it.** A rule changed after reading these findings would no longer be measured by
   this set. Fixing what it shows needs a new held-out set, frozen first.

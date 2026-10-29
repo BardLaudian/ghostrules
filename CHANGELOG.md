@@ -5,6 +5,36 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-29
+
+Follow-up to 0.4.0: fewer false positives on scripts, fewer misses on visible attacks, and a
+benchmark headline that no longer counts cases the author wrote. No breaking changes.
+
+### Changed
+
+- **Visible prose that reads as an attack stays `high`.** Inside one paragraph, exfiltration plus
+  concealment (GR013 + GR011), override plus exfiltration (GR010 + GR013) and a sensitive file plus
+  a URL outside `allow_domains` (GR014 + URL) keep the rule's severity even though the text is
+  visible. Examples, quotations, code blocks and descriptions stay `low`. On the held-out set no
+  repository starts to fail the check, but two GR014 findings already labelled false positive now
+  report `high`.
+- **GR110 no longer reports a token sent to the service it belongs to**: `GITHUB_*`/`GH_*` to
+  `api.github.com`, `github.com` or `uploads.github.com`; `AZURE_*`, `ADO_*` and `SYSTEM_ACCESSTOKEN`
+  to `dev.azure.com` or `*.visualstudio.com`; `<X>_API_KEY` to a host that contains `x`. It still
+  reports any other host, a collector domain, the whole environment, a credentials file, a variable
+  with no known service and a destination it cannot read. The held-out GR110 finding is still
+  reported: its shape is not covered.
+- **The benchmark headline counts only the independent cases.** Recall is split by origin (`author`,
+  `review`, `public`; `ours` is now `author`) and the README states the independent figure first,
+  with its sample size. Every number in `README.md` and `bench/README.md` is generated from the data
+  (`python bench/run.py report --write`) and a test fails when one is stale.
+
+### Added
+
+- **Inline hook code is read as a script**: the code in `python3 -c`, `node -e`, `bash -c` and `sh -c`
+  (and the other interpreters in the hook table) is checked by GR110–GR113. The finding points at the
+  command in the settings file.
+
 ## [0.4.0] - 2026-10-29
 
 Remediation release, from an independent review of 0.3.0 ([plan](docs/design/v0.4/REMEDIATION.md)).

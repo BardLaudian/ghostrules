@@ -5,6 +5,12 @@ measured and how. Nothing here was tuned on the held-out set.
 
 ## Recall on the attack set
 
+| Origin | Cases | Reported | Fails the default check |
+|---|---:|---:|---:|
+| author | 28 | 20 (71%) | 9 (32%) |
+| review (independent) | 4 | 1 (25%) | 1 (25%) |
+| public | 69 | 66 (96%) | 40 (58%) |
+
 | Technique | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
 | agent-settings | 9 | 8 | 7 |
@@ -69,20 +75,20 @@ Known misses:
 - `mcp-tool-description-poisoning` (mcp-server-content, public): Tool descriptions come from a running server and are never read (docs/USAGE.md, Limits).
 - `evasion-ignore-end-of-line` (scanner-evasion, review): In the default scan; with --suppressions-from-ref or the Action on a pull request it is reported.
 - `evasion-exclude-in-config` (scanner-evasion, review): In the default scan; --config-from-ref or the Action on a pull request ignores the added config.
-- `override-french` (instruction-override, ours): Patterns exist for English and Spanish only.
-- `override-leetspeak` (instruction-override, ours): Patterns match words, not look-alike spellings.
-- `override-paraphrase` (instruction-override, ours): Paraphrases cannot be caught by patterns (REMEDIATION W5.6).
-- `conceal-paraphrase` (concealment, ours): A paraphrase; patterns cannot catch intent (REMEDIATION W5.6).
-- `exfil-spanish` (exfiltration, ours): Found when the bench ran: GR013 has no Spanish patterns, although GR010, GR011, GR014 and GR016 do.
+- `override-french` (instruction-override, author): Patterns exist for English and Spanish only.
+- `override-leetspeak` (instruction-override, author): Patterns match words, not look-alike spellings.
+- `override-paraphrase` (instruction-override, author): Paraphrases cannot be caught by patterns (REMEDIATION W5.6).
+- `conceal-paraphrase` (concealment, author): A paraphrase; patterns cannot catch intent (REMEDIATION W5.6).
+- `exfil-spanish` (exfiltration, author): Found when the bench ran: GR013 has no Spanish patterns, although GR010, GR011, GR014 and GR016 do.
 - `exfil-upload-config-file` (exfiltration, review): From REMEDIATION.md; a paraphrase, out of reach of patterns.
 - `sensitive-npmrc` (sensitive-file, public): Found when the bench ran: 'Open ~/.npmrc' is not matched, even at info; the read-verb list lacks 'open'.
-- `sensitive-paraphrase` (sensitive-file, ours): No path or file name to match: a description of the file.
-- `rce-python-urlopen-exec` (remote-code-execution, ours): GR012 knows shell pipes, PowerShell and eval of curl; not exec(urlopen(...)).
-- `skill-script-not-mentioned` (skill-scripts, ours): Only scripts that SKILL.md references are scanned (REMEDIATION W5.2), by design.
+- `sensitive-paraphrase` (sensitive-file, author): No path or file name to match: a description of the file.
+- `rce-python-urlopen-exec` (remote-code-execution, author): GR012 knows shell pipes, PowerShell and eval of curl; not exec(urlopen(...)).
+- `skill-script-not-mentioned` (skill-scripts, author): Only scripts that SKILL.md references are scanned (REMEDIATION W5.2), by design.
 
 ## Precision on the held-out set
 
-100 of 100 repositories scanned (851 agent files), ghostrules 0.4.0 at commit 9dbd494, 2026-10-29, default settings and an empty configuration. 21 findings shown by default; 2 repositories would fail `--fail-on high`; 0 findings unlabelled.
+100 of 100 repositories scanned (851 agent files), ghostrules 0.4.1 at commit bef33a6, 2026-10-29, default settings and an empty configuration. 21 findings shown by default; 2 repositories would fail `--fail-on high`; 0 findings unlabelled.
 
 | Rule | Findings | True positive | Benign context | False positive | Unlabelled | Precision for a user |
 |---|---:|---:|---:|---:|---:|---:|

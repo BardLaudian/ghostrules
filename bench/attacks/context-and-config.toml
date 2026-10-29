@@ -26,7 +26,7 @@ status = "detected"
 [[case]]
 id = "import-chain-payload"
 technique = "imports"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "A clean CLAUDE.md imports a file that imports a file with the instruction."
 expected = ["GR013"]
@@ -39,7 +39,7 @@ status = "detected"
 [[case]]
 id = "import-payload-in-comment-of-imported-file"
 technique = "imports"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "The instruction sits in an HTML comment of an imported file."
 expected = ["GR005"]
@@ -51,7 +51,7 @@ status = "detected"
 [[case]]
 id = "symlink-out-of-repo"
 technique = "imports"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "An instruction file that is a symlink pointing outside the repository."
 expected = ["GR025"]
@@ -76,7 +76,7 @@ status = "detected"
 [[case]]
 id = "referenced-script-by-name"
 technique = "referenced-files"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "'Run scripts/setup.sh first' where the script exfiltrates."
 expected = ["GR013", "GR110"]
