@@ -18,7 +18,7 @@ from ghostrules.ignores import IGNORE_RE as _IGNORE_RE
 from ghostrules.ignores import ReviewedMarks, normalise_line
 from ghostrules.jsonloc import strip_jsonc
 from ghostrules.models import Finding, ScanResult, ScanTarget
-from ghostrules.reach import ScriptRef, hook_scripts, skill_scripts
+from ghostrules.reach import ScriptRef, hook_scripts, prose_references, skill_scripts
 from ghostrules.rules import Rule, all_rules
 from ghostrules.scancontext import ScanContext
 from ghostrules.secrets import mask_secrets
@@ -358,7 +358,11 @@ def _run_change_rules(
     return found
 
 
-_REACH_TAGS = {"hook command": "reached-via-hook", "skill script": "reached-via-skill"}
+_REACH_TAGS = {
+    "hook command": "reached-via-hook",
+    "skill script": "reached-via-skill",
+    "prose reference": "reached-via-reference",
+}
 
 
 def _scan_reached_scripts(
@@ -379,14 +383,20 @@ def _scan_reached_scripts(
         elif target.path.endswith("SKILL.md"):
             for ref in skill_scripts(label, target.text, repo.is_file):
                 refs.setdefault(ref.path, ref)
+        if target.kind == "instructions":
+            for ref in prose_references(label, target.text, repo.is_file):
+                if ref.kind == "script" or ref.path not in by_label:
+                    refs.setdefault(ref.path, ref)
     code_rules = [r for r in rule_list if "script" in r.applies_to]
     found: list[Finding] = []
     for ref in refs.values():
         data = repo.read(ref.path)
         if data is None:
             continue
-        script = ScanTarget(ref.path, "script", data.decode("utf-8", errors="surrogateescape"))
-        known = ref.path in by_label  # already read under --all-files: only the code rules are new
+        script = ScanTarget(ref.path, ref.kind, data.decode("utf-8", errors="surrogateescape"))  # type: ignore[arg-type]
+        known = (
+            ref.path in by_label and ref.kind == "script"
+        )  # already read under --all-files: only the code rules are new
         if not known:
             result.scanned_files += 1
         kept, _, errors = scan_target(

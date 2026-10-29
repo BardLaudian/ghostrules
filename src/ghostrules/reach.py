@@ -60,6 +60,7 @@ class ScriptRef:
     path: str
     via: str
     why: str
+    kind: str = "script"  # "instructions" for a text file that prose tells the agent to obey
 
 
 def _clean(path: str) -> str | None:
@@ -164,6 +165,58 @@ def skill_scripts(path: str, text: str, exists: Exists) -> list[ScriptRef]:
                 and exists(joined)
             ):
                 refs.setdefault(joined, ScriptRef(joined, f"{path}:{number}", "skill script"))
+    return list(refs.values())
+
+
+_REF_PATH = r"`?((?:\.{1,2}/)?[\w./-]+\.[A-Za-z0-9]{1,5})`?"
+_OBEY = r"(?:follow|do\s+what|obey|carry\s+out|execute|apply)"
+_READ_THEN_OBEY = re.compile(
+    rf"\b(?:read|open|see|consult|check|review|refer\s+to)\s+(?:the\s+)?(?:file\s+)?{_REF_PATH}"
+    rf"[^.\n]{{0,60}}?\b{_OBEY}\b",
+    re.IGNORECASE,
+)
+_OBEY_THE_STEPS = re.compile(
+    rf"\b(?:follow|obey|execute|apply|carry\s+out)\s+(?:the\s+)?"
+    rf"(?:steps|instructions|commands|directions|guidance)\s+"
+    rf"(?:in|from|of|listed\s+in|described\s+in)\s+{_REF_PATH}",
+    re.IGNORECASE,
+)
+_RUN_FILE = re.compile(
+    rf"\b(?:run|execute)\s+`?(?:(?:ba|z)?sh\s+|python3?\s+|node\s+)?{_REF_PATH}", re.IGNORECASE
+)
+_NOT_TEXT = frozenset(
+    {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".pdf", ".zip", ".gz", ".tar", ".woff",
+     ".woff2", ".ttf", ".mp4", ".mp3", ".wasm", ".so", ".dll", ".exe", ".bin", ".lock"}
+)  # fmt: skip
+
+
+def prose_references(path: str, text: str, exists: Exists) -> list[ScriptRef]:
+    """Files that prose tells the agent to read and obey, or to run (REMEDIATION W5.4).
+
+    Lower confidence than an ``@`` import: the agent may or may not open the file. A mention that
+    only points (``see docs/guide.md``) is not a reference. Tried next to the file first, then from
+    the repository root; never outside the repository.
+    """
+    directory = posixpath.dirname(path)
+    refs: dict[str, ScriptRef] = {}
+    for number, line in enumerate(text.splitlines(), start=1):
+        found = [(m.group(1), "instructions") for m in _READ_THEN_OBEY.finditer(line)]
+        found += [(m.group(1), "instructions") for m in _OBEY_THE_STEPS.finditer(line)]
+        found += [
+            (m.group(1), "script")
+            for m in _RUN_FILE.finditer(line)
+            if posixpath.splitext(m.group(1))[1].lower() in SCRIPT_EXTENSIONS
+        ]
+        for mention, kind in found:
+            if posixpath.splitext(mention)[1].lower() in _NOT_TEXT:
+                continue
+            for candidate in (posixpath.join(directory, mention), mention):
+                cleaned = _clean(candidate)
+                if cleaned is not None and cleaned != path and exists(cleaned):
+                    refs.setdefault(
+                        cleaned, ScriptRef(cleaned, f"{path}:{number}", "prose reference", kind)
+                    )
+                    break
     return list(refs.values())
 
 
