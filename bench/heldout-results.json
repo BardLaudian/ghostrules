@@ -1,12 +1,22 @@
 {
   "date": "2026-10-29",
   "ghostrules_version": "0.3.0",
-  "commit": "254e67f",
+  "commit": "8ce68eb",
   "repos_total": 100,
   "repos_scanned": 100,
-  "files_scanned": 808,
-  "repos_failing_default_check": 1,
+  "files_scanned": 874,
+  "repos_failing_default_check": 2,
   "findings": [
+    {
+      "rule_id": "GR003",
+      "severity": "medium",
+      "fingerprint": "9bbdb7040fd0ec4c"
+    },
+    {
+      "rule_id": "GR003",
+      "severity": "medium",
+      "fingerprint": "bb0c349b96b0b696"
+    },
     {
       "rule_id": "GR011",
       "severity": "low",
@@ -96,6 +106,11 @@
       "rule_id": "GR107",
       "severity": "high",
       "fingerprint": "ee4e0163bb47a5ef"
+    },
+    {
+      "rule_id": "GR110",
+      "severity": "high",
+      "fingerprint": "b0bc035fe09bc4a1"
     }
   ]
 }

@@ -110,3 +110,21 @@ fingerprint = "b849861e014b5402"
 rule_id = "GR014"
 label = "benign-context"
 reason = "describes what code does"
+
+[[label]]
+fingerprint = "b0bc035fe09bc4a1"
+rule_id = "GR110"
+label = "fp"
+reason = "a script that sends its own API key to the API it is documented to call"
+
+[[label]]
+fingerprint = "9bbdb7040fd0ec4c"
+rule_id = "GR003"
+label = "benign-context"
+reason = "a byte order mark written as a literal character in code that strips it"
+
+[[label]]
+fingerprint = "bb0c349b96b0b696"
+rule_id = "GR003"
+label = "benign-context"
+reason = "a byte order mark written as a literal character in code that strips it"
