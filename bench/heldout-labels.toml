@@ -1,0 +1,112 @@
+# Labels of the held-out findings (bench/run.py). Provisional: given by the assistant that ran the
+# benchmark, from the finding and the lines around it; no human has reviewed them. Keyed by
+# fingerprint; no repository, path or snippet is stored. Do not change a rule to move a label:
+# this set is for reporting, never for tuning.
+
+[[label]]
+fingerprint = "d50de00e0809c6dd"
+rule_id = "GR022"
+label = "benign-context"
+reason = "a path to a directory written with @, not an intended import"
+
+[[label]]
+fingerprint = "7e1e4c0519e13b45"
+rule_id = "GR022"
+label = "benign-context"
+reason = "a path to a directory written with @, not an intended import"
+
+[[label]]
+fingerprint = "7b302e46fc168571"
+rule_id = "GR012"
+label = "benign-context"
+reason = "documented installer of a well-known project, in a code block"
+
+[[label]]
+fingerprint = "8046e4aa3d7fff17"
+rule_id = "GR012"
+label = "benign-context"
+reason = "documented installer of a well-known project, in a code block"
+
+[[label]]
+fingerprint = "c1ceb1be9a299196"
+rule_id = "GR102"
+label = "tp"
+reason = "MCP server started with @latest"
+
+[[label]]
+fingerprint = "0b013db928942af7"
+rule_id = "GR022"
+label = "fp"
+reason = "template code in an indented example, not an import"
+
+[[label]]
+fingerprint = "c1659ad8b7f41976"
+rule_id = "GR022"
+label = "fp"
+reason = "template code in an indented example, not an import"
+
+[[label]]
+fingerprint = "0f25eefee1ec571d"
+rule_id = "GR022"
+label = "fp"
+reason = "template code in an indented example, not an import"
+
+[[label]]
+fingerprint = "b6f4e55477e27b6e"
+rule_id = "GR014"
+label = "tp"
+reason = "tells the agent to read the .env file"
+
+[[label]]
+fingerprint = "8791df166ba3fb61"
+rule_id = "GR022"
+label = "tp"
+reason = "intended import of a file that does not exist"
+
+[[label]]
+fingerprint = "3af6852303974536"
+rule_id = "GR011"
+label = "benign-context"
+reason = "describes what framework code does"
+
+[[label]]
+fingerprint = "95602096758bd17b"
+rule_id = "GR014"
+label = "fp"
+reason = "a message to show the user that mentions .env, not access to it"
+
+[[label]]
+fingerprint = "7f3c86ebf1cbcb23"
+rule_id = "GR014"
+label = "fp"
+reason = "a message to show the user that mentions .env, not access to it"
+
+[[label]]
+fingerprint = "ee4e0163bb47a5ef"
+rule_id = "GR107"
+label = "tp"
+reason = "settings allow unrestricted curl"
+
+[[label]]
+fingerprint = "87af339eb5cc1626"
+rule_id = "GR012"
+label = "benign-context"
+reason = "documented installer of a well-known project, in a code block"
+
+[[label]]
+fingerprint = "39a619f0add3d572"
+rule_id = "GR012"
+label = "benign-context"
+reason = "documented installer of a well-known project, in a code block"
+
+[[label]]
+fingerprint = "8667a78c2845032e"
+rule_id = "GR014"
+label = "benign-context"
+reason = "describes what code does"
+
+[[label]]
+fingerprint = "b849861e014b5402"
+rule_id = "GR014"
+label = "benign-context"
+reason = "describes what code does"

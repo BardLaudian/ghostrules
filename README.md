@@ -107,9 +107,37 @@ On pull requests the Action reads the config and the `ghostrules-ignore` comment
 
 ## How we test precision
 
-A scanner that cries wolf gets switched off, so precision is measured on real repositories, not assumed. A workflow scheduled weekly scans 300 popular public repositories with agent files (`corpus/`, the only part of the project that uses the network) and fails if a critical or high finding has not been reviewed; last run: 2026-10-28. Each false positive found that way became a test and a rule change, so these numbers were measured on the data the rules were tuned on. Of the 475 findings of medium severity or above that we reviewed, 158 (33 %) were true positives and 317 (67 %) matched something harmless in context, such as an installer one-liner in a README or an attack quoted in a security skill. For a user that second group is noise; the study has the per-rule table. On the 300-repository tier, 0.2.1 reported 84 critical and 156 high findings and 0.3.0 reports none critical and 53 high. A held-out set of 100 repositories, frozen on 2026-10-29 and never used for tuning, is how 0.4 will report precision.
+A scanner that cries wolf gets switched off, and one that misses gets trusted by mistake, so both are
+measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghostrules/blob/main/bench/README.md),
+[full results](https://github.com/BardLaudian/ghostrules/blob/main/bench/RESULTS.md)). Nothing below was tuned on the data it is measured on.
 
-The same tooling scanned 1,583 repositories for [a study of what popular repositories tell their AI agents](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md): aggregates only, no repository is named next to a finding, and every number comes from the CSVs in `study/data/`. `ghostrules` is a set of heuristics, not a proof: see the [limits](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits).
+**Recall: 81 attack cases** written from public sources and defanged. 64 are reported (79%); 33 (41%) fail the default `--fail-on high` check, because visible prose is `low` by default (hidden text and configuration are not). The 17 misses include paraphrases, other languages, scripts that a hook or a prose reference points to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours (a Spanish exfiltration pattern, a read verb, an endpoint override in settings); each is listed in the results. Four cases come from the independent review; its other 14 are not in the repository yet.
+
+| Technique | Cases | Reported | Fails the default check |
+|---|---:|---:|---:|
+| agent-settings | 5 | 3 | 2 |
+| bidi | 3 | 3 | 3 |
+| concealment | 4 | 3 | 0 |
+| encoded-payload | 3 | 3 | 3 |
+| exfiltration | 6 | 3 | 0 |
+| homoglyph | 3 | 3 | 1 |
+| html-comment | 4 | 4 | 3 |
+| imports | 5 | 5 | 5 |
+| instruction-override | 9 | 6 | 0 |
+| mcp-config | 6 | 6 | 4 |
+| mcp-server-content | 1 | 0 | 0 |
+| referenced-files | 2 | 0 | 0 |
+| remote-code-execution | 7 | 6 | 1 |
+| safety-bypass | 3 | 3 | 0 |
+| scanner-evasion | 2 | 0 | 0 |
+| sensitive-file | 5 | 3 | 0 |
+| unicode-tags | 7 | 7 | 7 |
+| variation-selectors | 3 | 3 | 3 |
+| zero-width | 3 | 3 | 1 |
+
+**Precision: 100 repositories** frozen before any v0.4 tuning (808 agent files, default settings). They gave 18 findings, and 1 repository would fail the default check. Precision for a user is true positives over everything reported, because a right pattern in a harmless place is still something to read: **4 of 18 (22 %)**, from labels given by the assistant that ran the benchmark and **not reviewed by a human**. Per rule: GR102 and GR107 1 of 1; GR014 1 of 5; GR022 1 of 6; GR011 and GR012 0 of 5. Eighteen findings are too few for a percentage per rule to mean much.
+
+A workflow scheduled weekly scans 300 popular public repositories (`corpus/`, the only part of the project that uses the network) and fails if a critical or high finding has not been reviewed; last run: 2026-10-28. Those rules were tuned on that data, so its numbers are not an estimate of precision on new repositories. On it, 0.2.1 reported 84 critical and 156 high findings and 0.3.0 reports none critical and 53 high. The [study](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md) used the same tooling; `ghostrules` is a set of heuristics, not a proof: see the [limits](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits).
 
 ## Documentation
 

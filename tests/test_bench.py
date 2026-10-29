@@ -1,16 +1,30 @@
 """The benchmark (W6): attack cases are defanged, consistent with what the scanner does, and the
 precision arithmetic never counts an unreviewed finding as correct."""
 
+import json
 import re
 import sys
 import unicodedata
 from urllib.parse import urlparse
 
 import pytest
+import tomllib
 from conftest import ROOT
 
 sys.path.insert(0, str(ROOT / "bench"))
 import lib  # noqa: E402
+
+
+def load_bench_run():
+    """bench/run.py under its own name: corpus/run.py is also called ``run``."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("bench_run", ROOT / "bench" / "run.py")
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
 
 CASES = lib.load_cases()
 SOURCES = lib.load_sources()
@@ -27,7 +41,7 @@ SAFE_HOSTS = ("example.com", "example.org", "example.net", "webhook.site")
 
 def test_expand_turns_placeholders_into_the_characters() -> None:
     assert lib.expand("{tags:A}") == chr(0xE0041)
-    assert lib.expand("a{u+200B}b") == "a​b"
+    assert lib.expand("a{u+200B}b") == "a" + chr(0x200B) + "b"
     assert lib.expand("{b64:hi}") == "aGk="
     assert lib.expand("{hex:hi}") == "6869"
     assert lib.expand("{vs:\x00\x10}") == chr(0xFE00) + chr(0xE0100)
@@ -118,3 +132,48 @@ def test_an_unlabelled_finding_is_never_counted_as_correct() -> None:
     assert unlabelled == 1
     assert by_rule["GR011"]["precision"] == 0.5
     assert by_rule["GR012"]["unlabelled"] == 1 and by_rule["GR012"]["precision"] is None
+
+
+# --- the committed results -----------------------------------------------------------------------
+
+
+def test_results_md_is_what_the_runner_generates() -> None:
+    run = load_bench_run()
+
+    data = json.loads((ROOT / "bench" / "heldout-results.json").read_text(encoding="utf-8"))
+    expected = run.render_results(data, run.load_labels())
+    assert (ROOT / "bench" / "RESULTS.md").read_text(encoding="utf-8") == expected
+
+
+def test_every_heldout_finding_has_a_label_and_the_files_name_no_repository() -> None:
+    run = load_bench_run()
+
+    data = json.loads((ROOT / "bench" / "heldout-results.json").read_text(encoding="utf-8"))
+    labels = run.load_labels()
+    assert all(f["fingerprint"] in labels for f in data["findings"])
+    assert set(labels.values()) <= set(lib.LABELS)
+    names = {
+        r["name"] for r in tomllib.loads((ROOT / "bench/heldout.toml").read_text("utf-8"))["repo"]
+    }
+    committed = (ROOT / "bench" / "heldout-results.json").read_text() + (
+        ROOT / "bench" / "heldout-labels.toml"
+    ).read_text()
+    assert not any(name in committed for name in names)
+
+
+def test_the_readme_quotes_the_numbers_the_bench_produces() -> None:
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    outcomes = lib.run_attacks(CASES)
+    total, reported = len(outcomes), sum(o.reported for o in outcomes)
+    fails = sum(o.fails_ci for o in outcomes)
+    assert f"**Recall: {total} attack cases**" in readme
+    assert f"{reported} are reported ({reported / total:.0%})" in readme
+    assert f"{fails} ({fails / total:.0%}) fail the default" in readme
+    assert f"The {total - reported} misses include" in readme
+    for row in lib.recall_table(outcomes):
+        assert (
+            f"| {row['technique']} | {row['cases']} | {row['reported']} | {row['fails_ci']} |"
+            in readme
+        )
+    data = json.loads((ROOT / "bench" / "heldout-results.json").read_text(encoding="utf-8"))
+    assert f"They gave {len(data['findings'])} findings" in readme

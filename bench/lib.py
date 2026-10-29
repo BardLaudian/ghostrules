@@ -136,8 +136,20 @@ def run_attacks(cases: Iterable[Case], config: Config | None = None) -> list[Out
     return [run_case(c, config) for c in cases]
 
 
+def recall_by_rule(outcomes: list[Outcome]) -> list[dict[str, Any]]:
+    """Per expected rule: the cases that name it, how many it caught, how many fail the check."""
+    rows: dict[str, dict[str, Any]] = {}
+    for o in outcomes:
+        for rule in o.case.expected:
+            row = rows.setdefault(rule, {"rule": rule, "cases": 0, "reported": 0, "fails_ci": 0})
+            row["cases"] += 1
+            row["reported"] += o.reported
+            row["fails_ci"] += o.fails_ci
+    return sorted(rows.values(), key=lambda r: r["rule"])
+
+
 def recall_table(outcomes: list[Outcome]) -> list[dict[str, Any]]:
-    """Per technique: cases, reported, failing the default check. Known misses stay in the base."""
+    """Per technique: cases, reported, failing the default check. Misses stay in the base."""
     rows: dict[str, dict[str, Any]] = {}
     for o in outcomes:
         row = rows.setdefault(

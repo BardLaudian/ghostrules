@@ -11,6 +11,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   --config-from-ref REF`, `--trusted-config FILE`, `--no-inline-suppressions` and
   `--suppressions-from-ref REF`. They close two ways a change could silence the scanner for its own
   payload: a `ghostrules-ignore` comment on the malicious line and `exclude` in `.ghostrules.toml`.
+- **A benchmark you can check** (W6): `bench/` has 81 defanged attack cases written from public
+  sources (recall per technique and per rule, misses listed, four cases from the independent review as
+  known misses) and the 100-repository held-out set run once, with precision for a user per rule. The
+  README now shows these numbers instead of the corpus claims. Labels `wontfix` are now
+  `benign-context`.
 - **Supply-chain hygiene** (W7): every `uses:` in the Action and the workflows is pinned to a full
   commit SHA (Dependabot keeps them current); the Action installs its dependencies and the build
   backend from `action-requirements.txt`, hash-pinned, with `--require-hashes --no-deps
