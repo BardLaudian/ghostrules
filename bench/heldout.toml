@@ -1,0 +1,315 @@
+# Held-out benign set (W6.1 of docs/v0.4/REMEDIATION.md).
+#
+# Frozen on 2026-10-29, BEFORE any v0.4 tuning. Never tune a rule on these repositories: they are
+# only used to report precision. Do not add, remove or replace entries; a new set gets a new file.
+#
+# Selection (corpus/discover.py, read-only GitHub API):
+#   stars 100..499, created 2024-07-01..2025-12-31, pushed within 12 months, not archived, not a
+#   fork, with at least one agent file, 10 per language (Rust, JavaScript, C++, Java, Ruby, Go, C#,
+#   Python, TypeScript, PHP), most starred first within each language.
+#   Not in corpus/repos.toml (regression and study tiers).
+#   Two proposed repositories were replaced by the next candidate of their language before
+#   approval, because they look like offensive-security or jailbreak collections and so are not
+#   benign by construction.
+#
+# date = 2026-10-29
+
+[[repo]]
+name = "0xErwin1/dbflux"
+
+[[repo]]
+name = "a2aproject/a2a-go"
+
+[[repo]]
+name = "agentclientprotocol/codex-acp"
+
+[[repo]]
+name = "alibey-10/formcn"
+
+[[repo]]
+name = "anistark/feluda"
+
+[[repo]]
+name = "anthropics/anthropic-sdk-ruby"
+
+[[repo]]
+name = "apache/flink-agents"
+
+[[repo]]
+name = "apache/tvm-ffi"
+
+[[repo]]
+name = "Augani/adabraka-ui"
+
+[[repo]]
+name = "BalajeS/WSL-For-FreeBSD"
+
+[[repo]]
+name = "bscott/subtrackr"
+
+[[repo]]
+name = "bunkeriot/BunkerM"
+
+[[repo]]
+name = "cablate/mcp-google-map"
+
+[[repo]]
+name = "CodingWonders/MicroWin"
+
+[[repo]]
+name = "context-hub/generator"
+
+[[repo]]
+name = "Cookee24/PairTranslate"
+
+[[repo]]
+name = "CultivateLabs/raif"
+
+[[repo]]
+name = "d-kuro/gwq"
+
+[[repo]]
+name = "derek-larson14/obsidian-claude-sidebar"
+
+[[repo]]
+name = "dkorecko/PatchPanda"
+
+[[repo]]
+name = "dkyazzentwatwa/project-starbeam"
+
+[[repo]]
+name = "dsx-ai-factory/model-streamer"
+
+[[repo]]
+name = "DumbWareio/DumbPad"
+
+[[repo]]
+name = "eden-emulator/mirror"
+
+[[repo]]
+name = "eloqdata/eloqstore"
+
+[[repo]]
+name = "F5OEO/tezuka_fw"
+
+[[repo]]
+name = "Facepunch/sandbox"
+
+[[repo]]
+name = "FreePeak/db-mcp-server"
+
+[[repo]]
+name = "gobii-ai/gobii-platform"
+
+[[repo]]
+name = "gogpu/ui"
+
+[[repo]]
+name = "google/xrblocks"
+
+[[repo]]
+name = "gtkx-org/gtkx"
+
+[[repo]]
+name = "guigui-gui/guigui"
+
+[[repo]]
+name = "hasanxdev/DispatchR"
+
+[[repo]]
+name = "I-am-PUID-0/DUMB"
+
+[[repo]]
+name = "Ivy-Interactive/Ivy-Framework"
+
+[[repo]]
+name = "jabrena/plinth"
+
+[[repo]]
+name = "jason8745/llm-agent-trader"
+
+[[repo]]
+name = "jatinkrmalik/LLMFeeder"
+
+[[repo]]
+name = "jingsewu/open-wes"
+
+[[repo]]
+name = "jyourstone/jellyfin-smartlists-plugin"
+
+[[repo]]
+name = "kousen/claude-code-training"
+
+[[repo]]
+name = "kriuchkov/tock"
+
+[[repo]]
+name = "lalabuy948/PhoenixAnalytics"
+
+[[repo]]
+name = "leerob/pixo"
+
+[[repo]]
+name = "LiuYuYang01/ThriveX-Server"
+
+[[repo]]
+name = "LnYo-Cly/ai4j"
+
+[[repo]]
+name = "logiscape/mcp-sdk-php"
+
+[[repo]]
+name = "luadotsh/lua"
+
+[[repo]]
+name = "mantisfury/ArkhamMirror"
+
+[[repo]]
+name = "metadist/synaplan"
+
+[[repo]]
+name = "meysamhadeli/codai"
+
+[[repo]]
+name = "mit-acl/mighty"
+
+[[repo]]
+name = "moeacgx/Telegram-Panel"
+
+[[repo]]
+name = "muni-town/roomy"
+
+[[repo]]
+name = "notrab/dumbo"
+
+[[repo]]
+name = "NPC-Worldwide/npcsh"
+
+[[repo]]
+name = "NVIDIA/aerial-cuda-accelerated-ran"
+
+[[repo]]
+name = "NVIDIA/tilus"
+
+[[repo]]
+name = "obra/episodic-memory"
+
+[[repo]]
+name = "ooiyeefei/ccc"
+
+[[repo]]
+name = "open-telemetry/opentelemetry-go-compile-instrumentation"
+
+[[repo]]
+name = "openai/openai-ruby"
+
+[[repo]]
+name = "OpenLegged/URDF-Studio"
+
+[[repo]]
+name = "opensolon/solon-ai"
+
+[[repo]]
+name = "opgginc/laravel-mcp-server"
+
+[[repo]]
+name = "OWASP/DockSec"
+
+[[repo]]
+name = "parawanderer/OpenTagViewer"
+
+[[repo]]
+name = "patvice/ruby_llm-mcp"
+
+[[repo]]
+name = "Pedro-Revez-Silva/shelfarr"
+
+[[repo]]
+name = "pgr0ss/pgledger"
+
+[[repo]]
+name = "posit-dev/pointblank"
+
+[[repo]]
+name = "qwwzdyj/AIA-Academic-Illustrator-"
+
+[[repo]]
+name = "rameerez/allgood"
+
+[[repo]]
+name = "refact0r/re-start"
+
+[[repo]]
+name = "relaticle/flowforge"
+
+[[repo]]
+name = "RoastSlav/quickdrop"
+
+[[repo]]
+name = "roostorg/osprey"
+
+[[repo]]
+name = "scaleapi/scale-agentex"
+
+[[repo]]
+name = "secondsky/sap-skills"
+
+[[repo]]
+name = "shanselman/WindowsEdgeLight"
+
+[[repo]]
+name = "ShareX/XerahS"
+
+[[repo]]
+name = "shomykohai/penumbra"
+
+[[repo]]
+name = "spring-ai-alibaba/deepresearch"
+
+[[repo]]
+name = "sunchayn/nimbus"
+
+[[repo]]
+name = "testdriverai/testdriverai"
+
+[[repo]]
+name = "Thavarshan/fetch-php"
+
+[[repo]]
+name = "tidewave-ai/tidewave_rails"
+
+[[repo]]
+name = "tile-ai/tilelang-ascend"
+
+[[repo]]
+name = "ton-blockchain/acton"
+
+[[repo]]
+name = "type-ruby/t-ruby"
+
+[[repo]]
+name = "UNITRONIX/BetterDesk"
+
+[[repo]]
+name = "vicentereig/dspy.rb"
+
+[[repo]]
+name = "vllm-project/router"
+
+[[repo]]
+name = "voidzero-dev/vite-task"
+
+[[repo]]
+name = "volcano-sh/kthena"
+
+[[repo]]
+name = "w1249178256/xyzw_web_helper"
+
+[[repo]]
+name = "WordPress/php-ai-client"
+
+[[repo]]
+name = "yshmarov/moneygun"
+
+[[repo]]
+name = "zeqianli/tgv"
