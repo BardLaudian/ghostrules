@@ -134,6 +134,12 @@ runs:
           need_base=true
           printf '%s\n' --suppressions-from-ref "$BASE_SHA" >> "$args_file"
         fi
+        # The baseline of known findings is the one at the base too: a pull request cannot add its
+        # own findings to it.
+        if [ "$is_pr" = true ] && [ "$INPUT_TRUST_REPO_CONFIG" != "true" ]; then
+          need_base=true
+          printf '%s\n' --baseline-from-ref "$BASE_SHA" >> "$args_file"
+        fi
         # The lock is compared with the lock at the base as well (see "Check the lock").
         if [ "$is_pr" = true ] && [ "$INPUT_LOCK_CHECK" = "true" ] && [ "$INPUT_TRUST_REPO_CONFIG" != "true" ]; then
           need_base=true

@@ -1046,3 +1046,16 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 - **`info` is below `--min-severity low`**, so descriptive prose disappears from the default output
   unless `--min-severity info` is given.
 
+## v0.4 W4 — baseline
+
+- **Fingerprint = rule + path + text, no line.** An edit above a baselined line must not unbaseline
+  it, and an edit to the line itself must. The (masked) snippet is hashed, never stored. Two
+  identical lines share one fingerprint and one entry.
+- **Never baselined: GR001, GR002, GR030 and decoded findings.** The same reasoning as for ignores:
+  a baseline says "someone read this". Findings inside an HTML comment or an imported file can be
+  baselined, because the baseline is read from the base ref and was reviewed there.
+- **Read from the base in CI.** The Action passes `--baseline-from-ref` on pull requests, so adding
+  a finding to the baseline is itself a change a reviewer sees (GR030 reports the edit). A base with
+  no baseline means nothing is baselined. Outside a pull request the file in the tree is used; on the
+  CLI `.ghostrules-baseline.json` in the scan root is picked up unless `--no-baseline`.
+
