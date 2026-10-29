@@ -11,7 +11,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   --config-from-ref REF`, `--trusted-config FILE`, `--no-inline-suppressions` and
   `--suppressions-from-ref REF`. They close two ways a change could silence the scanner for its own
   payload: a `ghostrules-ignore` comment on the malicious line and `exclude` in `.ghostrules.toml`.
-  The Action does not use them yet.
+- **Breaking: the Action reads settings from the base commit on pull requests.** On
+  `pull_request` and `pull_request_target` events it passes `--config-from-ref` and
+  `--suppressions-from-ref` with the base SHA, fetching that commit if the checkout is shallow, and
+  fails with exit code 2 when it cannot read it. New inputs: `config`, `trust-repo-config` (default
+  `false`) and `inline-suppressions` (`base`, `off` or `all`; default `base`). Workflows that scan a
+  path outside a git repository on a pull request need `trust-repo-config: "true"` and
+  `inline-suppressions: all`. Other events behave as before.
 
 ### Changed
 

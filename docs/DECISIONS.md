@@ -954,3 +954,23 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 - **The two modes are independent.** `--no-inline-suppressions` wins over `--suppressions-from-ref`.
   The config options exclude each other and `--config`. Both ref options take exactly one path.
 
+## v0.4 W2 — the Action on pull requests
+
+- **A separate step resolves the settings** (`Resolve trusted settings`) and writes one argument per
+  line to `$RUNNER_TEMP/ghostrules-trusted.args`; the scan and summary steps read it. One place
+  decides, so the two scans cannot disagree. A missing file stops the scan step (it never scans
+  with the pull request's own settings by accident), and the summary and SARIF-upload steps run
+  only when the settings step succeeded.
+- **Only pull-request events change.** On `push` there is nothing reviewed to compare with and the
+  repository's own settings are those of a branch that was already reviewed. `inline-suppressions:
+  off` applies everywhere.
+- **The base commit is fetched by the step**, with `git fetch --depth=1 origin <sha>`, because
+  `actions/checkout` fetches one commit. The SHA comes from the event through an environment
+  variable and must be hexadecimal. If the commit still cannot be read the job fails (exit 2) with
+  a hint to use `fetch-depth: 0`.
+- **A path outside a git repository is refused** on a pull request unless the caller opts out with
+  `trust-repo-config: "true"` and `inline-suppressions: all`. The self-test workflow does this for
+  its lock scenario in `$RUNNER_TEMP`.
+- **`config` is passed to `--trusted-config` unchanged.** The Action cannot tell whether the file
+  came from the checkout under review; the input documents that it must not.
+

@@ -103,7 +103,7 @@ repos:
       - id: ghostrules
 ```
 
-Findings go to the job summary and, with `upload-sarif` (the default), to **Security → Code scanning**. All inputs, permissions and the full workflow are in the [usage guide](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#github-action).
+On pull requests the Action reads the config and the `ghostrules-ignore` comments from the base commit, so a change cannot switch the scanner off for its own payload. Findings go to the job summary and, with `upload-sarif` (the default), to **Security → Code scanning**. All inputs, permissions and the full workflow are in the [usage guide](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#github-action).
 
 ## How we test precision
 
