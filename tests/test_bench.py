@@ -161,19 +161,10 @@ def test_every_heldout_finding_has_a_label_and_the_files_name_no_repository() ->
     assert not any(name in committed for name in names)
 
 
-def test_the_readme_quotes_the_numbers_the_bench_produces() -> None:
+def test_the_readme_recall_block_is_what_the_runner_generates() -> None:
+    run = load_bench_run()
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    outcomes = lib.run_attacks(CASES)
-    total, reported = len(outcomes), sum(o.reported for o in outcomes)
-    fails = sum(o.fails_ci for o in outcomes)
-    assert f"**Recall: {total} attack cases**" in readme
-    assert f"{reported} are reported ({reported / total:.0%})" in readme
-    assert f"{fails} ({fails / total:.0%}) fail the default" in readme
-    assert f"The {total - reported} misses include" in readme
-    for row in lib.recall_table(outcomes):
-        assert (
-            f"| {row['technique']} | {row['cases']} | {row['reported']} | {row['fails_ci']} |"
-            in readme
-        )
+    block = readme.split("<!-- bench:start -->\n")[1].split("\n<!-- bench:end -->")[0]
+    assert block == run.readme_block(lib.run_attacks(CASES))
     data = json.loads((ROOT / "bench" / "heldout-results.json").read_text(encoding="utf-8"))
     assert f"They gave {len(data['findings'])} findings" in readme
