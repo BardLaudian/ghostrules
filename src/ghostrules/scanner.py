@@ -18,7 +18,13 @@ from ghostrules.ignores import IGNORE_RE as _IGNORE_RE
 from ghostrules.ignores import ReviewedMarks, normalise_line
 from ghostrules.jsonloc import strip_jsonc
 from ghostrules.models import Finding, ScanResult, ScanTarget
-from ghostrules.reach import ScriptRef, hook_scripts, prose_references, skill_scripts
+from ghostrules.reach import (
+    ScriptRef,
+    hook_scripts,
+    inline_code,
+    prose_references,
+    skill_scripts,
+)
 from ghostrules.rules import Rule, all_rules
 from ghostrules.scancontext import ScanContext
 from ghostrules.secrets import mask_secrets
@@ -365,6 +371,40 @@ _REACH_TAGS = {
 }
 
 
+def _scan_inline_hook_code(
+    by_label: dict[str, ScanTarget],
+    config: Config,
+    code_rules: list[Rule],
+    result: ScanResult,
+) -> list[Finding]:
+    """The code inside a hook command (``python3 -c``, ``node -e``, ``bash -c``) is read as a
+    script. Findings point at the command in the settings file, not at the snippet."""
+    found: list[Finding] = []
+    for label, target in by_label.items():
+        if target.kind != "config":
+            continue
+        for inline in inline_code(label, target.text):
+            shebang = "#!/usr/bin/env python3\n" if inline.language == "python" else ""
+            script = ScanTarget(
+                f"{label} (inline {inline.language})", "script", shebang + inline.code
+            )  # type: ignore[arg-type]
+            kept, _, errors = scan_target(script, config, code_rules, _NO_IGNORES)
+            result.errors.extend(errors)
+            found.extend(
+                replace(
+                    f,
+                    path=label,
+                    line=inline.line,
+                    column=1,
+                    end_column=2,
+                    message=f"In the inline code of a hook command: {f.message}",
+                    tags=(*f.tags, "reached-via-hook"),
+                )
+                for f in kept
+            )
+    return found
+
+
 def _scan_reached_scripts(
     base: Path,
     by_label: dict[str, ScanTarget],
@@ -388,7 +428,7 @@ def _scan_reached_scripts(
                 if ref.kind == "script" or ref.path not in by_label:
                     refs.setdefault(ref.path, ref)
     code_rules = [r for r in rule_list if "script" in r.applies_to]
-    found: list[Finding] = []
+    found: list[Finding] = _scan_inline_hook_code(by_label, config, code_rules, result)
     for ref in refs.values():
         data = repo.read(ref.path)
         if data is None:

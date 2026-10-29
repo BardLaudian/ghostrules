@@ -13,8 +13,8 @@ import re
 from collections.abc import Iterator
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
-from ghostrules.rules.helpers import build_finding
-from ghostrules.rules.patterns import INJECTION_PATTERNS
+from ghostrules.rules.helpers import _URL_HOST_RE, build_finding, host_allowed
+from ghostrules.rules.patterns import COLLECTOR_PATTERNS, INJECTION_PATTERNS
 from ghostrules.rules.registry import rule
 
 SCRIPT: tuple[Kind, ...] = ("script",)
@@ -96,19 +96,85 @@ _OBFUSCATED = tuple(
 )
 
 
+def _context(target: ScanTarget, number: int, window: int = 4) -> str:
+    """The lines within ``window`` of the 0-based line ``number``."""
+    lines = target.lines
+    return "\n".join(lines[max(0, number - window) : min(len(lines), number + window + 1)])
+
+
 def _nearby(
     target: ScanTarget, a: re.Pattern[str], b: re.Pattern[str], window: int = 4
-) -> int | None:
-    """Offset of the first ``a`` match with a ``b`` match within ``window`` lines, or ``None``."""
-    lines = target.lines
-    for number, line in enumerate(lines):
-        if not a.search(line):
-            continue
-        low, high = max(0, number - window), min(len(lines), number + window + 1)
-        context = "\n".join(lines[low:high])
-        if b.search(context):
-            return target.offset(number + 1, 1)
+) -> Iterator[tuple[int, str]]:
+    """Offset and context of every ``a`` match with a ``b`` match within ``window`` lines."""
+    for number, line in enumerate(target.lines):
+        if a.search(line):
+            context = _context(target, number, window)
+            if b.search(context):
+                yield target.offset(number + 1, 1), context
+
+
+# --- a token sent to the service it belongs to -----------------------------------------------
+
+_NAMED_SECRET = re.compile(
+    rf"\$\{{?({_SECRET_NAME})\}}?|\bprocess\.env\.({_SECRET_NAME})\b|\$env:({_SECRET_NAME})\b"
+    rf"|\b(?:environ(?:\.get)?\s*[\[(]|getenv\s*\(|process\.env\s*\[)\s*['\"]({_SECRET_NAME})['\"]",
+    re.IGNORECASE,
+)
+# What a named variable does not explain: the whole environment, a credentials file.
+_BROADER_SECRET = tuple(
+    re.compile(p, _I | re.MULTILINE)
+    for p in (
+        r"\$\(\s*(?:env|printenv)\b|(?:^|[|;&]\s*)(?:env|printenv)\b",
+        r"\bos\.environ\b(?!\s*[\[.])|\bdict\(os\.environ\)|json\.dumps\(os\.environ\)",
+        r"\bprocess\.env\b(?!\s*[.\[])|JSON\.stringify\(process\.env\)",
+        r"Get-ChildItem\s+Env:",
+        rf"(?:{_CRED_PATH})|{_DOTENV}",
+    )
+)
+_GITHUB_HOSTS = ("api.github.com", "github.com", "uploads.github.com")
+_AZURE_HOSTS = ("dev.azure.com", "visualstudio.com")
+
+
+def _hosts_of(name: str) -> tuple[str, ...] | None:
+    """Hosts a variable's token belongs to (``*`` prefix match on its name), ``()`` for a
+    ``<X>_API_KEY`` (any host containing x, see ``_belongs``) and ``None`` when unknown."""
+    upper = name.upper()
+    if upper.startswith(("GITHUB_", "GH_")):
+        return _GITHUB_HOSTS
+    if upper.startswith(("AZURE_", "ADO_")) or upper == "SYSTEM_ACCESSTOKEN":
+        return _AZURE_HOSTS
+    if upper.endswith("_API_KEY") and len(upper) > len("_API_KEY"):
+        return ()
     return None
+
+
+def _belongs(name: str, host: str) -> bool:
+    hosts = _hosts_of(name)
+    if hosts:
+        return host_allowed(host, hosts)
+    if hosts is None:
+        return False
+    service = name.upper().removesuffix("_API_KEY")
+    wanted = {service.replace("_", "").lower(), service.replace("_", "-").lower()}
+    first = service.split("_")[0].lower()
+    if len(first) >= 3:
+        wanted.add(first)
+    return any(w in host.lower() for w in wanted)
+
+
+def _own_service(context: str) -> bool:
+    """True when every secret in ``context`` is a named variable whose service owns every host
+    the context sends to: ``GITHUB_TOKEN`` to api.github.com is not an exfiltration, the same
+    token to another host, a collector, or the whole environment anywhere is."""
+    names = {n for m in _NAMED_SECRET.finditer(context) for n in m.groups() if n}
+    hosts = [h.lower().rstrip(".") for h in _URL_HOST_RE.findall(context)]
+    if not names or not hosts or any(p.search(context) for p in _BROADER_SECRET):
+        return False
+    if any(p.search(h) for p in COLLECTOR_PATTERNS for h in hosts):
+        return False
+    return all(any(_belongs(n, h) for n in names) for h in hosts) and all(
+        any(_belongs(n, h) for h in hosts) for n in names
+    )
 
 
 def _finding(
@@ -219,19 +285,15 @@ def _is_python(target: ScanTarget) -> bool:
 )
 def gr110_script_sends_secrets(target: ScanTarget) -> Iterator[Finding]:
     """A network send and a secret source in the same place (Python: in the same data flow)."""
-    start: int | None = None
+    candidates: list[tuple[int, str]] = []
     if _is_python(target):
         line = _python_sends_a_secret(target.text)
         if line is not None:
-            start = target.offset(line, 1)
-    if start is None:
-        for send in _SENDS:
-            for secret in _SECRETS:
-                start = _nearby(target, send, secret)
-                if start is not None:
-                    break
-            if start is not None:
-                break
+            candidates.append((target.offset(line, 1), _context(target, line - 1)))
+    for send in _SENDS:
+        for secret in _SECRETS:
+            candidates.extend(_nearby(target, send, secret))
+    start = next((at for at, context in candidates if not _own_service(context)), None)
     if start is not None:
         yield _finding(
             target, "GR110", Severity.HIGH, "Script sends the environment or a secret",
