@@ -23,7 +23,7 @@ from ghostrules.rules import Rule, all_rules
 from ghostrules.scancontext import ScanContext
 from ghostrules.secrets import mask_secrets
 from ghostrules.targets import Candidate, discover, home_targets, matches_any
-from ghostrules.visibility import by_visibility
+from ghostrules.visibility import attack_findings, by_visibility
 
 # Invisible-character findings must never be silenceable from inside the scanned file.
 NEVER_SUPPRESS: frozenset[str] = frozenset({"GR001", "GR002", "GR030"})
@@ -524,7 +524,11 @@ def scan_paths(
         else:
             unhonoured += skipped
         if config.profile != "strict":
-            kept = [by_visibility(f, target, import_only=import_only) for f in kept]
+            attacks = attack_findings(kept, target, config.allow_domains)
+            kept = [
+                f if i in attacks else by_visibility(f, target, import_only=import_only)
+                for i, f in enumerate(kept)
+            ]
         findings.extend(_annotate(f, info, is_standalone) for f in kept)
         result.suppressed += suppressed
         result.errors.extend(errors)
