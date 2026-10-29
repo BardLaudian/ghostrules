@@ -11,8 +11,11 @@ from typing import Any, Literal
 
 from ghostrules._compat import tomllib
 from ghostrules.agents import Repo
+from ghostrules.changeset import ChangeBase, ChangeContext
 from ghostrules.config import Config
 from ghostrules.contextscan import FileMeta, RootContext, build_context, collect_meta, relabel_via
+from ghostrules.ignores import IGNORE_RE as _IGNORE_RE
+from ghostrules.ignores import ReviewedMarks, normalise_line
 from ghostrules.jsonloc import strip_jsonc
 from ghostrules.models import Finding, ScanResult, ScanTarget
 from ghostrules.rules import Rule, all_rules
@@ -21,40 +24,12 @@ from ghostrules.secrets import mask_secrets
 from ghostrules.targets import Candidate, discover, home_targets, matches_any
 
 # Invisible-character findings must never be silenceable from inside the scanned file.
-NEVER_SUPPRESS: frozenset[str] = frozenset({"GR001", "GR002"})
+NEVER_SUPPRESS: frozenset[str] = frozenset({"GR001", "GR002", "GR030"})
 
-_IGNORE_RE = re.compile(r"ghostrules-ignore(?:\s*:\s*((?:GR\d{3}(?:\s*,\s*)?)+))?", re.IGNORECASE)
 _RULE_ID_RE = re.compile(r"GR\d{3}", re.IGNORECASE)
 
 # Maps a 1-based line number to the rule ids it ignores; ``None`` means every rule.
 Suppressions = dict[int, "frozenset[str] | None"]
-
-
-def normalise_line(line: str) -> str:
-    """A line with its whitespace collapsed: re-indenting a reviewed line does not unreview it."""
-    return " ".join(line.split())
-
-
-@dataclass(frozen=True)
-class ReviewedMarks:
-    """The inline ignores that already existed in a file at a trusted ref: the normalised lines
-    that carry one, and the (marker line, next line) pairs: a marker also covers the next line."""
-
-    marks: frozenset[str] = frozenset()
-    pairs: frozenset[tuple[str, str]] = frozenset()
-
-
-def reviewed_marks(lines: Sequence[str]) -> ReviewedMarks:
-    """The ignores present in ``lines`` (a file as it is at the trusted ref)."""
-    marks: set[str] = set()
-    pairs: set[tuple[str, str]] = set()
-    for number, line in enumerate(lines, start=1):
-        if _IGNORE_RE.search(line):
-            marker = normalise_line(line)
-            following = normalise_line(lines[number]) if number < len(lines) else ""
-            marks.add(marker)
-            pairs.add((marker, following))
-    return ReviewedMarks(frozenset(marks), frozenset(pairs))
 
 
 @dataclass(frozen=True)
@@ -345,6 +320,22 @@ def _run_graph_rules(
     return found
 
 
+def _run_change_rules(
+    ctx: ChangeContext, config: Config, rule_list: list[Rule], result: ScanResult
+) -> list[Finding]:
+    """Rules that compare the scanned tree with a trusted base ref. Never suppressed inline."""
+    found: list[Finding] = []
+    for r in rule_list:
+        if r.scope != "change" or r.check_change is None or r.id in config.disable:
+            continue
+        try:
+            found.extend(r.check_change(ctx))
+        except Exception as exc:  # a buggy rule must not hide every other finding
+            detail = mask_secrets(f"{type(exc).__name__}: {exc}")
+            result.errors.append(f"rule {r.id} failed: {detail}")
+    return found
+
+
 def _relabel_finding(finding: Finding, label_of: Callable[[str], str], ctx: ScanContext) -> Finding:
     """Rules work on graph paths; reports use the labels (they differ with several roots)."""
     if ctx.target(finding.path) is not None:
@@ -365,6 +356,7 @@ def scan_paths(
     rules: Iterable[Rule] | None = None,
     home_dir: Path | None = None,
     suppressions: SuppressionPolicy | None = None,
+    change_base: ChangeBase | None = None,
 ) -> ScanResult:
     """Scan one or more files/directories (plus user-level configs with ``include_home``).
 
@@ -447,6 +439,16 @@ def scan_paths(
         result.errors.extend(errors)
 
     findings.extend(_run_graph_rules(contexts, by_label, config, rule_list, result, suppressions))
+    if change_base is not None and len(roots) == 1:
+        root = roots[0] if roots[0].is_dir() else roots[0].parent
+        findings.extend(
+            _run_change_rules(
+                ChangeContext(root, config.lockfile, change_base, by_label),
+                config,
+                rule_list,
+                result,
+            )
+        )
     if unhonoured:
         noun = "comment" if unhonoured == 1 else "comments"
         result.warnings.append(

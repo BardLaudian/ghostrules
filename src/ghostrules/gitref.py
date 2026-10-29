@@ -14,7 +14,7 @@ from pathlib import Path
 
 from ghostrules._compat import tomllib
 from ghostrules.config import CONFIG_FILENAME, Config, ConfigError, parse_config
-from ghostrules.scanner import ReviewedMarks, reviewed_marks
+from ghostrules.ignores import ReviewedMarks, reviewed_marks
 
 _TIMEOUT = 30
 _SHALLOW_HINT = (

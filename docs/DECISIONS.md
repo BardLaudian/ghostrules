@@ -974,3 +974,19 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 - **`config` is passed to `--trusted-config` unchanged.** The Action cannot tell whether the file
   came from the checkout under review; the input documents that it must not.
 
+## v0.4 W2 — GR030
+
+- **A new rule scope, `change`.** Rules are pure functions of one file; GR030 needs a base. It gets a
+  `ChangeContext` (the scanned directory, the scanned targets and readers for the base), only runs
+  when a ref option was given, and is never suppressed inline (`NEVER_SUPPRESS`). `ignores.py` holds
+  the marker pattern so the rule does not import the scanner.
+- **Which base.** With one ref option everything is compared with it; with two, configuration and
+  lockfile with `--config-from-ref`, ignore comments with `--suppressions-from-ref`.
+- **Severity high, always.** The plan says "high in CI" and "reported even when legitimate": a
+  legitimate edit therefore fails a default-`fail-on` check until it is merged, when it becomes the
+  base. That is the point (someone accountable reads it), and `fail-on` is the knob for teams that
+  want it as a notice only.
+- **Added or edited only.** Deleting `.ghostrules.toml` falls back to defaults, so it cannot silence
+  anything; deleting the lockfile makes `lock --check` fail by itself. Neither is reported.
+- **`[tool.ghostrules]` compares tables, not files**, so unrelated pyproject edits stay quiet.
+

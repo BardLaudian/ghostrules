@@ -19,6 +19,7 @@ from ghostrules import __version__
 from ghostrules import lock as lock_mod
 from ghostrules.agents.claude_code import DEFAULT_MODE as CLAUDE_DEFAULT_MODE
 from ghostrules.agents.claude_code import MODES as CLAUDE_MODES
+from ghostrules.changeset import ChangeBase
 from ghostrules.clean import clean_text, unified_diff
 from ghostrules.config import Config, ConfigError, load_config
 from ghostrules.context_command import ContextError, ContextReport, build_report, find_root
@@ -192,22 +193,20 @@ def scan(
                              ("--config-from-ref", config_from_ref)) if v is not None]  # fmt: skip
     if len(chosen) > 1:
         _fail(f"{' and '.join(chosen)} cannot be used together: they all say where the config is")
-    reader = None
+    config_reader = suppression_reader = None
     if config_from_ref is not None or suppressions_from_ref is not None:
         if len(targets) != 1:
             _fail("--config-from-ref and --suppressions-from-ref take exactly one path to scan")
         try:
-            reader = RefReader(base, config_from_ref or suppressions_from_ref or "")
-            if config_from_ref is not None and suppressions_from_ref is not None:
+            if config_from_ref is not None:
+                config_reader = RefReader(base, config_from_ref)
+            if suppressions_from_ref is not None:
                 suppression_reader = RefReader(base, suppressions_from_ref)
-            else:
-                suppression_reader = reader
         except GitRefError as exc:
             _fail(str(exc))
     try:
-        if config_from_ref is not None:
-            assert reader is not None
-            cfg = config_at_ref(reader)
+        if config_reader is not None:
+            cfg = config_at_ref(config_reader)
         elif trusted_config is not None:
             cfg = replace(load_config(base, trusted_config), source=f"trusted: {trusted_config}")
         else:
@@ -221,10 +220,24 @@ def scan(
     policy = None
     if no_inline_suppressions:
         policy = SuppressionPolicy("off")
-    elif suppressions_from_ref is not None:
+    elif suppression_reader is not None:
         policy = SuppressionPolicy("base", reviewed_lookup(suppression_reader))
 
-    result = scan_paths(targets, cfg, all_files=all_files, include_home=home, suppressions=policy)
+    # GR030 compares with whichever ref was given; with two refs each part uses its own.
+    anchor = config_reader or suppression_reader
+    change_base = None
+    if anchor is not None:
+        ignores = suppression_reader or anchor
+        change_base = ChangeBase(anchor.read, ignores.read, anchor.ref, ignores.ref)
+
+    result = scan_paths(
+        targets,
+        cfg,
+        all_files=all_files,
+        include_home=home,
+        suppressions=policy,
+        change_base=change_base,
+    )
     label = ", ".join(str(p) for p in targets)
     _emit(result, format_, output, no_color, label)
 

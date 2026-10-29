@@ -8,32 +8,16 @@ and so lets the scanned change silence itself. The ``test_0_3_*`` tests record t
 pass on 0.3.0 and show the scenarios really are blind without the new options.
 """
 
-import json
 import shutil
 from pathlib import Path
-from typing import Any
 
 import pytest
-from pr_helpers import CLEAN, IGNORE, PAYLOAD, pull_request
+from pr_helpers import CLEAN, IGNORE, PAYLOAD, pull_request, rule_ids, scan
 from typer.testing import CliRunner
 
 from ghostrules.cli import app
 
 pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="git is not installed")
-
-
-def scan(repo: Path, *flags: str) -> tuple[int, dict[str, Any], str]:
-    """``ghostrules scan REPO --format json FLAGS``: exit code, parsed report, raw output."""
-    result = CliRunner().invoke(app, ["scan", str(repo), "--format", "json", *flags])
-    try:
-        data = json.loads(result.stdout)
-    except json.JSONDecodeError:
-        data = {}
-    return result.exit_code, data, result.output
-
-
-def rule_ids(data: dict[str, Any]) -> set[str]:
-    return {f["rule_id"] for f in data.get("findings", [])}
 
 
 # --- attack 1: an ignore comment at the end of the malicious line -------------------------------
@@ -150,8 +134,8 @@ def test_config_from_ref_still_honours_the_reviewed_config(tmp_path: Path) -> No
         },
     )
     code, data, out = scan(repo, "--config-from-ref", base)
-    assert code == 0, out
-    assert data["findings"] == []
+    assert rule_ids(data) == {"GR030"}, out  # only the edited config is reported, GR030
+    assert code == 1
     assert data["scanned_files"] == 1  # CLAUDE.md is scanned again; vendor/ stays excluded
 
 
@@ -217,6 +201,7 @@ def test_a_subdirectory_is_read_at_the_same_place_in_the_ref(tmp_path: Path) -> 
         {"app/CLAUDE.md": CLEAN, "app/.ghostrules.toml": 'exclude = ["vendor/**"]\n'},
         {"app/vendor/AGENTS.md": f"# Rules\n\n{PAYLOAD}\n", "app/.ghostrules.toml": ""},
     )
-    code, data, out = scan(repo / "app", "--config-from-ref", base)
-    assert code == 0, out  # the base config excludes vendor/, the PR's empty one is not read
-    assert data["findings"] == []
+    _, data, out = scan(repo / "app", "--config-from-ref", base)
+    # the base config excludes vendor/ and the PR's empty one is not read: no payload finding,
+    # only GR030 for the edited config
+    assert rule_ids(data) == {"GR030"}, out

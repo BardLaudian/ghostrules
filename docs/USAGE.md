@@ -124,6 +124,12 @@ ghostrules scan . --trusted-config /path/to/trusted.toml --no-inline-suppression
   path to scan.
 - Only `git rev-parse` and `git cat-file` run, with fixed arguments. Nothing from the repository
   is executed.
+- With either ref option the scan also reports **GR030** when the change adds or edits
+  `.ghostrules.toml`, `[tool.ghostrules]`, the lockfile or a `ghostrules-ignore` comment (see
+  [RULES.md](https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr030)). It is `high`
+  and reported even when the change is legitimate, so a reviewer always sees it: the check fails
+  until `--fail-on` is raised or the change is merged and becomes the new base. It cannot be
+  suppressed inline or disabled by the change itself, only with `--disable GR030`.
 
 The [GitHub Action](#github-action) uses these options by default on pull requests.
 
@@ -313,7 +319,9 @@ jobs:
 `--config-from-ref <base sha>` and `--suppressions-from-ref <base sha>` (see
 [Scanning a pull request](#scanning-a-pull-request-settings-the-change-cannot-rewrite)), so a pull
 request cannot hide its own payload with an ignore comment or an `exclude` in `.ghostrules.toml`.
-Other events (a push to `main`) use the repository's settings as before. To change this:
+Other events (a push to `main`) use the repository's settings as before. Because the Action passes
+the base, a pull request that edits the scanner's configuration, the lockfile or an ignore comment
+also gets a `GR030` finding. To change this:
 `config` points at a trusted file, `inline-suppressions: off` ignores every comment, and
 `trust-repo-config: "true"` with `inline-suppressions: all` restores the 0.3 behaviour (also what a
 path outside a git repository needs). A `config` file must not come from the checkout under review.
