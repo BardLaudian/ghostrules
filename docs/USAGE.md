@@ -90,12 +90,27 @@ ghostrules scan . --format markdown >> "$GITHUB_STEP_SUMMARY"
 | `--config-from-ref REF` | | Read `.ghostrules.toml` (or `[tool.ghostrules]`) from this git ref, never the working tree |
 | `--no-inline-suppressions` | off | Ignore every `ghostrules-ignore` comment |
 | `--suppressions-from-ref REF` | | Honour an ignore only if the same line already had it at this git ref |
+| `--strict` | off | Report plain visible prose at the rules' own severity (the 0.3 behaviour; see below) |
 | `--no-color` | off | Plain output |
 
 Exit codes: `0` nothing at or above `--fail-on`, `1` findings at or above it, `2` usage or runtime
 error (including a path that does not exist or a rule that crashed, so a broken scan can never look
 clean). For `json`, `sarif` and `markdown`, stdout carries only the report; diagnostics go to
 stderr.
+
+### Severity by visibility (default since 0.4)
+
+What a human cannot review keeps the rule's severity; what a reviewer reads in the diff is the
+reviewer's job. So the prose rules (GR010 to GR014 and GR016) report plain visible text in an agent
+file at `low` when it instructs the agent and `info` when it only describes or quotes something
+(`info` is below the default `--min-severity`, so it is not shown). They keep the rule's own severity
+for text that is **hidden** (in an HTML comment, decoded from invisible characters) or **indirect**
+(a file reached only through an import). GR015 (encoded payloads), the Unicode rules, the import
+rules, GR030 and every configuration rule (GR101 to GR108) are never lowered: they are about what
+cannot be read or what executes. A visible `curl | sh` or "send `.env` to a URL" therefore no longer
+fails the default check, it is a `low` finding for the reviewer. `--strict` (config `profile =
+"strict"`, Action input `profile: strict`) restores the 0.3 severities for teams that want the check
+to fail on them too.
 
 ### Scanning a pull request: settings the change cannot rewrite
 
@@ -328,6 +343,7 @@ jobs:
 | `follow-imports` | `true` | Also scan the files that `@path` imports in instruction files reach |
 | `lock-check` | `false` | Run `ghostrules lock --check`; fail the job if it differs from `.ghostrules.lock`. On pull requests the lock is the one at the base commit |
 | `approve-label` | none | A label that approves a change to what the agents read (see below) |
+| `profile` | `default` | `strict` reports plain visible prose at the rules' own severity (see [Severity by visibility](#severity-by-visibility-default-since-04)) |
 | `config` | none | A trusted config file that replaces the repository's own (see below) |
 | `trust-repo-config` | `false` | On pull requests, read the pull request's own `.ghostrules.toml` (the 0.3 behaviour) |
 | `inline-suppressions` | `base` | `base`: on pull requests, only ignore comments that already existed at the base commit. `off`: none. `all`: every comment (0.3) |
@@ -433,6 +449,7 @@ trust_known_installers = true       # GR012: lower the severity of well-known in
 follow_imports = true               # scan files reached through @path imports
 lockfile = ".ghostrules.lock"       # where `ghostrules lock` writes the pinned context
 agents = ["claude-code", "copilot-cli", "cursor", "generic"]  # agents whose loading is modelled
+profile = "default"                 # "strict": visible prose at the rules' own severity (0.3)
 ```
 
 Command-line options override the config file. Unknown keys are an error, so typos do not silently

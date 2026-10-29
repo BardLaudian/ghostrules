@@ -180,6 +180,13 @@ def scan(
             help="Honour a ghostrules-ignore only if the same line already had it at this git ref.",
         ),
     ] = None,
+    strict: Annotated[
+        bool,
+        typer.Option(
+            "--strict",
+            help="Report plain visible prose at the rule's own severity (the 0.3 behaviour).",
+        ),
+    ] = False,
     no_color: Annotated[bool, typer.Option("--no-color", help="Plain output, no colours.")] = False,
 ) -> None:
     """Scan agent instruction and configuration files for hidden or dangerous content.
@@ -216,6 +223,8 @@ def scan(
     cfg = _apply_overrides(cfg, fail_on, min_severity, disable)
     if follow_imports is not None:
         cfg = replace(cfg, follow_imports=follow_imports)
+    if strict:
+        cfg = replace(cfg, profile="strict")
 
     policy = None
     if no_inline_suppressions:

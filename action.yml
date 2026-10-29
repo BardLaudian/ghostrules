@@ -51,6 +51,12 @@ inputs:
       that already existed at the base commit, so the pull request cannot add one to hide its own
       payload (other events honour every comment). "off": none. "all": every comment (0.3).
     default: base
+  profile:
+    description: >-
+      "default": plain visible prose in an agent file (what a reviewer reads in the diff) is reported
+      as low or info, while hidden text, text reached through imports and configuration keep the
+      rule's severity. "strict": every finding at the rule's own severity (the 0.3 behaviour).
+    default: default
   approve-label:
     description: >-
       Name of a pull request label (for example agent-context-approved) that approves a change to
@@ -94,6 +100,7 @@ runs:
         INPUT_CONFIG: ${{ inputs.config }}
         INPUT_TRUST_REPO_CONFIG: ${{ inputs.trust-repo-config }}
         INPUT_INLINE_SUPPRESSIONS: ${{ inputs.inline-suppressions }}
+        INPUT_PROFILE: ${{ inputs.profile }}
         INPUT_LOCK_CHECK: ${{ inputs.lock-check }}
         EVENT_NAME: ${{ github.event_name }}
         BASE_SHA: ${{ github.event.pull_request.base.sha }}
@@ -107,6 +114,10 @@ runs:
         case "$INPUT_INLINE_SUPPRESSIONS" in
           base | off | all) ;;
           *) fail "inline-suppressions must be base, off or all (got '$INPUT_INLINE_SUPPRESSIONS')" ;;
+        esac
+        case "$INPUT_PROFILE" in
+          default | strict) ;;
+          *) fail "profile must be default or strict (got '$INPUT_PROFILE')" ;;
         esac
         is_pr=false
         case "$EVENT_NAME" in pull_request | pull_request_target) is_pr=true ;; esac
@@ -150,10 +161,12 @@ runs:
         INPUT_FAIL_ON: ${{ inputs.fail-on }}
         INPUT_ALL_FILES: ${{ inputs.all-files }}
         INPUT_FOLLOW_IMPORTS: ${{ inputs.follow-imports }}
+        INPUT_PROFILE: ${{ inputs.profile }}
       run: |
         # The SARIF report is written whatever the result; the job is failed in the last step,
         # after the report has been uploaded and summarised.
         args=("$INPUT_PATH" --fail-on "$INPUT_FAIL_ON")
+        if [ "$INPUT_PROFILE" = "strict" ]; then args+=(--strict); fi
         while IFS= read -r line; do args+=("$line"); done < "${RUNNER_TEMP:-/tmp}/ghostrules-trusted.args"
         if [ "$INPUT_ALL_FILES" = "true" ]; then args+=(--all-files); fi
         if [ "$INPUT_FOLLOW_IMPORTS" = "false" ]; then args+=(--no-follow-imports); fi
@@ -178,8 +191,10 @@ runs:
         INPUT_PATH: ${{ inputs.path }}
         INPUT_ALL_FILES: ${{ inputs.all-files }}
         INPUT_FOLLOW_IMPORTS: ${{ inputs.follow-imports }}
+        INPUT_PROFILE: ${{ inputs.profile }}
       run: |
         args=("$INPUT_PATH" --fail-on none)
+        if [ "$INPUT_PROFILE" = "strict" ]; then args+=(--strict); fi
         while IFS= read -r line; do args+=("$line"); done < "${RUNNER_TEMP:-/tmp}/ghostrules-trusted.args"
         if [ "$INPUT_ALL_FILES" = "true" ]; then args+=(--all-files); fi
         if [ "$INPUT_FOLLOW_IMPORTS" = "false" ]; then args+=(--no-follow-imports); fi

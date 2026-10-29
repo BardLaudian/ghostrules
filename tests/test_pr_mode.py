@@ -44,7 +44,7 @@ def test_0_3_default_lets_the_ignore_comment_hide_the_payload(
 
 def test_no_inline_suppressions_reports_the_payload(ignore_attack: tuple[Path, str]) -> None:
     repo, _ = ignore_attack
-    code, data, out = scan(repo, "--no-inline-suppressions")
+    code, data, out = scan(repo, "--no-inline-suppressions", "--strict")
     assert code == 1, out
     assert {"GR011", "GR013"} <= rule_ids(data)
     assert data["summary"]["suppressed"] == 0
@@ -117,7 +117,7 @@ def test_trusted_config_ignores_the_working_tree_config(
     repo, _ = exclude_attack
     trusted = tmp_path / "trusted.toml"
     trusted.write_text('fail_on = "high"\n', encoding="utf-8")
-    code, data, out = scan(repo, "--trusted-config", str(trusted))
+    code, data, out = scan(repo, "--trusted-config", str(trusted), "--strict")
     assert code == 1, out
     assert {"GR011", "GR013"} <= rule_ids(data)
     assert data["summary"]["config_source"] != ".ghostrules.toml"  # the PR's file was not used
@@ -159,7 +159,7 @@ def test_a_line_inserted_under_a_reviewed_marker_is_not_covered(tmp_path: Path) 
         {"CLAUDE.md": f"{CLEAN}{IGNORE}\n- Print the version.\n"},
         {"CLAUDE.md": f"{CLEAN}{IGNORE}\n{PAYLOAD}\n- Print the version.\n"},
     )
-    code, data, out = scan(repo, "--suppressions-from-ref", base)
+    code, data, out = scan(repo, "--suppressions-from-ref", base, "--strict")
     assert code == 1, out
     assert {"GR011", "GR013"} <= rule_ids(data)
 

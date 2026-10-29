@@ -8,7 +8,7 @@ from ghostrules.rules.patterns import find_encoded_runs
 
 
 def severities(text: str, rule: str, name: str = "AGENTS.md") -> list[str]:
-    out = analyze({name: text + "\n"})
+    out = analyze({name: text + "\n"}, strict=True)
     return [f["severity"] for f in out["findings"] if f["rule_id"] == rule]
 
 

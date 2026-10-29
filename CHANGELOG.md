@@ -11,6 +11,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   --config-from-ref REF`, `--trusted-config FILE`, `--no-inline-suppressions` and
   `--suppressions-from-ref REF`. They close two ways a change could silence the scanner for its own
   payload: a `ghostrules-ignore` comment on the malicious line and `exclude` in `.ghostrules.toml`.
+- **Breaking: severity by visibility.** Plain visible prose in an agent file is now `low` (an
+  instruction) or `info` (a description or quotation) for GR010 to GR014 and GR016; text in an HTML
+  comment, decoded hidden text, files reached only through an import, GR015 and every configuration
+  rule keep their severity. A visible `curl | sh` or "send `.env` to a URL" no longer fails the
+  default check (`--fail-on high`). `--strict`, `profile = "strict"` in the config and the Action's
+  `profile: strict` restore the 0.3 behaviour.
 - **`lock --check --base REF`** (W3): compares with the lock and the config at `REF`, so a pull
   request that edits what the agents read and regenerates `.ghostrules.lock` still fails. Exit 2 when
   the ref or its lock does not exist. The idea is cairnlock's `verify --base`.

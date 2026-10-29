@@ -50,6 +50,7 @@ def test_action_inputs_follow_the_spec() -> None:
         "trust-repo-config": "false",
         "inline-suppressions": "base",
         "approve-label": "",
+        "profile": "default",
     }
     assert all(v["description"] for v in inputs.values())
     assert ACTION["name"] == "ghostrules scan"
@@ -326,6 +327,7 @@ def pr_env(repo: Path, base: str, **env: str) -> dict[str, str]:
         "INPUT_CONFIG": "",
         "INPUT_TRUST_REPO_CONFIG": "false",
         "INPUT_INLINE_SUPPRESSIONS": "base",
+        "INPUT_PROFILE": "default",
         "EVENT_NAME": "pull_request",
         "BASE_SHA": base,
         **env,
@@ -398,7 +400,12 @@ def test_inline_suppressions_off_ignores_every_comment_even_outside_a_pull_reque
         tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}{PAYLOAD} {IGNORE}\n"}
     )
     code = resolve_and_scan(
-        repo, base, tmp_path, EVENT_NAME="push", INPUT_INLINE_SUPPRESSIONS="off"
+        repo,
+        base,
+        tmp_path,
+        EVENT_NAME="push",
+        INPUT_INLINE_SUPPRESSIONS="off",
+        INPUT_PROFILE="strict",
     )
     assert code == "1"
 
@@ -610,6 +617,24 @@ def test_the_settings_step_checks_the_base_commit_for_the_lock_too(tmp_path: Pat
     )
     result = run_step("Resolve trusted settings", tmp_path, cwd=repo, **env)
     assert result.returncode == 2 and "cannot read the base commit" in result.stdout
+
+
+@needs_bash
+def test_the_profile_input_decides_whether_visible_prose_fails_the_check(tmp_path: Path) -> None:
+    repo, base = pull_request(
+        tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}{PAYLOAD}\n"}
+    )
+    assert resolve_and_scan(repo, base, tmp_path, EVENT_NAME="push") == "0"  # low: a reviewer's job
+    assert resolve_and_scan(repo, base, tmp_path, EVENT_NAME="push", INPUT_PROFILE="strict") == "1"
+
+
+@needs_bash
+def test_an_unknown_profile_stops_the_job(tmp_path: Path) -> None:
+    repo, base = pull_request(tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}\n"})
+    result = run_step(
+        "Resolve trusted settings", tmp_path, cwd=repo, **pr_env(repo, base, INPUT_PROFILE="loud")
+    )
+    assert result.returncode == 2 and "profile must be" in result.stdout
 
 
 def test_self_test_exercises_follow_imports_and_the_lock_check() -> None:
