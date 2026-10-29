@@ -616,6 +616,43 @@ def test_parse_strata_and_closed_star_range() -> None:
     assert discover.stratum_name(10000, 0) == "10000+"
 
 
+def test_search_query_can_limit_the_creation_date() -> None:
+    today = dt.date(2026, 10, 29)
+    q = discover.search_query(100, "Go", 12, today, 499, "2024-07-01..2025-12-31")
+    assert "created:2024-07-01..2025-12-31" in q and "stars:100..499" in q
+    assert "created:" not in discover.search_query(100, "Go", 12, today, 499)
+
+
+def test_exclude_tier_takes_several_tiers(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    cands = [
+        {
+            "name": f"o/{n}",
+            "stars": 300,
+            "language": "Go",
+            "agent_files": ["AGENTS.md"],
+            "stratum": "100-499",
+        }  # fmt: skip
+        for n in ("reg", "stud", "new")
+    ]
+    source = tmp_path / "c.json"
+    source.write_text(json.dumps(cands), encoding="utf-8")
+    pinned = tmp_path / "repos.toml"
+    pinned.write_text(
+        '[[repo]]\nname = "o/reg"\ntier = "regression"\n\n'
+        '[[repo]]\nname = "o/stud"\ntier = "study"\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(discover, "CORPUS_DIR", tmp_path)
+    args = ["--from-file", str(source), "--propose", "study:10", "--per-stratum", "10"]
+    assert discover.main([*args, "--exclude-tier", "regression,study"]) == 0
+    out = capsys.readouterr().out
+    assert 'name = "o/new"' in out and "o/reg" not in out and "o/stud" not in out
+    assert discover.main([*args, "--exclude-tier", "regression"]) == 0
+    assert "o/stud" in capsys.readouterr().out  # one tier only: the other is not excluded
+
+
 def test_propose_strata_balances_languages_and_skips_excluded() -> None:
     def cand(name: str, stars: int, lang: str, stratum: str) -> dict:
         return {"name": name, "stars": stars, "language": lang, "agent_files": ["AGENTS.md"],
