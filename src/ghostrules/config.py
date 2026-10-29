@@ -19,6 +19,7 @@ _KNOWN_KEYS = {
     "follow_imports",
     "agents",
     "lockfile",
+    "profile",
 }
 AGENT_NAMES = ("claude-code", "copilot-cli", "cursor", "generic")
 
@@ -41,6 +42,7 @@ class Config:
     follow_imports: bool = True
     agents: tuple[str, ...] = AGENT_NAMES
     lockfile: str = ".ghostrules.lock"
+    profile: str = "default"
     source: str | None = None
 
 
@@ -83,6 +85,9 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
     lockfile = table.get("lockfile", ".ghostrules.lock")
     if not isinstance(lockfile, str) or not lockfile.strip():
         raise ConfigError("'lockfile' must be a non-empty string")
+    profile = table.get("profile", "default")
+    if profile not in ("default", "strict"):
+        raise ConfigError('\'profile\' must be "default" or "strict"')
     return Config(
         disable=frozenset(rule.strip().upper() for rule in _string_list(table, "disable")),
         fail_on=fail_on,
@@ -94,6 +99,7 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
         follow_imports=follow,
         agents=agents,
         lockfile=lockfile.strip(),
+        profile=profile,
         source=source,
     )
 
