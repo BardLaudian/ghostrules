@@ -180,7 +180,14 @@ runs:
         # after the report has been uploaded and summarised.
         args=("$INPUT_PATH" --fail-on "$INPUT_FAIL_ON")
         if [ "$INPUT_PROFILE" = "strict" ]; then args+=(--strict); fi
-        while IFS= read -r line; do args+=("$line"); done < "${RUNNER_TEMP:-/tmp}/ghostrules-trusted.args"
+        trusted="${RUNNER_TEMP:-/tmp}/ghostrules-trusted.args"
+        # bash 3.2 (macOS) does not stop on a failed redirect: check the file, or nothing is
+        # known about the settings and the scan must not run with the repository's own.
+        if [ ! -f "$trusted" ]; then
+          echo "::error title=ghostrules::the trusted settings were not resolved; nothing was scanned"
+          exit 2
+        fi
+        while IFS= read -r line; do args+=("$line"); done < "$trusted"
         if [ "$INPUT_ALL_FILES" = "true" ]; then args+=(--all-files); fi
         if [ "$INPUT_FOLLOW_IMPORTS" = "false" ]; then args+=(--no-follow-imports); fi
         set +e
@@ -208,7 +215,14 @@ runs:
       run: |
         args=("$INPUT_PATH" --fail-on none)
         if [ "$INPUT_PROFILE" = "strict" ]; then args+=(--strict); fi
-        while IFS= read -r line; do args+=("$line"); done < "${RUNNER_TEMP:-/tmp}/ghostrules-trusted.args"
+        trusted="${RUNNER_TEMP:-/tmp}/ghostrules-trusted.args"
+        # bash 3.2 (macOS) does not stop on a failed redirect: check the file, or nothing is
+        # known about the settings and the scan must not run with the repository's own.
+        if [ ! -f "$trusted" ]; then
+          echo "::error title=ghostrules::the trusted settings were not resolved; nothing was scanned"
+          exit 2
+        fi
+        while IFS= read -r line; do args+=("$line"); done < "$trusted"
         if [ "$INPUT_ALL_FILES" = "true" ]; then args+=(--all-files); fi
         if [ "$INPUT_FOLLOW_IMPORTS" = "false" ]; then args+=(--no-follow-imports); fi
         ghostrules scan "${args[@]}" --format markdown >> "$GITHUB_STEP_SUMMARY" || true

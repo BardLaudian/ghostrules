@@ -8,8 +8,9 @@ import unicodedata
 from urllib.parse import urlparse
 
 import pytest
-import tomllib
 from conftest import ROOT
+
+from ghostrules._compat import tomllib
 
 sys.path.insert(0, str(ROOT / "bench"))
 import lib  # noqa: E402

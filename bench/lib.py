@@ -21,8 +21,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-import tomllib
-
+from ghostrules._compat import tomllib
 from ghostrules.config import Config, load_config
 from ghostrules.models import Severity
 from ghostrules.scanner import scan_paths
