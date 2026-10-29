@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable, Iterable
-from dataclasses import replace
+from collections.abc import Callable, Iterable, Sequence
+from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from ghostrules._compat import tomllib
 from ghostrules.agents import Repo
@@ -28,6 +28,43 @@ _RULE_ID_RE = re.compile(r"GR\d{3}", re.IGNORECASE)
 
 # Maps a 1-based line number to the rule ids it ignores; ``None`` means every rule.
 Suppressions = dict[int, "frozenset[str] | None"]
+
+
+def normalise_line(line: str) -> str:
+    """A line with its whitespace collapsed: re-indenting a reviewed line does not unreview it."""
+    return " ".join(line.split())
+
+
+@dataclass(frozen=True)
+class ReviewedMarks:
+    """The inline ignores that already existed in a file at a trusted ref: the normalised lines
+    that carry one, and the (marker line, next line) pairs: a marker also covers the next line."""
+
+    marks: frozenset[str] = frozenset()
+    pairs: frozenset[tuple[str, str]] = frozenset()
+
+
+def reviewed_marks(lines: Sequence[str]) -> ReviewedMarks:
+    """The ignores present in ``lines`` (a file as it is at the trusted ref)."""
+    marks: set[str] = set()
+    pairs: set[tuple[str, str]] = set()
+    for number, line in enumerate(lines, start=1):
+        if _IGNORE_RE.search(line):
+            marker = normalise_line(line)
+            following = normalise_line(lines[number]) if number < len(lines) else ""
+            marks.add(marker)
+            pairs.add((marker, following))
+    return ReviewedMarks(frozenset(marks), frozenset(pairs))
+
+
+@dataclass(frozen=True)
+class SuppressionPolicy:
+    """Which ``ghostrules-ignore`` comments are honoured. ``all`` (the default) honours every one;
+    ``off`` honours none; ``base`` honours only those that already existed at a trusted ref, found
+    through ``reviewed(path)``. The scanned change cannot add an ignore to silence itself."""
+
+    mode: Literal["all", "off", "base"] = "all"
+    reviewed: Callable[[str], ReviewedMarks] | None = None
 
 
 def parse_structured(path: str, text: str) -> tuple[Any, str | None]:
@@ -69,8 +106,11 @@ def load_target(
     )
 
 
-def parse_suppressions(lines: Iterable[str]) -> Suppressions:
-    """Find ``ghostrules-ignore[: GR010,GR012]`` markers; each covers its line and the next."""
+def parse_suppressions(lines: Sequence[str], honour: ReviewedMarks | None = None) -> Suppressions:
+    """Find ``ghostrules-ignore[: GR010,GR012]`` markers; each covers its line and the next.
+
+    With ``honour`` only reviewed ignores count: a marker covers its own line if that line existed
+    with the marker at the trusted ref, and the next line only if that pair of lines did."""
     table: Suppressions = {}
     for number, line in enumerate(lines, start=1):
         match = _IGNORE_RE.search(line)
@@ -78,13 +118,40 @@ def parse_suppressions(lines: Iterable[str]) -> Suppressions:
             continue
         ids = match.group(1)
         scope = frozenset(m.upper() for m in _RULE_ID_RE.findall(ids)) if ids else None
+        marker = normalise_line(line)
+        following = normalise_line(lines[number]) if number < len(lines) else ""
         for covered in (number, number + 1):
+            if honour is not None:
+                if covered == number and marker not in honour.marks:
+                    continue
+                if covered == number + 1 and (marker, following) not in honour.pairs:
+                    continue
             existing = table.get(covered, frozenset())
             if scope is None or existing is None:
                 table[covered] = None
             else:
                 table[covered] = existing | scope
     return table
+
+
+def suppressions_for(target: ScanTarget, policy: SuppressionPolicy | None = None) -> Suppressions:
+    """The suppression table of a target under ``policy`` (``None`` honours every marker)."""
+    if policy is None or policy.mode == "all":
+        return parse_suppressions(target.lines)
+    if policy.mode == "off" or policy.reviewed is None:
+        return {}  # "base" without a lookup fails closed: nothing is reviewed
+    return parse_suppressions(target.lines, policy.reviewed(target.path))
+
+
+def unhonoured_markers(target: ScanTarget, policy: SuppressionPolicy | None) -> int:
+    """How many ignore comments in ``target`` the policy did not honour (for the report)."""
+    if policy is None or policy.mode == "all":
+        return 0
+    markers = [n for n, line in enumerate(target.lines, start=1) if _IGNORE_RE.search(line)]
+    if not markers:
+        return 0
+    honoured = suppressions_for(target, policy)
+    return sum(1 for n in markers if n not in honoured)
 
 
 def is_suppressed(finding: Finding, table: Suppressions) -> bool:
@@ -150,7 +217,10 @@ def _scan_decoded(
 
 
 def scan_target(
-    target: ScanTarget, config: Config, rules: Iterable[Rule]
+    target: ScanTarget,
+    config: Config,
+    rules: Iterable[Rule],
+    policy: SuppressionPolicy | None = None,
 ) -> tuple[list[Finding], int, list[str]]:
     """Scan one target. Returns ``(findings, suppressed_count, errors)``.
 
@@ -159,7 +229,7 @@ def scan_target(
     """
     errors: list[str] = []
     active = _applicable(rules, config)
-    table = parse_suppressions(target.lines)
+    table = suppressions_for(target, policy)
     kept: list[Finding] = []
     suppressed = 0
     for finding in _run_rules(target, active, errors):
@@ -232,6 +302,7 @@ def _run_graph_rules(
     config: Config,
     rule_list: list[Rule],
     result: ScanResult,
+    policy: SuppressionPolicy | None = None,
 ) -> list[Finding]:
     """GR020-GR025: once per scan root, with suppression by the importing file's own markers."""
     graph_rules = [
@@ -266,7 +337,7 @@ def _run_graph_rules(
                 f = _relabel_finding(f, rc.label_of, ctx)
                 target = by_label.get(f.path)
                 if target is not None:
-                    table = tables.setdefault(f.path, parse_suppressions(target.lines))
+                    table = tables.setdefault(f.path, suppressions_for(target, policy))
                     if is_suppressed(f, table):
                         result.suppressed += 1
                         continue
@@ -293,6 +364,7 @@ def scan_paths(
     include_home: bool = False,
     rules: Iterable[Rule] | None = None,
     home_dir: Path | None = None,
+    suppressions: SuppressionPolicy | None = None,
 ) -> ScanResult:
     """Scan one or more files/directories (plus user-level configs with ``include_home``).
 
@@ -347,6 +419,7 @@ def scan_paths(
         candidates.append((cand, label))
 
     seen: set[Path] = set()
+    unhonoured = 0
     findings: list[Finding] = []
     by_label: dict[str, ScanTarget] = {}
     for cand, label in candidates:
@@ -366,13 +439,20 @@ def scan_paths(
         result.scanned_files += 1
         if target.parse_error:
             result.warnings.append(mask_secrets(f"cannot parse {label}: {target.parse_error}"))
-        kept, suppressed, errors = scan_target(target, config, rule_list)
+        kept, suppressed, errors = scan_target(target, config, rule_list, suppressions)
+        unhonoured += unhonoured_markers(target, suppressions)
         is_standalone = label in standalone or bool(info and info.rooted)
         findings.extend(_annotate(f, info, is_standalone) for f in kept)
         result.suppressed += suppressed
         result.errors.extend(errors)
 
-    findings.extend(_run_graph_rules(contexts, by_label, config, rule_list, result))
+    findings.extend(_run_graph_rules(contexts, by_label, config, rule_list, result, suppressions))
+    if unhonoured:
+        noun = "comment" if unhonoured == 1 else "comments"
+        result.warnings.append(
+            f"{unhonoured} ghostrules-ignore {noun} not honoured: only ignores that were already "
+            "reviewed are trusted in this mode"
+        )
     visible = [f for f in _dedupe(findings) if f.severity >= config.min_severity]
     result.findings = sort_findings(visible)
     return result

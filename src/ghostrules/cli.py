@@ -22,6 +22,7 @@ from ghostrules.agents.claude_code import MODES as CLAUDE_MODES
 from ghostrules.clean import clean_text, unified_diff
 from ghostrules.config import Config, ConfigError, load_config
 from ghostrules.context_command import ContextError, ContextReport, build_report, find_root
+from ghostrules.gitref import GitRefError, RefReader, config_at_ref, reviewed_lookup
 from ghostrules.models import ScanResult, Severity
 from ghostrules.reporters import context as context_report
 from ghostrules.reporters import json_, markdown, sarif, table
@@ -31,7 +32,7 @@ from ghostrules.reveal import build as build_reveal
 from ghostrules.reveal import has_hidden_content
 from ghostrules.rules import all_rules
 from ghostrules.rules.known_installers import KNOWN_INSTALLERS
-from ghostrules.scanner import scan_paths
+from ghostrules.scanner import SuppressionPolicy, scan_paths
 
 EXIT_OK, EXIT_FINDINGS, EXIT_ERROR = 0, 1, 2
 
@@ -153,6 +154,31 @@ def scan(
         Optional[Path],  # noqa: UP045
         typer.Option(help="Path to a config file (default: .ghostrules.toml in the scan root)."),
     ] = None,
+    trusted_config: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option(
+            "--trusted-config",
+            help="Use this config file and never the scanned repository's own config.",
+        ),
+    ] = None,
+    config_from_ref: Annotated[
+        Optional[str],  # noqa: UP045
+        typer.Option(
+            "--config-from-ref",
+            help="Read the config (.ghostrules.toml or [tool.ghostrules]) from this git ref.",
+        ),
+    ] = None,
+    no_inline_suppressions: Annotated[
+        bool,
+        typer.Option("--no-inline-suppressions", help="Ignore every ghostrules-ignore comment."),
+    ] = False,
+    suppressions_from_ref: Annotated[
+        Optional[str],  # noqa: UP045
+        typer.Option(
+            "--suppressions-from-ref",
+            help="Honour a ghostrules-ignore only if the same line already had it at this git ref.",
+        ),
+    ] = None,
     no_color: Annotated[bool, typer.Option("--no-color", help="Plain output, no colours.")] = False,
 ) -> None:
     """Scan agent instruction and configuration files for hidden or dangerous content.
@@ -162,15 +188,43 @@ def scan(
     _utf8_streams()
     targets = paths or [Path(".")]
     base = targets[0] if targets[0].is_dir() else targets[0].parent
+    chosen = [n for n, v in (("--config", config), ("--trusted-config", trusted_config),
+                             ("--config-from-ref", config_from_ref)) if v is not None]  # fmt: skip
+    if len(chosen) > 1:
+        _fail(f"{' and '.join(chosen)} cannot be used together: they all say where the config is")
+    reader = None
+    if config_from_ref is not None or suppressions_from_ref is not None:
+        if len(targets) != 1:
+            _fail("--config-from-ref and --suppressions-from-ref take exactly one path to scan")
+        try:
+            reader = RefReader(base, config_from_ref or suppressions_from_ref or "")
+            if config_from_ref is not None and suppressions_from_ref is not None:
+                suppression_reader = RefReader(base, suppressions_from_ref)
+            else:
+                suppression_reader = reader
+        except GitRefError as exc:
+            _fail(str(exc))
     try:
-        cfg = load_config(base, config)
-    except ConfigError as exc:
+        if config_from_ref is not None:
+            assert reader is not None
+            cfg = config_at_ref(reader)
+        elif trusted_config is not None:
+            cfg = replace(load_config(base, trusted_config), source=f"trusted: {trusted_config}")
+        else:
+            cfg = load_config(base, config)
+    except (ConfigError, GitRefError) as exc:
         _fail(str(exc))
     cfg = _apply_overrides(cfg, fail_on, min_severity, disable)
     if follow_imports is not None:
         cfg = replace(cfg, follow_imports=follow_imports)
 
-    result = scan_paths(targets, cfg, all_files=all_files, include_home=home)
+    policy = None
+    if no_inline_suppressions:
+        policy = SuppressionPolicy("off")
+    elif suppressions_from_ref is not None:
+        policy = SuppressionPolicy("base", reviewed_lookup(suppression_reader))
+
+    result = scan_paths(targets, cfg, all_files=all_files, include_home=home, suppressions=policy)
     label = ", ".join(str(p) for p in targets)
     _emit(result, format_, output, no_color, label)
 
