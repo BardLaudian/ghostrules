@@ -140,7 +140,7 @@ def test_the_new_models_are_available_but_not_in_the_default_set() -> None:
         assert get_model(name).name == name
 
 
-# --- the Codex model -----------------------------------------------------------------------------------
+# --- the Codex model ------------------------------------------------------------------------
 
 
 def codex(tmp_path: Path, files: dict[str, str], home: dict[str, str] | None = None, **kw):
@@ -226,7 +226,7 @@ def test_codex_documents_no_imports(tmp_path: Path) -> None:
     assert set(loads(g)) == {"AGENTS.md"} and not g.edges
 
 
-# --- the Gemini CLI model --------------------------------------------------------------------------------
+# --- the Gemini CLI model -------------------------------------------------------------------
 
 
 def gem(tmp_path: Path, files: dict[str, str], home: dict[str, str] | None = None, **kw):
@@ -262,7 +262,9 @@ def test_gemini_subdirectory_files_load_when_a_tool_touches_them(tmp_path: Path)
 
 def test_gemini_context_file_names_come_from_settings(tmp_path: Path) -> None:
     files = {
-        ".gemini/settings.json": '{"context": {"fileName": ["AGENTS.md", "CONTEXT.md", "GEMINI.md"]}}',
+        ".gemini/settings.json": (
+            '{"context": {"fileName": ["AGENTS.md", "CONTEXT.md", "GEMINI.md"]}}'
+        ),
         "AGENTS.md": "a\n",
         "CONTEXT.md": "c\n",
         "GEMINI.md": "g\n",
