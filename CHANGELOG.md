@@ -5,8 +5,30 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-29
+
+Remediation release, from an independent review of 0.3.0 ([plan](docs/design/v0.4/REMEDIATION.md)).
+The scanned change can no longer switch the scanner off, the lock cannot be re-blessed by a pull
+request, visible prose no longer drowns the check, claims are corrected and measured, and the scanner
+reads more of what agents run. On a new benchmark (101 attack cases and a 100-repository held-out
+set, `bench/`): 87 of 101 attacks reported, 50 fail the default check; precision for a user on the
+held-out set is 19% (4 of 21 findings, labels provisional). Both numbers come with their misses.
+
+**Upgrading: breaking changes.** (1) On pull requests the Action reads the config, the ignore comments,
+the baseline and the lock from the base commit; a path outside a git repository needs
+`trust-repo-config: "true"` and `inline-suppressions: all`. (2) Plain visible prose is `low` or `info`
+by default, so a visible `curl | sh` no longer fails `--fail-on high`; `--strict` (config
+`profile = "strict"`, Action `profile: strict`) restores the 0.3 severities. (3) The label `wontfix` is
+now `benign-context` in the corpus tools. (4) The Action installs from a hash-pinned requirements file.
+
 ### Added
 
+- **Scripts that hooks and skills run** (W5.1, W5.2): hook commands of Claude Code, Gemini, Cursor and
+  Codex and scripts named in `SKILL.md` are scanned as code, with the chain that reaches them: GR110
+  (sends the environment or a secret), GR111 (reads credential files), GR112 (downloads and runs code),
+  GR113 (hides what it runs).
+- **The context engine as a library** (W8): `ghostrules.context.resolve()` and `schema()`, a JSON
+  schema for the result validated in the tests, and a README section on alternatives.
 - **Settings a pull request cannot rewrite** (W2 of docs/design/v0.4/REMEDIATION.md): `scan
   --config-from-ref REF`, `--trusted-config FILE`, `--no-inline-suppressions` and
   `--suppressions-from-ref REF`. They close two ways a change could silence the scanner for its own
@@ -81,6 +103,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - README restructured as a landing page; option tables, configuration, supported files, FAQ and limits
   moved to `docs/USAGE.md`, and the rules table to `docs/RULES.md`.
 - SARIF `helpUri` points to `docs/RULES.md#grNNN` (the rules table moved there).
+
+### Known limits
+
+- Paraphrases, languages other than English and Spanish (GR013 has no Spanish patterns), a few read
+  verbs (`Open ~/.npmrc`), `exec(urlopen())`, endpoint overrides in settings and the descriptions an MCP
+  server serves are not caught: 14 of the 101 attack cases (`bench/RESULTS.md`).
+- Only 4 of the review's 18 evasion cases are in the attack set; the rest were not available.
+- The held-out labels are provisional (given by the assistant that ran the benchmark, not reviewed by a
+  person) and 21 findings are too few for a per-rule precision estimate.
+- The `context` tree does not show files reached by a prose reference, and the lock does not record
+  them; Codex and Gemini CLI models are opt-in.
+- The MCP share in the study is an upper bound (its denominator is a lower bound).
 
 ## [0.3.0] - 2026-10-28
 
