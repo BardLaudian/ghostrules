@@ -73,6 +73,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.per-file-ignores]
 "study/report.py" = ["E501"]  # the report template is prose
+"bench/run.py" = ["E501"]  # markdown table rows
 
 [tool.mypy]
 python_version = "3.10"

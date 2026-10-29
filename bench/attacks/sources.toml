@@ -1,0 +1,42 @@
+# Public references the attack cases are written from. A case copies no payload from them: it
+# restates the technique with a defanged target (.example hosts, fake tokens).
+
+[source.embracethered]
+title = "Hiding and finding text with Unicode tags (Johann Rehberger)"
+url = "https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/"
+
+[source.butler]
+title = "Smuggling arbitrary data through an emoji (Paul Butler)"
+url = "https://paulbutler.org/2025/smuggling-arbitrary-data-through-an-emoji/"
+
+[source.trojansource]
+title = "Trojan Source: invisible vulnerabilities (Boucher and Anderson)"
+url = "https://trojansource.codes/"
+
+[source.pillar]
+title = "Rules File Backdoor (Pillar Security)"
+url = "https://www.pillar.security/blog/new-vulnerability-in-github-copilot-and-cursor-how-hackers-can-weaponize-code-agents"
+
+[source.invariant]
+title = "MCP security notification: tool poisoning attacks (Invariant Labs)"
+url = "https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks"
+
+[source.willison-copilot]
+title = "GitHub Copilot Chat: from prompt injection to data exfiltration (Simon Willison)"
+url = "https://simonwillison.net/2024/Jun/16/github-copilot-chat-prompt-injection/"
+
+[source.owasp-skills]
+title = "AST01 Malicious skills (OWASP Agentic Skills Top 10)"
+url = "https://owasp.org/www-project-agentic-skills-top-10/ast01"
+
+[source.checkpoint-claude-code]
+title = "Claude Code project-file flaws CVE-2025-59536 and CVE-2026-21852 (Check Point Research, via ITPro)"
+url = "https://www.itpro.com/software/development/claude-code-flaws-left-ai-tool-wide-open-to-hackers-heres-what-developers-need-to-know"
+
+[source.review]
+title = "Independent critical review of ghostrules 0.3.0, 2026-10-29 (docs/design/v0.4/REMEDIATION.md)"
+url = "https://github.com/BardLaudian/ghostrules/blob/main/docs/design/v0.4/REMEDIATION.md"
+
+[source.ours]
+title = "Limits recorded in docs/DECISIONS.md and docs/USAGE.md (written by the maintainer)"
+url = "https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits"
