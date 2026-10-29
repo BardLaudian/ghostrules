@@ -54,6 +54,7 @@ CONFIG_GLOBS: tuple[str, ...] = (
     ".gemini/settings.json",
     ".codex/config.toml",
     ".codex/hooks.json",
+    ".cursor/hooks.json",
     "claude_desktop_config.json",
     ".roo/mcp.json",
     ".claude/settings.json",
