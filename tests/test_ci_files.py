@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 import yaml
 from conftest import ROOT, load_script
+from pr_helpers import CLEAN, IGNORE, PAYLOAD, pull_request
 
 WORKFLOWS = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
 ACTION = yaml.safe_load((ROOT / "action.yml").read_text(encoding="utf-8"))
@@ -45,6 +46,9 @@ def test_action_inputs_follow_the_spec() -> None:
         "upload-sarif": "true",
         "follow-imports": "true",
         "lock-check": "false",
+        "config": "",
+        "trust-repo-config": "false",
+        "inline-suppressions": "base",
     }
     assert all(v["description"] for v in inputs.values())
     assert ACTION["name"] == "ghostrules scan"
@@ -60,6 +64,7 @@ def test_action_is_a_composite_with_the_specified_steps_in_order() -> None:
     order = [
         "Set up Python",
         "Install",
+        "Resolve trusted settings",
         "Scan",
         "Upload SARIF",
         "Write job summary",
@@ -112,22 +117,28 @@ def test_every_third_party_action_is_pinned_to_a_version(path: Path) -> None:
 # --- running the action's scripts for real ----------------------------------------------------
 
 
-def run_step(name: str, tmp_path: Path, **env: str) -> subprocess.CompletedProcess[str]:
+def run_step(
+    name: str, tmp_path: Path, cwd: Path | None = None, **env: str
+) -> subprocess.CompletedProcess[str]:
     steps = {s["name"]: s for s in ACTION["runs"]["steps"]}
     output, summary = tmp_path / "github_output", tmp_path / "step_summary"
     output.touch()
     summary.touch()
+    trusted = tmp_path / "ghostrules-trusted.args"
+    if not trusted.exists() and "NO_TRUSTED_ARGS" not in env:
+        trusted.touch()  # what the "Resolve trusted settings" step leaves when nothing applies
     environment = {
         **os.environ,
         "PATH": f"{Path(sys.executable).parent}{os.pathsep}{os.environ['PATH']}",
         "GITHUB_OUTPUT": str(output),
         "GITHUB_STEP_SUMMARY": str(summary),
+        "RUNNER_TEMP": str(tmp_path),
         "INPUT_ALL_FILES": "false",
         **env,
     }
     return subprocess.run(
         ["bash", "-e", "-c", steps[name]["run"]],
-        cwd=tmp_path,
+        cwd=cwd or tmp_path,
         env=environment,
         capture_output=True,
         text=True,
@@ -284,6 +295,156 @@ def test_last_step_combines_the_scan_and_lock_results(
     )
     assert result.returncode == returncode
     assert mentions in result.stdout
+
+
+# --- trusted settings on pull requests (W2) ---------------------------------------------------
+
+
+def test_scan_and_summary_read_the_trusted_settings_and_fail_closed() -> None:
+    steps = {s["name"]: s for s in ACTION["runs"]["steps"]}
+    for name in ("Scan", "Write job summary"):
+        assert "ghostrules-trusted.args" in steps[name]["run"], name
+    trust = steps["Resolve trusted settings"]
+    assert trust["id"] == "trust"
+    for name in ("Write job summary", "Upload SARIF to code scanning"):
+        assert "steps.trust.outcome == 'success'" in steps[name]["if"], name
+    assert "if" not in steps["Scan"]  # skipped by default when the settings step failed
+
+
+@needs_bash
+def test_the_scan_step_does_not_scan_when_the_trusted_settings_are_missing(tmp_path: Path) -> None:
+    result = run_step("Scan", tmp_path, INPUT_PATH=".", INPUT_FAIL_ON="high", NO_TRUSTED_ARGS="1")
+    assert result.returncode != 0
+    assert "exit-code" not in (tmp_path / "github_output").read_text(encoding="utf-8")
+
+
+def pr_env(repo: Path, base: str, **env: str) -> dict[str, str]:
+    return {
+        "INPUT_PATH": ".",
+        "INPUT_FAIL_ON": "high",
+        "INPUT_CONFIG": "",
+        "INPUT_TRUST_REPO_CONFIG": "false",
+        "INPUT_INLINE_SUPPRESSIONS": "base",
+        "EVENT_NAME": "pull_request",
+        "BASE_SHA": base,
+        **env,
+    }
+
+
+def resolve_and_scan(repo: Path, base: str, tmp_path: Path, **env: str) -> str:
+    """Run the settings step and the scan step like the Action does; the scan exit code."""
+    settings = pr_env(repo, base, **env)
+    resolved = run_step("Resolve trusted settings", tmp_path, cwd=repo, **settings)
+    assert resolved.returncode == 0, resolved.stdout + resolved.stderr
+    run_step("Scan", tmp_path, cwd=repo, **settings)
+    return output_of(tmp_path)["exit-code"]
+
+
+@needs_bash
+def test_a_pull_request_cannot_silence_its_payload_with_an_ignore_comment(tmp_path: Path) -> None:
+    repo, base = pull_request(
+        tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}{PAYLOAD} {IGNORE}\n"}
+    )
+    assert resolve_and_scan(repo, base, tmp_path) == "1"
+
+
+@needs_bash
+def test_a_pull_request_cannot_exclude_its_own_file(tmp_path: Path) -> None:
+    repo, base = pull_request(
+        tmp_path / "w",
+        {"CLAUDE.md": CLEAN},
+        {"AGENTS.md": f"# Rules\n\n{PAYLOAD}\n", ".ghostrules.toml": 'exclude = ["AGENTS.md"]\n'},
+    )
+    assert resolve_and_scan(repo, base, tmp_path) == "1"
+
+
+@needs_bash
+def test_a_trusted_config_input_replaces_the_repository_config(tmp_path: Path) -> None:
+    repo, base = pull_request(
+        tmp_path / "w",
+        {"CLAUDE.md": CLEAN},
+        {"AGENTS.md": f"# Rules\n\n{PAYLOAD}\n", ".ghostrules.toml": 'exclude = ["AGENTS.md"]\n'},
+    )
+    trusted = tmp_path / "trusted.toml"
+    trusted.write_text('fail_on = "high"\n', encoding="utf-8")
+    assert resolve_and_scan(repo, base, tmp_path, INPUT_CONFIG=str(trusted)) == "1"
+
+
+@needs_bash
+@pytest.mark.parametrize(
+    "env",
+    [
+        {"EVENT_NAME": "push"},  # no pull request, nothing to compare with: 0.3 behaviour
+        {"INPUT_TRUST_REPO_CONFIG": "true", "INPUT_INLINE_SUPPRESSIONS": "all"},  # explicit opt-out
+    ],
+)
+def test_outside_a_pull_request_or_when_trusted_the_repository_settings_apply(
+    env: dict[str, str], tmp_path: Path
+) -> None:
+    repo, base = pull_request(
+        tmp_path / "w",
+        {"CLAUDE.md": CLEAN},
+        {"AGENTS.md": f"# Rules\n\n{PAYLOAD}\n", ".ghostrules.toml": 'exclude = ["AGENTS.md"]\n'},
+    )
+    assert resolve_and_scan(repo, base, tmp_path, **env) == "0"
+
+
+@needs_bash
+def test_inline_suppressions_off_ignores_every_comment_even_outside_a_pull_request(
+    tmp_path: Path,
+) -> None:
+    repo, base = pull_request(
+        tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}{PAYLOAD} {IGNORE}\n"}
+    )
+    code = resolve_and_scan(
+        repo, base, tmp_path, EVENT_NAME="push", INPUT_INLINE_SUPPRESSIONS="off"
+    )
+    assert code == "1"
+
+
+@needs_bash
+def test_a_reviewed_ignore_still_works_on_a_pull_request(tmp_path: Path) -> None:
+    line = f"{PAYLOAD} {IGNORE}\n"
+    repo, base = pull_request(
+        tmp_path / "w",
+        {"CLAUDE.md": f"{CLEAN}{line}"},
+        {"CLAUDE.md": f"{CLEAN}{line}- A new, harmless line.\n"},
+    )
+    assert resolve_and_scan(repo, base, tmp_path) == "0"
+
+
+@needs_bash
+def test_a_path_outside_git_needs_the_explicit_opt_out_on_a_pull_request(tmp_path: Path) -> None:
+    plain = tmp_path / "plain"
+    plain.mkdir()
+    (plain / "CLAUDE.md").write_text(CLEAN, encoding="utf-8")
+    env = pr_env(plain, "0123456789abcdef0123456789abcdef01234567", INPUT_PATH=str(plain))
+    refused = run_step("Resolve trusted settings", tmp_path, **env)
+    assert refused.returncode == 2 and "not inside a git repository" in refused.stdout
+    env.update(INPUT_TRUST_REPO_CONFIG="true", INPUT_INLINE_SUPPRESSIONS="all")
+    allowed = run_step("Resolve trusted settings", tmp_path, **env)
+    assert allowed.returncode == 0, allowed.stdout
+
+
+@needs_bash
+@pytest.mark.parametrize(
+    ("base", "inline", "message"),
+    [
+        ("0123456789abcdef0123456789abcdef01234567", "base", "cannot read the base commit"),
+        ("", "base", "no base commit"),
+        ("not-a-sha; echo pwned", "base", "not a commit id"),
+        ("", "sometimes", "inline-suppressions must be"),
+    ],
+)
+def test_the_settings_step_fails_closed(
+    base: str, inline: str, message: str, tmp_path: Path
+) -> None:
+    repo, _ = pull_request(tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}\n"})
+    env = pr_env(repo, base, INPUT_INLINE_SUPPRESSIONS=inline)
+    result = run_step("Resolve trusted settings", tmp_path, cwd=repo, **env)
+    assert result.returncode == 2
+    assert "::error" in result.stdout and message in result.stdout
+    assert "pwned" not in result.stderr
 
 
 def test_self_test_exercises_follow_imports_and_the_lock_check() -> None:

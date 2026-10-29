@@ -33,6 +33,24 @@ inputs:
       differences go to the job summary under "What your agents read changed in this PR" and the
       job fails if there are any.
     default: "false"
+  config:
+    description: >-
+      Path to a trusted ghostrules config file that replaces the repository's own .ghostrules.toml.
+      It must come from somewhere a pull request cannot change (another repository's checkout, a
+      file on the runner), not from the checkout under review.
+    default: ""
+  trust-repo-config:
+    description: >-
+      On pull_request events the scanner reads .ghostrules.toml from the base commit, so the pull
+      request cannot exclude its own files. Set to "true" to read the pull request's own config
+      (the 0.3 behaviour). Other events always use the repository's config.
+    default: "false"
+  inline-suppressions:
+    description: >-
+      Which ghostrules-ignore comments count. "base" (default): on pull_request events only those
+      that already existed at the base commit, so the pull request cannot add one to hide its own
+      payload (other events honour every comment). "off": none. "all": every comment (0.3).
+    default: base
 
 outputs:
   exit-code:
@@ -57,6 +75,57 @@ runs:
       shell: bash
       run: python -m pip install --disable-pip-version-check --quiet "${GITHUB_ACTION_PATH}"
 
+    - name: Resolve trusted settings
+      id: trust
+      shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_CONFIG: ${{ inputs.config }}
+        INPUT_TRUST_REPO_CONFIG: ${{ inputs.trust-repo-config }}
+        INPUT_INLINE_SUPPRESSIONS: ${{ inputs.inline-suppressions }}
+        EVENT_NAME: ${{ github.event_name }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      run: |
+        # On a pull request the configuration and the ignore comments come from the base commit,
+        # never from the change under review. Any doubt stops the job: it must not scan with the
+        # pull request's own settings by accident.
+        args_file="${RUNNER_TEMP:-/tmp}/ghostrules-trusted.args"
+        : > "$args_file"
+        fail() { echo "::error title=ghostrules::$1"; exit 2; }
+        case "$INPUT_INLINE_SUPPRESSIONS" in
+          base | off | all) ;;
+          *) fail "inline-suppressions must be base, off or all (got '$INPUT_INLINE_SUPPRESSIONS')" ;;
+        esac
+        is_pr=false
+        case "$EVENT_NAME" in pull_request | pull_request_target) is_pr=true ;; esac
+        need_base=false
+        if [ -n "$INPUT_CONFIG" ]; then
+          printf '%s\n' --trusted-config "$INPUT_CONFIG" >> "$args_file"
+        elif [ "$is_pr" = true ] && [ "$INPUT_TRUST_REPO_CONFIG" != "true" ]; then
+          need_base=true
+          printf '%s\n' --config-from-ref "$BASE_SHA" >> "$args_file"
+        fi
+        if [ "$INPUT_INLINE_SUPPRESSIONS" = "off" ]; then
+          printf '%s\n' --no-inline-suppressions >> "$args_file"
+        elif [ "$INPUT_INLINE_SUPPRESSIONS" = "base" ] && [ "$is_pr" = true ]; then
+          need_base=true
+          printf '%s\n' --suppressions-from-ref "$BASE_SHA" >> "$args_file"
+        fi
+        if [ "$need_base" = true ]; then
+          [ -n "$BASE_SHA" ] || fail "no base commit in the event, so the settings of the base cannot be read"
+          case "$BASE_SHA" in
+            *[!0-9a-f]*) fail "the base commit in the event is not a commit id" ;;
+          esac
+          git -C "$INPUT_PATH" rev-parse --git-dir > /dev/null 2>&1 \
+            || fail "path '$INPUT_PATH' is not inside a git repository, so the settings of the base cannot be read (set trust-repo-config and inline-suppressions to \"true\" and \"all\" to scan it with its own settings)"
+          if ! git -C "$INPUT_PATH" cat-file -e "${BASE_SHA}^{commit}" 2> /dev/null; then
+            # actions/checkout fetches one commit by default; the base commit is not there.
+            git -C "$INPUT_PATH" fetch --no-tags --depth=1 --quiet origin "$BASE_SHA" 2> /dev/null || true
+          fi
+          git -C "$INPUT_PATH" cat-file -e "${BASE_SHA}^{commit}" 2> /dev/null \
+            || fail "cannot read the base commit ${BASE_SHA}; check out with fetch-depth: 0 so the settings of the base can be read"
+        fi
+
     - name: Scan
       id: scan
       shell: bash
@@ -69,6 +138,7 @@ runs:
         # The SARIF report is written whatever the result; the job is failed in the last step,
         # after the report has been uploaded and summarised.
         args=("$INPUT_PATH" --fail-on "$INPUT_FAIL_ON")
+        while IFS= read -r line; do args+=("$line"); done < "${RUNNER_TEMP:-/tmp}/ghostrules-trusted.args"
         if [ "$INPUT_ALL_FILES" = "true" ]; then args+=(--all-files); fi
         if [ "$INPUT_FOLLOW_IMPORTS" = "false" ]; then args+=(--no-follow-imports); fi
         set +e
@@ -78,7 +148,7 @@ runs:
         echo "exit-code=$code" >> "$GITHUB_OUTPUT"
 
     - name: Upload SARIF to code scanning
-      if: ${{ inputs.upload-sarif == 'true' && !cancelled() }}
+      if: ${{ inputs.upload-sarif == 'true' && !cancelled() && steps.trust.outcome == 'success' }}
       uses: github/codeql-action/upload-sarif@v3
       continue-on-error: true
       with:
@@ -86,7 +156,7 @@ runs:
         category: ghostrules
 
     - name: Write job summary
-      if: ${{ !cancelled() }}
+      if: ${{ !cancelled() && steps.trust.outcome == 'success' }}
       shell: bash
       env:
         INPUT_PATH: ${{ inputs.path }}
@@ -94,6 +164,7 @@ runs:
         INPUT_FOLLOW_IMPORTS: ${{ inputs.follow-imports }}
       run: |
         args=("$INPUT_PATH" --fail-on none)
+        while IFS= read -r line; do args+=("$line"); done < "${RUNNER_TEMP:-/tmp}/ghostrules-trusted.args"
         if [ "$INPUT_ALL_FILES" = "true" ]; then args+=(--all-files); fi
         if [ "$INPUT_FOLLOW_IMPORTS" = "false" ]; then args+=(--no-follow-imports); fi
         ghostrules scan "${args[@]}" --format markdown >> "$GITHUB_STEP_SUMMARY" || true

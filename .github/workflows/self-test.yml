@@ -125,6 +125,9 @@ jobs:
         uses: ./
         with:
           path: ${{ runner.temp }}/acme/base
+          # not a git repository: scanned with its own settings
+          trust-repo-config: "true"
+          inline-suppressions: all
           fail-on: none
           lock-check: "true"
           upload-sarif: "false"
@@ -140,6 +143,9 @@ jobs:
         continue-on-error: true
         with:
           path: ${{ runner.temp }}/acme/pr
+          # not a git repository: scanned with its own settings
+          trust-repo-config: "true"
+          inline-suppressions: all
           fail-on: none
           lock-check: "true"
           upload-sarif: "false"

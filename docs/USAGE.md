@@ -125,7 +125,7 @@ ghostrules scan . --trusted-config /path/to/trusted.toml --no-inline-suppression
 - Only `git rev-parse` and `git cat-file` run, with fixed arguments. Nothing from the repository
   is executed.
 
-The Action does not use these options yet. Until it does, run the CLI in a step of your own.
+The [GitHub Action](#github-action) uses these options by default on pull requests.
 
 ## What it catches
 
@@ -304,6 +304,24 @@ jobs:
 | `upload-sarif` | `true` | Upload to code scanning (needs `security-events: write`) |
 | `follow-imports` | `true` | Also scan the files that `@path` imports in instruction files reach |
 | `lock-check` | `false` | Run `ghostrules lock --check`; fail the job if it differs from `.ghostrules.lock` |
+| `config` | none | A trusted config file that replaces the repository's own (see below) |
+| `trust-repo-config` | `false` | On pull requests, read the pull request's own `.ghostrules.toml` (the 0.3 behaviour) |
+| `inline-suppressions` | `base` | `base`: on pull requests, only ignore comments that already existed at the base commit. `off`: none. `all`: every comment (0.3) |
+
+**Pull requests are scanned with the base commit's settings (since 0.4, a breaking change).** On
+`pull_request` and `pull_request_target` events the Action runs the scan with
+`--config-from-ref <base sha>` and `--suppressions-from-ref <base sha>` (see
+[Scanning a pull request](#scanning-a-pull-request-settings-the-change-cannot-rewrite)), so a pull
+request cannot hide its own payload with an ignore comment or an `exclude` in `.ghostrules.toml`.
+Other events (a push to `main`) use the repository's settings as before. To change this:
+`config` points at a trusted file, `inline-suppressions: off` ignores every comment, and
+`trust-repo-config: "true"` with `inline-suppressions: all` restores the 0.3 behaviour (also what a
+path outside a git repository needs). A `config` file must not come from the checkout under review.
+
+The base commit has to be readable. `actions/checkout` fetches one commit by default, so the Action
+fetches the base commit with `git fetch --depth=1` (the Action's step does this, `ghostrules`
+itself never uses the network); if it still cannot read it, the job fails with exit code `2` and a
+message, and nothing is scanned with the pull request's own settings. `fetch-depth: 0` always works.
 
 The SARIF report is always written to `ghostrules.sarif` and summarised; the job is failed only at
 the end, so the upload happens even when the scan finds problems. The upload cannot fail the job
