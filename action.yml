@@ -51,6 +51,14 @@ inputs:
       that already existed at the base commit, so the pull request cannot add one to hide its own
       payload (other events honour every comment). "off": none. "all": every comment (0.3).
     default: base
+  approve-label:
+    description: >-
+      Name of a pull request label (for example agent-context-approved) that approves a change to
+      what the agents read, so a lock check that finds differences passes. It approves only on the
+      event that applies the label (add "labeled" to the workflow's pull_request types), so it must
+      be applied again after new commits. Applying a label needs triage or write access, which a
+      fork author does not have. Empty (default): nothing approves, the check fails on a change.
+    default: ""
 
 outputs:
   exit-code:
@@ -62,6 +70,9 @@ outputs:
   lock-exit-code:
     description: "Exit code of the lock check: 0 up to date, 1 changed, 2 error. Empty if lock-check is off."
     value: ${{ steps.lock.outputs.exit-code }}
+  lock-approved:
+    description: '"true" if the lock check found a change and the approval label passed it.'
+    value: ${{ steps.lock.outputs.approved }}
 
 runs:
   using: composite
@@ -83,6 +94,7 @@ runs:
         INPUT_CONFIG: ${{ inputs.config }}
         INPUT_TRUST_REPO_CONFIG: ${{ inputs.trust-repo-config }}
         INPUT_INLINE_SUPPRESSIONS: ${{ inputs.inline-suppressions }}
+        INPUT_LOCK_CHECK: ${{ inputs.lock-check }}
         EVENT_NAME: ${{ github.event_name }}
         BASE_SHA: ${{ github.event.pull_request.base.sha }}
       run: |
@@ -110,6 +122,10 @@ runs:
         elif [ "$INPUT_INLINE_SUPPRESSIONS" = "base" ] && [ "$is_pr" = true ]; then
           need_base=true
           printf '%s\n' --suppressions-from-ref "$BASE_SHA" >> "$args_file"
+        fi
+        # The lock is compared with the lock at the base as well (see "Check the lock").
+        if [ "$is_pr" = true ] && [ "$INPUT_LOCK_CHECK" = "true" ] && [ "$INPUT_TRUST_REPO_CONFIG" != "true" ]; then
+          need_base=true
         fi
         if [ "$need_base" = true ]; then
           [ -n "$BASE_SHA" ] || fail "no base commit in the event, so the settings of the base cannot be read"
@@ -175,21 +191,61 @@ runs:
       shell: bash
       env:
         INPUT_PATH: ${{ inputs.path }}
+        INPUT_TRUST_REPO_CONFIG: ${{ inputs.trust-repo-config }}
+        INPUT_APPROVE_LABEL: ${{ inputs.approve-label }}
+        EVENT_NAME: ${{ github.event_name }}
+        EVENT_ACTION: ${{ github.event.action }}
+        EVENT_LABEL: ${{ github.event.label.name }}
+        EVENT_SENDER: ${{ github.event.sender.login }}
+        EVENT_TIME: ${{ github.event.pull_request.updated_at }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
       run: |
-        # Exit code 1 means "the agents' context changed since .ghostrules.lock"; the job is
-        # failed in the last step, after the differences are in the summary.
+        # Exit code 1 means "the agents' context changed since the lock"; the job is failed in the
+        # last step, after the differences are in the summary. On a pull request the lock is the one
+        # at the base commit: the pull request cannot re-bless its own change by regenerating it.
         report="${RUNNER_TEMP:-/tmp}/ghostrules-lock.md"
+        errors="${RUNNER_TEMP:-/tmp}/ghostrules-lock.err"
+        args=(lock --check --root "$INPUT_PATH" --format markdown)
+        is_pr=false
+        case "$EVENT_NAME" in pull_request | pull_request_target) is_pr=true ;; esac
+        if [ "$is_pr" = true ] && [ "$INPUT_TRUST_REPO_CONFIG" != "true" ]; then
+          args+=(--base "$BASE_SHA")
+        fi
         set +e
-        ghostrules lock --check --root "$INPUT_PATH" --format markdown > "$report"
+        ghostrules "${args[@]}" > "$report" 2> "$errors"
         code=$?
         set -e
         echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        # A label approves only on the event that applies it, by someone who can label (triage or
+        # write access), so an approval never survives new commits. Errors are never approved.
+        approved=false
+        if [ "$code" = "1" ] && [ "$is_pr" = true ] && [ -n "$INPUT_APPROVE_LABEL" ] \
+          && [ "$EVENT_ACTION" = "labeled" ] && [ "$EVENT_LABEL" = "$INPUT_APPROVE_LABEL" ]; then
+          approved=true
+        fi
+        echo "approved=$approved" >> "$GITHUB_OUTPUT"
+        sender="$(printf '%s' "$EVENT_SENDER" | tr -cd 'A-Za-z0-9[]_.-')"
+        when="$(printf '%s' "$EVENT_TIME" | tr -cd '0-9TZ:.+-')"
+        label="$(printf '%s' "$INPUT_APPROVE_LABEL" | tr -cd 'A-Za-z0-9 _.:/-')"
         {
           echo "## What your agents read changed in this PR"
           echo
           if [ "$code" = "2" ]; then
-            echo "The lock check could not run (is .ghostrules.lock committed? create it with \`ghostrules lock\`)."
+            echo "The lock check could not run:"
+            echo
+            echo '```text'
+            head -c 2000 "$errors" | tr -cd '\11\12\40-\176'
+            echo '```'
           else
+            if [ "$approved" = true ]; then
+              echo "**Approved by @${sender:-unknown} at ${when:-an unknown time} with the label \`$label\`.**" \
+                "The check passes; the differences below are what was approved."
+              echo
+            elif [ "$code" = "1" ] && [ -n "$INPUT_APPROVE_LABEL" ]; then
+              echo "To approve this change, apply the label \`$label\` (after the last commit):" \
+                "a label approves only when it is applied, so it must be applied again after new commits."
+              echo
+            fi
             cat "$report"
           fi
         } >> "$GITHUB_STEP_SUMMARY"
@@ -200,6 +256,7 @@ runs:
       env:
         SCAN_EXIT_CODE: ${{ steps.scan.outputs.exit-code }}
         LOCK_EXIT_CODE: ${{ steps.lock.outputs.exit-code }}
+        LOCK_APPROVED: ${{ steps.lock.outputs.approved }}
         INPUT_FAIL_ON: ${{ inputs.fail-on }}
       run: |
         final=0
@@ -210,8 +267,12 @@ runs:
         esac
         case "$LOCK_EXIT_CODE" in
           ""|0) ;;
-          1) echo "::error title=ghostrules::What your agents read changed since .ghostrules.lock. Review the job summary; if the changes are intended, run 'ghostrules lock --update'."
-             if [ "$final" = 0 ]; then final=1; fi ;;
+          1) if [ "$LOCK_APPROVED" = "true" ]; then
+               echo "::notice title=ghostrules::The change to what your agents read was approved by label (approved by label; see the job summary)."
+             else
+               echo "::error title=ghostrules::What your agents read changed since .ghostrules.lock. Review the job summary; if the changes are intended, run 'ghostrules lock --update'."
+               if [ "$final" = 0 ]; then final=1; fi
+             fi ;;
           *) echo "::error title=ghostrules::The lock check failed to run (exit code '$LOCK_EXIT_CODE')."; final=2 ;;
         esac
         exit "$final"

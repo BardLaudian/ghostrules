@@ -1005,3 +1005,23 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   the marker comment is not what the finding is about. In PR mode the base-ref rules (W2.1) are what
   keep a change from adding one.
 
+## v0.4 W3 — a lock a pull request cannot re-bless
+
+- **`--base` reads two things at the ref: the lock and the config.** The config decides which agents
+  and files the snapshot covers, so reading it from the working tree would let a PR shrink the
+  snapshot (`agents = ["cursor"]`) or move the lock (`lockfile = "evil.lock"`) and still pass. Both
+  have tests. `--base` is not combined with `--config` and does not need `--lockfile`.
+- **Label approval is bound to the `labeled` event.** The plan says "when the PR has the label".
+  A label that persists would approve every later commit, including one pushed after the maintainer
+  looked, and the Action cannot tell when a label was applied relative to a push (commit dates are
+  author-controlled). So only the event that applies the label approves, using the payload's
+  sender and time; any new push (a `synchronize`) fails again until the label is re-applied. Cost: a
+  maintainer has to apply the label last, and a re-run of an old approved run keeps its result.
+- **Who can approve** is whoever GitHub lets apply a label (triage or write). The Action does not
+  look at permissions: an author with write access can approve their own PR, which branch
+  protection or `CODEOWNERS` has to prevent. Documented, not enforced.
+- **Only exit code 1 is approved.** A missing base lock, an unknown base or a crash stay failures,
+  whatever the label says. The first lock is committed with `lock-check` off.
+- **The settings step also fetches the base for the lock** when `lock-check` is on, so a caller with
+  a trusted config and `inline-suppressions: all` still gets a readable base or a clear failure.
+

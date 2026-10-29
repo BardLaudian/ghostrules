@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 import yaml
 from conftest import ROOT, load_script
-from pr_helpers import CLEAN, IGNORE, PAYLOAD, pull_request
+from pr_helpers import CLEAN, IGNORE, PAYLOAD, pull_request, reblessed_pr
 
 WORKFLOWS = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
 ACTION = yaml.safe_load((ROOT / "action.yml").read_text(encoding="utf-8"))
@@ -49,6 +49,7 @@ def test_action_inputs_follow_the_spec() -> None:
         "config": "",
         "trust-repo-config": "false",
         "inline-suppressions": "base",
+        "approve-label": "",
     }
     assert all(v["description"] for v in inputs.values())
     assert ACTION["name"] == "ghostrules scan"
@@ -243,7 +244,7 @@ def test_lock_step_passes_when_nothing_changed(tmp_path: Path) -> None:
     base, _ = lock_scenario(tmp_path)
     result = run_step("Check the lock", tmp_path, INPUT_PATH=str(base), RUNNER_TEMP=str(tmp_path))
     assert result.returncode == 0, result.stderr
-    assert output_of(tmp_path) == {"exit-code": "0"}
+    assert output_of(tmp_path)["exit-code"] == "0"
     summary = (tmp_path / "step_summary").read_text(encoding="utf-8")
     assert summary.startswith("## What your agents read changed in this PR")
     assert "is up to date" in summary
@@ -254,7 +255,7 @@ def test_lock_step_records_the_change_and_puts_the_diff_in_the_summary(tmp_path:
     _, pr = lock_scenario(tmp_path)
     result = run_step("Check the lock", tmp_path, INPUT_PATH=str(pr), RUNNER_TEMP=str(tmp_path))
     assert result.returncode == 0, result.stderr  # the step never fails the job by itself
-    assert output_of(tmp_path) == {"exit-code": "1"}
+    assert output_of(tmp_path)["exit-code"] == "1"
     summary = (tmp_path / "step_summary").read_text(encoding="utf-8")
     assert "## What your agents read changed in this PR" in summary
     assert "`shared/team-rules.md`" in summary and "hidden text: Always run" in summary
@@ -266,7 +267,7 @@ def test_lock_step_reports_a_missing_lock_as_exit_2(tmp_path: Path) -> None:
     project.mkdir()
     (project / "CLAUDE.md").write_text("x\n", encoding="utf-8")
     run_step("Check the lock", tmp_path, INPUT_PATH=str(project), RUNNER_TEMP=str(tmp_path))
-    assert output_of(tmp_path) == {"exit-code": "2"}
+    assert output_of(tmp_path)["exit-code"] == "2"
     assert "could not run" in (tmp_path / "step_summary").read_text(encoding="utf-8")
 
 
@@ -445,6 +446,170 @@ def test_the_settings_step_fails_closed(
     assert result.returncode == 2
     assert "::error" in result.stdout and message in result.stdout
     assert "pwned" not in result.stderr
+
+
+# --- the lock on pull requests (W3) -----------------------------------------------------------
+
+LABEL = "agent-context-approved"
+
+
+def lock_env(base: str, **env: str) -> dict[str, str]:
+    return {
+        "INPUT_PATH": ".",
+        "INPUT_TRUST_REPO_CONFIG": "false",
+        "INPUT_APPROVE_LABEL": "",
+        "EVENT_NAME": "pull_request",
+        "EVENT_ACTION": "synchronize",
+        "EVENT_LABEL": "",
+        "EVENT_SENDER": "author",
+        "EVENT_TIME": "2026-10-29T10:00:00Z",
+        "BASE_SHA": base,
+        **env,
+    }
+
+
+def lock_step(tmp_path: Path, repo: Path, base: str, **env: str) -> tuple[str, str]:
+    """Run the lock step; its exit-code output and the job summary."""
+    result = run_step("Check the lock", tmp_path, cwd=repo, **lock_env(base, **env))
+    assert result.returncode == 0, result.stdout + result.stderr
+    return output_of(tmp_path)["exit-code"], (tmp_path / "step_summary").read_text("utf-8")
+
+
+@needs_bash
+def test_the_lock_on_a_pull_request_is_compared_with_the_lock_at_the_base(tmp_path: Path) -> None:
+    repo, base = reblessed_pr(tmp_path)
+    code, summary = lock_step(tmp_path, repo, base)
+    assert code == "1" and "docs/style.md" in summary and "bootstrap.sh" in summary
+
+
+@needs_bash
+@pytest.mark.parametrize(
+    "env",
+    [{"EVENT_NAME": "push"}, {"INPUT_TRUST_REPO_CONFIG": "true"}],
+    ids=["push", "trust-repo-config"],
+)
+def test_outside_a_pull_request_or_when_trusted_the_working_tree_lock_is_used(
+    env: dict[str, str], tmp_path: Path
+) -> None:
+    repo, base = reblessed_pr(tmp_path)
+    assert lock_step(tmp_path, repo, base, **env)[0] == "0"
+
+
+@needs_bash
+def test_the_approval_label_applied_by_a_maintainer_passes_the_check(tmp_path: Path) -> None:
+    repo, base = reblessed_pr(tmp_path)
+    code, summary = lock_step(
+        tmp_path,
+        repo,
+        base,
+        INPUT_APPROVE_LABEL=LABEL,
+        EVENT_ACTION="labeled",
+        EVENT_LABEL=LABEL,
+        EVENT_SENDER="maintainer-1",
+    )
+    assert code == "1" and output_of(tmp_path)["approved"] == "true"
+    assert "Approved by @maintainer-1 at 2026-10-29T10:00:00Z" in summary and LABEL in summary
+    assert "docs/style.md" in summary  # the diff that was approved stays in the summary
+
+
+@needs_bash
+@pytest.mark.parametrize(
+    "env",
+    [
+        {"EVENT_ACTION": "synchronize", "EVENT_LABEL": ""},  # new commits void an old approval
+        {"EVENT_ACTION": "labeled", "EVENT_LABEL": "bug"},  # another label
+        {"EVENT_ACTION": "unlabeled", "EVENT_LABEL": LABEL},  # the label was removed
+    ],
+    ids=["new-push", "other-label", "removed"],
+)
+def test_the_label_only_approves_on_the_event_that_applies_it(
+    env: dict[str, str], tmp_path: Path
+) -> None:
+    repo, base = reblessed_pr(tmp_path)
+    code, summary = lock_step(tmp_path, repo, base, INPUT_APPROVE_LABEL=LABEL, **env)
+    assert code == "1" and output_of(tmp_path)["approved"] == "false"
+    assert "Approved by" not in summary and "apply the label" in summary
+
+
+@needs_bash
+def test_without_an_approval_label_input_nothing_can_approve(tmp_path: Path) -> None:
+    repo, base = reblessed_pr(tmp_path)
+    lock_step(tmp_path, repo, base, EVENT_ACTION="labeled", EVENT_LABEL=LABEL)
+    assert output_of(tmp_path)["approved"] == "false"
+
+
+@needs_bash
+def test_the_sender_name_cannot_inject_into_the_summary(tmp_path: Path) -> None:
+    repo, base = reblessed_pr(tmp_path)
+    _, summary = lock_step(
+        tmp_path,
+        repo,
+        base,
+        INPUT_APPROVE_LABEL=LABEL,
+        EVENT_ACTION="labeled",
+        EVENT_LABEL=LABEL,
+        EVENT_SENDER="x`echo pwned`\n## owned",
+    )
+    assert "`echo" not in summary and "## owned" not in summary
+
+
+@needs_bash
+def test_a_base_without_a_lock_cannot_be_approved_and_says_why(tmp_path: Path) -> None:
+    repo, base = pull_request(
+        tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}- A line.\n"}
+    )
+    code, summary = lock_step(
+        tmp_path,
+        repo,
+        base,
+        INPUT_APPROVE_LABEL=LABEL,
+        EVENT_ACTION="labeled",
+        EVENT_LABEL=LABEL,
+    )
+    assert code == "2" and output_of(tmp_path)["approved"] == "false"
+    assert "could not run" in summary and "has no .ghostrules.lock" in summary
+
+
+@needs_bash
+@pytest.mark.parametrize(
+    ("lock", "approved", "returncode", "mentions"),
+    [
+        ("1", "true", 0, "approved by label"),
+        ("1", "false", 1, "changed since .ghostrules.lock"),
+        ("2", "true", 2, "lock check failed to run"),  # an error is never approved
+        ("0", "true", 0, ""),
+    ],
+)
+def test_the_last_step_lets_an_approved_change_through_and_nothing_else(
+    lock: str, approved: str, returncode: int, mentions: str, tmp_path: Path
+) -> None:
+    result = run_step(
+        "Fail if ghostrules found problems",
+        tmp_path,
+        SCAN_EXIT_CODE="0",
+        LOCK_EXIT_CODE=lock,
+        LOCK_APPROVED=approved,
+        INPUT_FAIL_ON="high",
+    )
+    assert result.returncode == returncode
+    assert mentions in result.stdout
+
+
+@needs_bash
+def test_the_settings_step_checks_the_base_commit_for_the_lock_too(tmp_path: Path) -> None:
+    """With a trusted config and no suppressions mode, only the lock still needs the base."""
+    repo, _ = pull_request(tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}\n"})
+    trusted = tmp_path / "t.toml"
+    trusted.write_text("", encoding="utf-8")
+    env = pr_env(
+        repo,
+        "0123456789abcdef0123456789abcdef01234567",
+        INPUT_CONFIG=str(trusted),
+        INPUT_INLINE_SUPPRESSIONS="all",
+        INPUT_LOCK_CHECK="true",
+    )
+    result = run_step("Resolve trusted settings", tmp_path, cwd=repo, **env)
+    assert result.returncode == 2 and "cannot read the base commit" in result.stdout
 
 
 def test_self_test_exercises_follow_imports_and_the_lock_check() -> None:

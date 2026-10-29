@@ -259,10 +259,27 @@ Changes that only touch text an agent strips (a comment Claude Code removes) are
 fingerprints of lines and not their text.
 
 **What the lock does and does not do.** The lockfile lives in the repository, so a malicious pull
-request can update it too. It is a *visibility* control, not a barrier: it guarantees that any
-change to what an agent reads shows up as an explicit lock diff in the pull request. Add
-`.ghostrules.lock` and your instruction files to `CODEOWNERS` so that someone accountable has to
-approve that diff.
+request can update it too, and `lock --check` on its working tree then passes. Two things close that
+gap. Add `.ghostrules.lock` and your instruction files to `CODEOWNERS` so that someone accountable
+has to approve the diff, and compare with the lock **at the base** (next section).
+
+### In a pull request: `--base`
+
+```bash
+ghostrules lock --check --base origin/main      # the lock and the config come from that ref
+```
+
+With `--base REF` the lock is read from `REF` (`git cat-file`, nothing is executed), and so is the
+configuration that decides what the snapshot contains: a pull request that edits an imported file and
+regenerates `.ghostrules.lock` in the same commit still fails, and it cannot move the lock with
+`lockfile = "other.lock"` or hide the change from an agent with `agents = [...]`. Exit `1` shows the
+diff; exit `2` means the base cannot be compared with (an unknown ref, or no `.ghostrules.lock` at the
+base: commit one first). `--base` only works with `--check` and cannot be combined with `--config`.
+The idea of checking against a git ref comes from
+[cairnlock](https://github.com/pennacle-security/cairnlock)'s `verify --base`.
+
+A legitimate change then needs an approval. In the Action that is the `approve-label` input (see
+[GitHub Action](#github-action)).
 
 Other tools lock agent files too (for example [cairnlock](https://github.com/pennacle-security/cairnlock),
 which hashes the files it tracks and checks them against a git ref). As far as their documentation
@@ -309,7 +326,8 @@ jobs:
 | `all-files` | `false` | Also check every text file for hidden Unicode |
 | `upload-sarif` | `true` | Upload to code scanning (needs `security-events: write`) |
 | `follow-imports` | `true` | Also scan the files that `@path` imports in instruction files reach |
-| `lock-check` | `false` | Run `ghostrules lock --check`; fail the job if it differs from `.ghostrules.lock` |
+| `lock-check` | `false` | Run `ghostrules lock --check`; fail the job if it differs from `.ghostrules.lock`. On pull requests the lock is the one at the base commit |
+| `approve-label` | none | A label that approves a change to what the agents read (see below) |
 | `config` | none | A trusted config file that replaces the repository's own (see below) |
 | `trust-repo-config` | `false` | On pull requests, read the pull request's own `.ghostrules.toml` (the 0.3 behaviour) |
 | `inline-suppressions` | `base` | `base`: on pull requests, only ignore comments that already existed at the base commit. `off`: none. `all`: every comment (0.3) |
@@ -325,6 +343,22 @@ also gets a `GR030` finding. To change this:
 `config` points at a trusted file, `inline-suppressions: off` ignores every comment, and
 `trust-repo-config: "true"` with `inline-suppressions: all` restores the 0.3 behaviour (also what a
 path outside a git repository needs). A `config` file must not come from the checkout under review.
+
+**Approving a change to what the agents read.** With `lock-check: "true"` a pull request is compared
+with `.ghostrules.lock` at the base commit (unless `trust-repo-config: "true"`), so changing an
+instruction file fails the check even if the pull request regenerated the lock. To let a legitimate
+change through, set `approve-label: agent-context-approved`, add `labeled` to the workflow's
+`pull_request` types and apply the label. The check then passes, and the job summary says who applied
+it and when (`github.event.sender` and the event time, nothing else is trusted), with the diff that
+was approved. Three properties matter:
+- **Only the event that applies the label approves.** A label that is already there approves
+  nothing, so new commits void an approval: apply it again (remove and add) after the last commit.
+- **Applying a label needs triage or write access**, which a fork author does not have, so an author
+  cannot approve their own pull request from a fork. A collaborator with write access can approve
+  their own: require a second reviewer with branch protection or `CODEOWNERS` if that matters.
+- **Errors are never approved.** If the lock check could not run (an unknown base, no lock at the
+  base), the job fails with the reason in the summary. For the first lock, merge it to the base
+  with `lock-check` off.
 
 The base commit has to be readable. `actions/checkout` fetches one commit by default, so the Action
 fetches the base commit with `git fetch --depth=1` (the Action's step does this, `ghostrules`

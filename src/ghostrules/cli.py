@@ -459,6 +459,14 @@ def lock(
         Optional[Path],  # noqa: UP045
         typer.Option(help="Path to a config file (default: .ghostrules.toml in the root)."),
     ] = None,
+    base: Annotated[
+        Optional[str],  # noqa: UP045
+        typer.Option(
+            "--base",
+            help="With --check: compare with the lock and the config at this git ref, "
+            "not the ones in the working tree.",
+        ),
+    ] = None,
     output: Annotated[
         Optional[Path],  # noqa: UP045
         typer.Option("--output", "-o", help="Write the --check report to this file."),
@@ -474,9 +482,18 @@ def lock(
     if check and update:
         raise typer.BadParameter("use either --check or --update", param_hint="--check/--update")
     repo_root = root if root is not None else find_root(Path.cwd())
+    if base is not None and not check:
+        _fail("--base only works with --check")
+    if base is not None and config is not None:
+        _fail("--base and --config cannot be used together: --base reads the config at the ref")
+    reader = None
     try:
-        cfg = load_config(repo_root, config)
-    except ConfigError as exc:
+        if base is not None:
+            reader = RefReader(repo_root, base)
+            cfg = config_at_ref(reader)
+        else:
+            cfg = load_config(repo_root, config)
+    except (ConfigError, GitRefError) as exc:
         _fail(str(exc))
     if claude_instructions_mode not in CLAUDE_MODES:
         raise typer.BadParameter(
@@ -489,7 +506,17 @@ def lock(
     snapshot = lock_mod.build_snapshot(repo_root, cfg, instructions_mode=claude_instructions_mode)
     if check:
         try:
-            diff = lock_mod.diff_lock(lock_mod.read_lock(lock_path), snapshot)
+            if reader is not None:
+                recorded = reader.read(name)
+                if recorded is None:
+                    raise lock_mod.LockError(
+                        f"{reader.ref} has no {name}: there is nothing to compare with. Commit a "
+                        "lock to the base first (create it with: ghostrules lock)"
+                    )
+                pinned = lock_mod.parse_lock(recorded)
+            else:
+                pinned = lock_mod.read_lock(lock_path)
+            diff = lock_mod.diff_lock(pinned, snapshot)
         except lock_mod.LockError as exc:
             _fail(str(exc))
         _emit_lock(diff, name, format_, output, no_color)
