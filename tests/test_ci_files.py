@@ -60,8 +60,8 @@ def test_action_is_a_composite_with_the_specified_steps_in_order() -> None:
     assert ACTION["runs"]["using"] == "composite"
     steps = ACTION["runs"]["steps"]
     uses = [s.get("uses", "") for s in steps]
-    assert uses[0].startswith("actions/setup-python@v")
-    assert any(u == "github/codeql-action/upload-sarif@v3" for u in uses)
+    assert uses[0].startswith("actions/setup-python@")
+    assert any(u.startswith("github/codeql-action/upload-sarif@") for u in uses)
     names = [s["name"] for s in steps]
     order = [
         "Set up Python",
@@ -106,14 +106,39 @@ def test_no_expression_is_interpolated_into_a_shell_script(path: Path) -> None:
 
 
 @pytest.mark.parametrize("path", [ROOT / "action.yml", *WORKFLOWS], ids=lambda p: p.name)
-def test_every_third_party_action_is_pinned_to_a_version(path: Path) -> None:
+def test_every_third_party_action_is_pinned_to_a_commit_with_its_version_in_a_comment(
+    path: Path,
+) -> None:
+    """A tag can be moved; a commit cannot. The comment says which version the commit is."""
     data = load(path)
     steps = data["runs"]["steps"] if "runs" in data else list(steps_of(data))
-    for step in steps:
-        ref = step.get("uses")
-        if ref and not ref.startswith("./"):
-            assert "@" in ref, ref
-            assert ref.split("@")[1] not in ("main", "master"), ref
+    refs = [s["uses"] for s in steps if s.get("uses") and not s["uses"].startswith("./")]
+    text = path.read_text(encoding="utf-8")
+    for ref in refs:
+        name, _, sha = ref.partition("@")
+        assert re.fullmatch(r"[0-9a-f]{40}", sha), f"{ref} is not pinned to a full commit"
+        assert re.search(rf"uses: {re.escape(ref)} # \S+", text), f"{ref} has no version comment"
+
+
+def test_dependabot_keeps_the_pinned_actions_up_to_date() -> None:
+    config = load(ROOT / ".github" / "dependabot.yml")
+    assert config["version"] == 2
+    (update,) = [u for u in config["updates"] if u["package-ecosystem"] == "github-actions"]
+    assert update["directory"] == "/" and update["schedule"]["interval"] == "weekly"
+
+
+def test_the_action_installs_from_a_hash_pinned_requirements_file() -> None:
+    install = {s["name"]: s for s in ACTION["runs"]["steps"]}["Install ghostrules"]["run"]
+    assert "--require-hashes" in install and "action-requirements.txt" in install
+    assert "--no-deps" in install and "--no-build-isolation" in install  # nothing else is fetched
+    lines = (ROOT / "action-requirements.txt").read_text(encoding="utf-8").splitlines()
+    pinned = [ln for ln in lines if ln and not ln.startswith((" ", "#"))]
+    assert pinned and all("==" in ln for ln in pinned), pinned
+    text = "\n".join(lines)
+    assert text.count("--hash=sha256:") >= len(pinned)
+    for needed in ("typer==", "rich==", "hatchling=="):  # the runtime and the build backend
+        assert needed in text, needed
+    assert (ROOT / "action-requirements.in").is_file()
 
 
 # --- running the action's scripts for real ----------------------------------------------------
@@ -717,12 +742,23 @@ def test_release_uses_trusted_publishing_and_no_tokens() -> None:
     assert publish["permissions"] == {"id-token": "write"}
     assert publish["environment"] == "pypi"
     uses = [s["uses"] for s in publish["steps"]]
-    assert "pypa/gh-action-pypi-publish@release/v1" in uses
+    assert any(u.startswith("pypa/gh-action-pypi-publish@") for u in uses)
     text = path.read_text(encoding="utf-8")
     assert "password" not in text and "PYPI_TOKEN" not in text
     assert "secrets." not in text
     assert release["permissions"] == {"contents": "read"}
     assert release["jobs"]["github-release"]["permissions"] == {"contents": "write"}
+
+
+def test_release_moves_the_v0_tag_only_for_a_stable_release_and_only_with_write_access() -> None:
+    release = load(ROOT / ".github/workflows/release.yml")
+    job = release["jobs"]["move-major-tag"]
+    assert job["needs"] == "github-release" and job["permissions"] == {"contents": "write"}
+    step = next(s for s in job["steps"] if "run" in s)
+    assert "${{" not in step["run"]  # the tag reaches the script through the environment
+    assert step["env"]["TAG"] == "${{ github.ref_name }}"
+    assert "^v0\\.[0-9]+\\.[0-9]+$" in step["run"]  # a stable x.y.z only, never a pre-release
+    assert "git tag -f v0" in step["run"] and "git push --force origin v0" in step["run"]
 
 
 def test_release_builds_before_publishing_and_checks_tag_and_notes() -> None:

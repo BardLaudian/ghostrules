@@ -1078,3 +1078,25 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 - **GR016 documentation paragraphs** were already `info` after W4.1 (descriptive and visible); a
   test pins it.
 
+## v0.4 W7 — supply-chain hygiene
+
+- **Commit SHAs with a version comment.** A tag can be moved, a commit cannot. The comment is what
+  Dependabot updates along with the SHA, and what a reader checks. The SHAs were resolved on
+  2026-10-29 with the GitHub API (`checkout` v4, `setup-python` v5, `upload-artifact` v4,
+  `download-artifact` v4, `codeql-action` v3, `gh-action-pypi-publish` release/v1; `pages.yml` was
+  already pinned).
+- **The Action's install is hash-pinned, the library's is not, on purpose.** The Action runs in
+  somebody's CI with a token, so it installs exactly what was reviewed: `--require-hashes` from
+  `action-requirements.txt` (generated with `pip-compile --generate-hashes`), `--no-deps` for
+  ghostrules itself and `--no-build-isolation` so the build backend is the pinned `hatchling`, not
+  whatever pip resolves. `pyproject.toml` keeps ranges (`typer>=0.12`): that is normal for a library
+  other projects install next to their own dependencies, and pinning there would only break
+  resolution. It is not GR102's situation. GR102 is about *executing whatever is latest on every
+  start* of a tool that has access to a machine; the Action never does that, and a library range is
+  resolved once by the user's own installer.
+- **`v0` moving tag.** A separate job after the GitHub release force-pushes `v0` to the new tag, and
+  only for a stable `v0.x.y` (a pre-release such as `v0.5.0rc1` leaves it alone). It needs
+  `contents: write`; the tag reaches the script through an environment variable.
+- **Not done:** pinning the pip bootstrap itself (`setup-python` provides it), and verifying
+  Dependabot's pull requests, which a maintainer reviews like any other.
+

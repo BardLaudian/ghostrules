@@ -368,6 +368,11 @@ jobs:
 | `trust-repo-config` | `false` | On pull requests, read the pull request's own `.ghostrules.toml` (the 0.3 behaviour) |
 | `inline-suppressions` | `base` | `base`: on pull requests, only ignore comments that already existed at the base commit. `off`: none. `all`: every comment (0.3) |
 
+**Pinning the Action.** `BardLaudian/ghostrules@v0` follows the latest stable `0.x.y` release (the
+release workflow moves that tag), an exact tag such as `@v0.4.0` stays put, and a full commit SHA is
+the strictest choice. Inside, the Action's own dependencies and build backend are installed from a
+file with a hash for each (`--require-hashes`), and every action it uses is pinned to a commit.
+
 **Pull requests are scanned with the base commit's settings (since 0.4, a breaking change).** On
 `pull_request` and `pull_request_target` events the Action runs the scan with
 `--config-from-ref <base sha>` and `--suppressions-from-ref <base sha>` (see

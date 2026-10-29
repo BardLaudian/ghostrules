@@ -11,6 +11,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   --config-from-ref REF`, `--trusted-config FILE`, `--no-inline-suppressions` and
   `--suppressions-from-ref REF`. They close two ways a change could silence the scanner for its own
   payload: a `ghostrules-ignore` comment on the malicious line and `exclude` in `.ghostrules.toml`.
+- **Supply-chain hygiene** (W7): every `uses:` in the Action and the workflows is pinned to a full
+  commit SHA (Dependabot keeps them current); the Action installs its dependencies and the build
+  backend from `action-requirements.txt`, hash-pinned, with `--require-hashes --no-deps
+  --no-build-isolation`; the release workflow moves a `v0` tag to each stable `v0.x.y` release.
 - **Fewer false positives from the independent review** (W4): installers of the project's own
   GitHub organisation and homepage are known installers (read from the base ref when the scan has
   one); Azure CLI, Flox, golangci-lint, Foundry, Flux and Linkerd are known installers; "do not tell
