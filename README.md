@@ -89,7 +89,7 @@ ghostrules lock --check  .ghostrules.lock
 
 ```yaml
 - uses: actions/checkout@v4
-- uses: BardLaudian/ghostrules@v0.3.0
+- uses: BardLaudian/ghostrules@v0.4.0
   with:
     fail-on: high        # critical | high | medium | low | info | none
     lock-check: "true"   # fail if what the agents read changed
@@ -98,12 +98,12 @@ ghostrules lock --check  .ghostrules.lock
 ```yaml
 repos:
   - repo: https://github.com/BardLaudian/ghostrules
-    rev: v0.3.0
+    rev: v0.4.0
     hooks:
       - id: ghostrules
 ```
 
-On pull requests the Action reads the config and the `ghostrules-ignore` comments from the base commit, so a change cannot switch the scanner off for its own payload. Findings go to the job summary and, with `upload-sarif` (the default), to **Security → Code scanning**. All inputs, permissions and the full workflow are in the [usage guide](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#github-action).
+On pull requests the Action reads the config and the `ghostrules-ignore` comments from the base commit, so a change cannot switch the scanner off for its own payload. Use `@v0` to follow the latest stable 0.x release, or a full commit SHA to pin it. Findings go to the job summary and, with `upload-sarif` (the default), to **Security → Code scanning**. All inputs, permissions and the full workflow are in the [usage guide](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#github-action).
 
 ## How we test precision
 
@@ -142,6 +142,21 @@ measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghos
 **Precision: 100 repositories** frozen before any v0.4 tuning (874 agent files, default settings). They gave 21 findings, and 2 repositories would fail the default check. Precision for a user is true positives over everything reported, because a right pattern in a harmless place is still something to read: **4 of 21 (19 %)**, from labels given by the assistant that ran the benchmark and **not reviewed by a human**. Per rule: GR102 and GR107 1 of 1; GR014 1 of 5; GR022 1 of 6; GR012 0 of 4; GR003 0 of 2; GR011 and GR110 0 of 1 (the new GR110 finding is a script that sends its own API key to the API it documents). Twenty-one findings are too few for a percentage per rule to mean much.
 
 A workflow scheduled weekly scans 300 popular public repositories (`corpus/`, the only part of the project that uses the network) and fails if a critical or high finding has not been reviewed; last run: 2026-10-28. Those rules were tuned on that data, so its numbers are not an estimate of precision on new repositories. On it, 0.2.1 reported 84 critical and 156 high findings and 0.3.0 reports none critical and 53 high. The [study](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md) used the same tooling; `ghostrules` is a set of heuristics, not a proof: see the [limits](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits).
+
+## Alternatives
+
+Other tools look at the same files. This is what their repositories say they do (read on 2026-10-29; I have not run them), and when `ghostrules` is the better fit or not:
+
+| Tool | What it is | Pick it when |
+|---|---|---|
+| **ghostrules** | A context model for several agents (imports, conditional rules, precedence, what each agent strips, symlink aliases), usable offline and before an agent runs, a lock of the resolved text, hidden Unicode, and the scripts that hooks and skills run | you need to know what each agent will actually read, and to review every change to it |
+| [cfgaudit](https://github.com/cfgaudit/cfgaudit) | A static auditor for agent configuration with 116 rules and SARIF output; it follows `@path` imports | you want the widest set of configuration checks |
+| [cairnlock](https://github.com/pennacle-security/cairnlock) | An analyzer and lockfile for agent context files, with `verify --base` against a git ref | you want a plain hash lock of the files; its `--base` idea is the one `ghostrules lock --base` follows |
+| [AgentShield](https://github.com/affaan-m/agentshield) | A scanner for agent configurations, MCP servers and tool permissions, as a CLI and an Action | your concern is configuration and permissions rather than instruction text |
+| [skill-scanner](https://github.com/cisco-ai-defense/skill-scanner) (Cisco) | A scanner for agent skills | skills are what you install from others |
+| [agent-scan](https://github.com/snyk/agent-scan) (Snyk) | A scanner for agents, MCP servers and skills | you want a vendor-backed scan of those three |
+
+`ghostrules` is not a general secret scanner: it finds hardcoded secrets only in agent and MCP configuration. Run a tool such as [gitleaks](https://github.com/gitleaks/gitleaks) over the whole repository as well. The context engine is a [library](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#use-the-context-engine-as-a-library) with a JSON schema, so other tools can use it.
 
 ## Documentation
 

@@ -168,6 +168,25 @@ ghostrules scan . --trusted-config /path/to/trusted.toml --no-inline-suppression
 
 The [GitHub Action](#github-action) uses these options by default on pull requests.
 
+## Use the context engine as a library
+
+```python
+from ghostrules.context import resolve, schema
+
+report = resolve("path/to/repo", agent="claude-code", target="src/app.py")
+for entry in report["agents"]["claude-code"]["entries"]:
+    print(entry["load"], entry["path"], entry["via"])
+```
+
+`resolve` is the stable entry point: it returns exactly what `ghostrules context --format json` prints.
+It takes a root, an `agent` (a name from `AGENT_NAMES`, or `"all"` for the configured set), a `cwd`, a
+`target`, `include_home`, `scan` (set `False` to skip the findings) and `show_text`, and raises
+`ContextError` for a bad root, agent or path. It runs offline and executes nothing it reads.
+`schema()` returns the JSON schema (draft 7) of the result, also shipped as
+`ghostrules/schemas/context.schema.json`; a test validates every agent's output against it. Stability:
+fields are only added within a major version; removing or renaming one is a major change. The models
+are `claude-code`, `copilot-cli`, `cursor`, `generic`, `codex` and `gemini-cli`; the last two are opt-in.
+
 ## What it catches
 
 | | |
@@ -343,7 +362,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: BardLaudian/ghostrules@v0.3.0
+      - uses: BardLaudian/ghostrules@v0.4.0
         with:
           fail-on: high          # critical | high | medium | low | info | none
           all-files: "false"     # also check every text file for hidden Unicode
@@ -419,7 +438,7 @@ output `lock-exit-code` is `0` up to date, `1` changed, `2` the check could not 
 ```yaml
 repos:
   - repo: https://github.com/BardLaudian/ghostrules
-    rev: v0.3.0
+    rev: v0.4.0
     hooks:
       - id: ghostrules
 ```
