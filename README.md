@@ -18,7 +18,7 @@
 
 `ghostrules` finds the instructions your AI agent sees but you don't: hidden text and risky settings in `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, Copilot instructions, skills and MCP configs. A CLI, a GitHub Action and a pre-commit hook.
 
-**In [1,583 popular repositories](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md):** 44.4 % target two or more AI tools, 16.3 % of root `CLAUDE.md` files are over 200 lines, 33.3 % of MCP setups run unpinned packages and 6 repositories carry hidden Unicode. [Read the study →](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md)
+**A one-day snapshot (2026-10-28) of [1,583 popular repositories](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md) with agent files:** 27 of the 81 that configure MCP servers (33.3 %, an upper bound) start one with an unpinned package, 6 repositories (0.4 %) contain hidden Unicode, all benign, and none has a hardcoded secret. [Read the study →](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md)
 
 ## Install and run
 
@@ -58,7 +58,7 @@ Findings ───────────────────────�
 
 ## Hidden Unicode
 
-The oldest trick is still the best one: an innocent-looking `AGENTS.md` that carries an instruction only the model can read. `ghostrules` decodes it, scans the decoded text again and reports it one severity higher. `reveal` shows every invisible character as a visible token, and `clean` removes exactly what the Unicode rules flag.
+A classic trick: an innocent-looking `AGENTS.md` that carries an instruction only the model can read. `ghostrules` decodes it, scans the decoded text again and reports it one severity higher. `reveal` shows every invisible character as a visible token, and `clean` removes exactly what the Unicode rules flag.
 
 ![ghostrules finds an instruction hidden in an innocent-looking AGENTS.md](https://raw.githubusercontent.com/BardLaudian/ghostrules/main/demo/demo.gif)
 
@@ -107,7 +107,7 @@ Findings go to the job summary and, with `upload-sarif` (the default), to **Secu
 
 ## How we test precision
 
-A scanner that cries wolf gets switched off, so precision is measured, not assumed. Every week a workflow scans 300 popular public repositories with agent files (`corpus/`, the only part of the project that uses the network) and fails if a critical or high finding has not been reviewed. Each false positive found that way became a test and a rule change. On the first run 0.2.1 reported 84 critical and 156 high findings; 0.3.0 reports none critical and 53 high, all reviewed.
+A scanner that cries wolf gets switched off, so precision is measured on real repositories, not assumed. A workflow scheduled weekly scans 300 popular public repositories with agent files (`corpus/`, the only part of the project that uses the network) and fails if a critical or high finding has not been reviewed; last run: 2026-10-28. Each false positive found that way became a test and a rule change, so these numbers were measured on the data the rules were tuned on. Of the 475 findings of medium severity or above that we reviewed, 158 (33 %) were true positives and 317 (67 %) matched something harmless in context, such as an installer one-liner in a README or an attack quoted in a security skill. For a user that second group is noise; the study has the per-rule table. On the 300-repository tier, 0.2.1 reported 84 critical and 156 high findings and 0.3.0 reports none critical and 53 high. A held-out set of 100 repositories, frozen on 2026-10-29 and never used for tuning, is how 0.4 will report precision.
 
 The same tooling scanned 1,583 repositories for [a study of what popular repositories tell their AI agents](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md): aggregates only, no repository is named next to a finding, and every number comes from the CSVs in `study/data/`. `ghostrules` is a set of heuristics, not a proof: see the [limits](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits).
 

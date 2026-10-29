@@ -231,9 +231,21 @@ No imports, no transforms (HTML comments are **seen**).
 
 ---
 
-## Prior art for import-aware scanning (Phase 0 search, 2026-10-28)
-No tool found that resolves `@` imports or computes an agent's effective context for security
-scanning. Details are in `docs/DECISIONS.md` ("v0.2 Phase 0").
+## Prior art for import-aware scanning (searched 2026-10-28, corrected 2026-10-29)
+The 2026-10-28 search concluded that no tool resolved `@` imports. **That was wrong**: cfgaudit has
+scanned the files that Claude Code instruction files import with `@path` since commit `5099798`
+(2026-10-24, "scan files that Claude Code instruction files import with @path, add CFG116"). Others
+also overlap with parts of ghostrules: agnix parses `@` imports and import cycles, Claude Code's own
+`/context` shows the memory files actually loaded, and cairnlock locks agent files and checks the
+lock against a git ref (`cairnlock verify --base origin/main`). rulesentry and promptwarden also
+scan for hidden Unicode, and AgentShield, Cisco's skill-scanner and Snyk's agent-scan cover agent
+configuration, MCP servers and skills. Verified on 2026-10-29 from their repositories' descriptions
+and, for cfgaudit and cairnlock, one commit and one README; the others were not read in depth.
+
+What ghostrules adds on top of these is narrower than "nobody does this": a context model for
+several agents (conditional rules, precedence, on-demand loading, what each agent strips, symlink
+aliases) that runs offline, in CI, before an agent runs, and a lock of the resolved text each agent
+receives. Details and the original table are in `docs/DECISIONS.md` ("v0.2 Phase 0").
 
 ---
 

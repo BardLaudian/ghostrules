@@ -122,7 +122,8 @@ instruction only the model can read.
 A scanner that checks a fixed list of file names misses how agents really build their context:
 
 - `CLAUDE.md` and `AGENTS.md` can **import** other files with `@path`. An imported file lands in
-  the agent's context but matches no "agent file" pattern, so nobody scans it.
+  the agent's context but matches no "agent file" pattern, so a scanner that only matches file names
+  does not scan it.
 - Instruction files **stack** along the directory tree, and some load **on demand** when the agent
   touches a subdirectory.
 - Rules are **conditional** (`paths:` in Claude Code, `globs` in Cursor, `applyTo` in Copilot).

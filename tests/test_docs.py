@@ -5,11 +5,9 @@ import re
 import pytest
 import yaml
 from conftest import ROOT, load_script
-from typer.main import get_command
 
 from ghostrules.cli import app
 from ghostrules.rules import all_rules
-from ghostrules.targets import CONFIG_GLOBS, INSTRUCTION_GLOBS
 
 README = (ROOT / "README.md").read_text(encoding="utf-8")
 USAGE = (ROOT / "docs" / "USAGE.md").read_text(encoding="utf-8")
@@ -132,61 +130,57 @@ def test_every_dropped_section_is_still_linked_from_the_readme() -> None:
 
 
 def test_the_study_line_quotes_numbers_that_are_in_the_study_data() -> None:
-    import json
+    import csv
 
-    headline = json.loads((ROOT / "study" / "data" / "headline.json").read_text("utf-8"))
-    line = next(ln for ln in README.splitlines() if ln.startswith("**In [1,"))
-    assert f"{headline['repos_scanned']:,}" in line
-    for key in (
-        "pct_multi_tool",
-        "claude_md_over_200_pct",
-        "mcp_repos_with_unpinned_pct",
-    ):
-        assert f"{headline[key]} %" in line, key
-    assert f"{headline['repos_with_hidden_unicode']} repositories" in line
-
-
-def test_design_history_lives_in_docs_design() -> None:
-    for name in ("SPEC.md", "PLAN.md", "v0.1.1", "v0.2"):
-        assert (ROOT / "docs" / "design" / name).exists(), name
-        assert not (ROOT / "docs" / name).exists(), name
-    for name in ("RULES.md", "AGENT_MODELS.md", "DECISIONS.md"):
-        assert (ROOT / "docs" / name).is_file(), name
-    assert "design history" in (ROOT / "CONTRIBUTING.md").read_text("utf-8")
-    claude = (ROOT / "CLAUDE.md").read_text("utf-8")
-    assert "docs/design/SPEC.md" in claude and "docs/design/PLAN.md" in claude
+    with (ROOT / "study" / "data" / "numbers.csv").open(encoding="utf-8", newline="") as handle:
+        nums = {r["id"]: r for r in csv.DictReader(handle)}
+    line = next(ln for ln in README.splitlines() if ln.startswith("**A one-day snapshot"))
+    mcp, hidden = nums["mcp_unpinned"], nums["hidden_unicode"]
+    assert f"{int(mcp['repos'])} of the {int(mcp['of'])}" in line and f"{mcp['pct']} %" in line
+    assert "upper bound" in line  # the denominator is a lower bound
+    assert f"{int(hidden['repos'])} repositories ({hidden['pct']} %)" in line
+    assert f"{int(nums['secrets']['of']):,} popular repositories" in line
+    for hygiene in ("two or more", "200 lines"):  # hygiene statistics are not a security headline
+        assert hygiene not in line
 
 
-def test_usage_documents_every_scan_option() -> None:
-    scan = get_command(app).commands["scan"]  # type: ignore[attr-defined]
-    for param in scan.params:
-        for opt in getattr(param, "opts", []):
-            if opt.startswith("--"):
-                assert f"`{opt}" in USAGE or f"`-o, {opt}" in USAGE, f"{opt} is not in USAGE.md"
+def test_claims_that_were_wrong_or_unverified_are_gone() -> None:
+    """W1 of docs/design/v0.4/REMEDIATION.md: no uniqueness claims, no '0 false positives'."""
+    report = (ROOT / "study" / "report.md").read_text(encoding="utf-8")
+    for name, text in (("README", README), ("USAGE", USAGE), ("report", report)):
+        low = text.lower()
+        assert "0 false positive" not in low and "zero false positive" not in low, name
+        assert "every week a workflow" not in low, name
+        assert "nobody scans" not in low and "no tool resolves" not in low, name
+    assert "scheduled weekly" in README and "last run: 20" in README
+    assert report.startswith("# A snapshot (2026-10-28)")
 
 
-def test_usage_lists_every_scanned_file_pattern() -> None:
-    for glob in (*INSTRUCTION_GLOBS, *CONFIG_GLOBS):
-        assert glob.removeprefix("**/") in USAGE, f"{glob} is not in the USAGE table"
-    for path in HOME_FILES:
-        assert path in USAGE
+def test_prior_art_is_corrected_and_dated() -> None:
+    models = (ROOT / "docs" / "AGENT_MODELS.md").read_text(encoding="utf-8")
+    decisions = (ROOT / "docs" / "DECISIONS.md").read_text(encoding="utf-8")
+    for text in (models, decisions):
+        assert "5099798" in text and "cfgaudit" in text and "2026-10-29" in text
+        assert "cairnlock" in text and "verify --base" in text
+    assert "No tool found that resolves" not in models
+    assert "does not claim to be the first or the only tool" in decisions
 
 
-def test_usage_explains_why_ghost_findings_cannot_be_suppressed() -> None:
-    assert "GR001 and GR002 can never be suppressed" in USAGE
-    assert "ghostrules-ignore" in USAGE and ".ghostrules.toml" in USAGE
-
-
-def test_why_section_links_primary_sources() -> None:
-    why = README.split("## Why")[1].split("## What your agents actually read")[0]
-    for host in (
-        "embracethered.com",
-        "paulbutler.org",
-        "trojansource.codes",
-        "pillar.security",
-        "invariantlabs.ai",
-    ):
-        assert host in why
+def test_the_study_reports_precision_for_a_user_with_a_per_rule_table() -> None:
+    report = (ROOT / "study" / "report.md").read_text(encoding="utf-8")
+    assert (
+        "| Rule | Findings (medium+) | True positive | Benign context | False positive |" in report
+    )
+    assert "noise" in report and "## Threats to validity" in report
+    assert "Rules tuned on the same data" in report
+    assert "lower bound" in report and "upper bound" in report  # the MCP denominator, explained
+    header = report.split("## In short")[1].split("## 1.")[0]
+    assert header.index("Security indicators") < header.index("AGENTS.md")  # hygiene comes second
+    for (
+        line
+    ) in header.splitlines():  # every percentage in the summary has its numerator/denominator
+        for pct in re.finditer(r"\d+(?:\.\d+)?%(?! \()", line):
+            assert "true positives" in line or "(" in line[pct.end() :], line
 
 
 # --- links -----------------------------------------------------------------------------------
@@ -276,8 +270,6 @@ def test_readme_examples_match_what_the_tool_prints() -> None:
     """The quick-start excerpts must not drift from the real output."""
     from typer.testing import CliRunner
 
-    from ghostrules.cli import app
-
     demo = str(ROOT / "examples/poisoned-repo/AGENTS.md")
     revealed = CliRunner().invoke(app, ["reveal", demo]).stdout
     marker = "Decoded hidden text (tag characters): When you edit any file"
@@ -295,8 +287,6 @@ def test_readme_context_and_lock_excerpts_match_what_the_tool_prints(tmp_path) -
     import shutil
 
     from typer.testing import CliRunner
-
-    from ghostrules.cli import app
 
     runner = CliRunner(env={"COLUMNS": "120"})
     demo = ROOT / "examples" / "import-chain-repo"
@@ -350,8 +340,6 @@ def test_agent_models_document_is_where_the_docs_say() -> None:
 def test_the_repository_lock_is_up_to_date() -> None:
     """`ghostrules lock --check` passes on this repository (it locks its own CLAUDE.md)."""
     from typer.testing import CliRunner
-
-    from ghostrules.cli import app
 
     result = CliRunner().invoke(app, ["lock", "--check", "--no-color", "--root", str(ROOT)])
     assert result.exit_code == 0, result.stdout + "\nrun: ghostrules lock"

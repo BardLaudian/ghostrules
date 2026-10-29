@@ -7,6 +7,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Corrected claims** (W1 of [docs/design/v0.4/REMEDIATION.md](docs/design/v0.4/REMEDIATION.md)).
+  The 0.2 statement that no other tool follows `@path` imports was wrong (cfgaudit does, since
+  2026-10-24): the prior-art notes are corrected and dated, and ghostrules no longer claims to be
+  the first or the only one. The README says "scheduled weekly; last run" instead of "every week".
+  The study report is now "A snapshot (2026-10-28)", puts hygiene statistics apart from security
+  indicators, shows a numerator and denominator next to each percentage, explains the MCP
+  denominator (a lower bound, so the share is an upper bound), counts benign-context matches as noise
+  in a per-rule precision table, and has a "Threats to validity" section. The 0.3.0 notes below are
+  left as published.
 - README restructured as a landing page; option tables, configuration, supported files, FAQ and limits
   moved to `docs/USAGE.md`, and the rules table to `docs/RULES.md`.
 - SARIF `helpUri` points to `docs/RULES.md#grNNN` (the rules table moved there).
