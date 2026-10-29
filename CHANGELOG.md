@@ -11,6 +11,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   --config-from-ref REF`, `--trusted-config FILE`, `--no-inline-suppressions` and
   `--suppressions-from-ref REF`. They close two ways a change could silence the scanner for its own
   payload: a `ghostrules-ignore` comment on the malicious line and `exclude` in `.ghostrules.toml`.
+- **`lock --check --base REF`** (W3): compares with the lock and the config at `REF`, so a pull
+  request that edits what the agents read and regenerates `.ghostrules.lock` still fails. Exit 2 when
+  the ref or its lock does not exist. The idea is cairnlock's `verify --base`.
+- **Breaking: the Action's lock check uses the lock at the base on pull requests**, and a new
+  `approve-label` input lets a maintainer approve a legitimate change by applying a label; only the
+  event that applies it approves (new commits void it), and the summary names who and when. Output
+  `lock-approved`. `trust-repo-config: "true"` restores the working-tree lock.
 - **Inline ignores no longer hide text a reviewer cannot see** (W2): a finding inside an HTML
   comment is never suppressed, and no ignore counts inside a file that an agent reaches only
   through an import (the report says how many were not honoured). Decoded hidden text, GR001 and

@@ -71,7 +71,7 @@ $ ghostrules reveal AGENTS.md
 
 ## Review every change to what your agents read
 
-`ghostrules lock` writes a deterministic `.ghostrules.lock`: every file in each agent's context, how it is reached, and a hash of the text the agent really receives. In a pull request, `lock --check` shows what changed with the invisible characters revealed. It is a *visibility* control, not a barrier (the lockfile is in the repository too): put it in `CODEOWNERS`.
+`ghostrules lock` writes a deterministic `.ghostrules.lock`: every file in each agent's context, how it is reached, and a hash of the text the agent really receives. In a pull request, `lock --check --base origin/main` compares with the lock at the base, so a change cannot re-bless itself by regenerating the lockfile, and shows what changed with the invisible characters revealed. It is a *visibility* control, not a barrier: someone accountable still has to approve the diff (`CODEOWNERS`, or the Action's `approve-label`).
 
 ```text
 $ ghostrules lock --check
