@@ -244,6 +244,7 @@ class ScanResult:
     findings: list[Finding] = field(default_factory=list)
     scanned_files: int = 0
     suppressed: int = 0
+    baselined: int = 0
     config_source: str | None = None
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)

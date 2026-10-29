@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from ghostrules._compat import tomllib
+from ghostrules.baseline import BASELINE_FILENAME
 from ghostrules.changeset import ChangeContext
 from ghostrules.config import CONFIG_FILENAME
 from ghostrules.ignores import IGNORE_RE, normalise_line, reviewed_marks
@@ -103,6 +104,20 @@ def _config_findings(ctx: ChangeContext) -> Iterator[Finding]:
             keys=_changed_keys(old, new),
         )
         yield _finding(rel, line, message, _snippet(head, line), hint)
+    baseline_head, baseline_base = (
+        _head_text(ctx.root, BASELINE_FILENAME),
+        read_base(BASELINE_FILENAME),
+    )
+    if baseline_head is not None and baseline_head != baseline_base:
+        how = "added" if baseline_base is None else "edited"
+        line = _first_changed_line(baseline_base, baseline_head)
+        message = (
+            f"The baseline {BASELINE_FILENAME} was {how}. It lists findings the scan no longer "
+            "reports; the change is reported even when it is legitimate."
+        )
+        yield _finding(
+            BASELINE_FILENAME, line, message, "", f"Check every new entry against {base_ref}."
+        )
     lock = ctx.lockfile
     head, base = _head_text(ctx.root, lock), read_base(lock)
     if head is not None and head != base:

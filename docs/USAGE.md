@@ -90,6 +90,9 @@ ghostrules scan . --format markdown >> "$GITHUB_STEP_SUMMARY"
 | `--config-from-ref REF` | | Read `.ghostrules.toml` (or `[tool.ghostrules]`) from this git ref, never the working tree |
 | `--no-inline-suppressions` | off | Ignore every `ghostrules-ignore` comment |
 | `--suppressions-from-ref REF` | | Honour an ignore only if the same line already had it at this git ref |
+| `--baseline FILE` | `.ghostrules-baseline.json` if present | Leave out the findings listed in this baseline |
+| `--no-baseline` | off | Do not use a baseline |
+| `--baseline-from-ref REF` | | Read the baseline from this git ref, never the working tree |
 | `--strict` | off | Report plain visible prose at the rules' own severity (the 0.3 behaviour; see below) |
 | `--no-color` | off | Plain output |
 
@@ -111,6 +114,23 @@ cannot be read or what executes. A visible `curl | sh` or "send `.env` to a URL"
 fails the default check, it is a `low` finding for the reviewer. `--strict` (config `profile =
 "strict"`, Action input `profile: strict`) restores the 0.3 severities for teams that want the check
 to fail on them too.
+
+### Adopting it on an existing repository: the baseline
+
+```bash
+ghostrules baseline                 # writes .ghostrules-baseline.json
+ghostrules scan .                   # fails only on findings that are not in the baseline
+```
+
+`ghostrules baseline` records today's findings as fingerprints: rule, path and the text of the
+finding, **not its line number** (so a line that moves stays baselined, and an edited line is a new
+finding). The file holds no snippet, so it cannot carry a secret; it lists rule, path and severity for
+a reviewer. A scan with a baseline leaves those findings out and says how many. Invisible characters
+(GR001), GR002, GR030 and anything decoded from hidden characters are listed but **never hidden**: a
+baseline is a statement that someone read the finding, and nobody can read those.
+
+In a pull request the baseline is read from the base ref (`--baseline-from-ref`, which the Action
+passes), so the change cannot baseline its own findings; editing the baseline is reported by GR030.
 
 ### Scanning a pull request: settings the change cannot rewrite
 

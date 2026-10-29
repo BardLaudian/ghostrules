@@ -88,4 +88,7 @@ def config_notes(result: ScanResult) -> list[str]:
     if result.suppressed:
         noun = "finding" if result.suppressed == 1 else "findings"
         notes.append(f"{result.suppressed} {noun} hidden by ghostrules-ignore comments")
+    if result.baselined:
+        noun = "finding" if result.baselined == 1 else "findings"
+        notes.append(f"{result.baselined} known {noun} left out by the baseline")
     return notes

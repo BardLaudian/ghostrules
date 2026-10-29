@@ -11,7 +11,7 @@ from pathlib import Path
 import pytest
 import yaml
 from conftest import ROOT, load_script
-from pr_helpers import CLEAN, IGNORE, PAYLOAD, pull_request, reblessed_pr
+from pr_helpers import CLEAN, IGNORE, PAYLOAD, baselined_base, pull_request, reblessed_pr
 
 WORKFLOWS = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
 ACTION = yaml.safe_load((ROOT / "action.yml").read_text(encoding="utf-8"))
@@ -617,6 +617,14 @@ def test_the_settings_step_checks_the_base_commit_for_the_lock_too(tmp_path: Pat
     )
     result = run_step("Resolve trusted settings", tmp_path, cwd=repo, **env)
     assert result.returncode == 2 and "cannot read the base commit" in result.stdout
+
+
+@needs_bash
+def test_a_pull_request_cannot_baseline_its_own_findings(tmp_path: Path) -> None:
+    repo, base = baselined_base(tmp_path)
+    assert resolve_and_scan(repo, base, tmp_path, INPUT_FAIL_ON="low") == "1"  # the base baseline
+    push = resolve_and_scan(repo, base, tmp_path, INPUT_FAIL_ON="low", EVENT_NAME="push")
+    assert push == "0"  # outside a pull request the baseline in the tree is the repository's own
 
 
 @needs_bash

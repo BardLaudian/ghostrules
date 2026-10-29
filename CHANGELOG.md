@@ -11,6 +11,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   --config-from-ref REF`, `--trusted-config FILE`, `--no-inline-suppressions` and
   `--suppressions-from-ref REF`. They close two ways a change could silence the scanner for its own
   payload: a `ghostrules-ignore` comment on the malicious line and `exclude` in `.ghostrules.toml`.
+- **`ghostrules baseline` and `scan --baseline / --no-baseline / --baseline-from-ref`**: record
+  today's findings as fingerprints (no line numbers, no snippets) and fail only on new ones. Hidden
+  text is never baselined. The Action reads the baseline at the base commit on pull requests, and
+  editing it is reported by GR030.
 - **Breaking: severity by visibility.** Plain visible prose in an agent file is now `low` (an
   instruction) or `info` (a description or quotation) for GR010 to GR014 and GR016; text in an HTML
   comment, decoded hidden text, files reached only through an import, GR015 and every configuration

@@ -16,6 +16,7 @@ from rich.text import Text
 from typer.core import TyperGroup
 
 from ghostrules import __version__
+from ghostrules import baseline as baseline_mod
 from ghostrules import lock as lock_mod
 from ghostrules.agents.claude_code import DEFAULT_MODE as CLAUDE_DEFAULT_MODE
 from ghostrules.agents.claude_code import MODES as CLAUDE_MODES
@@ -187,6 +188,24 @@ def scan(
             help="Report plain visible prose at the rule's own severity (the 0.3 behaviour).",
         ),
     ] = False,
+    baseline_file: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option(
+            "--baseline",
+            help="Leave out the findings listed in this baseline (default: "
+            f"{baseline_mod.BASELINE_FILENAME} in the scan root, if there is one).",
+        ),
+    ] = None,
+    no_baseline: Annotated[
+        bool, typer.Option("--no-baseline", help="Do not use a baseline.")
+    ] = False,
+    baseline_from_ref: Annotated[
+        Optional[str],  # noqa: UP045
+        typer.Option(
+            "--baseline-from-ref",
+            help="Read the baseline from this git ref, not the working tree.",
+        ),
+    ] = None,
     no_color: Annotated[bool, typer.Option("--no-color", help="Plain output, no colours.")] = False,
 ) -> None:
     """Scan agent instruction and configuration files for hidden or dangerous content.
@@ -200,15 +219,17 @@ def scan(
                              ("--config-from-ref", config_from_ref)) if v is not None]  # fmt: skip
     if len(chosen) > 1:
         _fail(f"{' and '.join(chosen)} cannot be used together: they all say where the config is")
-    config_reader = suppression_reader = None
-    if config_from_ref is not None or suppressions_from_ref is not None:
+    config_reader = suppression_reader = baseline_reader = None
+    if any(ref is not None for ref in (config_from_ref, suppressions_from_ref, baseline_from_ref)):
         if len(targets) != 1:
-            _fail("--config-from-ref and --suppressions-from-ref take exactly one path to scan")
+            _fail("the options that read a git ref take exactly one path to scan")
         try:
             if config_from_ref is not None:
                 config_reader = RefReader(base, config_from_ref)
             if suppressions_from_ref is not None:
                 suppression_reader = RefReader(base, suppressions_from_ref)
+            if baseline_from_ref is not None:
+                baseline_reader = RefReader(base, baseline_from_ref)
         except GitRefError as exc:
             _fail(str(exc))
     try:
@@ -233,7 +254,7 @@ def scan(
         policy = SuppressionPolicy("base", reviewed_lookup(suppression_reader))
 
     # GR030 compares with whichever ref was given; with two refs each part uses its own.
-    anchor = config_reader or suppression_reader
+    anchor = config_reader or suppression_reader or baseline_reader
     change_base = None
     if anchor is not None:
         ignores = suppression_reader or anchor
@@ -247,6 +268,9 @@ def scan(
         suppressions=policy,
         change_base=change_base,
     )
+    known = _known_findings(base, baseline_file, baseline_reader, no_baseline)
+    if known is not None:
+        result.findings, result.baselined = baseline_mod.apply(result.findings, known)
     label = ", ".join(str(p) for p in targets)
     _emit(result, format_, output, no_color, label)
 
@@ -254,6 +278,79 @@ def scan(
         raise typer.Exit(EXIT_ERROR)
     if cfg.fail_on is not None and any(f.severity >= cfg.fail_on for f in result.findings):
         raise typer.Exit(EXIT_FINDINGS)
+
+
+def _known_findings(
+    base: Path, explicit: Path | None, reader: RefReader | None, disabled: bool
+) -> frozenset[str] | None:
+    """The fingerprints of the baseline in use, or ``None`` when there is none."""
+    if disabled:
+        return None
+    try:
+        if reader is not None:
+            text = reader.read(baseline_mod.BASELINE_FILENAME)
+            return baseline_mod.parse(text) if text is not None else frozenset()
+        path = explicit if explicit is not None else base / baseline_mod.BASELINE_FILENAME
+        if explicit is None and not path.is_file():
+            return None
+        return baseline_mod.parse(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        _fail(f"cannot read the baseline {explicit or baseline_mod.BASELINE_FILENAME}: {exc}")
+    except baseline_mod.BaselineError as exc:
+        _fail(str(exc))
+    return None
+
+
+@app.command()
+def baseline(
+    paths: Annotated[
+        Optional[list[Path]],  # noqa: UP045
+        typer.Argument(help="Files or directories to scan (default: current directory)."),
+    ] = None,
+    output: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option(
+            "--output", "-o", help=f"Baseline file (default: {baseline_mod.BASELINE_FILENAME})."
+        ),
+    ] = None,
+    all_files: Annotated[
+        bool, typer.Option("--all-files", help="Also check every text file for hidden Unicode.")
+    ] = False,
+    config: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option(help="Path to a config file (default: .ghostrules.toml in the scan root)."),
+    ] = None,
+    strict: Annotated[
+        bool, typer.Option("--strict", help="Baseline the 0.3 severities of visible prose.")
+    ] = False,
+) -> None:
+    """Record today's findings so that later scans fail only on new ones.
+
+    Writes fingerprints, never text. Invisible characters, GR002 and GR030 are listed but never
+    hidden by a baseline. In CI the baseline is read from the base ref (scan --baseline-from-ref).
+    """
+    _utf8_streams()
+    targets = paths or [Path(".")]
+    base = targets[0] if targets[0].is_dir() else targets[0].parent
+    try:
+        cfg = load_config(base, config)
+    except ConfigError as exc:
+        _fail(str(exc))
+    if strict:
+        cfg = replace(cfg, profile="strict")
+    result = scan_paths(targets, cfg, all_files=all_files)
+    if result.errors:
+        for error in result.errors:
+            typer.echo(f"error: {safe(error)}", err=True)
+        raise typer.Exit(EXIT_ERROR)
+    document = baseline_mod.build(result.findings)
+    path = output if output is not None else base / baseline_mod.BASELINE_FILENAME
+    try:
+        path.write_text(baseline_mod.to_json(document), encoding="utf-8")
+    except OSError as exc:
+        _fail(f"cannot write {path}: {exc.strerror or exc}")
+    count = len(document["findings"])
+    typer.echo(f"wrote {path}: {count} finding(s) recorded")
 
 
 def _apply_overrides(
