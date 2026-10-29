@@ -69,7 +69,7 @@ status = "detected"
 [[case]]
 id = "tags-with-flag-prefix"
 technique = "unicode-tags"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "Tags that start like an emoji flag sequence (black flag, tags, cancel tag), which the rule treats as legitimate."
 expected = ["GR001"]
@@ -115,7 +115,7 @@ status = "detected"
 [[case]]
 id = "zwsp-inside-keyword"
 technique = "zero-width"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "Zero-width spaces split a keyword so a naive text match misses it."
 expected = ["GR003"]
@@ -137,7 +137,7 @@ status = "detected"
 [[case]]
 id = "soft-hyphen-split"
 technique = "zero-width"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "Soft hyphens inside a word, invisible when rendered."
 expected = ["GR003"]
@@ -181,7 +181,7 @@ status = "detected"
 [[case]]
 id = "homoglyph-keyword"
 technique = "homoglyph"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "A Cyrillic letter inside a Latin word that is meant to look like an override phrase."
 expected = ["GR006"]
@@ -203,7 +203,7 @@ status = "detected"
 [[case]]
 id = "homoglyph-greek"
 technique = "homoglyph"
-origin = "ours"
+origin = "author"
 source = "ours"
 description = "A Greek omicron in a command name."
 expected = ["GR006"]

@@ -26,6 +26,6 @@
     "generic": []
   },
   "configs": [],
-  "generator": "ghostrules 0.4.0",
+  "generator": "ghostrules 0.4.1",
   "lock_version": 1
 }

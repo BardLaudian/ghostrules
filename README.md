@@ -89,7 +89,7 @@ ghostrules lock --check  .ghostrules.lock
 
 ```yaml
 - uses: actions/checkout@v4
-- uses: BardLaudian/ghostrules@v0.4.0
+- uses: BardLaudian/ghostrules@v0.4.1
   with:
     fail-on: high        # critical | high | medium | low | info | none
     lock-check: "true"   # fail if what the agents read changed
@@ -98,7 +98,7 @@ ghostrules lock --check  .ghostrules.lock
 ```yaml
 repos:
   - repo: https://github.com/BardLaudian/ghostrules
-    rev: v0.4.0
+    rev: v0.4.1
     hooks:
       - id: ghostrules
 ```
@@ -111,8 +111,16 @@ A scanner that cries wolf gets switched off, and one that misses gets trusted by
 measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghostrules/blob/main/bench/README.md),
 [full results](https://github.com/BardLaudian/ghostrules/blob/main/bench/RESULTS.md)). Nothing below was tuned on the data it is measured on.
 
-<!-- bench:start -->
-**Recall: 101 attack cases** written from public sources and defanged. 87 are reported (86%); 50 (50%) fail the default `--fail-on high` check, because visible prose is `low` by default (hidden text and configuration are not). The 14 misses include paraphrases, other languages, scripts and files that nothing points the scanner to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed in the results. 4 cases come from the independent review; its other 14 are not in the repository yet.
+<!-- bench:recall:start -->
+**Recall on independent cases: 1 of 4 reported (25%); 1 fail the default `--fail-on high` check.** They are 4 of the 18 cases an independent review wrote; the other 14 are not in the repository yet, so this is a small sample. The 97 cases written by the author or taken from public sources are shown separately because the author knew what the rules match: of all 101 cases 87 are reported (86%). Visible prose is `low` by default, so the check fails less often than the rules report (hidden text and configuration are not lowered). The misses include paraphrases, other languages, scripts and files that nothing points the scanner to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed in the results.
+
+| Origin | Cases | Reported | Fails the default check |
+|---|---:|---:|---:|
+| author | 28 | 20 (71%) | 9 (32%) |
+| review (independent) | 4 | 1 (25%) | 1 (25%) |
+| public | 69 | 66 (96%) | 40 (58%) |
+
+All origins, by technique:
 
 | Technique | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
@@ -137,9 +145,13 @@ measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghos
 | unicode-tags | 7 | 7 | 7 |
 | variation-selectors | 3 | 3 | 3 |
 | zero-width | 3 | 3 | 1 |
-<!-- bench:end -->
+<!-- bench:recall:end -->
 
-**Precision: 100 repositories** frozen before any v0.4 tuning (874 agent files, default settings). They gave 21 findings, and 2 repositories would fail the default check. Precision for a user is true positives over everything reported, because a right pattern in a harmless place is still something to read: **4 of 21 (19 %)**, from labels given by the assistant that ran the benchmark and **not reviewed by a human**. Per rule: GR102 and GR107 1 of 1; GR014 1 of 5; GR022 1 of 6; GR012 0 of 4; GR003 0 of 2; GR011 and GR110 0 of 1 (the new GR110 finding is a script that sends its own API key to the API it documents). Twenty-one findings are too few for a percentage per rule to mean much.
+<!-- bench:precision:start -->
+**Precision: 100 repositories** frozen before any v0.4 tuning (851 agent files, default settings). They gave 21 findings, and 2 repositories would fail the default check. Precision for a user is true positives over everything reported, because a right pattern in a harmless place is still something to read: **4 of 21 (19 %)**, from labels given by the assistant that ran the benchmark and **not reviewed by a human** (0 findings unlabelled). Per rule: GR014 1 of 5; GR022 1 of 6; GR102 1 of 1; GR107 1 of 1; GR003 0 of 2; GR011 0 of 1; GR012 0 of 4; GR110 0 of 1. 21 findings are too few for a percentage per rule to mean much.
+<!-- bench:precision:end -->
+
+The new GR110 finding is a script that sends its own API key to the API it documents.
 
 A workflow scheduled weekly scans 300 popular public repositories (`corpus/`, the only part of the project that uses the network) and fails if a critical or high finding has not been reviewed; last run: 2026-10-28. Those rules were tuned on that data, so its numbers are not an estimate of precision on new repositories. On it, 0.2.1 reported 84 critical and 156 high findings and 0.3.0 reports none critical and 53 high. The [study](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md) used the same tooling; `ghostrules` is a set of heuristics, not a proof: see the [limits](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits).
 

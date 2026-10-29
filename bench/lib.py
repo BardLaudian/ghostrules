@@ -29,7 +29,10 @@ from ghostrules.scanner import scan_paths
 HERE = Path(__file__).resolve().parent
 ATTACKS = HERE / "attacks"
 STATUSES = ("detected", "known-miss")
-ORIGINS = ("public", "review", "ours")
+ORIGINS = ("author", "review", "public")
+# The headline recall counts only the cases the project's author did not write or choose.
+INDEPENDENT = "review"
+REVIEW_TOTAL = 18  # cases the independent review reported; the rest are not in the repository yet
 
 _TOKEN = re.compile(r"\{(tags|vs|b64|hex):([^{}]*)\}|\{u\+([0-9A-Fa-f]{4,6})\}")
 
@@ -159,6 +162,20 @@ def recall_table(outcomes: list[Outcome]) -> list[dict[str, Any]]:
         row["reported"] += o.reported
         row["fails_ci"] += o.fails_ci
     return sorted(rows.values(), key=lambda r: r["technique"])
+
+
+def origin_table(outcomes: list[Outcome]) -> list[dict[str, Any]]:
+    """Per origin (every origin, even with no case): cases, reported, failing the default check."""
+    return [
+        {
+            "origin": origin,
+            "cases": len(mine),
+            "reported": sum(o.reported for o in mine),
+            "fails_ci": sum(o.fails_ci for o in mine),
+        }
+        for origin in ORIGINS
+        for mine in [[o for o in outcomes if o.case.origin == origin]]
+    ]
 
 
 # --- precision on the held-out set --------------------------------------------------------------
