@@ -67,6 +67,7 @@ class Finding:
     via: tuple[str, ...] = ()
     agents: tuple[str, ...] = ()
     tags: tuple[str, ...] = ()
+    confidence: str = ""
 
     def __post_init__(self) -> None:
         # Single choke point: whatever built this finding, no secret survives in its text, so no
@@ -83,6 +84,8 @@ class Finding:
             value = getattr(self, name)
             if value:
                 data[name] = list(value)
+        if self.confidence:
+            data["confidence"] = self.confidence
         return data
 
     def _base_dict(self) -> dict[str, Any]:

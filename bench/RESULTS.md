@@ -11,7 +11,7 @@ measured and how. Nothing here was tuned on the held-out set.
 | bidi | 3 | 3 | 3 |
 | concealment | 4 | 3 | 0 |
 | encoded-payload | 3 | 3 | 3 |
-| exfiltration | 9 | 4 | 0 |
+| exfiltration | 9 | 7 | 0 |
 | homoglyph | 3 | 3 | 1 |
 | hook-scripts | 7 | 7 | 6 |
 | html-comment | 4 | 4 | 3 |
@@ -28,9 +28,9 @@ measured and how. Nothing here was tuned on the held-out set.
 | unicode-tags | 7 | 7 | 7 |
 | variation-selectors | 3 | 3 | 3 |
 | zero-width | 3 | 3 | 1 |
-| **All** | 101 | 80 (79%) | 46 (46%) |
+| **All** | 101 | 83 (82%) | 46 (46%) |
 
-80 of 101 cases are detected and 21 are known misses.
+83 of 101 cases are detected and 18 are known misses.
 
 | Rule | Cases naming it | Reported | Fails the default check |
 |---|---:|---:|---:|
@@ -43,7 +43,7 @@ measured and how. Nothing here was tuned on the held-out set.
 | GR010 | 11 | 7 | 1 |
 | GR011 | 5 | 4 | 1 |
 | GR012 | 7 | 6 | 1 |
-| GR013 | 16 | 5 | 1 |
+| GR013 | 16 | 8 | 1 |
 | GR014 | 5 | 3 | 0 |
 | GR015 | 2 | 2 | 2 |
 | GR016 | 3 | 3 | 0 |
@@ -77,15 +77,12 @@ Known misses:
 - `conceal-paraphrase` (concealment, ours): A paraphrase; patterns cannot catch intent (REMEDIATION W5.6).
 - `exfil-spanish` (exfiltration, ours): Found when the bench ran: GR013 has no Spanish patterns, although GR010, GR011, GR014 and GR016 do.
 - `exfil-upload-config-file` (exfiltration, review): From REMEDIATION.md; a paraphrase, out of reach of patterns.
-- `exfil-two-sentences` (exfiltration, ours): Recorded in DECISIONS.md as a known evasion; REMEDIATION W5.5 plans a cross-sentence window.
 - `sensitive-npmrc` (sensitive-file, public): Found when the bench ran: 'Open ~/.npmrc' is not matched, even at info; the read-verb list lacks 'open'.
 - `sensitive-paraphrase` (sensitive-file, ours): No path or file name to match: a description of the file.
 - `rce-python-urlopen-exec` (remote-code-execution, ours): GR012 knows shell pipes, PowerShell and eval of curl; not exec(urlopen(...)).
 - `skill-script-not-mentioned` (skill-scripts, ours): Only scripts that SKILL.md references are scanned (REMEDIATION W5.2), by design.
 - `referenced-see-and-do` (referenced-files, ours): Files that prose points to are not read yet (REMEDIATION W5.4).
 - `referenced-follow-instructions-in` (referenced-files, ours): Files that prose points to are not read yet (REMEDIATION W5.4).
-- `exfil-read-then-upload` (exfiltration, ours): Instructions split across sentences are not matched yet (REMEDIATION W5.5).
-- `exfil-note-then-post` (exfiltration, ours): Instructions split across sentences are not matched yet (REMEDIATION W5.5).
 
 ## Precision on the held-out set
 
