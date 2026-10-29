@@ -440,8 +440,8 @@ Matching is case-insensitive on file names. `--home` adds the user-level files m
 | GitHub Copilot / VS Code | `.github/copilot-instructions.md`, `.github/instructions/**/*.instructions.md`, `.github/prompts/**/*.prompt.md`, `.github/chatmodes/**/*.md`, `.vscode/mcp.json`, `mcp.json` |
 | Windsurf | `.windsurfrules`, `.windsurf/rules/**`; `~/.codeium/windsurf/mcp_config.json` |
 | Cline / Roo Code | `.clinerules` (file) and `.clinerules/**`, `.roo/rules*/**`, `.roorules`, `.roo/mcp.json` |
-| Gemini CLI | `GEMINI.md`, `.gemini/**/*.md`, `.gemini/settings.json`; `~/.gemini/settings.json` |
-| Codex CLI | `~/.codex/config.toml` |
+| Gemini CLI | `GEMINI.md`, `.gemini/**/*.md`, `.gemini/settings.json`; `~/.gemini/settings.json`, `~/.gemini/GEMINI.md` |
+| Codex CLI | `AGENTS.override.md` (any directory), `.codex/config.toml`, `.codex/hooks.json`; `~/.codex/config.toml`, `~/.codex/AGENTS.md`, `~/.codex/AGENTS.override.md` |
 | JetBrains Junie | `.junie/guidelines.md` |
 | Kiro | `.kiro/steering/**/*.md` |
 | Continue | `.continue/rules/**` |
@@ -566,7 +566,7 @@ not read. The lock is a visibility control, not a barrier (see [Review every cha
 - `--llm`: optional second opinion on suspicious natural-language instructions (a local model or
   an API), off by default and never sending files without the explicit flag.
 - A baseline file to ignore known findings.
-- `context` and `lock` models for more agents: Windsurf, Cline and Roo Code, Gemini CLI, Codex CLI,
+- `context` and `lock` models for more agents: Windsurf, Cline and Roo Code,
   Junie, Kiro, Continue and Aider (their files are already scanned; see
   [docs/AGENT_MODELS.md](https://github.com/BardLaudian/ghostrules/blob/main/docs/AGENT_MODELS.md)).
 - A VS Code extension highlighting invisible characters in agent files.

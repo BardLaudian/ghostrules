@@ -21,7 +21,10 @@ _KNOWN_KEYS = {
     "lockfile",
     "profile",
 }
-AGENT_NAMES = ("claude-code", "copilot-cli", "cursor", "generic")
+# Every modelled agent, and the ones used when the config does not say. A new model is opt-in:
+# adding it to the default would change every existing lockfile.
+DEFAULT_AGENTS = ("claude-code", "copilot-cli", "cursor", "generic")
+AGENT_NAMES = (*DEFAULT_AGENTS, "codex", "gemini-cli")
 
 
 class ConfigError(Exception):
@@ -40,7 +43,7 @@ class Config:
     allow_domains: tuple[str, ...] = ()
     trust_known_installers: bool = True
     follow_imports: bool = True
-    agents: tuple[str, ...] = AGENT_NAMES
+    agents: tuple[str, ...] = DEFAULT_AGENTS
     lockfile: str = ".ghostrules.lock"
     profile: str = "default"
     first_party: tuple[Any, ...] = ()  # set by the CLI from the repository, not from TOML
@@ -76,7 +79,7 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
     follow = table.get("follow_imports", True)
     if not isinstance(follow, bool):
         raise ConfigError("'follow_imports' must be true or false")
-    agents = tuple(a.strip().lower() for a in _string_list(table, "agents")) or AGENT_NAMES
+    agents = tuple(a.strip().lower() for a in _string_list(table, "agents")) or DEFAULT_AGENTS
     unknown_agents = [a for a in agents if a not in AGENT_NAMES]
     if unknown_agents:
         raise ConfigError(
