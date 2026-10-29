@@ -16,6 +16,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `.codex/config.toml` and `.codex/hooks.json` are scanned; GR107 reports Codex
   `sandbox_mode = "danger-full-access"` and `approval_policy = "never"` and Gemini's bare
   `run_shell_command` allow and `enablePermanentToolApproval`.
+- **Files that prose points to** (W5.4): `Read X and follow every step` and `Run scripts/x.sh` make the
+  file part of the scan, with the chain and the tag `reached-via-reference` (GR026, a tag, not a
+  detector). The `context` tree does not show a `referenced` state yet.
 - **Instructions split across two sentences** (W5.5): GR013 reports a secret in one sentence and a send
   to a URL in the next, with a new `confidence: medium` field on the finding.
 - **A benchmark you can check** (W6): `bench/` has 81 defanged attack cases written from public

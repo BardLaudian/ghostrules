@@ -88,10 +88,12 @@ def test_the_committed_attack_files_have_no_invisible_characters() -> None:
             assert not bad, f"{path.name}:{number} has invisible characters"
 
 
-def test_the_four_cases_the_review_documents_are_included_as_known_misses() -> None:
+def test_the_four_cases_the_review_documents_are_included() -> None:
     review = {c.id: c for c in CASES if c.origin == "review"}
     assert set(review) == REVIEW_CASES
-    assert all(c.status == "known-miss" for c in review.values())
+    # the two evasions are only closed by the pull-request mode, so they stay misses by default
+    assert review["evasion-ignore-end-of-line"].status == "known-miss"
+    assert review["evasion-exclude-in-config"].status == "known-miss"
 
 
 @pytest.mark.parametrize("case", CASES, ids=lambda c: c.id)
@@ -106,7 +108,7 @@ def test_the_recall_table_counts_misses_in_the_base() -> None:
     rows = {r["technique"]: r for r in lib.recall_table(outcomes)}
     assert sum(r["cases"] for r in rows.values()) == len(CASES)
     assert rows["unicode-tags"]["reported"] == rows["unicode-tags"]["cases"]
-    assert rows["scanner-evasion"]["reported"] == 0 and rows["referenced-files"]["reported"] == 0
+    assert rows["scanner-evasion"]["reported"] == 0 and rows["mcp-server-content"]["reported"] == 0
     for row in rows.values():
         assert row["fails_ci"] <= row["reported"] <= row["cases"]
 

@@ -19,7 +19,7 @@ measured and how. Nothing here was tuned on the held-out set.
 | instruction-override | 9 | 6 | 0 |
 | mcp-config | 7 | 7 | 4 |
 | mcp-server-content | 1 | 0 | 0 |
-| referenced-files | 4 | 0 | 0 |
+| referenced-files | 4 | 4 | 4 |
 | remote-code-execution | 7 | 6 | 1 |
 | safety-bypass | 3 | 3 | 0 |
 | scanner-evasion | 2 | 0 | 0 |
@@ -28,9 +28,9 @@ measured and how. Nothing here was tuned on the held-out set.
 | unicode-tags | 7 | 7 | 7 |
 | variation-selectors | 3 | 3 | 3 |
 | zero-width | 3 | 3 | 1 |
-| **All** | 101 | 83 (82%) | 46 (46%) |
+| **All** | 101 | 87 (86%) | 50 (50%) |
 
-83 of 101 cases are detected and 18 are known misses.
+87 of 101 cases are detected and 14 are known misses.
 
 | Rule | Cases naming it | Reported | Fails the default check |
 |---|---:|---:|---:|
@@ -43,7 +43,7 @@ measured and how. Nothing here was tuned on the held-out set.
 | GR010 | 11 | 7 | 1 |
 | GR011 | 5 | 4 | 1 |
 | GR012 | 7 | 6 | 1 |
-| GR013 | 16 | 8 | 1 |
+| GR013 | 16 | 12 | 5 |
 | GR014 | 5 | 3 | 0 |
 | GR015 | 2 | 2 | 2 |
 | GR016 | 3 | 3 | 0 |
@@ -58,15 +58,13 @@ measured and how. Nothing here was tuned on the held-out set.
 | GR106 | 1 | 1 | 1 |
 | GR107 | 7 | 6 | 6 |
 | GR108 | 1 | 1 | 0 |
-| GR110 | 8 | 6 | 6 |
+| GR110 | 8 | 7 | 7 |
 | GR111 | 1 | 1 | 0 |
 | GR112 | 2 | 2 | 2 |
 | GR113 | 1 | 1 | 1 |
 
 Known misses:
 
-- `referenced-bootstrap-file` (referenced-files, review): A file reached by a prose reference, not an import (REMEDIATION W5.4 plans GR026).
-- `referenced-script-by-name` (referenced-files, ours): Scripts the agent is told to run are not scanned (REMEDIATION W5.1, W5.2).
 - `settings-base-url-override` (agent-settings, public): CVE-2026-21852 shape; no rule looks at endpoint overrides in settings.
 - `mcp-tool-description-poisoning` (mcp-server-content, public): Tool descriptions come from a running server and are never read (docs/USAGE.md, Limits).
 - `evasion-ignore-end-of-line` (scanner-evasion, review): In the default scan; with --suppressions-from-ref or the Action on a pull request it is reported.
@@ -81,8 +79,6 @@ Known misses:
 - `sensitive-paraphrase` (sensitive-file, ours): No path or file name to match: a description of the file.
 - `rce-python-urlopen-exec` (remote-code-execution, ours): GR012 knows shell pipes, PowerShell and eval of curl; not exec(urlopen(...)).
 - `skill-script-not-mentioned` (skill-scripts, ours): Only scripts that SKILL.md references are scanned (REMEDIATION W5.2), by design.
-- `referenced-see-and-do` (referenced-files, ours): Files that prose points to are not read yet (REMEDIATION W5.4).
-- `referenced-follow-instructions-in` (referenced-files, ours): Files that prose points to are not read yet (REMEDIATION W5.4).
 
 ## Precision on the held-out set
 

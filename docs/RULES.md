@@ -40,6 +40,7 @@ the URLs in any file.
 | <a id="gr023"></a>`GR023` | info | instructions | **Import cycle.** Files that import each other in a loop. Agents stop at the depth limit; it is only noise. |
 | <a id="gr024"></a>`GR024` | info | instructions | **Payload reached only through an import.** Not a detector: findings in a file that only an @import reaches carry the import chain and the tag reached-via-import. Disabling it stops ghostrules from following imports. |
 | <a id="gr025"></a>`GR025` | high | instructions | **Symlinked instruction source.** An instruction file or rules directory that is a symlink the agent would follow out of the repository, a broken or cyclic one, or a symlink checked out as a text file. A link whose target is a file inside the repository is an alias and is not reported. |
+| <a id="gr026"></a>`GR026` | info | instructions | **Payload reached through a prose reference.** Not a detector: prose that tells the agent to read and follow a file (or run a script) makes that file part of what is scanned; its findings carry the reference chain and the tag reached-via-reference. Lower confidence than an @import: the agent may or may not open it. |
 | <a id="gr030"></a>`GR030` | high | instructions, config | **Scanner configuration changed.** The change adds or edits .ghostrules.toml, [tool.ghostrules], the lockfile or a ghostrules-ignore comment. Reported even when legitimate, so a reviewer always sees it. Needs a base: --config-from-ref or --suppressions-from-ref. |
 | <a id="gr101"></a>`GR101` | critical | config | **Hardcoded secret in agent config.** API keys and tokens written into MCP server env/args/headers/URLs or agent settings env. |
 | <a id="gr102"></a>`GR102` | medium | config | **Unpinned package execution.** MCP servers launched with npx/uvx/etc. without an exact version run whatever is latest. |
@@ -412,6 +413,15 @@ paths that leave the repository and inline `bash -c` code are not read. Agent-re
 
 ### GR113 — Script hides what it runs (high)
  decodes an encoded string and executes it.
+
+### GR026 — Payload reached through a prose reference (tag, info)
+Not a detector. Prose that tells the agent to read and obey a file (`Read docs/bootstrap.txt and follow
+every step`, `see X and do what it says`, `follow the instructions in X`) or to run one (`Run
+scripts/setup.sh`) makes that file part of what is scanned: a text file as instructions, a script as
+code (GR110-GR113). Its findings keep the rule's own severity (indirect text), carry the reference as
+`via` and the tag `reached-via-reference`. Lower confidence than an `@` import: the agent may or may
+not open it. A mention that only points (`see docs/guide.md`) is not a reference; the path is tried next
+to the file, then from the root, never outside the repository; references do not chain.
 
 ## Severity calibration targets (acceptance)
 - `examples/clean-repo` (realistic AGENTS.md, CLAUDE.md, .mcp.json with `${GITHUB_TOKEN}`, pinned
