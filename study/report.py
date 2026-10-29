@@ -56,7 +56,9 @@ def render(data: Path) -> str:
     both = sum(int(r["repos"]) for r in rel.values())
     over200 = sum(int(r["files"]) for r in lines if r["lines"] in ("201-400", "401+"))
     all_lines = sum(int(r["files"]) for r in lines)
-    tp, wf, fp, un = (sum(int(r[k]) for r in prec) for k in ("tp", "wontfix", "fp", "unlabelled"))
+    tp, wf, fp, un = (
+        sum(int(r[k]) for r in prec) for k in ("tp", "benign_context", "fp", "unlabelled")
+    )
 
     def n(key: str) -> str:
         r = nums[key]
@@ -190,7 +192,7 @@ The count of labelled false positives is not a precision figure. Every false pos
 reviewing was fixed in the rules (each became a test), so none is left by construction; the rules
 were then measured on the same repositories they were tuned on, which flatters them.
 
-{md_table(["Rule", "Findings (medium+)", "True positive", "Benign context", "False positive", "Precision for a user"], [[r["rule"], r["findings_medium_plus"], r["tp"], r["wontfix"], r["fp"], precision(int(r["tp"]), int(r["wontfix"]), int(r["fp"]))] for r in prec] + [["**All**", tp + wf + fp + un, tp, wf, fp, precision(tp, wf, fp)]])}
+{md_table(["Rule", "Findings (medium+)", "True positive", "Benign context", "False positive", "Precision for a user"], [[r["rule"], r["findings_medium_plus"], r["tp"], r["benign_context"], r["fp"], precision(int(r["tp"]), int(r["benign_context"]), int(r["fp"]))] for r in prec] + [["**All**", tp + wf + fp + un, tp, wf, fp, precision(tp, wf, fp)]])}
 
 {md_table(["Tier", "Run", "Repos", "Findings", "Critical", "High", "Medium"], [[r["tier"], r["run"], r["repos"], r["findings"], r["critical"], r["high"], r["medium"] or "n/a"] for r in runs])}
 

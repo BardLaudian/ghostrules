@@ -3,7 +3,8 @@
     python corpus/triage.py [--min-severity medium] [--limit N]
 
 For each finding it shows the snippet and, when it can, the lines around it (fetched with ``gh api``
-for display only, sanitised, never stored). Answers: ``tp``, ``fp``, ``wontfix``, ``reported``,
+for display only, sanitised, never stored). Answers: ``tp``, ``fp``,
+``benign-context``, ``reported``,
 ``s`` (skip) or ``q`` (quit). A ``reported`` label stores only the fingerprint and the rule: the
 repository is never named in a committed file. A ``tp`` label does not name it either.
 """
@@ -102,7 +103,7 @@ def make_label(f: dict[str, Any], kind: str, reason: str, test: str) -> Label:
     """The label to store. ``reported`` and ``tp`` never carry the repository name."""
     if kind == "reported":
         return Label(f["fingerprint"], kind, rule=f["rule_id"])
-    repo = f["repo"] if kind in ("fp", "wontfix") else ""
+    repo = f["repo"] if kind in ("fp", "benign-context") else ""
     return Label(f["fingerprint"], kind, f["rule_id"], f["severity"], repo, reason, test)
 
 
