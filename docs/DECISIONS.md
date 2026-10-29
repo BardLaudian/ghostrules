@@ -1135,3 +1135,9 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   flags a documented installer of a project that is not in the known list (2). Fixing them is
   legitimate work, but it would stop this set from being held out: a new set has to be frozen first.
 
+
+## v0.4 W5 — results
+
+- **Attack set, 101 cases, before W5 (9076b1d) and after:** reported 64 -> 91, failing the default check 33 -> 55 (`bench/RESULTS.md`). No case regressed.
+- **Held-out set, run again after W5, no rule changed after reading its findings:** 18 -> 21 findings, 1 -> 2 repositories failing the default check, precision for a user 22% -> 19%. The three new findings come from the new scanning of scripts and referenced files: two benign-context (a byte order mark written in code) and one false positive (GR110 on a script that sends its own API key to its documented API). Labels are provisional and mine.
+- **Not done:** the `context` tree has no `referenced` load state, and referenced files are not recorded in the lock.
