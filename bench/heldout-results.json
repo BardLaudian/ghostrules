@@ -1,10 +1,10 @@
 {
   "date": "2026-10-29",
-  "ghostrules_version": "0.3.0",
-  "commit": "8ce68eb",
+  "ghostrules_version": "0.4.0",
+  "commit": "37159ba",
   "repos_total": 100,
   "repos_scanned": 100,
-  "files_scanned": 874,
+  "files_scanned": 851,
   "repos_failing_default_check": 2,
   "findings": [
     {
@@ -44,7 +44,7 @@
     },
     {
       "rule_id": "GR014",
-      "severity": "low",
+      "severity": "high",
       "fingerprint": "7f3c86ebf1cbcb23"
     },
     {
@@ -54,7 +54,7 @@
     },
     {
       "rule_id": "GR014",
-      "severity": "low",
+      "severity": "high",
       "fingerprint": "95602096758bd17b"
     },
     {
