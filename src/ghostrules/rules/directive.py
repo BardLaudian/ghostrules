@@ -29,6 +29,7 @@ TextKind = Literal["directive", "descriptive", "example"]
 _MAX_SENTENCE = 400
 
 _END = re.compile(r"(?<!\be\.g)(?<!\bi\.e)(?<!\betc)(?<!\bvs)[.!?]+(?=\s|$)")
+_BLANK_LINE = re.compile(r"\r?\n[ \t]*\r?\n")  # a blank line, with LF or CRLF endings
 _ITEM_START = re.compile(r"^[ \t]*(?:[-*+>|]|\d+[.)]|#{1,6})[ \t]", re.MULTILINE)
 
 _EXAMPLE_CUES = re.compile(
@@ -90,9 +91,9 @@ def _sentence(text: str, start: int, end: int) -> tuple[int, int]:
     lo = max(0, start - _MAX_SENTENCE)
     head = text[lo:start]
     begin = lo
-    blank = head.rfind("\n\n")
-    if blank >= 0:
-        begin = lo + blank + 2
+    blanks = list(_BLANK_LINE.finditer(head))
+    if blanks:
+        begin = lo + blanks[-1].end()
     ends = list(_END.finditer(head))
     if ends:
         begin = max(begin, lo + ends[-1].end())
@@ -102,7 +103,8 @@ def _sentence(text: str, start: int, end: int) -> tuple[int, int]:
     tail_end = min(len(text), end + _MAX_SENTENCE)
     tail = text[end:tail_end]
     stop = tail_end
-    for limit in (tail.find("\n\n"), _end_of(tail), _next_item(tail)):
+    blank = _BLANK_LINE.search(tail)
+    for limit in (blank.start() if blank else -1, _end_of(tail), _next_item(tail)):
         if limit >= 0:
             stop = min(stop, end + limit)
     return begin, stop

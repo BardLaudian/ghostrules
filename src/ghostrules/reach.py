@@ -16,8 +16,7 @@ from collections.abc import Callable, Iterator
 from dataclasses import dataclass
 from typing import Any
 
-import tomllib
-
+from ghostrules._compat import tomllib
 from ghostrules.jsonloc import strip_jsonc
 
 Exists = Callable[[str], bool]

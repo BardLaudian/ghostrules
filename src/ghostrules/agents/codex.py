@@ -12,8 +12,7 @@ from __future__ import annotations
 
 from typing import Any
 
-import tomllib
-
+from ghostrules._compat import tomllib
 from ghostrules.agents.base import (
     Builder,
     ContextGraph,

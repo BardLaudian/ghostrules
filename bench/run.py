@@ -25,7 +25,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
-import tomllib
+from ghostrules._compat import tomllib
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))

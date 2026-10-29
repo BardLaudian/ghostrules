@@ -2,8 +2,9 @@
 
 import re
 
-import tomllib
 from conftest import ROOT
+
+from ghostrules._compat import tomllib
 
 HELDOUT = ROOT / "bench" / "heldout.toml"
 
