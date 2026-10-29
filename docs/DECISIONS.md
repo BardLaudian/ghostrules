@@ -1111,3 +1111,27 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   "we will not fix it"; the label says what it is: the rule matched the right pattern in a harmless
   place, which for a user is noise. No alias is kept: the committed files were migrated. Precision
   for a user is tp / (tp + benign-context + fp), as in the study report.
+
+## v0.4 W6 — the benchmark
+
+- **Two ways to count a hit.** "Reported" (an expected rule fired at the default settings) and
+  "fails the default check" (high or critical). After W4.1 they differ by design for visible prose;
+  showing both is what keeps the recall number from flattering the tool.
+- **Attack cases are authored independently of the scanner.** `expected` is the rule that should
+  catch the technique; `status` was set by running them, and four cases I had marked wrongly while
+  writing them were corrected after the first run in both directions (two were scanner misses I had
+  not expected, one detected case I had assumed missed, and three were mistakes of mine in the case
+  text: a token shape, an import path, and the repo's own config not being loaded). A test now fails
+  when a declared status stops being true.
+- **The review's 18 cases: 4 are included.** Only the four that `REMEDIATION.md` describes are in the
+  repository. The other 14 were not given to me and I did not invent them; the set has room for
+  them (`origin = "review"`).
+- **Held-out set run once.** 100 repositories, default settings, empty configuration, results kept as
+  counts and fingerprints (`heldout-results.json`), labels in `heldout-labels.toml`. The labels are
+  mine, not a human's, and three are borderline (a directory path written with `@`, `read the .env`
+  in a framework guide, a message that mentions `.env`). No rule was changed after reading them.
+- **What the held-out set showed, left unfixed on purpose.** GR022 fires on `@name` in indented
+  template code (3 findings), GR014 reads `Show: "... .env ..."` as showing the file (2), and GR012
+  flags a documented installer of a project that is not in the known list (2). Fixing them is
+  legitimate work, but it would stop this set from being held out: a new set has to be frozen first.
+
