@@ -148,9 +148,9 @@ def analyze(
                 ] += 1
         write_csv(
             out / "precision_by_rule.csv",
-            ["rule", "findings_medium_plus", "tp", "wontfix", "fp", "unlabelled"],
+            ["rule", "findings_medium_plus", "tp", "benign_context", "fp", "unlabelled"],
             [
-                [rule, sum(c.values()), c["tp"], c["wontfix"], c["fp"], c["unlabelled"]]
+                [rule, sum(c.values()), c["tp"], c["benign-context"], c["fp"], c["unlabelled"]]
                 for rule, c in sorted(counts.items())
             ],
         )

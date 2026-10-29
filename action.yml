@@ -33,6 +33,38 @@ inputs:
       differences go to the job summary under "What your agents read changed in this PR" and the
       job fails if there are any.
     default: "false"
+  config:
+    description: >-
+      Path to a trusted ghostrules config file that replaces the repository's own .ghostrules.toml.
+      It must come from somewhere a pull request cannot change (another repository's checkout, a
+      file on the runner), not from the checkout under review.
+    default: ""
+  trust-repo-config:
+    description: >-
+      On pull_request events the scanner reads .ghostrules.toml from the base commit, so the pull
+      request cannot exclude its own files. Set to "true" to read the pull request's own config
+      (the 0.3 behaviour). Other events always use the repository's config.
+    default: "false"
+  inline-suppressions:
+    description: >-
+      Which ghostrules-ignore comments count. "base" (default): on pull_request events only those
+      that already existed at the base commit, so the pull request cannot add one to hide its own
+      payload (other events honour every comment). "off": none. "all": every comment (0.3).
+    default: base
+  profile:
+    description: >-
+      "default": plain visible prose in an agent file (what a reviewer reads in the diff) is reported
+      as low or info, while hidden text, text reached through imports and configuration keep the
+      rule's severity. "strict": every finding at the rule's own severity (the 0.3 behaviour).
+    default: default
+  approve-label:
+    description: >-
+      Name of a pull request label (for example agent-context-approved) that approves a change to
+      what the agents read, so a lock check that finds differences passes. It approves only on the
+      event that applies the label (add "labeled" to the workflow's pull_request types), so it must
+      be applied again after new commits. Applying a label needs triage or write access, which a
+      fork author does not have. Empty (default): nothing approves, the check fails on a change.
+    default: ""
 
 outputs:
   exit-code:
@@ -44,18 +76,95 @@ outputs:
   lock-exit-code:
     description: "Exit code of the lock check: 0 up to date, 1 changed, 2 error. Empty if lock-check is off."
     value: ${{ steps.lock.outputs.exit-code }}
+  lock-approved:
+    description: '"true" if the lock check found a change and the approval label passed it.'
+    value: ${{ steps.lock.outputs.approved }}
 
 runs:
   using: composite
   steps:
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
       with:
         python-version: "3.12"
 
     - name: Install ghostrules
       shell: bash
-      run: python -m pip install --disable-pip-version-check --quiet "${GITHUB_ACTION_PATH}"
+      run: |
+        # Every dependency, and the build backend, comes from a file with a hash for each: nothing
+        # is resolved at run time. Regenerate it with pip-compile --generate-hashes (see
+        # action-requirements.in). The Action's own source is installed without fetching more.
+        python -m pip install --disable-pip-version-check --quiet --require-hashes \
+          -r "${GITHUB_ACTION_PATH}/action-requirements.txt"
+        python -m pip install --disable-pip-version-check --quiet --no-deps --no-build-isolation \
+          "${GITHUB_ACTION_PATH}"
+
+    - name: Resolve trusted settings
+      id: trust
+      shell: bash
+      env:
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_CONFIG: ${{ inputs.config }}
+        INPUT_TRUST_REPO_CONFIG: ${{ inputs.trust-repo-config }}
+        INPUT_INLINE_SUPPRESSIONS: ${{ inputs.inline-suppressions }}
+        INPUT_PROFILE: ${{ inputs.profile }}
+        INPUT_LOCK_CHECK: ${{ inputs.lock-check }}
+        EVENT_NAME: ${{ github.event_name }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      run: |
+        # On a pull request the configuration and the ignore comments come from the base commit,
+        # never from the change under review. Any doubt stops the job: it must not scan with the
+        # pull request's own settings by accident.
+        args_file="${RUNNER_TEMP:-/tmp}/ghostrules-trusted.args"
+        : > "$args_file"
+        fail() { echo "::error title=ghostrules::$1"; exit 2; }
+        case "$INPUT_INLINE_SUPPRESSIONS" in
+          base | off | all) ;;
+          *) fail "inline-suppressions must be base, off or all (got '$INPUT_INLINE_SUPPRESSIONS')" ;;
+        esac
+        case "$INPUT_PROFILE" in
+          default | strict) ;;
+          *) fail "profile must be default or strict (got '$INPUT_PROFILE')" ;;
+        esac
+        is_pr=false
+        case "$EVENT_NAME" in pull_request | pull_request_target) is_pr=true ;; esac
+        need_base=false
+        if [ -n "$INPUT_CONFIG" ]; then
+          printf '%s\n' --trusted-config "$INPUT_CONFIG" >> "$args_file"
+        elif [ "$is_pr" = true ] && [ "$INPUT_TRUST_REPO_CONFIG" != "true" ]; then
+          need_base=true
+          printf '%s\n' --config-from-ref "$BASE_SHA" >> "$args_file"
+        fi
+        if [ "$INPUT_INLINE_SUPPRESSIONS" = "off" ]; then
+          printf '%s\n' --no-inline-suppressions >> "$args_file"
+        elif [ "$INPUT_INLINE_SUPPRESSIONS" = "base" ] && [ "$is_pr" = true ]; then
+          need_base=true
+          printf '%s\n' --suppressions-from-ref "$BASE_SHA" >> "$args_file"
+        fi
+        # The baseline of known findings is the one at the base too: a pull request cannot add its
+        # own findings to it.
+        if [ "$is_pr" = true ] && [ "$INPUT_TRUST_REPO_CONFIG" != "true" ]; then
+          need_base=true
+          printf '%s\n' --baseline-from-ref "$BASE_SHA" >> "$args_file"
+        fi
+        # The lock is compared with the lock at the base as well (see "Check the lock").
+        if [ "$is_pr" = true ] && [ "$INPUT_LOCK_CHECK" = "true" ] && [ "$INPUT_TRUST_REPO_CONFIG" != "true" ]; then
+          need_base=true
+        fi
+        if [ "$need_base" = true ]; then
+          [ -n "$BASE_SHA" ] || fail "no base commit in the event, so the settings of the base cannot be read"
+          case "$BASE_SHA" in
+            *[!0-9a-f]*) fail "the base commit in the event is not a commit id" ;;
+          esac
+          git -C "$INPUT_PATH" rev-parse --git-dir > /dev/null 2>&1 \
+            || fail "path '$INPUT_PATH' is not inside a git repository, so the settings of the base cannot be read (set trust-repo-config and inline-suppressions to \"true\" and \"all\" to scan it with its own settings)"
+          if ! git -C "$INPUT_PATH" cat-file -e "${BASE_SHA}^{commit}" 2> /dev/null; then
+            # actions/checkout fetches one commit by default; the base commit is not there.
+            git -C "$INPUT_PATH" fetch --no-tags --depth=1 --quiet origin "$BASE_SHA" 2> /dev/null || true
+          fi
+          git -C "$INPUT_PATH" cat-file -e "${BASE_SHA}^{commit}" 2> /dev/null \
+            || fail "cannot read the base commit ${BASE_SHA}; check out with fetch-depth: 0 so the settings of the base can be read"
+        fi
 
     - name: Scan
       id: scan
@@ -65,10 +174,20 @@ runs:
         INPUT_FAIL_ON: ${{ inputs.fail-on }}
         INPUT_ALL_FILES: ${{ inputs.all-files }}
         INPUT_FOLLOW_IMPORTS: ${{ inputs.follow-imports }}
+        INPUT_PROFILE: ${{ inputs.profile }}
       run: |
         # The SARIF report is written whatever the result; the job is failed in the last step,
         # after the report has been uploaded and summarised.
         args=("$INPUT_PATH" --fail-on "$INPUT_FAIL_ON")
+        if [ "$INPUT_PROFILE" = "strict" ]; then args+=(--strict); fi
+        trusted="${RUNNER_TEMP:-/tmp}/ghostrules-trusted.args"
+        # bash 3.2 (macOS) does not stop on a failed redirect: check the file, or nothing is
+        # known about the settings and the scan must not run with the repository's own.
+        if [ ! -f "$trusted" ]; then
+          echo "::error title=ghostrules::the trusted settings were not resolved; nothing was scanned"
+          exit 2
+        fi
+        while IFS= read -r line; do args+=("$line"); done < "$trusted"
         if [ "$INPUT_ALL_FILES" = "true" ]; then args+=(--all-files); fi
         if [ "$INPUT_FOLLOW_IMPORTS" = "false" ]; then args+=(--no-follow-imports); fi
         set +e
@@ -78,22 +197,32 @@ runs:
         echo "exit-code=$code" >> "$GITHUB_OUTPUT"
 
     - name: Upload SARIF to code scanning
-      if: ${{ inputs.upload-sarif == 'true' && !cancelled() }}
-      uses: github/codeql-action/upload-sarif@v3
+      if: ${{ inputs.upload-sarif == 'true' && !cancelled() && steps.trust.outcome == 'success' }}
+      uses: github/codeql-action/upload-sarif@4bfa242aa49c5f7c6770b98670d354a7dfac05f8 # v3
       continue-on-error: true
       with:
         sarif_file: ghostrules.sarif
         category: ghostrules
 
     - name: Write job summary
-      if: ${{ !cancelled() }}
+      if: ${{ !cancelled() && steps.trust.outcome == 'success' }}
       shell: bash
       env:
         INPUT_PATH: ${{ inputs.path }}
         INPUT_ALL_FILES: ${{ inputs.all-files }}
         INPUT_FOLLOW_IMPORTS: ${{ inputs.follow-imports }}
+        INPUT_PROFILE: ${{ inputs.profile }}
       run: |
         args=("$INPUT_PATH" --fail-on none)
+        if [ "$INPUT_PROFILE" = "strict" ]; then args+=(--strict); fi
+        trusted="${RUNNER_TEMP:-/tmp}/ghostrules-trusted.args"
+        # bash 3.2 (macOS) does not stop on a failed redirect: check the file, or nothing is
+        # known about the settings and the scan must not run with the repository's own.
+        if [ ! -f "$trusted" ]; then
+          echo "::error title=ghostrules::the trusted settings were not resolved; nothing was scanned"
+          exit 2
+        fi
+        while IFS= read -r line; do args+=("$line"); done < "$trusted"
         if [ "$INPUT_ALL_FILES" = "true" ]; then args+=(--all-files); fi
         if [ "$INPUT_FOLLOW_IMPORTS" = "false" ]; then args+=(--no-follow-imports); fi
         ghostrules scan "${args[@]}" --format markdown >> "$GITHUB_STEP_SUMMARY" || true
@@ -104,21 +233,61 @@ runs:
       shell: bash
       env:
         INPUT_PATH: ${{ inputs.path }}
+        INPUT_TRUST_REPO_CONFIG: ${{ inputs.trust-repo-config }}
+        INPUT_APPROVE_LABEL: ${{ inputs.approve-label }}
+        EVENT_NAME: ${{ github.event_name }}
+        EVENT_ACTION: ${{ github.event.action }}
+        EVENT_LABEL: ${{ github.event.label.name }}
+        EVENT_SENDER: ${{ github.event.sender.login }}
+        EVENT_TIME: ${{ github.event.pull_request.updated_at }}
+        BASE_SHA: ${{ github.event.pull_request.base.sha }}
       run: |
-        # Exit code 1 means "the agents' context changed since .ghostrules.lock"; the job is
-        # failed in the last step, after the differences are in the summary.
+        # Exit code 1 means "the agents' context changed since the lock"; the job is failed in the
+        # last step, after the differences are in the summary. On a pull request the lock is the one
+        # at the base commit: the pull request cannot re-bless its own change by regenerating it.
         report="${RUNNER_TEMP:-/tmp}/ghostrules-lock.md"
+        errors="${RUNNER_TEMP:-/tmp}/ghostrules-lock.err"
+        args=(lock --check --root "$INPUT_PATH" --format markdown)
+        is_pr=false
+        case "$EVENT_NAME" in pull_request | pull_request_target) is_pr=true ;; esac
+        if [ "$is_pr" = true ] && [ "$INPUT_TRUST_REPO_CONFIG" != "true" ]; then
+          args+=(--base "$BASE_SHA")
+        fi
         set +e
-        ghostrules lock --check --root "$INPUT_PATH" --format markdown > "$report"
+        ghostrules "${args[@]}" > "$report" 2> "$errors"
         code=$?
         set -e
         echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        # A label approves only on the event that applies it, by someone who can label (triage or
+        # write access), so an approval never survives new commits. Errors are never approved.
+        approved=false
+        if [ "$code" = "1" ] && [ "$is_pr" = true ] && [ -n "$INPUT_APPROVE_LABEL" ] \
+          && [ "$EVENT_ACTION" = "labeled" ] && [ "$EVENT_LABEL" = "$INPUT_APPROVE_LABEL" ]; then
+          approved=true
+        fi
+        echo "approved=$approved" >> "$GITHUB_OUTPUT"
+        sender="$(printf '%s' "$EVENT_SENDER" | tr -cd 'A-Za-z0-9[]_.-')"
+        when="$(printf '%s' "$EVENT_TIME" | tr -cd '0-9TZ:.+-')"
+        label="$(printf '%s' "$INPUT_APPROVE_LABEL" | tr -cd 'A-Za-z0-9 _.:/-')"
         {
           echo "## What your agents read changed in this PR"
           echo
           if [ "$code" = "2" ]; then
-            echo "The lock check could not run (is .ghostrules.lock committed? create it with \`ghostrules lock\`)."
+            echo "The lock check could not run:"
+            echo
+            echo '```text'
+            head -c 2000 "$errors" | tr -cd '\11\12\40-\176'
+            echo '```'
           else
+            if [ "$approved" = true ]; then
+              echo "**Approved by @${sender:-unknown} at ${when:-an unknown time} with the label \`$label\`.**" \
+                "The check passes; the differences below are what was approved."
+              echo
+            elif [ "$code" = "1" ] && [ -n "$INPUT_APPROVE_LABEL" ]; then
+              echo "To approve this change, apply the label \`$label\` (after the last commit):" \
+                "a label approves only when it is applied, so it must be applied again after new commits."
+              echo
+            fi
             cat "$report"
           fi
         } >> "$GITHUB_STEP_SUMMARY"
@@ -129,6 +298,7 @@ runs:
       env:
         SCAN_EXIT_CODE: ${{ steps.scan.outputs.exit-code }}
         LOCK_EXIT_CODE: ${{ steps.lock.outputs.exit-code }}
+        LOCK_APPROVED: ${{ steps.lock.outputs.approved }}
         INPUT_FAIL_ON: ${{ inputs.fail-on }}
       run: |
         final=0
@@ -139,8 +309,12 @@ runs:
         esac
         case "$LOCK_EXIT_CODE" in
           ""|0) ;;
-          1) echo "::error title=ghostrules::What your agents read changed since .ghostrules.lock. Review the job summary; if the changes are intended, run 'ghostrules lock --update'."
-             if [ "$final" = 0 ]; then final=1; fi ;;
+          1) if [ "$LOCK_APPROVED" = "true" ]; then
+               echo "::notice title=ghostrules::The change to what your agents read was approved by label (approved by label; see the job summary)."
+             else
+               echo "::error title=ghostrules::What your agents read changed since .ghostrules.lock. Review the job summary; if the changes are intended, run 'ghostrules lock --update'."
+               if [ "$final" = 0 ]; then final=1; fi
+             fi ;;
           *) echo "::error title=ghostrules::The lock check failed to run (exit code '$LOCK_EXIT_CODE')."; final=2 ;;
         esac
         exit "$final"

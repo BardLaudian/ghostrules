@@ -114,13 +114,21 @@ def parse_response(proc: Proc) -> tuple[int, dict[str, str], Any]:
 
 
 def search_query(
-    min_stars: int, language: str, months: int, today: dt.date, max_stars: int = 0
+    min_stars: int,
+    language: str,
+    months: int,
+    today: dt.date,
+    max_stars: int = 0,
+    created: str = "",
 ) -> str:
     """The repository search query (not archived, not a fork, pushed recently). With
-    ``max_stars`` the star range is closed."""
+    ``max_stars`` the star range is closed; ``created`` (``2024-07-01..2025-12-31``) limits when
+    the repository was created."""
     since = (today - dt.timedelta(days=30 * months)).isoformat()
     stars = f"stars:{min_stars}..{max_stars}" if max_stars else f"stars:>={min_stars}"
     parts = [stars, "archived:false", "fork:false", f"pushed:>{since}"]
+    if created:
+        parts.append(f"created:{created}")
     if language:
         parts.append(f"language:{language}")
     return " ".join(parts)
@@ -228,12 +236,13 @@ def discover_strata(
     months: int,
     per_cell: int,
     today: dt.date,
+    created: str = "",
 ) -> list[dict[str, Any]]:
     """Candidates of every (stars range x language) cell, each tagged with its ``stratum``."""
     out: list[dict[str, Any]] = []
     for lo, hi in strata:
         for lang in languages:
-            query = search_query(lo, lang, months, today, hi)
+            query = search_query(lo, lang, months, today, hi, created)
             for c in discover(client, [query], per_query=per_cell):
                 out.append({**c, "stratum": stratum_name(lo, hi)})
     return out
@@ -283,7 +292,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     p.add_argument("--strata", help='stars strata, e.g. "500-1999,2000-9999,10000-"')
     p.add_argument("--per-cell", type=int, default=150, help="candidates per stratum x language")
     p.add_argument("--per-stratum", type=int, default=500, help="repos proposed per stratum")
-    p.add_argument("--exclude-tier", help="skip repos of this tier in repos.toml")
+    p.add_argument(
+        "--exclude-tier", help="skip repos of these tiers in repos.toml (comma-separated)"
+    )
+    p.add_argument(
+        "--created", default="", help="only repos created in A..B (YYYY-MM-DD..YYYY-MM-DD)"
+    )
     p.add_argument("--from-file", type=Path, help="propose from an earlier --out file")
     args = p.parse_args(argv)
     try:
@@ -295,11 +309,18 @@ def main(argv: Sequence[str] | None = None) -> int:
             client = GhClient(refresh=args.refresh)
             if args.strata:
                 candidates = discover_strata(
-                    client, parse_strata(args.strata), languages, args.months, args.per_cell, today
+                    client,
+                    parse_strata(args.strata),
+                    languages,
+                    args.months,
+                    args.per_cell,
+                    today,
+                    args.created,
                 )
             else:
                 queries = [
-                    search_query(args.min_stars, lang, args.months, today) for lang in languages
+                    search_query(args.min_stars, lang, args.months, today, created=args.created)
+                    for lang in languages
                 ]
                 candidates = discover(client, queries, args.limit)
             write_json(args.out, candidates)
@@ -311,11 +332,8 @@ def main(argv: Sequence[str] | None = None) -> int:
             if tier not in TIERS or not count.isdigit():
                 raise CorpusError(f"--propose expects TIER:N with TIER in {', '.join(TIERS)}")
             if args.strata or any("stratum" in c for c in candidates):
-                skip = {
-                    e.name
-                    for e in load_repos(CORPUS_DIR / "repos.toml")
-                    if e.tier == args.exclude_tier
-                }
+                tiers = {t.strip() for t in (args.exclude_tier or "").split(",") if t.strip()}
+                skip = {e.name for e in load_repos(CORPUS_DIR / "repos.toml") if e.tier in tiers}
                 print(propose_strata(candidates, tier, args.per_stratum, skip))
             else:
                 print(propose(candidates, tier, int(count)))

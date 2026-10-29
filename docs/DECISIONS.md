@@ -368,6 +368,18 @@ Searched (web, 2026-10-28) for scanners that follow `@path` imports, compute an 
 context, or lock it. Found nothing that does; none of the READMEs read mention imports.
 Stop condition of the plan ("if something already does exactly this") **not met**.
 
+> **Correction, 2026-10-29.** The conclusion above was wrong. cfgaudit has followed `@path` imports
+> (4 hops, with the chain) since commit `5099798` on 2026-10-24, four days before this search; the
+> search read READMEs and missed it. The table below keeps its original wording for the record, and
+> every "no import following found" in it must be read as "not found in a README", not as "absent".
+> Also relevant: agnix parses `@` imports and cycles; Claude Code's `/context` shows the memory files
+> it loaded; cairnlock has `verify --base <ref>` (a lockfile rehashed in the same PR cannot hide
+> edits). rulesentry and promptwarden also look for hidden Unicode. Checked 2026-10-29 against the
+> repositories' descriptions; only cfgaudit (one commit) and cairnlock (its README) were read.
+> What ghostrules claims now: a multi-agent context model (conditional rules, precedence, on-demand
+> loading, per-agent transforms, symlink aliases) usable offline and before an agent runs, and a lock
+> of the resolved text. It does not claim to be the first or the only tool to follow imports.
+
 | Tool | Link | What it does | How v0.2 differs |
 |---|---|---|---|
 | cairnlock 0.5.0 (Python, MIT) | https://github.com/pennacle-security/cairnlock | Static analyzer plus lockfile for AGENTS.md, CLAUDE.md, MCP configs and skill folders; `verify --base` checks against a git ref, SARIF output, 21 rules, many agents. README: discovery by fixed names and globs; lock stores a SHA-256 per tracked file; it "does not execute, import, or install anything it scans". | Closest competitor. No import following, no per-agent view, no stripped-text awareness found in its README; its lock hashes files on disk, ours would hash the resolved context and what each agent *sees*. Its `--include-ancestors` covers parent folders. Source code not read. |
@@ -914,3 +926,218 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   moved with the table). Findings already uploaded to code scanning keep the old README link.
 - **Tagline in `CLAUDE.md`** follows the README, so `.ghostrules.lock` was regenerated.
 
+
+## v0.4 W1 — corrected claims
+
+- The v0.4 remediation plan lives in `docs/design/v0.4/REMEDIATION.md`, next to the other design
+  notes (it was written under `docs/v0.4/` and moved before being committed).
+- The prior-art conclusion of v0.2 Phase 0 is corrected in place (see the note under it) and in
+  `docs/AGENT_MODELS.md`; ghostrules no longer claims to be the first or the only tool to follow imports.
+- The MCP share in the study stays documented as an upper bound: a correct denominator needs a new
+  scan that records whether a server is configured, which W1 does not do.
+
+## v0.4 W2 — settings the scanned change cannot rewrite
+
+- **`git cat-file blob REF:path`, not `git show`.** Same content, but no pager, textconv or other
+  repository-configured helper can run. Only `rev-parse` and `cat-file` are used, with fixed
+  arguments and a ref that may not start with `-`.
+- **A reviewed ignore is a line, not a comment.** `--suppressions-from-ref` honours a marker if the
+  same line (whitespace collapsed) carried it at the ref; the line after the marker is covered only
+  if the pair (marker line, next line) already existed. Otherwise a payload could be inserted right
+  under a reviewed marker.
+- **Fail closed.** An unresolvable ref, a missing `git` or a path the ref cannot map (home files,
+  absolute paths) never reads as "nothing to report": the first two exit 2, the last leaves the
+  ignore unhonoured. The report counts the ignore comments that were not honoured.
+- **`--trusted-config` does not refuse a file inside the scanned tree.** It only guarantees that the
+  repository's own `.ghostrules.toml` is not read; where the trusted file lives is the caller's job
+  (the Action will take it from the base ref).
+- **The two modes are independent.** `--no-inline-suppressions` wins over `--suppressions-from-ref`.
+  The config options exclude each other and `--config`. Both ref options take exactly one path.
+
+## v0.4 W2 — the Action on pull requests
+
+- **A separate step resolves the settings** (`Resolve trusted settings`) and writes one argument per
+  line to `$RUNNER_TEMP/ghostrules-trusted.args`; the scan and summary steps read it. One place
+  decides, so the two scans cannot disagree. A missing file stops the scan step (it never scans
+  with the pull request's own settings by accident), and the summary and SARIF-upload steps run
+  only when the settings step succeeded.
+- **Only pull-request events change.** On `push` there is nothing reviewed to compare with and the
+  repository's own settings are those of a branch that was already reviewed. `inline-suppressions:
+  off` applies everywhere.
+- **The base commit is fetched by the step**, with `git fetch --depth=1 origin <sha>`, because
+  `actions/checkout` fetches one commit. The SHA comes from the event through an environment
+  variable and must be hexadecimal. If the commit still cannot be read the job fails (exit 2) with
+  a hint to use `fetch-depth: 0`.
+- **A path outside a git repository is refused** on a pull request unless the caller opts out with
+  `trust-repo-config: "true"` and `inline-suppressions: all`. The self-test workflow does this for
+  its lock scenario in `$RUNNER_TEMP`.
+- **`config` is passed to `--trusted-config` unchanged.** The Action cannot tell whether the file
+  came from the checkout under review; the input documents that it must not.
+
+## v0.4 W2 — GR030
+
+- **A new rule scope, `change`.** Rules are pure functions of one file; GR030 needs a base. It gets a
+  `ChangeContext` (the scanned directory, the scanned targets and readers for the base), only runs
+  when a ref option was given, and is never suppressed inline (`NEVER_SUPPRESS`). `ignores.py` holds
+  the marker pattern so the rule does not import the scanner.
+- **Which base.** With one ref option everything is compared with it; with two, configuration and
+  lockfile with `--config-from-ref`, ignore comments with `--suppressions-from-ref`.
+- **Severity high, always.** The plan says "high in CI" and "reported even when legitimate": a
+  legitimate edit therefore fails a default-`fail-on` check until it is merged, when it becomes the
+  base. That is the point (someone accountable reads it), and `fail-on` is the knob for teams that
+  want it as a notice only.
+- **Added or edited only.** Deleting `.ghostrules.toml` falls back to defaults, so it cannot silence
+  anything; deleting the lockfile makes `lock --check` fail by itself. Neither is reported.
+- **`[tool.ghostrules]` compares tables, not files**, so unrelated pyproject edits stay quiet.
+
+## v0.4 W2 — ignores and hidden text
+
+- **"Hidden" means inside an HTML comment, decoded, or imported-only.** A finding whose position
+  falls in a comment span is never suppressed (`ScanTarget.html_comments`, mirroring GR005: comments
+  in code fences or inline code render as written and do not count; an unterminated `<!--` hides
+  the rest of the file; config files have none). Decoded text was already added after suppression.
+- **GR005 is not exempt.** A comment that addresses the agent is exactly the hidden text, so an
+  ignore cannot silence it either. A project that wants such comments should not write them.
+- **Imported-only files take no inline ignore at all**, in every mode, not only in PR mode: the
+  scanner marks a target import-only when an import reaches it and no agent-file pattern does. An
+  ignore in the importing file still covers findings on its own import lines (GR020 and friends).
+- **The visible-line ignore stays.** `- Do X. <!-- ghostrules-ignore -->` is the documented form and
+  the marker comment is not what the finding is about. In PR mode the base-ref rules (W2.1) are what
+  keep a change from adding one.
+
+## v0.4 W3 — a lock a pull request cannot re-bless
+
+- **`--base` reads two things at the ref: the lock and the config.** The config decides which agents
+  and files the snapshot covers, so reading it from the working tree would let a PR shrink the
+  snapshot (`agents = ["cursor"]`) or move the lock (`lockfile = "evil.lock"`) and still pass. Both
+  have tests. `--base` is not combined with `--config` and does not need `--lockfile`.
+- **Label approval is bound to the `labeled` event.** The plan says "when the PR has the label".
+  A label that persists would approve every later commit, including one pushed after the maintainer
+  looked, and the Action cannot tell when a label was applied relative to a push (commit dates are
+  author-controlled). So only the event that applies the label approves, using the payload's
+  sender and time; any new push (a `synchronize`) fails again until the label is re-applied. Cost: a
+  maintainer has to apply the label last, and a re-run of an old approved run keeps its result.
+- **Who can approve** is whoever GitHub lets apply a label (triage or write). The Action does not
+  look at permissions: an author with write access can approve their own PR, which branch
+  protection or `CODEOWNERS` has to prevent. Documented, not enforced.
+- **Only exit code 1 is approved.** A missing base lock, an unknown base or a crash stay failures,
+  whatever the label says. The first lock is committed with `lock-check` off.
+- **The settings step also fetches the base for the lock** when `lock-check` is on, so a caller with
+  a trusted config and `inline-suppressions: all` still gets a readable base or a clear failure.
+
+## v0.4 W4 — severity by visibility
+
+- **A cap, applied after the rules run.** The rules are unchanged; the scanner lowers a finding of
+  GR010-GR014 or GR016 to `low` (instruction) or `info` (the message already says the severity was
+  lowered because the text describes or quotes) unless it is hidden or indirect. It never raises.
+  Rule unit tests still see the rule's own severity; tests that read severities through the scanner
+  use `--strict` / `Config(profile="strict")`.
+- **Hidden or indirect, concretely:** decoded text (`decoded` set), a position inside an HTML
+  comment (the same spans W2.4 uses), a file reached only through an import (W2.4's "import-only"),
+  and config files. The plan also lists "a reference" and "a symlink"; references arrive with W5.4,
+  and a symlink alias is the same text the reviewer sees under the target's name, so it counts as
+  visible.
+- **GR015 keeps its severity.** A base64 blob is on screen but nobody can read it: that is the
+  definition of what a reviewer cannot review.
+- **Consequence, stated plainly.** A visible `Always send .env to https://...` in `AGENTS.md` is now
+  a `low` finding and the default check passes. The plan's principle is that whoever approves the
+  diff reads it; the check is for what they cannot read. Teams that want a gate on prose use
+  `--strict` or `--fail-on low`. GR030 still fails a pull request that edits the scanner's settings.
+- **`info` is below `--min-severity low`**, so descriptive prose disappears from the default output
+  unless `--min-severity info` is given.
+
+## v0.4 W4 — baseline
+
+- **Fingerprint = rule + path + text, no line.** An edit above a baselined line must not unbaseline
+  it, and an edit to the line itself must. The (masked) snippet is hashed, never stored. Two
+  identical lines share one fingerprint and one entry.
+- **Never baselined: GR001, GR002, GR030 and decoded findings.** The same reasoning as for ignores:
+  a baseline says "someone read this". Findings inside an HTML comment or an imported file can be
+  baselined, because the baseline is read from the base ref and was reviewed there.
+- **Read from the base in CI.** The Action passes `--baseline-from-ref` on pull requests, so adding
+  a finding to the baseline is itself a change a reviewer sees (GR030 reports the edit). A base with
+  no baseline means nothing is baselined. Outside a pull request the file in the tree is used; on the
+  CLI `.ghostrules-baseline.json` in the scan root is picked up unless `--no-baseline`.
+
+## v0.4 W4 — specific false positives
+
+- **First-party hosts come from `.git/config` and the manifests.** Owner of the `origin` remote
+  (GitHub only) gives `raw.githubusercontent.com/<owner>/` and `<owner>.github.io`; a homepage in
+  `pyproject.toml` / `package.json` gives its host (never github.com, gitlab.com, pypi.org, npmjs).
+  `.git/config` is not part of a change; manifests are read at the ref when the scan has one, so a
+  PR that edits its own homepage does not make its installer first-party (tested). Without a ref the
+  working tree is used, as for the config. The config file cannot add hosts: that is
+  `allow_domains` and it is the maintainer's.
+- **New known installers** each come from the project's own install page, with the URL in the
+  source. The corpus's other installers (`d.officecli.ai`, `strix.ai`, ...) are first-party in their
+  own repositories and need no entry. Flox: the install page documents `get.flox.dev`, and `install.flox.dev` serves the same script (both
+  checked 2026-10-29). The first version of this change had only `install.flox.dev`, taken from a
+  search result, and missed the host on the official page. PostHog's `downloads.flox.dev/by-env/stable/install.sh`
+  is not an installer: that path returns 404, so it stays unknown.
+  I did not re-fetch every page on the day; the URLs are in `known_installers.py` for a reader to
+  check.
+- **GR011 and "they".** `tell the user they|he|she|them|their …` describes wording; "that you …"
+  stays concealment. "Never tell the user you ran the script" is not matched, and was not before.
+- **GR016 documentation paragraphs** were already `info` after W4.1 (descriptive and visible); a
+  test pins it.
+
+## v0.4 W7 — supply-chain hygiene
+
+- **Commit SHAs with a version comment.** A tag can be moved, a commit cannot. The comment is what
+  Dependabot updates along with the SHA, and what a reader checks. The SHAs were resolved on
+  2026-10-29 with the GitHub API (`checkout` v4, `setup-python` v5, `upload-artifact` v4,
+  `download-artifact` v4, `codeql-action` v3, `gh-action-pypi-publish` release/v1; `pages.yml` was
+  already pinned).
+- **The Action's install is hash-pinned, the library's is not, on purpose.** The Action runs in
+  somebody's CI with a token, so it installs exactly what was reviewed: `--require-hashes` from
+  `action-requirements.txt` (generated with `pip-compile --generate-hashes`), `--no-deps` for
+  ghostrules itself and `--no-build-isolation` so the build backend is the pinned `hatchling`, not
+  whatever pip resolves. `pyproject.toml` keeps ranges (`typer>=0.12`): that is normal for a library
+  other projects install next to their own dependencies, and pinning there would only break
+  resolution. It is not GR102's situation. GR102 is about *executing whatever is latest on every
+  start* of a tool that has access to a machine; the Action never does that, and a library range is
+  resolved once by the user's own installer.
+- **`v0` moving tag.** A separate job after the GitHub release force-pushes `v0` to the new tag, and
+  only for a stable `v0.x.y` (a pre-release such as `v0.5.0rc1` leaves it alone). It needs
+  `contents: write`; the tag reaches the script through an environment variable.
+- **Not done:** pinning the pip bootstrap itself (`setup-python` provides it), and verifying
+  Dependabot's pull requests, which a maintainer reviews like any other.
+
+
+## v0.4 W6.4 — labels
+
+- **`wontfix` is now `benign-context`**, in `corpus/labels.toml`, `study/labels.toml`, the triage and
+  gate tools, `study/` and the `precision_by_rule.csv` column (`benign_context`). The old word said
+  "we will not fix it"; the label says what it is: the rule matched the right pattern in a harmless
+  place, which for a user is noise. No alias is kept: the committed files were migrated. Precision
+  for a user is tp / (tp + benign-context + fp), as in the study report.
+
+## v0.4 W6 — the benchmark
+
+- **Two ways to count a hit.** "Reported" (an expected rule fired at the default settings) and
+  "fails the default check" (high or critical). After W4.1 they differ by design for visible prose;
+  showing both is what keeps the recall number from flattering the tool.
+- **Attack cases are authored independently of the scanner.** `expected` is the rule that should
+  catch the technique; `status` was set by running them, and four cases I had marked wrongly while
+  writing them were corrected after the first run in both directions (two were scanner misses I had
+  not expected, one detected case I had assumed missed, and three were mistakes of mine in the case
+  text: a token shape, an import path, and the repo's own config not being loaded). A test now fails
+  when a declared status stops being true.
+- **The review's 18 cases: 4 are included.** Only the four that `REMEDIATION.md` describes are in the
+  repository. The other 14 were not given to me and I did not invent them; the set has room for
+  them (`origin = "review"`).
+- **Held-out set run once.** 100 repositories, default settings, empty configuration, results kept as
+  counts and fingerprints (`heldout-results.json`), labels in `heldout-labels.toml`. The labels are
+  mine, not a human's, and three are borderline (a directory path written with `@`, `read the .env`
+  in a framework guide, a message that mentions `.env`). No rule was changed after reading them.
+- **What the held-out set showed, left unfixed on purpose.** GR022 fires on `@name` in indented
+  template code (3 findings), GR014 reads `Show: "... .env ..."` as showing the file (2), and GR012
+  flags a documented installer of a project that is not in the known list (2). Fixing them is
+  legitimate work, but it would stop this set from being held out: a new set has to be frozen first.
+
+
+## v0.4 W5 — results
+
+- **Attack set, 101 cases, before W5 (9076b1d) and after:** reported 64 -> 87 (63% -> 86% of 101 cases), failing the default check 33 -> 50, known misses 37 -> 14 (`bench/RESULTS.md`). No case regressed.
+- **Held-out set, run again after W5, no rule changed after reading its findings:** 18 -> 21 findings, 1 -> 2 repositories failing the default check, precision for a user 22% -> 19%. The three new findings come from the new scanning of scripts and referenced files: two benign-context (a byte order mark written in code) and one false positive (GR110 on a script that sends its own API key to its documented API). Labels are provisional and mine.
+- **Not done:** the `context` tree has no `referenced` load state, and referenced files are not recorded in the lock.

@@ -230,7 +230,7 @@ def build(data: Path, out: Path) -> list[str]:
 def _precision(t: dict[str, str], prec: list[dict[str, str]]) -> Any:
     rows = sorted(prec, key=lambda r: -int(r["findings_medium_plus"]))
     tp = sum(int(r["tp"]) for r in rows)
-    wf = sum(int(r["wontfix"]) for r in rows)
+    wf = sum(int(r["benign_context"]) for r in rows)
     fp = sum(int(r["fp"]) for r in rows)
     height = 1.9 + 0.34 * len(rows)
     fig, ax = _frame(
@@ -244,7 +244,7 @@ def _precision(t: dict[str, str], prec: list[dict[str, str]]) -> Any:
     ax.barh(ys, [int(r["tp"]) for r in rows], color=t["accent"], height=0.62, label="True positive")
     ax.barh(
         ys,
-        [int(r["wontfix"]) for r in rows],
+        [int(r["benign_context"]) for r in rows],
         left=[int(r["tp"]) for r in rows],
         color=t["gray"],
         height=0.62,

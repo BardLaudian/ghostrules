@@ -4,30 +4,44 @@ from __future__ import annotations
 
 import json
 import re
-from collections.abc import Callable, Iterable
-from dataclasses import replace
+from collections.abc import Callable, Iterable, Sequence
+from dataclasses import dataclass, replace
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 from ghostrules._compat import tomllib
 from ghostrules.agents import Repo
+from ghostrules.changeset import ChangeBase, ChangeContext
 from ghostrules.config import Config
 from ghostrules.contextscan import FileMeta, RootContext, build_context, collect_meta, relabel_via
+from ghostrules.ignores import IGNORE_RE as _IGNORE_RE
+from ghostrules.ignores import ReviewedMarks, normalise_line
 from ghostrules.jsonloc import strip_jsonc
 from ghostrules.models import Finding, ScanResult, ScanTarget
+from ghostrules.reach import ScriptRef, hook_scripts, prose_references, skill_scripts
 from ghostrules.rules import Rule, all_rules
 from ghostrules.scancontext import ScanContext
 from ghostrules.secrets import mask_secrets
 from ghostrules.targets import Candidate, discover, home_targets, matches_any
+from ghostrules.visibility import by_visibility
 
 # Invisible-character findings must never be silenceable from inside the scanned file.
-NEVER_SUPPRESS: frozenset[str] = frozenset({"GR001", "GR002"})
+NEVER_SUPPRESS: frozenset[str] = frozenset({"GR001", "GR002", "GR030"})
 
-_IGNORE_RE = re.compile(r"ghostrules-ignore(?:\s*:\s*((?:GR\d{3}(?:\s*,\s*)?)+))?", re.IGNORECASE)
 _RULE_ID_RE = re.compile(r"GR\d{3}", re.IGNORECASE)
 
 # Maps a 1-based line number to the rule ids it ignores; ``None`` means every rule.
 Suppressions = dict[int, "frozenset[str] | None"]
+
+
+@dataclass(frozen=True)
+class SuppressionPolicy:
+    """Which ``ghostrules-ignore`` comments are honoured. ``all`` (the default) honours every one;
+    ``off`` honours none; ``base`` honours only those that already existed at a trusted ref, found
+    through ``reviewed(path)``. The scanned change cannot add an ignore to silence itself."""
+
+    mode: Literal["all", "off", "base"] = "all"
+    reviewed: Callable[[str], ReviewedMarks] | None = None
 
 
 def parse_structured(path: str, text: str) -> tuple[Any, str | None]:
@@ -52,6 +66,7 @@ def load_target(
     label: str | None = None,
     allow_domains: tuple[str, ...] = (),
     trust_known_installers: bool = True,
+    first_party: tuple[Any, ...] = (),
 ) -> ScanTarget:
     """Read a candidate as UTF-8 (``surrogateescape``, so bad bytes never crash) and parse it."""
     data = candidate.abs_path.read_bytes()
@@ -66,11 +81,18 @@ def load_target(
         parse_error=error,
         allow_domains=allow_domains,
         trust_known_installers=trust_known_installers,
+        first_party=first_party,
     )
 
 
-def parse_suppressions(lines: Iterable[str]) -> Suppressions:
-    """Find ``ghostrules-ignore[: GR010,GR012]`` markers; each covers its line and the next."""
+_NO_IGNORES = SuppressionPolicy("off")
+
+
+def parse_suppressions(lines: Sequence[str], honour: ReviewedMarks | None = None) -> Suppressions:
+    """Find ``ghostrules-ignore[: GR010,GR012]`` markers; each covers its line and the next.
+
+    With ``honour`` only reviewed ignores count: a marker covers its own line if that line existed
+    with the marker at the trusted ref, and the next line only if that pair of lines did."""
     table: Suppressions = {}
     for number, line in enumerate(lines, start=1):
         match = _IGNORE_RE.search(line)
@@ -78,7 +100,14 @@ def parse_suppressions(lines: Iterable[str]) -> Suppressions:
             continue
         ids = match.group(1)
         scope = frozenset(m.upper() for m in _RULE_ID_RE.findall(ids)) if ids else None
+        marker = normalise_line(line)
+        following = normalise_line(lines[number]) if number < len(lines) else ""
         for covered in (number, number + 1):
+            if honour is not None:
+                if covered == number and marker not in honour.marks:
+                    continue
+                if covered == number + 1 and (marker, following) not in honour.pairs:
+                    continue
             existing = table.get(covered, frozenset())
             if scope is None or existing is None:
                 table[covered] = None
@@ -87,9 +116,35 @@ def parse_suppressions(lines: Iterable[str]) -> Suppressions:
     return table
 
 
-def is_suppressed(finding: Finding, table: Suppressions) -> bool:
-    """Whether an inline marker silences this finding (never GR001/GR002)."""
+def suppressions_for(target: ScanTarget, policy: SuppressionPolicy | None = None) -> Suppressions:
+    """The suppression table of a target under ``policy`` (``None`` honours every marker)."""
+    if policy is None or policy.mode == "all":
+        return parse_suppressions(target.lines)
+    if policy.mode == "off" or policy.reviewed is None:
+        return {}  # "base" without a lookup fails closed: nothing is reviewed
+    return parse_suppressions(target.lines, policy.reviewed(target.path))
+
+
+def unhonoured_markers(target: ScanTarget, policy: SuppressionPolicy | None) -> int:
+    """How many ignore comments in ``target`` the policy did not honour (for the report)."""
+    if policy is None or policy.mode == "all":
+        return 0
+    markers = [n for n, line in enumerate(target.lines, start=1) if _IGNORE_RE.search(line)]
+    if not markers:
+        return 0
+    honoured = suppressions_for(target, policy)
+    return sum(1 for n in markers if n not in honoured)
+
+
+def is_suppressed(finding: Finding, table: Suppressions, target: ScanTarget | None = None) -> bool:
+    """Whether an inline marker silences this finding.
+
+    Never GR001, GR002 or GR030, and never a finding inside an HTML comment: the agent reads that
+    text and a reviewer looking at the rendered file does not, so a marker next to it cannot be
+    taken as the reviewer's approval."""
     if finding.rule_id in NEVER_SUPPRESS or finding.line not in table:
+        return False
+    if target is not None and target.in_html_comment(target.offset(finding.line, finding.column)):
         return False
     scope = table[finding.line]
     return scope is None or finding.rule_id in scope
@@ -103,7 +158,12 @@ def _run_rules(target: ScanTarget, rules: Iterable[Rule], errors: list[str]) -> 
     """Run applicable rules; a crashing rule is recorded in ``errors`` rather than aborting."""
     found: list[Finding] = []
     for r in rules:
-        if r.scope != "file" or target.kind not in r.applies_to:
+        if r.scope != "file":
+            continue
+        # code that an agent runs gets the generic "any file" checks (hidden characters) as well
+        if target.kind not in r.applies_to and not (
+            target.kind == "script" and "other" in r.applies_to
+        ):
             continue
         try:
             found.extend(r.check(target))
@@ -150,7 +210,10 @@ def _scan_decoded(
 
 
 def scan_target(
-    target: ScanTarget, config: Config, rules: Iterable[Rule]
+    target: ScanTarget,
+    config: Config,
+    rules: Iterable[Rule],
+    policy: SuppressionPolicy | None = None,
 ) -> tuple[list[Finding], int, list[str]]:
     """Scan one target. Returns ``(findings, suppressed_count, errors)``.
 
@@ -159,11 +222,11 @@ def scan_target(
     """
     errors: list[str] = []
     active = _applicable(rules, config)
-    table = parse_suppressions(target.lines)
+    table = suppressions_for(target, policy)
     kept: list[Finding] = []
     suppressed = 0
     for finding in _run_rules(target, active, errors):
-        if is_suppressed(finding, table):
+        if is_suppressed(finding, table, target):
             suppressed += 1
         else:
             kept.append(finding)
@@ -232,6 +295,8 @@ def _run_graph_rules(
     config: Config,
     rule_list: list[Rule],
     result: ScanResult,
+    policy: SuppressionPolicy | None = None,
+    import_only: frozenset[str] = frozenset(),
 ) -> list[Finding]:
     """GR020-GR025: once per scan root, with suppression by the importing file's own markers."""
     graph_rules = [
@@ -266,11 +331,80 @@ def _run_graph_rules(
                 f = _relabel_finding(f, rc.label_of, ctx)
                 target = by_label.get(f.path)
                 if target is not None:
-                    table = tables.setdefault(f.path, parse_suppressions(target.lines))
-                    if is_suppressed(f, table):
+                    table = tables.setdefault(
+                        f.path,
+                        suppressions_for(target, _NO_IGNORES if f.path in import_only else policy),
+                    )
+                    if is_suppressed(f, table, target):
                         result.suppressed += 1
                         continue
                 found.append(f)
+    return found
+
+
+def _run_change_rules(
+    ctx: ChangeContext, config: Config, rule_list: list[Rule], result: ScanResult
+) -> list[Finding]:
+    """Rules that compare the scanned tree with a trusted base ref. Never suppressed inline."""
+    found: list[Finding] = []
+    for r in rule_list:
+        if r.scope != "change" or r.check_change is None or r.id in config.disable:
+            continue
+        try:
+            found.extend(r.check_change(ctx))
+        except Exception as exc:  # a buggy rule must not hide every other finding
+            detail = mask_secrets(f"{type(exc).__name__}: {exc}")
+            result.errors.append(f"rule {r.id} failed: {detail}")
+    return found
+
+
+_REACH_TAGS = {
+    "hook command": "reached-via-hook",
+    "skill script": "reached-via-skill",
+    "prose reference": "reached-via-reference",
+}
+
+
+def _scan_reached_scripts(
+    base: Path,
+    by_label: dict[str, ScanTarget],
+    config: Config,
+    rule_list: list[Rule],
+    result: ScanResult,
+) -> list[Finding]:
+    """Scripts that hooks and skills run: read from inside the tree only, scanned as code, and
+    reported with the chain that reaches them. Never read through a link that leaves the tree."""
+    repo = Repo(base)
+    refs: dict[str, ScriptRef] = {}
+    for label, target in by_label.items():
+        if target.kind == "config":
+            for ref in hook_scripts(label, target.text, repo.is_file):
+                refs.setdefault(ref.path, ref)
+        elif target.path.endswith("SKILL.md"):
+            for ref in skill_scripts(label, target.text, repo.is_file):
+                refs.setdefault(ref.path, ref)
+        if target.kind == "instructions":
+            for ref in prose_references(label, target.text, repo.is_file):
+                if ref.kind == "script" or ref.path not in by_label:
+                    refs.setdefault(ref.path, ref)
+    code_rules = [r for r in rule_list if "script" in r.applies_to]
+    found: list[Finding] = []
+    for ref in refs.values():
+        data = repo.read(ref.path)
+        if data is None:
+            continue
+        script = ScanTarget(ref.path, ref.kind, data.decode("utf-8", errors="surrogateescape"))  # type: ignore[arg-type]
+        known = (
+            ref.path in by_label and ref.kind == "script"
+        )  # already read under --all-files: only the code rules are new
+        if not known:
+            result.scanned_files += 1
+        kept, _, errors = scan_target(
+            script, config, code_rules if known else rule_list, _NO_IGNORES
+        )
+        tag = _REACH_TAGS.get(ref.why, "reached-via-hook")
+        found.extend(replace(f, via=(ref.via,), tags=(*f.tags, tag)) for f in kept)
+        result.errors.extend(errors)
     return found
 
 
@@ -293,6 +427,8 @@ def scan_paths(
     include_home: bool = False,
     rules: Iterable[Rule] | None = None,
     home_dir: Path | None = None,
+    suppressions: SuppressionPolicy | None = None,
+    change_base: ChangeBase | None = None,
 ) -> ScanResult:
     """Scan one or more files/directories (plus user-level configs with ``include_home``).
 
@@ -347,6 +483,8 @@ def scan_paths(
         candidates.append((cand, label))
 
     seen: set[Path] = set()
+    unhonoured = unhonoured_imported = 0
+    import_only_labels: set[str] = set()
     findings: list[Finding] = []
     by_label: dict[str, ScanTarget] = {}
     for cand, label in candidates:
@@ -355,7 +493,13 @@ def scan_paths(
             continue
         seen.add(resolved)
         try:
-            target = load_target(cand, label, config.allow_domains, config.trust_known_installers)
+            target = load_target(
+                cand,
+                label,
+                config.allow_domains,
+                config.trust_known_installers,
+                config.first_party,
+            )
         except OSError as exc:
             result.warnings.append(f"cannot read {label}: {exc.strerror or exc}")
             continue
@@ -366,13 +510,60 @@ def scan_paths(
         result.scanned_files += 1
         if target.parse_error:
             result.warnings.append(mask_secrets(f"cannot parse {label}: {target.parse_error}"))
-        kept, suppressed, errors = scan_target(target, config, rule_list)
         is_standalone = label in standalone or bool(info and info.rooted)
+        # A file an agent reaches only through an import is not reviewed with the file that imports
+        # it, so an ignore inside it is not an approval: no inline ignore counts there.
+        import_only = bool(info and info.via and not is_standalone)
+        policy = _NO_IGNORES if import_only else suppressions
+        if import_only:
+            import_only_labels.add(label)
+        kept, suppressed, errors = scan_target(target, config, rule_list, policy)
+        skipped = unhonoured_markers(target, policy)
+        if import_only:
+            unhonoured_imported += skipped
+        else:
+            unhonoured += skipped
+        if config.profile != "strict":
+            kept = [by_visibility(f, target, import_only=import_only) for f in kept]
         findings.extend(_annotate(f, info, is_standalone) for f in kept)
         result.suppressed += suppressed
         result.errors.extend(errors)
 
-    findings.extend(_run_graph_rules(contexts, by_label, config, rule_list, result))
+    if len(roots) == 1 and roots[0].is_dir():
+        findings.extend(_scan_reached_scripts(roots[0], by_label, config, rule_list, result))
+    findings.extend(
+        _run_graph_rules(
+            contexts,
+            by_label,
+            config,
+            rule_list,
+            result,
+            suppressions,
+            frozenset(import_only_labels),
+        )
+    )
+    if change_base is not None and len(roots) == 1:
+        root = roots[0] if roots[0].is_dir() else roots[0].parent
+        findings.extend(
+            _run_change_rules(
+                ChangeContext(root, config.lockfile, change_base, by_label),
+                config,
+                rule_list,
+                result,
+            )
+        )
+    if unhonoured_imported:
+        noun = "comment" if unhonoured_imported == 1 else "comments"
+        result.warnings.append(
+            f"{unhonoured_imported} ghostrules-ignore {noun} in files reached only through an "
+            "import not honoured: nobody reviews them together with the file that imports them"
+        )
+    if unhonoured:
+        noun = "comment" if unhonoured == 1 else "comments"
+        result.warnings.append(
+            f"{unhonoured} ghostrules-ignore {noun} not honoured: only ignores that were already "
+            "reviewed are trusted in this mode"
+        )
     visible = [f for f in _dedupe(findings) if f.severity >= config.min_severity]
     result.findings = sort_findings(visible)
     return result

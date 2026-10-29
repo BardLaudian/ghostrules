@@ -1,5 +1,5 @@
 # Triaged findings, keyed by fingerprint (corpus/triage.py appends here).
-# label = "tp" | "fp" | "wontfix" | "reported". An "fp" needs severity and
+# label = "tp" | "fp" | "benign-context" | "reported". An "fp" needs severity and
 # test = "tests/test_x.py::test_name". "reported" and "tp" never name the repository.
 #
 # [[label]]
@@ -15,7 +15,7 @@ reason = "stray invisible character, benign but real"
 
 [[label]]
 fingerprint = "8c5e76e4813fb1ea"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "high"
 repo = "NousResearch/hermes-agent"
@@ -23,7 +23,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "7c02f5db0dd17a03"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "high"
 repo = "NousResearch/hermes-agent"
@@ -31,7 +31,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "6c85dff9550a03e6"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "NousResearch/hermes-agent"
@@ -39,7 +39,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "d661f380dcdf2279"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "NousResearch/hermes-agent"
@@ -47,7 +47,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "38ba64ec20cd0946"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "NousResearch/hermes-agent"
@@ -55,7 +55,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "dc3c697a1aa8e39e"
-label = "wontfix"
+label = "benign-context"
 rule = "GR014"
 severity = "high"
 repo = "NousResearch/hermes-agent"
@@ -63,7 +63,7 @@ reason = "reads a dotenv file for configuration; legitimate reference"
 
 [[label]]
 fingerprint = "c43133243bcd79fb"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "NousResearch/hermes-agent"
@@ -71,7 +71,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "4454dfd6bad54cd0"
-label = "wontfix"
+label = "benign-context"
 rule = "GR014"
 severity = "high"
 repo = "NousResearch/hermes-agent"
@@ -79,7 +79,7 @@ reason = "reads a dotenv file for configuration; legitimate reference"
 
 [[label]]
 fingerprint = "fb486179d1efe09b"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "high"
 repo = "NousResearch/hermes-agent"
@@ -87,7 +87,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "aeef6244eb0880ae"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "NousResearch/hermes-agent"
@@ -95,7 +95,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "951bd14d8af3192a"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "NousResearch/hermes-agent"
@@ -103,7 +103,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "3bbd097fe0f55744"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "NousResearch/hermes-agent"
@@ -111,7 +111,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "48a234ca59a759c4"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "NousResearch/hermes-agent"
@@ -119,7 +119,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "06fbc79d729ea084"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "medium"
 repo = "NousResearch/hermes-agent"
@@ -127,7 +127,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "75fc45f3af9b3585"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "medium"
 repo = "NousResearch/hermes-agent"
@@ -135,7 +135,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "9b52308e92be788e"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "medium"
 repo = "NousResearch/hermes-agent"
@@ -143,7 +143,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "31e1a29710e58d42"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "medium"
 repo = "NousResearch/hermes-agent"
@@ -151,7 +151,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "0f0b1018a043e095"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "medium"
 repo = "NousResearch/hermes-agent"
@@ -159,7 +159,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "8105d29c9f2591e5"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "medium"
 repo = "NousResearch/hermes-agent"
@@ -167,7 +167,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "5dc9c43d3af19f11"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "medium"
 repo = "NousResearch/hermes-agent"
@@ -175,7 +175,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "6a07f77af9064f37"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "medium"
 repo = "NousResearch/hermes-agent"
@@ -183,7 +183,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "ee6c46fecf34e7f4"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "medium"
 repo = "NousResearch/hermes-agent"
@@ -191,7 +191,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "4642bb6c98e6b13e"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "medium"
 repo = "NousResearch/hermes-agent"
@@ -199,7 +199,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "ed677b7a88bdc48b"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "high"
 repo = "Shubhamsaboo/awesome-llm-apps"
@@ -214,7 +214,7 @@ reason = "instruction to always bypass permissions, detected as intended"
 
 [[label]]
 fingerprint = "c2ccb42e3ad1badf"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "alibaba/nacos"
@@ -222,7 +222,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "6e42e0bdd3df75aa"
-label = "wontfix"
+label = "benign-context"
 rule = "GR011"
 severity = "medium"
 repo = "anomalyco/opencode"
@@ -230,7 +230,7 @@ reason = "descriptive or benign wording, not concealment"
 
 [[label]]
 fingerprint = "7a622bb3943990e1"
-label = "wontfix"
+label = "benign-context"
 rule = "GR014"
 severity = "high"
 repo = "bytedance/deer-flow"
@@ -238,7 +238,7 @@ reason = "reads a dotenv file for configuration; legitimate reference"
 
 [[label]]
 fingerprint = "cc11a8d0c33e05f9"
-label = "wontfix"
+label = "benign-context"
 rule = "GR014"
 severity = "high"
 repo = "bytedance/deer-flow"
@@ -253,7 +253,7 @@ reason = "hidden comment addressed to agents, detected as intended"
 
 [[label]]
 fingerprint = "4fb968f7320176b7"
-label = "wontfix"
+label = "benign-context"
 rule = "GR011"
 severity = "high"
 repo = "coollabsio/coolify"
@@ -261,7 +261,7 @@ reason = "descriptive or benign wording, not concealment"
 
 [[label]]
 fingerprint = "a13526562d5066a1"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "dataease/dataease"
@@ -276,7 +276,7 @@ reason = "unpinned package execution, detected as intended"
 
 [[label]]
 fingerprint = "577b75d80cda3491"
-label = "wontfix"
+label = "benign-context"
 rule = "GR014"
 severity = "high"
 repo = "deepseek-ai/deepseek-harness"
@@ -298,7 +298,7 @@ reason = "unpinned package execution, detected as intended"
 
 [[label]]
 fingerprint = "5314cc74c9a50676"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "google-gemini/gemini-cli"
@@ -306,7 +306,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "71db275c8614604a"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "google-gemini/gemini-cli"
@@ -314,7 +314,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "831c690ff20a985d"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "iOfficeAI/OfficeCLI"
@@ -322,7 +322,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "d641a7239c43ab40"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "iOfficeAI/OfficeCLI"
@@ -330,7 +330,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "9244208f976e920c"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "iOfficeAI/OfficeCLI"
@@ -338,7 +338,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "2b747b3352737712"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "iOfficeAI/OfficeCLI"
@@ -346,7 +346,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "b7a0846a02b62ebd"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "iOfficeAI/OfficeCLI"
@@ -354,7 +354,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "536eb1b29979276c"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "iOfficeAI/OfficeCLI"
@@ -362,7 +362,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "82fbaaba9fc2434d"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "iOfficeAI/OfficeCLI"
@@ -370,7 +370,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "344e1e6939bd009b"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "iOfficeAI/OfficeCLI"
@@ -378,7 +378,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "5e5db24860d4452f"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "iOfficeAI/OfficeCLI"
@@ -386,7 +386,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "23cedb4e2647128a"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "iOfficeAI/OfficeCLI"
@@ -394,7 +394,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "48d5a39967eb4075"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "iOfficeAI/OfficeCLI"
@@ -402,7 +402,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "2e077bfb26644831"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "iOfficeAI/OfficeCLI"
@@ -410,7 +410,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "10b07493f0cc8e77"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "itwanger/toBeBetterJavaer"
@@ -418,7 +418,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "3eedd61b3febab23"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "itwanger/toBeBetterJavaer"
@@ -426,7 +426,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "4e4d1b769da8e61a"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "medium"
 repo = "itwanger/toBeBetterJavaer"
@@ -469,7 +469,7 @@ reason = "unpinned package execution, detected as intended"
 
 [[label]]
 fingerprint = "140d695fe7e9ca34"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "meteor/meteor"
@@ -477,7 +477,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "12d9caafbe620f52"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "microsoft/vscode"
@@ -485,7 +485,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "33527891e5f998a1"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "high"
 repo = "microsoft/vscode"
@@ -493,7 +493,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "d249eff7d298c7d3"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "high"
 repo = "microsoft/vscode"
@@ -501,7 +501,7 @@ reason = "documents or describes a flag; does not instruct its use"
 
 [[label]]
 fingerprint = "28341c738757bdb3"
-label = "wontfix"
+label = "benign-context"
 rule = "GR014"
 severity = "high"
 repo = "midudev/autoskills"
@@ -509,7 +509,7 @@ reason = "reads a dotenv file for configuration; legitimate reference"
 
 [[label]]
 fingerprint = "39d501d8bceda606"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "moby/moby"
@@ -524,7 +524,7 @@ reason = "unpinned package execution, detected as intended"
 
 [[label]]
 fingerprint = "e5f296dced797852"
-label = "wontfix"
+label = "benign-context"
 rule = "GR014"
 severity = "medium"
 repo = "n8n-io/n8n"
@@ -532,7 +532,7 @@ reason = "reads a dotenv file for configuration; legitimate reference"
 
 [[label]]
 fingerprint = "bb21805290bb3b98"
-label = "wontfix"
+label = "benign-context"
 rule = "GR016"
 severity = "medium"
 repo = "n8n-io/n8n"
@@ -575,7 +575,7 @@ reason = "stray invisible character, benign but real"
 
 [[label]]
 fingerprint = "2f14441c01187d7c"
-label = "wontfix"
+label = "benign-context"
 rule = "GR011"
 severity = "high"
 repo = "pbakaus/impeccable"
@@ -583,7 +583,7 @@ reason = "descriptive or benign wording, not concealment"
 
 [[label]]
 fingerprint = "2fbacabb6a317eb8"
-label = "wontfix"
+label = "benign-context"
 rule = "GR011"
 severity = "high"
 repo = "pbakaus/impeccable"
@@ -591,7 +591,7 @@ reason = "descriptive or benign wording, not concealment"
 
 [[label]]
 fingerprint = "2354b3d2f4464f3e"
-label = "wontfix"
+label = "benign-context"
 rule = "GR010"
 severity = "high"
 repo = "ruvnet/RuView"
@@ -627,7 +627,7 @@ reason = "permissive agent setting, detected as intended"
 
 [[label]]
 fingerprint = "044456d188285133"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "thedotmack/claude-mem"
@@ -635,7 +635,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "be7717570b7bd95f"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "thedotmack/claude-mem"
@@ -643,7 +643,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "9d08630d627dff99"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "thedotmack/claude-mem"
@@ -651,7 +651,7 @@ reason = "visible installer or named pattern in a code block; documented behavio
 
 [[label]]
 fingerprint = "ff4858695d86809c"
-label = "wontfix"
+label = "benign-context"
 rule = "GR012"
 severity = "high"
 repo = "thedotmack/claude-mem"

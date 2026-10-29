@@ -16,12 +16,16 @@ from rich.text import Text
 from typer.core import TyperGroup
 
 from ghostrules import __version__
+from ghostrules import baseline as baseline_mod
 from ghostrules import lock as lock_mod
 from ghostrules.agents.claude_code import DEFAULT_MODE as CLAUDE_DEFAULT_MODE
 from ghostrules.agents.claude_code import MODES as CLAUDE_MODES
+from ghostrules.changeset import ChangeBase
 from ghostrules.clean import clean_text, unified_diff
 from ghostrules.config import Config, ConfigError, load_config
 from ghostrules.context_command import ContextError, ContextReport, build_report, find_root
+from ghostrules.firstparty import first_party_installers
+from ghostrules.gitref import GitRefError, RefReader, config_at_ref, reviewed_lookup
 from ghostrules.models import ScanResult, Severity
 from ghostrules.reporters import context as context_report
 from ghostrules.reporters import json_, markdown, sarif, table
@@ -31,7 +35,7 @@ from ghostrules.reveal import build as build_reveal
 from ghostrules.reveal import has_hidden_content
 from ghostrules.rules import all_rules
 from ghostrules.rules.known_installers import KNOWN_INSTALLERS
-from ghostrules.scanner import scan_paths
+from ghostrules.scanner import SuppressionPolicy, scan_paths
 
 EXIT_OK, EXIT_FINDINGS, EXIT_ERROR = 0, 1, 2
 
@@ -153,6 +157,56 @@ def scan(
         Optional[Path],  # noqa: UP045
         typer.Option(help="Path to a config file (default: .ghostrules.toml in the scan root)."),
     ] = None,
+    trusted_config: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option(
+            "--trusted-config",
+            help="Use this config file and never the scanned repository's own config.",
+        ),
+    ] = None,
+    config_from_ref: Annotated[
+        Optional[str],  # noqa: UP045
+        typer.Option(
+            "--config-from-ref",
+            help="Read the config (.ghostrules.toml or [tool.ghostrules]) from this git ref.",
+        ),
+    ] = None,
+    no_inline_suppressions: Annotated[
+        bool,
+        typer.Option("--no-inline-suppressions", help="Ignore every ghostrules-ignore comment."),
+    ] = False,
+    suppressions_from_ref: Annotated[
+        Optional[str],  # noqa: UP045
+        typer.Option(
+            "--suppressions-from-ref",
+            help="Honour a ghostrules-ignore only if the same line already had it at this git ref.",
+        ),
+    ] = None,
+    strict: Annotated[
+        bool,
+        typer.Option(
+            "--strict",
+            help="Report plain visible prose at the rule's own severity (the 0.3 behaviour).",
+        ),
+    ] = False,
+    baseline_file: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option(
+            "--baseline",
+            help="Leave out the findings listed in this baseline (default: "
+            f"{baseline_mod.BASELINE_FILENAME} in the scan root, if there is one).",
+        ),
+    ] = None,
+    no_baseline: Annotated[
+        bool, typer.Option("--no-baseline", help="Do not use a baseline.")
+    ] = False,
+    baseline_from_ref: Annotated[
+        Optional[str],  # noqa: UP045
+        typer.Option(
+            "--baseline-from-ref",
+            help="Read the baseline from this git ref, not the working tree.",
+        ),
+    ] = None,
     no_color: Annotated[bool, typer.Option("--no-color", help="Plain output, no colours.")] = False,
 ) -> None:
     """Scan agent instruction and configuration files for hidden or dangerous content.
@@ -162,15 +216,66 @@ def scan(
     _utf8_streams()
     targets = paths or [Path(".")]
     base = targets[0] if targets[0].is_dir() else targets[0].parent
+    chosen = [n for n, v in (("--config", config), ("--trusted-config", trusted_config),
+                             ("--config-from-ref", config_from_ref)) if v is not None]  # fmt: skip
+    if len(chosen) > 1:
+        _fail(f"{' and '.join(chosen)} cannot be used together: they all say where the config is")
+    config_reader = suppression_reader = baseline_reader = None
+    if any(ref is not None for ref in (config_from_ref, suppressions_from_ref, baseline_from_ref)):
+        if len(targets) != 1:
+            _fail("the options that read a git ref take exactly one path to scan")
+        try:
+            if config_from_ref is not None:
+                config_reader = RefReader(base, config_from_ref)
+            if suppressions_from_ref is not None:
+                suppression_reader = RefReader(base, suppressions_from_ref)
+            if baseline_from_ref is not None:
+                baseline_reader = RefReader(base, baseline_from_ref)
+        except GitRefError as exc:
+            _fail(str(exc))
     try:
-        cfg = load_config(base, config)
-    except ConfigError as exc:
+        if config_reader is not None:
+            cfg = config_at_ref(config_reader)
+        elif trusted_config is not None:
+            cfg = replace(load_config(base, trusted_config), source=f"trusted: {trusted_config}")
+        else:
+            cfg = load_config(base, config)
+    except (ConfigError, GitRefError) as exc:
         _fail(str(exc))
     cfg = _apply_overrides(cfg, fail_on, min_severity, disable)
     if follow_imports is not None:
         cfg = replace(cfg, follow_imports=follow_imports)
+    if strict:
+        cfg = replace(cfg, profile="strict")
 
-    result = scan_paths(targets, cfg, all_files=all_files, include_home=home)
+    cfg = replace(
+        cfg, first_party=_first_party(base, config_reader or suppression_reader or baseline_reader)
+    )
+
+    policy = None
+    if no_inline_suppressions:
+        policy = SuppressionPolicy("off")
+    elif suppression_reader is not None:
+        policy = SuppressionPolicy("base", reviewed_lookup(suppression_reader))
+
+    # GR030 compares with whichever ref was given; with two refs each part uses its own.
+    anchor = config_reader or suppression_reader or baseline_reader
+    change_base = None
+    if anchor is not None:
+        ignores = suppression_reader or anchor
+        change_base = ChangeBase(anchor.read, ignores.read, anchor.ref, ignores.ref)
+
+    result = scan_paths(
+        targets,
+        cfg,
+        all_files=all_files,
+        include_home=home,
+        suppressions=policy,
+        change_base=change_base,
+    )
+    known = _known_findings(base, baseline_file, baseline_reader, no_baseline)
+    if known is not None:
+        result.findings, result.baselined = baseline_mod.apply(result.findings, known)
     label = ", ".join(str(p) for p in targets)
     _emit(result, format_, output, no_color, label)
 
@@ -178,6 +283,98 @@ def scan(
         raise typer.Exit(EXIT_ERROR)
     if cfg.fail_on is not None and any(f.severity >= cfg.fail_on for f in result.findings):
         raise typer.Exit(EXIT_FINDINGS)
+
+
+def _first_party(base: Path, reader: RefReader | None) -> tuple[Any, ...]:
+    """The scanned project's own installer hosts. Read at the base ref when the scan has one, so a
+    change cannot declare its own domain first-party; ``.git/config`` is not part of a change."""
+
+    def read(name: str) -> str | None:
+        if reader is not None:
+            return reader.read(name)
+        try:
+            return (base / name).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return None
+
+    try:
+        git_config = (base / ".git" / "config").read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        git_config = None
+    return first_party_installers(read, git_config)
+
+
+def _known_findings(
+    base: Path, explicit: Path | None, reader: RefReader | None, disabled: bool
+) -> frozenset[str] | None:
+    """The fingerprints of the baseline in use, or ``None`` when there is none."""
+    if disabled:
+        return None
+    try:
+        if reader is not None:
+            text = reader.read(baseline_mod.BASELINE_FILENAME)
+            return baseline_mod.parse(text) if text is not None else frozenset()
+        path = explicit if explicit is not None else base / baseline_mod.BASELINE_FILENAME
+        if explicit is None and not path.is_file():
+            return None
+        return baseline_mod.parse(path.read_text(encoding="utf-8"))
+    except OSError as exc:
+        _fail(f"cannot read the baseline {explicit or baseline_mod.BASELINE_FILENAME}: {exc}")
+    except baseline_mod.BaselineError as exc:
+        _fail(str(exc))
+    return None
+
+
+@app.command()
+def baseline(
+    paths: Annotated[
+        Optional[list[Path]],  # noqa: UP045
+        typer.Argument(help="Files or directories to scan (default: current directory)."),
+    ] = None,
+    output: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option(
+            "--output", "-o", help=f"Baseline file (default: {baseline_mod.BASELINE_FILENAME})."
+        ),
+    ] = None,
+    all_files: Annotated[
+        bool, typer.Option("--all-files", help="Also check every text file for hidden Unicode.")
+    ] = False,
+    config: Annotated[
+        Optional[Path],  # noqa: UP045
+        typer.Option(help="Path to a config file (default: .ghostrules.toml in the scan root)."),
+    ] = None,
+    strict: Annotated[
+        bool, typer.Option("--strict", help="Baseline the 0.3 severities of visible prose.")
+    ] = False,
+) -> None:
+    """Record today's findings so that later scans fail only on new ones.
+
+    Writes fingerprints, never text. Invisible characters, GR002 and GR030 are listed but never
+    hidden by a baseline. In CI the baseline is read from the base ref (scan --baseline-from-ref).
+    """
+    _utf8_streams()
+    targets = paths or [Path(".")]
+    base = targets[0] if targets[0].is_dir() else targets[0].parent
+    try:
+        cfg = load_config(base, config)
+    except ConfigError as exc:
+        _fail(str(exc))
+    if strict:
+        cfg = replace(cfg, profile="strict")
+    result = scan_paths(targets, cfg, all_files=all_files)
+    if result.errors:
+        for error in result.errors:
+            typer.echo(f"error: {safe(error)}", err=True)
+        raise typer.Exit(EXIT_ERROR)
+    document = baseline_mod.build(result.findings)
+    path = output if output is not None else base / baseline_mod.BASELINE_FILENAME
+    try:
+        path.write_text(baseline_mod.to_json(document), encoding="utf-8")
+    except OSError as exc:
+        _fail(f"cannot write {path}: {exc.strerror or exc}")
+    count = len(document["findings"])
+    typer.echo(f"wrote {path}: {count} finding(s) recorded")
 
 
 def _apply_overrides(
@@ -392,6 +589,14 @@ def lock(
         Optional[Path],  # noqa: UP045
         typer.Option(help="Path to a config file (default: .ghostrules.toml in the root)."),
     ] = None,
+    base: Annotated[
+        Optional[str],  # noqa: UP045
+        typer.Option(
+            "--base",
+            help="With --check: compare with the lock and the config at this git ref, "
+            "not the ones in the working tree.",
+        ),
+    ] = None,
     output: Annotated[
         Optional[Path],  # noqa: UP045
         typer.Option("--output", "-o", help="Write the --check report to this file."),
@@ -407,9 +612,18 @@ def lock(
     if check and update:
         raise typer.BadParameter("use either --check or --update", param_hint="--check/--update")
     repo_root = root if root is not None else find_root(Path.cwd())
+    if base is not None and not check:
+        _fail("--base only works with --check")
+    if base is not None and config is not None:
+        _fail("--base and --config cannot be used together: --base reads the config at the ref")
+    reader = None
     try:
-        cfg = load_config(repo_root, config)
-    except ConfigError as exc:
+        if base is not None:
+            reader = RefReader(repo_root, base)
+            cfg = config_at_ref(reader)
+        else:
+            cfg = load_config(repo_root, config)
+    except (ConfigError, GitRefError) as exc:
         _fail(str(exc))
     if claude_instructions_mode not in CLAUDE_MODES:
         raise typer.BadParameter(
@@ -422,7 +636,17 @@ def lock(
     snapshot = lock_mod.build_snapshot(repo_root, cfg, instructions_mode=claude_instructions_mode)
     if check:
         try:
-            diff = lock_mod.diff_lock(lock_mod.read_lock(lock_path), snapshot)
+            if reader is not None:
+                recorded = reader.read(name)
+                if recorded is None:
+                    raise lock_mod.LockError(
+                        f"{reader.ref} has no {name}: there is nothing to compare with. Commit a "
+                        "lock to the base first (create it with: ghostrules lock)"
+                    )
+                pinned = lock_mod.parse_lock(recorded)
+            else:
+                pinned = lock_mod.read_lock(lock_path)
+            diff = lock_mod.diff_lock(pinned, snapshot)
         except lock_mod.LockError as exc:
             _fail(str(exc))
         _emit_lock(diff, name, format_, output, no_color)

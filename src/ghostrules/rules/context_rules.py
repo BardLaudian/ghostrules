@@ -261,6 +261,20 @@ def gr024_reached_via_import(_ctx: ScanContext) -> Iterator[Finding]:
     return iter(())
 
 
+@graph_rule(
+    "GR026",
+    Severity.INFO,
+    "Payload reached through a prose reference",
+    "Not a detector: prose that tells the agent to read and follow a file (or run a script) makes "
+    "that file part of what is scanned; its findings carry the reference chain and the tag "
+    "reached-via-reference. Lower confidence than an @import: the agent may or may not open it.",
+    tag=True,
+)
+def gr026_reached_via_reference(_ctx: ScanContext) -> Iterator[Finding]:
+    """The scanner applies the tag itself; there is nothing to check here."""
+    return iter(())
+
+
 # --- GR025 ---------------------------------------------------------------------------------
 
 

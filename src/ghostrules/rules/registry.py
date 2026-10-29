@@ -9,13 +9,16 @@ from typing import TYPE_CHECKING, Literal
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
 
 if TYPE_CHECKING:
+    from ghostrules.changeset import ChangeContext
     from ghostrules.scancontext import ScanContext
 
 CheckFn = Callable[[ScanTarget], Iterable[Finding]]
 GraphCheckFn = Callable[["ScanContext"], Iterable[Finding]]
-# "file" rules inspect one file, "graph" rules the import graph; "tag" entries document a mark the
-# scanner puts on findings and have no check of their own.
-Scope = Literal["file", "graph", "tag"]
+ChangeCheckFn = Callable[["ChangeContext"], Iterable[Finding]]
+# "file" rules inspect one file, "graph" rules the import graph and "change" rules what a change
+# set altered compared with a base ref; "tag" entries document a mark the scanner puts on findings
+# and have no check of their own.
+Scope = Literal["file", "graph", "change", "tag"]
 
 
 @dataclass(frozen=True)
@@ -37,6 +40,7 @@ class Rule:
     scans_decoded: bool = False
     scope: Scope = "file"
     check_graph: GraphCheckFn | None = None
+    check_change: ChangeCheckFn | None = None
 
 
 _REGISTRY: dict[str, Rule] = {}
@@ -107,6 +111,34 @@ def graph_rule(
                 check=_no_findings,
                 scope="tag" if tag else "graph",
                 check_graph=fn,
+            )
+        )
+        return fn
+
+    return decorator
+
+
+def change_rule(
+    rule_id: str,
+    severity: Severity,
+    title: str,
+    description: str,
+    applies_to: Iterable[Kind] = ("instructions", "config"),
+) -> Callable[[ChangeCheckFn], ChangeCheckFn]:
+    """Decorator registering a rule that compares the scanned tree with a base ref (a
+    ``ChangeContext``). It only runs when the scan was given a base."""
+
+    def decorator(fn: ChangeCheckFn) -> ChangeCheckFn:
+        register(
+            Rule(
+                id=rule_id,
+                severity=severity,
+                title=title,
+                description=description,
+                applies_to=frozenset(applies_to),
+                check=_no_findings,
+                scope="change",
+                check_change=fn,
             )
         )
         return fn

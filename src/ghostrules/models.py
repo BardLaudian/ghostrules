@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import enum
+import re
 from bisect import bisect_right
 from dataclasses import dataclass, field
 from functools import cached_property
@@ -11,10 +12,12 @@ from typing import TYPE_CHECKING, Any, Literal, NamedTuple
 from ghostrules.markdown_utils import FencedBlock, fenced_blocks, inline_code_spans
 from ghostrules.secrets import mask_secrets
 
+_HTML_COMMENT_RE = re.compile(r"<!--.*?(?:-->|\Z)", re.DOTALL)
+
 if TYPE_CHECKING:
     from ghostrules.mcp_config import ServerDef
 
-Kind = Literal["instructions", "config", "other"]
+Kind = Literal["instructions", "config", "other", "script"]
 """What a scanned file is: agent instructions, agent/MCP config, or any other text file."""
 
 
@@ -64,6 +67,7 @@ class Finding:
     via: tuple[str, ...] = ()
     agents: tuple[str, ...] = ()
     tags: tuple[str, ...] = ()
+    confidence: str = ""
 
     def __post_init__(self) -> None:
         # Single choke point: whatever built this finding, no secret survives in its text, so no
@@ -80,6 +84,8 @@ class Finding:
             value = getattr(self, name)
             if value:
                 data[name] = list(value)
+        if self.confidence:
+            data["confidence"] = self.confidence
         return data
 
     def _base_dict(self) -> dict[str, Any]:
@@ -129,6 +135,7 @@ class ScanTarget:
     origin: str | None = None
     allow_domains: tuple[str, ...] = ()
     trust_known_installers: bool = True
+    first_party: tuple[Any, ...] = ()
     agent_views: tuple[AgentView, ...] = ()
     lines: list[str] = field(init=False)
 
@@ -199,6 +206,25 @@ class ScanTarget:
                 return block
         return None
 
+    @cached_property
+    def html_comments(self) -> list[tuple[int, int]]:
+        """Spans of HTML comments a renderer hides but an agent may read (computed once).
+
+        Empty for config files. Comments in fenced code or inline code render as written, so they
+        are not hidden. An unterminated ``<!--`` hides the rest of the document.
+        """
+        if self.kind == "config":
+            return []
+        spans = []
+        for match in _HTML_COMMENT_RE.finditer(self.text):
+            if self.code_block_at(match.start()) is None and not self.in_inline_code(match.start()):
+                spans.append((match.start(), match.end()))
+        return spans
+
+    def in_html_comment(self, offset: int) -> bool:
+        """Whether ``offset`` is inside a hidden HTML comment."""
+        return any(start <= offset < end for start, end in self.html_comments)
+
     def offset(self, line: int, column: int) -> int:
         """Character offset of a 1-based ``(line, column)`` (clamped to the text)."""
         index = min(max(line, 1), len(self._line_starts)) - 1
@@ -222,6 +248,7 @@ class ScanResult:
     findings: list[Finding] = field(default_factory=list)
     scanned_files: int = 0
     suppressed: int = 0
+    baselined: int = 0
     config_source: str | None = None
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)

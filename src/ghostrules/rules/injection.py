@@ -10,12 +10,15 @@ from __future__ import annotations
 import ipaddress
 import re
 from collections.abc import Iterable, Iterator
+from dataclasses import replace
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
 from ghostrules.rules.directive import classify, downgrade_note, severity_for
 from ghostrules.rules.helpers import build_finding, host_allowed, urls_allowed
 from ghostrules.rules.known_installers import extract_urls, is_risky_url, known_installer
 from ghostrules.rules.patterns import (
+    _SECRET,
+    _SENSITIVE_PATH,
     COLLECTOR_PATTERNS,
     EXFIL_PATTERNS,
     INJECTION_PATTERNS,
@@ -240,7 +243,7 @@ def _gr012_verdict(
     if not target.trust_known_installers:
         return Severity.CRITICAL, _GR012_BASE, []
     where = "a code block" if _in_code(target, span[0]) else "prose"
-    known = [known_installer(u) for u in urls]
+    known = [known_installer(u, target.first_party) for u in urls]
     if urls and all(known):
         projects = sorted({k.project for k in known if k})
         message = f"curl … | sh from a well-known installer ({', '.join(projects)}) in {where}"
@@ -363,6 +366,47 @@ def gr013_exfiltration(target: ScanTarget) -> Iterator[Finding]:
             span,
             fix_hint="Remove the reference, or add the domain to allow_domains if it is yours.",
         )
+    yield from _cross_sentence(target, exfil)
+
+
+_SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
+_NEGATED = re.compile(r"\b(?:never|do\s+not|don'?t|must\s+not|avoid|without|not\s+to)\b", re.I)
+_SECRET_IN_SENTENCE = re.compile(f"{_SECRET}|{_SENSITIVE_PATH}", re.I)
+_SEND_VERB = re.compile(r"(?<!\.)\b(?:send|post|upload|append|forward|exfiltrate|transmit)\b", re.I)
+_HTTP = re.compile(r"https?://[^\s)\]>\"']+", re.I)
+
+
+def _cross_sentence(target: ScanTarget, covered: list[tuple[int, int]]) -> Iterator[Finding]:
+    """A secret in one sentence and a send to a URL in the next, in one paragraph.
+
+    Lower confidence than a single sentence: the two may be unrelated. Prohibitions, code blocks,
+    allowed domains and spans that GR013 already reported are left alone.
+    """
+    for paragraph in re.finditer(r"[^\n](?:.|\n(?!\s*\n))*", target.text):
+        start = paragraph.start()
+        parts: list[tuple[int, str]] = []
+        for piece in _SENTENCE_END.split(paragraph.group()):
+            offset = target.text.find(piece, start)
+            parts.append((offset, piece))
+            start = offset + len(piece)
+        for (first_at, first), (_, second) in zip(parts, parts[1:], strict=False):
+            if not (_SECRET_IN_SENTENCE.search(first) and _SEND_VERB.search(second)):
+                continue
+            urls = [u for u in _HTTP.findall(second) if not urls_allowed(u, target.allow_domains)]
+            if not urls or _NEGATED.search(first) or _NEGATED.search(second):
+                continue
+            span = (first_at, first_at + len(first))
+            if _in_code(target, first_at) or any(s < span[1] and span[0] < e for s, e in covered):
+                continue
+            yield replace(
+                _finding(
+                    target, "GR013", Severity.HIGH, "Data exfiltration",
+                    "A secret is named in one sentence and the next sends something to a URL "
+                    "(medium confidence: the two sentences may be unrelated)",
+                    span, fix_hint="Remove the instruction; never send secrets to external URLs.",
+                ),
+                confidence="medium",
+            )  # fmt: skip
 
 
 # --- GR014 ---------------------------------------------------------------------------------

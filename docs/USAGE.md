@@ -86,12 +86,106 @@ ghostrules scan . --format markdown >> "$GITHUB_STEP_SUMMARY"
 | `--disable GR010,GR012` | | Disable rules |
 | `--follow-imports`, `--no-follow-imports` | on | Scan the files that `@path` imports in instruction files reach |
 | `--config FILE` | auto | Config file (default: `.ghostrules.toml` in the scan root) |
+| `--trusted-config FILE` | | Use this config file and never the scanned repository's own config |
+| `--config-from-ref REF` | | Read `.ghostrules.toml` (or `[tool.ghostrules]`) from this git ref, never the working tree |
+| `--no-inline-suppressions` | off | Ignore every `ghostrules-ignore` comment |
+| `--suppressions-from-ref REF` | | Honour an ignore only if the same line already had it at this git ref |
+| `--baseline FILE` | `.ghostrules-baseline.json` if present | Leave out the findings listed in this baseline |
+| `--no-baseline` | off | Do not use a baseline |
+| `--baseline-from-ref REF` | | Read the baseline from this git ref, never the working tree |
+| `--strict` | off | Report plain visible prose at the rules' own severity (the 0.3 behaviour; see below) |
 | `--no-color` | off | Plain output |
 
 Exit codes: `0` nothing at or above `--fail-on`, `1` findings at or above it, `2` usage or runtime
 error (including a path that does not exist or a rule that crashed, so a broken scan can never look
 clean). For `json`, `sarif` and `markdown`, stdout carries only the report; diagnostics go to
 stderr.
+
+### Severity by visibility (default since 0.4)
+
+What a human cannot review keeps the rule's severity; what a reviewer reads in the diff is the
+reviewer's job. So the prose rules (GR010 to GR014 and GR016) report plain visible text in an agent
+file at `low` when it instructs the agent and `info` when it only describes or quotes something
+(`info` is below the default `--min-severity`, so it is not shown). They keep the rule's own severity
+for text that is **hidden** (in an HTML comment, decoded from invisible characters) or **indirect**
+(a file reached only through an import). GR015 (encoded payloads), the Unicode rules, the import
+rules, GR030 and every configuration rule (GR101 to GR108) are never lowered: they are about what
+cannot be read or what executes. A visible `curl | sh` or "send `.env` to a URL" therefore no longer
+fails the default check, it is a `low` finding for the reviewer. `--strict` (config `profile =
+"strict"`, Action input `profile: strict`) restores the 0.3 severities for teams that want the check
+to fail on them too.
+
+### Adopting it on an existing repository: the baseline
+
+```bash
+ghostrules baseline                 # writes .ghostrules-baseline.json
+ghostrules scan .                   # fails only on findings that are not in the baseline
+```
+
+`ghostrules baseline` records today's findings as fingerprints: rule, path and the text of the
+finding, **not its line number** (so a line that moves stays baselined, and an edited line is a new
+finding). The file holds no snippet, so it cannot carry a secret; it lists rule, path and severity for
+a reviewer. A scan with a baseline leaves those findings out and says how many. Invisible characters
+(GR001), GR002, GR030 and anything decoded from hidden characters are listed but **never hidden**: a
+baseline is a statement that someone read the finding, and nobody can read those.
+
+In a pull request the baseline is read from the base ref (`--baseline-from-ref`, which the Action
+passes), so the change cannot baseline its own findings; editing the baseline is reported by GR030.
+
+### Scanning a pull request: settings the change cannot rewrite
+
+The configuration and the `ghostrules-ignore` comments live in the repository being scanned, so a
+pull request can switch the scanner off for its own payload: an ignore comment at the end of the
+malicious line (Claude Code strips it, the payload still reaches the model), or
+`exclude = ["AGENTS.md"]` in `.ghostrules.toml`. Four options take those settings from what was
+already reviewed:
+
+```bash
+ghostrules scan . --config-from-ref origin/main --suppressions-from-ref origin/main
+ghostrules scan . --trusted-config /path/to/trusted.toml --no-inline-suppressions
+```
+
+- `--config-from-ref REF` reads `.ghostrules.toml`, else `[tool.ghostrules]` in `pyproject.toml`,
+  as they are at `REF` (with no config there, the defaults apply). `--trusted-config FILE` uses
+  a file you point at instead. Neither reads the working tree's config, and they cannot be
+  combined with each other or with `--config`.
+- `--no-inline-suppressions` honours no ignore comment. `--suppressions-from-ref REF` honours one
+  only if the same line (whitespace collapsed, so the ignore itself is part of it) existed at `REF`.
+  A marker also covers the line after it, so that line is covered only if the pair of lines already
+  existed: editing a reviewed line, or inserting a new one under a reviewed marker, loses the
+  protection. The report says how many ignore comments were not honoured.
+- A ref that cannot be resolved (a typo, or a shallow clone that did not fetch it) is an error with
+  exit code `2` and a hint to fetch it; it is never a silent pass. These options take exactly one
+  path to scan.
+- Only `git rev-parse` and `git cat-file` run, with fixed arguments. Nothing from the repository
+  is executed.
+- With either ref option the scan also reports **GR030** when the change adds or edits
+  `.ghostrules.toml`, `[tool.ghostrules]`, the lockfile or a `ghostrules-ignore` comment (see
+  [RULES.md](https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr030)). It is `high`
+  and reported even when the change is legitimate, so a reviewer always sees it: the check fails
+  until `--fail-on` is raised or the change is merged and becomes the new base. It cannot be
+  suppressed inline or disabled by the change itself, only with `--disable GR030`.
+
+The [GitHub Action](#github-action) uses these options by default on pull requests.
+
+## Use the context engine as a library
+
+```python
+from ghostrules.context import resolve, schema
+
+report = resolve("path/to/repo", agent="claude-code", target="src/app.py")
+for entry in report["agents"]["claude-code"]["entries"]:
+    print(entry["load"], entry["path"], entry["via"])
+```
+
+`resolve` is the stable entry point: it returns exactly what `ghostrules context --format json` prints.
+It takes a root, an `agent` (a name from `AGENT_NAMES`, or `"all"` for the configured set), a `cwd`, a
+`target`, `include_home`, `scan` (set `False` to skip the findings) and `show_text`, and raises
+`ContextError` for a bad root, agent or path. It runs offline and executes nothing it reads.
+`schema()` returns the JSON schema (draft 7) of the result, also shipped as
+`ghostrules/schemas/context.schema.json`; a test validates every agent's output against it. Stability:
+fields are only added within a major version; removing or renaming one is a major change. The models
+are `claude-code`, `copilot-cli`, `cursor`, `generic`, `codex` and `gemini-cli`; the last two are opt-in.
 
 ## What it catches
 
@@ -122,7 +216,8 @@ instruction only the model can read.
 A scanner that checks a fixed list of file names misses how agents really build their context:
 
 - `CLAUDE.md` and `AGENTS.md` can **import** other files with `@path`. An imported file lands in
-  the agent's context but matches no "agent file" pattern, so nobody scans it.
+  the agent's context but matches no "agent file" pattern, so a scanner that only matches file names
+  does not scan it.
 - Instruction files **stack** along the directory tree, and some load **on demand** when the agent
   touches a subdirectory.
 - Rules are **conditional** (`paths:` in Claude Code, `globs` in Cursor, `applyTo` in Copilot).
@@ -218,10 +313,27 @@ Changes that only touch text an agent strips (a comment Claude Code removes) are
 fingerprints of lines and not their text.
 
 **What the lock does and does not do.** The lockfile lives in the repository, so a malicious pull
-request can update it too. It is a *visibility* control, not a barrier: it guarantees that any
-change to what an agent reads shows up as an explicit lock diff in the pull request. Add
-`.ghostrules.lock` and your instruction files to `CODEOWNERS` so that someone accountable has to
-approve that diff.
+request can update it too, and `lock --check` on its working tree then passes. Two things close that
+gap. Add `.ghostrules.lock` and your instruction files to `CODEOWNERS` so that someone accountable
+has to approve the diff, and compare with the lock **at the base** (next section).
+
+### In a pull request: `--base`
+
+```bash
+ghostrules lock --check --base origin/main      # the lock and the config come from that ref
+```
+
+With `--base REF` the lock is read from `REF` (`git cat-file`, nothing is executed), and so is the
+configuration that decides what the snapshot contains: a pull request that edits an imported file and
+regenerates `.ghostrules.lock` in the same commit still fails, and it cannot move the lock with
+`lockfile = "other.lock"` or hide the change from an agent with `agents = [...]`. Exit `1` shows the
+diff; exit `2` means the base cannot be compared with (an unknown ref, or no `.ghostrules.lock` at the
+base: commit one first). `--base` only works with `--check` and cannot be combined with `--config`.
+The idea of checking against a git ref comes from
+[cairnlock](https://github.com/pennacle-security/cairnlock)'s `verify --base`.
+
+A legitimate change then needs an approval. In the Action that is the `approve-label` input (see
+[GitHub Action](#github-action)).
 
 Other tools lock agent files too (for example [cairnlock](https://github.com/pennacle-security/cairnlock),
 which hashes the files it tracks and checks them against a git ref). As far as their documentation
@@ -250,7 +362,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: BardLaudian/ghostrules@v0.3.0
+      - uses: BardLaudian/ghostrules@v0.4.0
         with:
           fail-on: high          # critical | high | medium | low | info | none
           all-files: "false"     # also check every text file for hidden Unicode
@@ -268,7 +380,50 @@ jobs:
 | `all-files` | `false` | Also check every text file for hidden Unicode |
 | `upload-sarif` | `true` | Upload to code scanning (needs `security-events: write`) |
 | `follow-imports` | `true` | Also scan the files that `@path` imports in instruction files reach |
-| `lock-check` | `false` | Run `ghostrules lock --check`; fail the job if it differs from `.ghostrules.lock` |
+| `lock-check` | `false` | Run `ghostrules lock --check`; fail the job if it differs from `.ghostrules.lock`. On pull requests the lock is the one at the base commit |
+| `approve-label` | none | A label that approves a change to what the agents read (see below) |
+| `profile` | `default` | `strict` reports plain visible prose at the rules' own severity (see [Severity by visibility](#severity-by-visibility-default-since-04)) |
+| `config` | none | A trusted config file that replaces the repository's own (see below) |
+| `trust-repo-config` | `false` | On pull requests, read the pull request's own `.ghostrules.toml` (the 0.3 behaviour) |
+| `inline-suppressions` | `base` | `base`: on pull requests, only ignore comments that already existed at the base commit. `off`: none. `all`: every comment (0.3) |
+
+**Pinning the Action.** `BardLaudian/ghostrules@v0` follows the latest stable `0.x.y` release (the
+release workflow moves that tag), an exact tag such as `@v0.4.0` stays put, and a full commit SHA is
+the strictest choice. Inside, the Action's own dependencies and build backend are installed from a
+file with a hash for each (`--require-hashes`), and every action it uses is pinned to a commit.
+
+**Pull requests are scanned with the base commit's settings (since 0.4, a breaking change).** On
+`pull_request` and `pull_request_target` events the Action runs the scan with
+`--config-from-ref <base sha>` and `--suppressions-from-ref <base sha>` (see
+[Scanning a pull request](#scanning-a-pull-request-settings-the-change-cannot-rewrite)), so a pull
+request cannot hide its own payload with an ignore comment or an `exclude` in `.ghostrules.toml`.
+Other events (a push to `main`) use the repository's settings as before. Because the Action passes
+the base, a pull request that edits the scanner's configuration, the lockfile or an ignore comment
+also gets a `GR030` finding. To change this:
+`config` points at a trusted file, `inline-suppressions: off` ignores every comment, and
+`trust-repo-config: "true"` with `inline-suppressions: all` restores the 0.3 behaviour (also what a
+path outside a git repository needs). A `config` file must not come from the checkout under review.
+
+**Approving a change to what the agents read.** With `lock-check: "true"` a pull request is compared
+with `.ghostrules.lock` at the base commit (unless `trust-repo-config: "true"`), so changing an
+instruction file fails the check even if the pull request regenerated the lock. To let a legitimate
+change through, set `approve-label: agent-context-approved`, add `labeled` to the workflow's
+`pull_request` types and apply the label. The check then passes, and the job summary says who applied
+it and when (`github.event.sender` and the event time, nothing else is trusted), with the diff that
+was approved. Three properties matter:
+- **Only the event that applies the label approves.** A label that is already there approves
+  nothing, so new commits void an approval: apply it again (remove and add) after the last commit.
+- **Applying a label needs triage or write access**, which a fork author does not have, so an author
+  cannot approve their own pull request from a fork. A collaborator with write access can approve
+  their own: require a second reviewer with branch protection or `CODEOWNERS` if that matters.
+- **Errors are never approved.** If the lock check could not run (an unknown base, no lock at the
+  base), the job fails with the reason in the summary. For the first lock, merge it to the base
+  with `lock-check` off.
+
+The base commit has to be readable. `actions/checkout` fetches one commit by default, so the Action
+fetches the base commit with `git fetch --depth=1` (the Action's step does this, `ghostrules`
+itself never uses the network); if it still cannot read it, the job fails with exit code `2` and a
+message, and nothing is scanned with the pull request's own settings. `fetch-depth: 0` always works.
 
 The SARIF report is always written to `ghostrules.sarif` and summarised; the job is failed only at
 the end, so the upload happens even when the scan finds problems. The upload cannot fail the job
@@ -283,7 +438,7 @@ output `lock-exit-code` is `0` up to date, `1` changed, `2` the check could not 
 ```yaml
 repos:
   - repo: https://github.com/BardLaudian/ghostrules
-    rev: v0.3.0
+    rev: v0.4.0
     hooks:
       - id: ghostrules
 ```
@@ -304,8 +459,8 @@ Matching is case-insensitive on file names. `--home` adds the user-level files m
 | GitHub Copilot / VS Code | `.github/copilot-instructions.md`, `.github/instructions/**/*.instructions.md`, `.github/prompts/**/*.prompt.md`, `.github/chatmodes/**/*.md`, `.vscode/mcp.json`, `mcp.json` |
 | Windsurf | `.windsurfrules`, `.windsurf/rules/**`; `~/.codeium/windsurf/mcp_config.json` |
 | Cline / Roo Code | `.clinerules` (file) and `.clinerules/**`, `.roo/rules*/**`, `.roorules`, `.roo/mcp.json` |
-| Gemini CLI | `GEMINI.md`, `.gemini/**/*.md`, `.gemini/settings.json`; `~/.gemini/settings.json` |
-| Codex CLI | `~/.codex/config.toml` |
+| Gemini CLI | `GEMINI.md`, `.gemini/**/*.md`, `.gemini/settings.json`; `~/.gemini/settings.json`, `~/.gemini/GEMINI.md` |
+| Codex CLI | `AGENTS.override.md` (any directory), `.codex/config.toml`, `.codex/hooks.json`, `.cursor/hooks.json`; `~/.codex/config.toml`, `~/.codex/AGENTS.md`, `~/.codex/AGENTS.override.md` |
 | JetBrains Junie | `.junie/guidelines.md` |
 | Kiro | `.kiro/steering/**/*.md` |
 | Continue | `.continue/rules/**` |
@@ -338,6 +493,7 @@ trust_known_installers = true       # GR012: lower the severity of well-known in
 follow_imports = true               # scan files reached through @path imports
 lockfile = ".ghostrules.lock"       # where `ghostrules lock` writes the pinned context
 agents = ["claude-code", "copilot-cli", "cursor", "generic"]  # agents whose loading is modelled
+profile = "default"                 # "strict": visible prose at the rules' own severity (0.3)
 ```
 
 Command-line options override the config file. Unknown keys are an error, so typos do not silently
@@ -354,6 +510,17 @@ An inline comment suppresses findings on its own line and the next one:
 text.** Invisible characters cannot be reviewed by definition, and an ignore comment lives in the
 same file an attacker controls, so letting it silence the very thing it hides would defeat the
 tool. Remove the characters instead (`ghostrules clean`).
+
+The same holds for any text an agent reads but a reviewer looking at the rendered file does not
+(since 0.4):
+- **A finding inside an HTML comment** is never suppressed, whatever ignore sits next to it. The
+  comment that carries the ignore is not what the finding is about: on a visible line
+  (`- Do X. <!-- ghostrules-ignore -->`) the ignore still works.
+- **An ignore inside a file reached only through an import** is not honoured, because nobody reviews
+  that file together with the file that imports it. The report counts them. A file that is also an
+  agent file (`AGENTS.md` imported by `CLAUDE.md`) keeps its ignores. An ignore in the importing
+  file still covers findings on its own import lines.
+- GR030 (the scanner's own configuration changed) can never be suppressed either.
 
 Because configuration and ignore comments also come from the repository being scanned, a
 malicious pull request could try to switch rules off. The report therefore says when a config file
@@ -418,7 +585,7 @@ not read. The lock is a visibility control, not a barrier (see [Review every cha
 - `--llm`: optional second opinion on suspicious natural-language instructions (a local model or
   an API), off by default and never sending files without the explicit flag.
 - A baseline file to ignore known findings.
-- `context` and `lock` models for more agents: Windsurf, Cline and Roo Code, Gemini CLI, Codex CLI,
+- `context` and `lock` models for more agents: Windsurf, Cline and Roo Code,
   Junie, Kiro, Continue and Aider (their files are already scanned; see
   [docs/AGENT_MODELS.md](https://github.com/BardLaudian/ghostrules/blob/main/docs/AGENT_MODELS.md)).
 - A VS Code extension highlighting invisible characters in agent files.
