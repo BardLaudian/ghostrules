@@ -5,9 +5,11 @@ import re
 import pytest
 import yaml
 from conftest import ROOT, load_script
+from typer.main import get_command
 
 from ghostrules.cli import app
 from ghostrules.rules import all_rules
+from ghostrules.targets import CONFIG_GLOBS, INSTRUCTION_GLOBS
 
 README = (ROOT / "README.md").read_text(encoding="utf-8")
 USAGE = (ROOT / "docs" / "USAGE.md").read_text(encoding="utf-8")
@@ -181,6 +183,49 @@ def test_the_study_reports_precision_for_a_user_with_a_per_rule_table() -> None:
     ) in header.splitlines():  # every percentage in the summary has its numerator/denominator
         for pct in re.finditer(r"\d+(?:\.\d+)?%(?! \()", line):
             assert "true positives" in line or "(" in line[pct.end() :], line
+
+
+def test_design_history_lives_in_docs_design() -> None:
+    for name in ("SPEC.md", "PLAN.md", "v0.1.1", "v0.2"):
+        assert (ROOT / "docs" / "design" / name).exists(), name
+        assert not (ROOT / "docs" / name).exists(), name
+    for name in ("RULES.md", "AGENT_MODELS.md", "DECISIONS.md"):
+        assert (ROOT / "docs" / name).is_file(), name
+    assert "design history" in (ROOT / "CONTRIBUTING.md").read_text("utf-8")
+    claude = (ROOT / "CLAUDE.md").read_text("utf-8")
+    assert "docs/design/SPEC.md" in claude and "docs/design/PLAN.md" in claude
+
+
+def test_usage_documents_every_scan_option() -> None:
+    scan = get_command(app).commands["scan"]  # type: ignore[attr-defined]
+    for param in scan.params:
+        for opt in getattr(param, "opts", []):
+            if opt.startswith("--"):
+                assert f"`{opt}" in USAGE or f"`-o, {opt}" in USAGE, f"{opt} is not in USAGE.md"
+
+
+def test_usage_lists_every_scanned_file_pattern() -> None:
+    for glob in (*INSTRUCTION_GLOBS, *CONFIG_GLOBS):
+        assert glob.removeprefix("**/") in USAGE, f"{glob} is not in the USAGE table"
+    for path in HOME_FILES:
+        assert path in USAGE
+
+
+def test_usage_explains_why_ghost_findings_cannot_be_suppressed() -> None:
+    assert "GR001 and GR002 can never be suppressed" in USAGE
+    assert "ghostrules-ignore" in USAGE and ".ghostrules.toml" in USAGE
+
+
+def test_why_section_links_primary_sources() -> None:
+    why = README.split("## Why")[1].split("## What your agents actually read")[0]
+    for host in (
+        "embracethered.com",
+        "paulbutler.org",
+        "trojansource.codes",
+        "pillar.security",
+        "invariantlabs.ai",
+    ):
+        assert host in why
 
 
 # --- links -----------------------------------------------------------------------------------
