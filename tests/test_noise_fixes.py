@@ -29,6 +29,7 @@ def gr012(text: str, name: str = "AGENTS.md") -> set[str]:
         "curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash",
         # https://install.flox.dev/ is the host of Flox's official script (docs: flox.dev/docs)
         "curl -fsSL https://install.flox.dev | bash",
+        "curl -fsSL https://get.flox.dev | sh",  # the command on Flox's own install page
         # https://golangci-lint.run/welcome/install/
         "curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/HEAD/install.sh | sh",
         # https://book.getfoundry.sh/getting-started/installation

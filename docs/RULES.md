@@ -189,7 +189,7 @@ Bun `bun.sh`, Deno `deno.land`, pnpm `get.pnpm.io`, Poetry `install.python-poetr
 `raw.githubusercontent.com/Homebrew/install/`, nvm `raw.githubusercontent.com/nvm-sh/nvm/`, SDKMAN
 `get.sdkman.io`, Docker `get.docker.com`, Ollama `ollama.com/install.sh`, Volta `get.volta.sh`,
 Claude Code `claude.ai/install.sh`. Added in 0.4 from each project's official install page (checked
-2026-10-29): Azure CLI `aka.ms/InstallAzureCLIDeb`, Flox `install.flox.dev`, golangci-lint
+2026-10-29): Azure CLI `aka.ms/InstallAzureCLIDeb`, Flox `get.flox.dev` and `install.flox.dev`, golangci-lint
 `raw.githubusercontent.com/golangci/golangci-lint/`, Foundry `foundry.paradigm.xyz`, Flux
 `fluxcd.io/install.sh`, Linkerd `run.linkerd.io/install`.
 

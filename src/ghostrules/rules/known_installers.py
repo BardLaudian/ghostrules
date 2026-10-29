@@ -36,7 +36,9 @@ KNOWN_INSTALLERS: tuple[Installer, ...] = (
     # Official install pages, checked 2026-10-29:
     # https://learn.microsoft.com/cli/azure/install-azure-cli-linux
     Installer("Azure CLI", "aka.ms", "/InstallAzureCLIDeb"),
-    # https://install.flox.dev/ hosts the script that https://flox.dev/docs/install-flox points to
+    # https://flox.dev/docs/install-flox/install documents `curl -fsSL https://get.flox.dev | sh`;
+    # install.flox.dev serves the same script (same size, checked 2026-10-29)
+    Installer("Flox", "get.flox.dev"),
     Installer("Flox", "install.flox.dev"),
     # https://golangci-lint.run/welcome/install/
     Installer("golangci-lint", "raw.githubusercontent.com", "/golangci/golangci-lint/"),
