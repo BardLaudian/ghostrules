@@ -18,7 +18,7 @@
 
 `ghostrules` finds the instructions your AI agent sees but you don't: hidden text and risky settings in `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, Copilot instructions, skills and MCP configs. A CLI, a GitHub Action and a pre-commit hook.
 
-**In [1,583 popular repositories](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md):** 44.4 % target two or more AI tools, 16.3 % of root `CLAUDE.md` files are over 200 lines, 33.3 % of MCP setups run unpinned packages and 6 repositories carry hidden Unicode. [Read the study →](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md)
+**A one-day snapshot (2026-10-28) of [1,583 popular repositories](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md) with agent files:** 27 of the 81 that configure MCP servers (33.3 %, an upper bound) start one with an unpinned package, 6 repositories (0.4 %) contain hidden Unicode, all benign, and none has a hardcoded secret. [Read the study →](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md)
 
 ## Install and run
 
@@ -58,7 +58,7 @@ Findings ───────────────────────�
 
 ## Hidden Unicode
 
-The oldest trick is still the best one: an innocent-looking `AGENTS.md` that carries an instruction only the model can read. `ghostrules` decodes it, scans the decoded text again and reports it one severity higher. `reveal` shows every invisible character as a visible token, and `clean` removes exactly what the Unicode rules flag.
+A classic trick: an innocent-looking `AGENTS.md` that carries an instruction only the model can read. `ghostrules` decodes it, scans the decoded text again and reports it one severity higher. `reveal` shows every invisible character as a visible token, and `clean` removes exactly what the Unicode rules flag.
 
 ![ghostrules finds an instruction hidden in an innocent-looking AGENTS.md](https://raw.githubusercontent.com/BardLaudian/ghostrules/main/demo/demo.gif)
 
@@ -71,7 +71,7 @@ $ ghostrules reveal AGENTS.md
 
 ## Review every change to what your agents read
 
-`ghostrules lock` writes a deterministic `.ghostrules.lock`: every file in each agent's context, how it is reached, and a hash of the text the agent really receives. In a pull request, `lock --check` shows what changed with the invisible characters revealed. It is a *visibility* control, not a barrier (the lockfile is in the repository too): put it in `CODEOWNERS`.
+`ghostrules lock` writes a deterministic `.ghostrules.lock`: every file in each agent's context, how it is reached, and a hash of the text the agent really receives. In a pull request, `lock --check --base origin/main` compares with the lock at the base, so a change cannot re-bless itself by regenerating the lockfile, and shows what changed with the invisible characters revealed. It is a *visibility* control, not a barrier: someone accountable still has to approve the diff (`CODEOWNERS`, or the Action's `approve-label`).
 
 ```text
 $ ghostrules lock --check
@@ -89,7 +89,7 @@ ghostrules lock --check  .ghostrules.lock
 
 ```yaml
 - uses: actions/checkout@v4
-- uses: BardLaudian/ghostrules@v0.3.0
+- uses: BardLaudian/ghostrules@v0.4.0
   with:
     fail-on: high        # critical | high | medium | low | info | none
     lock-check: "true"   # fail if what the agents read changed
@@ -98,18 +98,65 @@ ghostrules lock --check  .ghostrules.lock
 ```yaml
 repos:
   - repo: https://github.com/BardLaudian/ghostrules
-    rev: v0.3.0
+    rev: v0.4.0
     hooks:
       - id: ghostrules
 ```
 
-Findings go to the job summary and, with `upload-sarif` (the default), to **Security → Code scanning**. All inputs, permissions and the full workflow are in the [usage guide](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#github-action).
+On pull requests the Action reads the config and the `ghostrules-ignore` comments from the base commit, so a change cannot switch the scanner off for its own payload. Use `@v0` to follow the latest stable 0.x release, or a full commit SHA to pin it. Findings go to the job summary and, with `upload-sarif` (the default), to **Security → Code scanning**. All inputs, permissions and the full workflow are in the [usage guide](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#github-action).
 
 ## How we test precision
 
-A scanner that cries wolf gets switched off, so precision is measured, not assumed. Every week a workflow scans 300 popular public repositories with agent files (`corpus/`, the only part of the project that uses the network) and fails if a critical or high finding has not been reviewed. Each false positive found that way became a test and a rule change. On the first run 0.2.1 reported 84 critical and 156 high findings; 0.3.0 reports none critical and 53 high, all reviewed.
+A scanner that cries wolf gets switched off, and one that misses gets trusted by mistake, so both are
+measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghostrules/blob/main/bench/README.md),
+[full results](https://github.com/BardLaudian/ghostrules/blob/main/bench/RESULTS.md)). Nothing below was tuned on the data it is measured on.
 
-The same tooling scanned 1,583 repositories for [a study of what popular repositories tell their AI agents](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md): aggregates only, no repository is named next to a finding, and every number comes from the CSVs in `study/data/`. `ghostrules` is a set of heuristics, not a proof: see the [limits](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits).
+<!-- bench:start -->
+**Recall: 101 attack cases** written from public sources and defanged. 87 are reported (86%); 50 (50%) fail the default `--fail-on high` check, because visible prose is `low` by default (hidden text and configuration are not). The 14 misses include paraphrases, other languages, scripts and files that nothing points the scanner to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed in the results. 4 cases come from the independent review; its other 14 are not in the repository yet.
+
+| Technique | Cases | Reported | Fails the default check |
+|---|---:|---:|---:|
+| agent-settings | 9 | 8 | 7 |
+| bidi | 3 | 3 | 3 |
+| concealment | 4 | 3 | 0 |
+| encoded-payload | 3 | 3 | 3 |
+| exfiltration | 9 | 7 | 0 |
+| homoglyph | 3 | 3 | 1 |
+| hook-scripts | 7 | 7 | 6 |
+| html-comment | 4 | 4 | 3 |
+| imports | 5 | 5 | 5 |
+| instruction-override | 9 | 6 | 0 |
+| mcp-config | 7 | 7 | 4 |
+| mcp-server-content | 1 | 0 | 0 |
+| referenced-files | 4 | 4 | 4 |
+| remote-code-execution | 7 | 6 | 1 |
+| safety-bypass | 3 | 3 | 0 |
+| scanner-evasion | 2 | 0 | 0 |
+| sensitive-file | 5 | 3 | 0 |
+| skill-scripts | 3 | 2 | 2 |
+| unicode-tags | 7 | 7 | 7 |
+| variation-selectors | 3 | 3 | 3 |
+| zero-width | 3 | 3 | 1 |
+<!-- bench:end -->
+
+**Precision: 100 repositories** frozen before any v0.4 tuning (874 agent files, default settings). They gave 21 findings, and 2 repositories would fail the default check. Precision for a user is true positives over everything reported, because a right pattern in a harmless place is still something to read: **4 of 21 (19 %)**, from labels given by the assistant that ran the benchmark and **not reviewed by a human**. Per rule: GR102 and GR107 1 of 1; GR014 1 of 5; GR022 1 of 6; GR012 0 of 4; GR003 0 of 2; GR011 and GR110 0 of 1 (the new GR110 finding is a script that sends its own API key to the API it documents). Twenty-one findings are too few for a percentage per rule to mean much.
+
+A workflow scheduled weekly scans 300 popular public repositories (`corpus/`, the only part of the project that uses the network) and fails if a critical or high finding has not been reviewed; last run: 2026-10-28. Those rules were tuned on that data, so its numbers are not an estimate of precision on new repositories. On it, 0.2.1 reported 84 critical and 156 high findings and 0.3.0 reports none critical and 53 high. The [study](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md) used the same tooling; `ghostrules` is a set of heuristics, not a proof: see the [limits](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits).
+
+## Alternatives
+
+Other tools look at the same files. This is what their repositories say they do (read on 2026-10-29; I have not run them), and when `ghostrules` is the better fit or not:
+
+| Tool | What it is | Pick it when |
+|---|---|---|
+| **ghostrules** | A context model for several agents (imports, conditional rules, precedence, what each agent strips, symlink aliases), usable offline and before an agent runs, a lock of the resolved text, hidden Unicode, and the scripts that hooks and skills run | you need to know what each agent will actually read, and to review every change to it |
+| [cfgaudit](https://github.com/cfgaudit/cfgaudit) | A static auditor for agent configuration with 116 rules and SARIF output; it follows `@path` imports | you want the widest set of configuration checks |
+| [cairnlock](https://github.com/pennacle-security/cairnlock) | An analyzer and lockfile for agent context files, with `verify --base` against a git ref | you want a plain hash lock of the files; its `--base` idea is the one `ghostrules lock --base` follows |
+| [AgentShield](https://github.com/affaan-m/agentshield) | A scanner for agent configurations, MCP servers and tool permissions, as a CLI and an Action | your concern is configuration and permissions rather than instruction text |
+| [skill-scanner](https://github.com/cisco-ai-defense/skill-scanner) (Cisco) | A scanner for agent skills | skills are what you install from others |
+| [agent-scan](https://github.com/snyk/agent-scan) (Snyk) | A scanner for agents, MCP servers and skills | you want a vendor-backed scan of those three |
+
+`ghostrules` is not a general secret scanner: it finds hardcoded secrets only in agent and MCP configuration. Run a tool such as [gitleaks](https://github.com/gitleaks/gitleaks) over the whole repository as well. The context engine is a [library](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#use-the-context-engine-as-a-library) with a JSON schema, so other tools can use it.
 
 ## Documentation
 

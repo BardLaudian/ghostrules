@@ -198,7 +198,7 @@ def write_json(path: Path, data: Any) -> None:
 
 # --- labels.toml --------------------------------------------------------------------------------
 
-LABELS = ("tp", "fp", "wontfix", "reported")
+LABELS = ("tp", "fp", "benign-context", "reported")
 
 
 @dataclass(frozen=True)

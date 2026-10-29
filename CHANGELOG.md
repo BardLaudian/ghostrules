@@ -5,11 +5,116 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-29
+
+Remediation release, from an independent review of 0.3.0 ([plan](docs/design/v0.4/REMEDIATION.md)).
+The scanned change can no longer switch the scanner off, the lock cannot be re-blessed by a pull
+request, visible prose no longer drowns the check, claims are corrected and measured, and the scanner
+reads more of what agents run. On a new benchmark (101 attack cases and a 100-repository held-out
+set, `bench/`): 87 of 101 attacks reported, 50 fail the default check; precision for a user on the
+held-out set is 19% (4 of 21 findings, labels provisional). Both numbers come with their misses.
+
+**Upgrading: breaking changes.** (1) On pull requests the Action reads the config, the ignore comments,
+the baseline and the lock from the base commit; a path outside a git repository needs
+`trust-repo-config: "true"` and `inline-suppressions: all`. (2) Plain visible prose is `low` or `info`
+by default, so a visible `curl | sh` no longer fails `--fail-on high`; `--strict` (config
+`profile = "strict"`, Action `profile: strict`) restores the 0.3 severities. (3) The label `wontfix` is
+now `benign-context` in the corpus tools. (4) The Action installs from a hash-pinned requirements file.
+
+### Added
+
+- **Scripts that hooks and skills run** (W5.1, W5.2): hook commands of Claude Code, Gemini, Cursor and
+  Codex and scripts named in `SKILL.md` are scanned as code, with the chain that reaches them: GR110
+  (sends the environment or a secret), GR111 (reads credential files), GR112 (downloads and runs code),
+  GR113 (hides what it runs).
+- **The context engine as a library** (W8): `ghostrules.context.resolve()` and `schema()`, a JSON
+  schema for the result validated in the tests, and a README section on alternatives.
+- **Settings a pull request cannot rewrite** (W2 of docs/design/v0.4/REMEDIATION.md): `scan
+  --config-from-ref REF`, `--trusted-config FILE`, `--no-inline-suppressions` and
+  `--suppressions-from-ref REF`. They close two ways a change could silence the scanner for its own
+  payload: a `ghostrules-ignore` comment on the malicious line and `exclude` in `.ghostrules.toml`.
+- **Codex and Gemini CLI** (W5.3): `context` models for both (`--agent codex`, `--agent gemini-cli`;
+  opt-in through `agents`, so existing lockfiles do not change); `AGENTS.override.md`,
+  `.codex/config.toml` and `.codex/hooks.json` are scanned; GR107 reports Codex
+  `sandbox_mode = "danger-full-access"` and `approval_policy = "never"` and Gemini's bare
+  `run_shell_command` allow and `enablePermanentToolApproval`.
+- **Files that prose points to** (W5.4): `Read X and follow every step` and `Run scripts/x.sh` make the
+  file part of the scan, with the chain and the tag `reached-via-reference` (GR026, a tag, not a
+  detector). The `context` tree does not show a `referenced` state yet.
+- **Instructions split across two sentences** (W5.5): GR013 reports a secret in one sentence and a send
+  to a URL in the next, with a new `confidence: medium` field on the finding.
+- **A benchmark you can check** (W6): `bench/` has 81 defanged attack cases written from public
+  sources (recall per technique and per rule, misses listed, four cases from the independent review as
+  known misses) and the 100-repository held-out set run once, with precision for a user per rule. The
+  README now shows these numbers instead of the corpus claims. Labels `wontfix` are now
+  `benign-context`.
+- **Supply-chain hygiene** (W7): every `uses:` in the Action and the workflows is pinned to a full
+  commit SHA (Dependabot keeps them current); the Action installs its dependencies and the build
+  backend from `action-requirements.txt`, hash-pinned, with `--require-hashes --no-deps
+  --no-build-isolation`; the release workflow moves a `v0` tag to each stable `v0.x.y` release.
+- **Fewer false positives from the independent review** (W4): installers of the project's own
+  GitHub organisation and homepage are known installers (read from the base ref when the scan has
+  one); Azure CLI, Flox, golangci-lint, Foundry, Flux and Linkerd are known installers; "do not tell
+  the user they …" is not concealment.
+- **`ghostrules baseline` and `scan --baseline / --no-baseline / --baseline-from-ref`**: record
+  today's findings as fingerprints (no line numbers, no snippets) and fail only on new ones. Hidden
+  text is never baselined. The Action reads the baseline at the base commit on pull requests, and
+  editing it is reported by GR030.
+- **Breaking: severity by visibility.** Plain visible prose in an agent file is now `low` (an
+  instruction) or `info` (a description or quotation) for GR010 to GR014 and GR016; text in an HTML
+  comment, decoded hidden text, files reached only through an import, GR015 and every configuration
+  rule keep their severity. A visible `curl | sh` or "send `.env` to a URL" no longer fails the
+  default check (`--fail-on high`). `--strict`, `profile = "strict"` in the config and the Action's
+  `profile: strict` restore the 0.3 behaviour.
+- **`lock --check --base REF`** (W3): compares with the lock and the config at `REF`, so a pull
+  request that edits what the agents read and regenerates `.ghostrules.lock` still fails. Exit 2 when
+  the ref or its lock does not exist. The idea is cairnlock's `verify --base`.
+- **Breaking: the Action's lock check uses the lock at the base on pull requests**, and a new
+  `approve-label` input lets a maintainer approve a legitimate change by applying a label; only the
+  event that applies it approves (new commits void it), and the summary names who and when. Output
+  `lock-approved`. `trust-repo-config: "true"` restores the working-tree lock.
+- **Inline ignores no longer hide text a reviewer cannot see** (W2): a finding inside an HTML
+  comment is never suppressed, and no ignore counts inside a file that an agent reaches only
+  through an import (the report says how many were not honoured). Decoded hidden text, GR001 and
+  GR002 were already never suppressed. An ignore on a visible line works as before.
+- **GR030, scanner configuration changed** (high): with a base ref, the change adds or edits
+  `.ghostrules.toml`, `[tool.ghostrules]`, the lockfile or a `ghostrules-ignore` comment. Reported
+  even when legitimate, never suppressible inline, and the change cannot disable it. A new `change`
+  scope of rules compares the scanned tree with the base.
+- **Breaking: the Action reads settings from the base commit on pull requests.** On
+  `pull_request` and `pull_request_target` events it passes `--config-from-ref` and
+  `--suppressions-from-ref` with the base SHA, fetching that commit if the checkout is shallow, and
+  fails with exit code 2 when it cannot read it. New inputs: `config`, `trust-repo-config` (default
+  `false`) and `inline-suppressions` (`base`, `off` or `all`; default `base`). Workflows that scan a
+  path outside a git repository on a pull request need `trust-repo-config: "true"` and
+  `inline-suppressions: all`. Other events behave as before.
+
 ### Changed
 
+- **Corrected claims** (W1 of [docs/design/v0.4/REMEDIATION.md](docs/design/v0.4/REMEDIATION.md)).
+  The 0.2 statement that no other tool follows `@path` imports was wrong (cfgaudit does, since
+  2026-10-24): the prior-art notes are corrected and dated, and ghostrules no longer claims to be
+  the first or the only one. The README says "scheduled weekly; last run" instead of "every week".
+  The study report is now "A snapshot (2026-10-28)", puts hygiene statistics apart from security
+  indicators, shows a numerator and denominator next to each percentage, explains the MCP
+  denominator (a lower bound, so the share is an upper bound), counts benign-context matches as noise
+  in a per-rule precision table, and has a "Threats to validity" section. The 0.3.0 notes below are
+  left as published.
 - README restructured as a landing page; option tables, configuration, supported files, FAQ and limits
   moved to `docs/USAGE.md`, and the rules table to `docs/RULES.md`.
 - SARIF `helpUri` points to `docs/RULES.md#grNNN` (the rules table moved there).
+
+### Known limits
+
+- Paraphrases, languages other than English and Spanish (GR013 has no Spanish patterns), a few read
+  verbs (`Open ~/.npmrc`), `exec(urlopen())`, endpoint overrides in settings and the descriptions an MCP
+  server serves are not caught: 14 of the 101 attack cases (`bench/RESULTS.md`).
+- Only 4 of the review's 18 evasion cases are in the attack set; the rest were not available.
+- The held-out labels are provisional (given by the assistant that ran the benchmark, not reviewed by a
+  person) and 21 findings are too few for a per-rule precision estimate.
+- The `context` tree does not show files reached by a prose reference, and the lock does not record
+  them; Codex and Gemini CLI models are opt-in.
+- The MCP share in the study is an upper bound (its denominator is a lower bound).
 
 ## [0.3.0] - 2026-10-28
 

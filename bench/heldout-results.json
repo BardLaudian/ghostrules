@@ -1,0 +1,116 @@
+{
+  "date": "2026-10-29",
+  "ghostrules_version": "0.3.0",
+  "commit": "8ce68eb",
+  "repos_total": 100,
+  "repos_scanned": 100,
+  "files_scanned": 874,
+  "repos_failing_default_check": 2,
+  "findings": [
+    {
+      "rule_id": "GR003",
+      "severity": "medium",
+      "fingerprint": "9bbdb7040fd0ec4c"
+    },
+    {
+      "rule_id": "GR003",
+      "severity": "medium",
+      "fingerprint": "bb0c349b96b0b696"
+    },
+    {
+      "rule_id": "GR011",
+      "severity": "low",
+      "fingerprint": "3af6852303974536"
+    },
+    {
+      "rule_id": "GR012",
+      "severity": "low",
+      "fingerprint": "39a619f0add3d572"
+    },
+    {
+      "rule_id": "GR012",
+      "severity": "low",
+      "fingerprint": "7b302e46fc168571"
+    },
+    {
+      "rule_id": "GR012",
+      "severity": "low",
+      "fingerprint": "8046e4aa3d7fff17"
+    },
+    {
+      "rule_id": "GR012",
+      "severity": "low",
+      "fingerprint": "87af339eb5cc1626"
+    },
+    {
+      "rule_id": "GR014",
+      "severity": "low",
+      "fingerprint": "7f3c86ebf1cbcb23"
+    },
+    {
+      "rule_id": "GR014",
+      "severity": "low",
+      "fingerprint": "8667a78c2845032e"
+    },
+    {
+      "rule_id": "GR014",
+      "severity": "low",
+      "fingerprint": "95602096758bd17b"
+    },
+    {
+      "rule_id": "GR014",
+      "severity": "low",
+      "fingerprint": "b6f4e55477e27b6e"
+    },
+    {
+      "rule_id": "GR014",
+      "severity": "low",
+      "fingerprint": "b849861e014b5402"
+    },
+    {
+      "rule_id": "GR022",
+      "severity": "low",
+      "fingerprint": "0b013db928942af7"
+    },
+    {
+      "rule_id": "GR022",
+      "severity": "low",
+      "fingerprint": "0f25eefee1ec571d"
+    },
+    {
+      "rule_id": "GR022",
+      "severity": "low",
+      "fingerprint": "7e1e4c0519e13b45"
+    },
+    {
+      "rule_id": "GR022",
+      "severity": "low",
+      "fingerprint": "8791df166ba3fb61"
+    },
+    {
+      "rule_id": "GR022",
+      "severity": "low",
+      "fingerprint": "c1659ad8b7f41976"
+    },
+    {
+      "rule_id": "GR022",
+      "severity": "low",
+      "fingerprint": "d50de00e0809c6dd"
+    },
+    {
+      "rule_id": "GR102",
+      "severity": "medium",
+      "fingerprint": "c1ceb1be9a299196"
+    },
+    {
+      "rule_id": "GR107",
+      "severity": "high",
+      "fingerprint": "ee4e0163bb47a5ef"
+    },
+    {
+      "rule_id": "GR110",
+      "severity": "high",
+      "fingerprint": "b0bc035fe09bc4a1"
+    }
+  ]
+}

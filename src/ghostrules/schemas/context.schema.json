@@ -1,0 +1,107 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/BardLaudian/ghostrules/blob/main/src/ghostrules/schemas/context.schema.json",
+  "title": "ghostrules context report, schema 1",
+  "description": "What ghostrules.context.resolve() returns and `ghostrules context --format json` prints. Stable: fields are only added within a major version; removing or renaming one is a major change.",
+  "type": "object",
+  "required": ["version", "cwd", "target", "agents", "findings", "summary", "warnings", "errors"],
+  "properties": {
+    "version": {"type": "string", "description": "The ghostrules version that wrote the report."},
+    "cwd": {"type": "string", "description": "Directory of the session, relative to the root (empty: the root)."},
+    "target": {"type": ["string", "null"], "description": "File the agent is working on, relative to the root."},
+    "agents": {
+      "type": "object",
+      "description": "One context per modelled agent, keyed by agent name.",
+      "additionalProperties": {"$ref": "#/definitions/graph"}
+    },
+    "findings": {
+      "type": ["array", "null"],
+      "description": "Scan findings of the files in the context; null when the scan was skipped.",
+      "items": {"$ref": "#/definitions/finding"}
+    },
+    "summary": {
+      "type": "object",
+      "required": ["files", "findings", "findings_outside_context", "by_severity"],
+      "properties": {
+        "files": {"type": "integer"},
+        "findings": {"type": "integer"},
+        "findings_outside_context": {"type": "integer"},
+        "by_severity": {"type": "object", "additionalProperties": {"type": "integer"}}
+      }
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}},
+    "errors": {"type": "array", "items": {"type": "string"}}
+  },
+  "definitions": {
+    "graph": {
+      "type": "object",
+      "required": ["entries", "edges", "cycles", "notes"],
+      "properties": {
+        "entries": {"type": "array", "items": {"$ref": "#/definitions/entry"}},
+        "edges": {"type": "array", "items": {"$ref": "#/definitions/edge"}},
+        "cycles": {"type": "array", "items": {"type": "array", "items": {"type": "string"}}},
+        "notes": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "entry": {
+      "type": "object",
+      "description": "One file the agent would load.",
+      "required": ["path", "load", "reason", "via", "transforms", "raw_sha256", "seen_sha256", "readable", "unverified", "condition", "matches", "note"],
+      "properties": {
+        "path": {"type": "string"},
+        "load": {"enum": ["always", "conditional", "on_demand", "agent_decides", "manual", "blocked"]},
+        "reason": {"type": "string"},
+        "via": {"type": "array", "items": {"type": "string"}, "description": "Import chain, each step 'path:line'."},
+        "transforms": {"type": "array", "items": {"type": "string"}, "description": "Changes the agent makes before the model sees the text."},
+        "raw_sha256": {"type": "string"},
+        "seen_sha256": {"type": "string", "description": "Hash of the text the agent receives."},
+        "readable": {"type": "boolean"},
+        "unverified": {"type": "boolean", "description": "The agent's documentation is silent on this point."},
+        "condition": {"type": "string"},
+        "matches": {"type": ["boolean", "null"]},
+        "note": {"type": "string"},
+        "alias_of": {"type": "string"},
+        "link_problem": {"type": "string"},
+        "text": {"type": "string", "description": "Only with show_text."}
+      }
+    },
+    "edge": {
+      "type": "object",
+      "description": "One @path import occurrence.",
+      "required": ["source", "target", "written", "line", "column", "status", "hop", "unverified", "note", "hint"],
+      "properties": {
+        "source": {"type": "string"},
+        "target": {"type": "string"},
+        "written": {"type": "string"},
+        "line": {"type": "integer"},
+        "column": {"type": "integer"},
+        "status": {"enum": ["loaded", "duplicate", "missing", "directory", "quoted", "external", "blocked", "symlink", "too_large", "depth", "cycle", "sensitive"]},
+        "hop": {"type": "integer"},
+        "unverified": {"type": "boolean"},
+        "note": {"type": "string"},
+        "hint": {"type": "string"}
+      }
+    },
+    "finding": {
+      "type": "object",
+      "required": ["rule_id", "severity", "title", "message", "path", "line", "column", "end_column", "snippet", "decoded", "fix_hint"],
+      "properties": {
+        "rule_id": {"type": "string", "pattern": "^GR[0-9]{3}$"},
+        "severity": {"enum": ["critical", "high", "medium", "low", "info"]},
+        "title": {"type": "string"},
+        "message": {"type": "string"},
+        "path": {"type": "string"},
+        "line": {"type": "integer"},
+        "column": {"type": "integer"},
+        "end_column": {"type": "integer"},
+        "snippet": {"type": "string"},
+        "decoded": {"type": ["string", "null"]},
+        "fix_hint": {"type": "string"},
+        "via": {"type": "array", "items": {"type": "string"}},
+        "agents": {"type": "array", "items": {"type": "string"}},
+        "tags": {"type": "array", "items": {"type": "string"}},
+        "confidence": {"type": "string"}
+      }
+    }
+  }
+}

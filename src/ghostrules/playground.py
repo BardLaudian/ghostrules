@@ -75,9 +75,10 @@ def _node(node: Node) -> dict[str, Any]:
     }
 
 
-def analyze(files: Mapping[str, str]) -> dict[str, Any]:
+def analyze(files: Mapping[str, str], *, strict: bool = False) -> dict[str, Any]:
     """Scan ``files`` as a repository. Returns findings, the per-agent context tree, the
-    revealed text of every file with hidden content and the three downloadable reports."""
+    revealed text of every file with hidden content and the three downloadable reports.
+    ``strict`` reports visible prose at the rules' own severity (see ``visibility``)."""
     if len(files) > MAX_FILES:
         raise PlaygroundError(f"too many files ({len(files)}, limit {MAX_FILES})")
     if sum(len(t.encode("utf-8", "replace")) for t in files.values()) > MAX_TOTAL_BYTES:
@@ -89,7 +90,7 @@ def analyze(files: Mapping[str, str]) -> dict[str, Any]:
             target = root / path
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(text.encode("utf-8", "surrogatepass"))
-        config = Config()
+        config = Config(profile="strict" if strict else "default")
         result = scan_paths([root], config)
         report = build_report(root, config)
         context = {

@@ -1,0 +1,10 @@
+# Keeps the commit-pinned actions in .github/workflows and action.yml up to date: each update is a
+# pull request that changes the SHA and its version comment.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "chore"

@@ -304,7 +304,7 @@ def test_the_poisoned_demo_keeps_its_findings() -> None:
     from ghostrules.scanner import scan_paths
 
     demo = Path(__file__).resolve().parent.parent / "examples" / "poisoned-repo"
-    result = scan_paths([demo], Config())
+    result = scan_paths([demo], Config(profile="strict"))
     counts = Counter(f.severity.label for f in result.findings)
     assert dict(counts) == {"critical": 9, "high": 15, "medium": 3, "low": 1}
 

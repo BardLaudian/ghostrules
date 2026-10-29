@@ -43,7 +43,6 @@ def picture(name: str, alt: str) -> str:
 def render(data: Path) -> str:
     """The report text."""
     fam = {r["family"]: r for r in table(data / "adoption_families.csv")}
-    tools = table(data / "tools_per_repo.csv")
     rel = {r["relation"]: r for r in table(data / "claude_agents_relation.csv")}
     lines = table(data / "instruction_file_lines.csv")
     nums = {r["id"]: r for r in table(data / "numbers.csv")}
@@ -54,19 +53,32 @@ def render(data: Path) -> str:
     cond = {r["metric"]: r["value"] for r in table(data / "conditional_rules.csv")}
     depth = {r["metric"]: r for r in table(data / "imports.csv")}
     total = sum(sample.values())
-    multi = sum(float(r["pct_of_repos"]) for r in tools if int(r["tools_targeted"]) >= 2)
     both = sum(int(r["repos"]) for r in rel.values())
     over200 = sum(int(r["files"]) for r in lines if r["lines"] in ("201-400", "401+"))
     all_lines = sum(int(r["files"]) for r in lines)
-    tp, wf, fp, un = (sum(int(r[k]) for r in prec) for k in ("tp", "wontfix", "fp", "unlabelled"))
+    tp, wf, fp, un = (
+        sum(int(r[k]) for r in prec) for k in ("tp", "benign_context", "fp", "unlabelled")
+    )
 
     def n(key: str) -> str:
         r = nums[key]
         return f"{r['pct']}% ({int(r['repos']):,} of {int(r['of']):,})"
 
-    return f"""# What {total:,} popular repos tell their AI agents
+    def share(count: str | int, of: int, pct: str) -> str:
+        """``70.7% (1,119 of 1,583)``: a percentage always carries its numerator and denominator."""
+        return f"{pct}% ({int(count):,} of {of:,})"
 
-*The state of AI agent instruction files, October 2026.*
+    def rel_n(key: str) -> str:
+        return share(rel[key]["repos"], both, rel[key]["pct_of_repos_with_both"])
+
+    def precision(tp_: int, benign: int, fp_: int) -> str:
+        total_ = tp_ + benign + fp_
+        return f"{tp_ / total_ * 100:.0f}% ({tp_} of {total_})" if total_ else "n/a"
+
+    return f"""# A snapshot (2026-10-28) of what {total:,} popular repos tell their AI agents
+
+*One day, one scan, popular open-source repositories that have agent files. Not a trend and not a
+sample of all software.*
 
 We scanned the agent files of {total:,} popular public repositories with
 [ghostrules](https://github.com/BardLaudian/ghostrules): `AGENTS.md`, `CLAUDE.md`, Cursor and Copilot
@@ -75,19 +87,30 @@ finding, and every number below comes from the CSVs in [`data/`](data/).
 
 ## In short
 
-- **`AGENTS.md` is the shared language.** It is in {fam["agents_md"]["pct_of_repos"]}% of repos,
-  ahead of skills ({fam["skills"]["pct_of_repos"]}%) and `CLAUDE.md` ({fam["claude"]["pct_of_repos"]}%).
-- **{multi:.1f}% write instructions for more than one tool**, and the repos that keep `CLAUDE.md` and
-  `AGENTS.md` together mostly link them ({rel["import"]["pct_of_repos_with_both"]}% import one from
-  the other, {rel["symlink"]["pct_of_repos_with_both"]}% use a symlink) instead of copying.
+**Security indicators** (what a reviewer cannot easily see, or what executes things)
+
+- **{n("mcp_unpinned")}** of the repos that configure an MCP server start at least one with an
+  unpinned `npx` or `uvx` package. The denominator is a lower bound (see "MCP denominator" under
+  Limitations), so this share is an upper bound.
+- **Hidden Unicode: {n("hidden_unicode")}.** All characters that really are in the text; none carries
+  a payload.
+- **Over-permissive agent settings: {n("risky_settings")}.**
+- **Hardcoded secrets: {n("secrets")}.** Private disclosures sent: 0. No real malicious instruction
+  was found among the findings of medium severity or above that one maintainer reviewed.
+- **Reliability:** of the {tp + wf + fp} findings of medium severity or above, {precision(tp, wf, fp)} were
+  true positives; the rest matched something harmless in context and are noise for a user (section 5).
+
+**How people write agent files** (hygiene, not security)
+
+- **`AGENTS.md` is the shared language.** It is in {share(fam["agents_md"]["repos"], total, fam["agents_md"]["pct_of_repos"])} of repos,
+  ahead of skills ({share(fam["skills"]["repos"], total, fam["skills"]["pct_of_repos"])}) and `CLAUDE.md`
+  ({share(fam["claude"]["repos"], total, fam["claude"]["pct_of_repos"])}).
+- **{n("multi_tool")} write instructions for more than one tool**, and the repos that keep `CLAUDE.md`
+  and `AGENTS.md` together mostly link them ({rel_n("import")} import one from the other,
+  {rel_n("symlink")} use a symlink) instead of copying.
 - **What an agent reads is not just what its path says.** {n("at_imports")} use `@` imports,
   {n("conditional_rules")} have rules that apply only to some paths, and {n("non_agent_import")}
   import a file that is not an agent file at all.
-- **{n("mcp_unpinned")}** of the repos that configure an MCP server start at least one with an
-  unpinned `npx` or `uvx` package.
-- **No real secret and no real malicious instruction.** Hidden Unicode: {n("hidden_unicode")}, all
-  characters that really are in the text. Hardcoded secrets: {n("secrets")}. Private disclosures
-  sent: 0.
 
 ## 1. Who writes instructions for agents
 
@@ -103,8 +126,8 @@ not files.
 
 {picture("02-tools-per-repo", "Bar chart: share of repositories by number of tools their instruction files target; two tools is the most common multi-tool case")}
 
-{multi:.1f}% of repos target two or more tools. Instruction files are short: {lines[0]["pct_of_files"]}% have
-at most 50 lines, and {over200 / all_lines * 100:.1f}% of the {all_lines:,} instruction files are over 200
+{n("multi_tool")} target two or more tools. Instruction files are short: {share(lines[0]["files"], all_lines, lines[0]["pct_of_files"])} have
+at most 50 lines, and {over200 / all_lines * 100:.1f}% ({over200:,} of {all_lines:,}) are over 200
 lines. For the root `CLAUDE.md` specifically, {n("claude_md_over_200")} go beyond the 200 lines Claude
 Code recommends.
 
@@ -113,21 +136,21 @@ Code recommends.
 {picture("03-claude-agents", "Bar chart: how repositories with both CLAUDE.md and AGENTS.md keep them in step; importing is the most common")}
 
 {both} repos have both a root `CLAUDE.md` and an `AGENTS.md`. They keep them in step by
-importing ({rel["import"]["pct_of_repos_with_both"]}%), a symlink ({rel["symlink"]["pct_of_repos_with_both"]}%),
-two separate files ({rel["separate"]["pct_of_repos_with_both"]}%) or a copy
-({rel["duplicate"]["pct_of_repos_with_both"]}%). With two separate files nothing keeps them equal, and each agent
+importing ({rel_n("import")}), a symlink ({rel_n("symlink")}),
+two separate files ({rel_n("separate")}) or a copy
+({rel_n("duplicate")}). With two separate files nothing keeps them equal, and each agent
 reads a different one.
 
 ## 3. What the agent really reads
 
 {picture("04-what-agents-read", "Bar chart: share of repositories with conditional rules, at-imports, stripped HTML comments, imports of non-agent files and imports that do not load")}
 
-- **Imports.** {n("at_imports")} use `@` imports; {float(depth["max_depth_1"]["pct_of_repos"])}% of
+- **Imports.** {n("at_imports")} use `@` imports; {share(depth["max_depth_1"]["repos"], int(depth["uses_at_imports"]["repos"]), depth["max_depth_1"]["pct_of_repos"])} of
   those go one level deep. {n("non_agent_import")} import a file that is not an agent file:
   the text reaches the model, but a scanner that looks at agent paths
   never sees it.
 - **Conditional rules.** {n("conditional_rules")} have rules that load only for some paths
-  (`paths`, `globs`, `applyTo`), {cond["pct_of_entries"]}% of all loaded entries.
+  (`paths`, `globs`, `applyTo`), {cond["pct_of_entries"]}% ({int(cond["conditional_entries"]):,} entries) of all loaded entries.
 - **Comments the agent does not see.** {n("claude_html_comments")} of the repos with a `CLAUDE.md`
   have HTML comments in it. Claude Code strips block comments before the model reads them, so notes
   written there are invisible to the agent.
@@ -139,7 +162,9 @@ reads a different one.
 {picture("05-risk", "Bar chart: share of repositories with unpinned MCP packages, over-permissive settings, hidden Unicode and hardcoded secrets")}
 
 - **MCP.** {n("mcp_unpinned")} of the repos with an MCP config start a server with an unpinned
-  package: whatever is published next runs on the developer's machine.
+  package: whatever is published next runs on the developer's machine. The denominator is built
+  from what a scan can see (see "MCP denominator" under Limitations), so treat the share as an
+  upper bound.
 - **Agent settings.** {n("risky_settings")} have over-permissive settings (broad allow lists or
   auto-enabled project MCP servers).
 - **Hidden Unicode.** {n("hidden_unicode")}. Each was read by hand: they are zero-width or joiner
@@ -148,23 +173,35 @@ reads a different one.
 - **Secrets.** {n("secrets")}.
 - **Instruction-like content.** Phrases that look like injections show up in documentation that
   teaches or forbids them (security skills quoting "ignore previous instructions", `curl | sh`
-  installers). Among the findings of medium severity or above we found no instruction written to deceive an
-  agent or its user, and nothing to disclose.
+  installers). Among the findings of medium severity or above, one maintainer found no instruction
+  written to deceive an agent or its user, and nothing to disclose. That is one reviewer's reading,
+  not a proof that there are none.
 
 ## 5. How reliable the scanner is
 
 {picture("06-precision", "Stacked bar chart per rule: true positives and correct matches in benign context among findings of medium severity or above")}
 
-Every finding of medium severity or above in both tiers was triaged by class (each class was checked on its examples and approved by a maintainer): {tp} true positives, {wf}
-correct matches in a benign context (an installer one-liner, an attack described in a security
-skill), {fp} false positives and {un} unreviewed. The zero is because we fixed the rules instead of
-labelling their false positives: the first runs produced many, and each became a test and a rule
-change.
+We reviewed every finding of medium severity or above in both tiers, by class (each class was
+checked on its examples and approved by one maintainer): {tp} true positives, {wf} matches in a
+benign context (an installer one-liner, an attack described in a security skill), {fp} labelled false
+positives and {un} unreviewed. **For a user, a benign-context match is noise**: it is the right
+pattern in a harmless place, and someone still has to read it. Precision for a user is therefore
+true positives / (true positives + benign-context + false positives): **{precision(tp, wf, fp)}**.
+
+The count of labelled false positives is not a precision figure. Every false positive found while
+reviewing was fixed in the rules (each became a test), so none is left by construction; the rules
+were then measured on the same repositories they were tuned on, which flatters them.
+
+{md_table(["Rule", "Findings (medium+)", "True positive", "Benign context", "False positive", "Precision for a user"], [[r["rule"], r["findings_medium_plus"], r["tp"], r["benign_context"], r["fp"], precision(int(r["tp"]), int(r["benign_context"]), int(r["fp"]))] for r in prec] + [["**All**", tp + wf + fp + un, tp, wf, fp, precision(tp, wf, fp)]])}
 
 {md_table(["Tier", "Run", "Repos", "Findings", "Critical", "High", "Medium"], [[r["tier"], r["run"], r["repos"], r["findings"], r["critical"], r["high"], r["medium"] or "n/a"] for r in runs])}
 
-Whether a `wontfix` is a false positive is a judgement. For GR016, for example, most are a permission-bypass flag named in a CLI guide: the text does contain the flag, so we count it as a correct match in a benign context, but a stricter reader could call them false alarms. The remaining `wontfix` matches are real: a `curl | sh` installer in a README is the pattern the rule
-describes. ghostrules reports it so a human can judge, and says so in the severity.
+Whether a benign-context match is a false positive is a judgement. For GR016, for example, most are
+a permission-bypass flag named in a CLI guide: the text does contain the flag, so we count it as a
+correct match in a benign context, but a stricter reader would call them false alarms. GR010, GR012
+and GR013 have no true positive at all in this data: every finding was a benign-context match. A
+`curl | sh` installer in a README is the pattern the rule describes; ghostrules reports it so a
+human can judge, and says so in the severity.
 
 ## Limitations
 
@@ -173,12 +210,31 @@ describes. ghostrules reports it so a human can judge, and says so in the severi
   every repo has an agent file by construction, so "has one" is not a result.
 - **Uneven strata.** PHP and Ruby are absent from the 10,000-star stratum: popular projects in those
   languages rarely have agent files.
-- **Snapshot.** One day, 2026-10-28; default branch, shallow clone.
+- **Snapshot.** One day, 2026-10-28; default branch, shallow clone. Nothing here says how these
+  numbers change over time.
 - **Patterns, not intent.** A rule match says what the text contains, not why.
-- **MCP denominator.** "Repos with an MCP config" means a repo with an MCP file or an MCP rule that
-  fired ({nums["mcp_unpinned"]["of"]} repos).
+- **MCP denominator.** "Repos with an MCP config" means a repo with an MCP file, or one where an MCP
+  rule (GR102 to GR106) fired: {nums["mcp_unpinned"]["of"]} repos. Both parts count repositories, but
+  a repo that declares a clean MCP server inside an agent settings file and triggers no MCP rule is
+  not in the denominator, because the scan stores counts and never file contents. The denominator is
+  therefore a lower bound and the unpinned share ({n("mcp_unpinned")}) an upper bound. Fixing it
+  needs a new scan that records whether a server is configured.
 - **Known evasions.** The scanner is a heuristic. Splitting an exfiltration instruction across two
   sentences, or phrasing a concealment right after a prohibition, avoids some rules.
+
+## Threats to validity
+
+- **One snapshot.** A single day and a single scan.
+- **Popularity bias.** Repositories were chosen by stars and language, so they are not typical of
+  all code, and small or private projects are missing.
+- **Rules tuned on the same data.** Rules were adjusted after the first runs on these repositories
+  and then measured on them, so the precision above is optimistic. A held-out set of 100
+  repositories (`bench/heldout.toml`, frozen on 2026-10-29, never used for tuning) is meant to give
+  an honest figure.
+- **One reviewer, labelling by class.** Findings were labelled by class on examples and approved by
+  one maintainer; there was no independent second reviewer.
+- **Recall is not measured here.** The study counts what the scanner found. It says nothing about
+  what it misses: paraphrases, other languages and split instructions are not caught.
 
 ## Method
 

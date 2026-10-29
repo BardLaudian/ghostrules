@@ -32,6 +32,7 @@ def to_dict(result: ScanResult) -> dict[str, Any]:
                 "by_severity": severity_counts(result.findings),
                 "files_with_findings": len({f.path for f in result.findings}),
                 "suppressed": result.suppressed,
+                "baselined": result.baselined,
                 "config_source": result.config_source,
             },
             "warnings": result.warnings,

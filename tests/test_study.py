@@ -116,9 +116,9 @@ def test_label_classes_labels_by_class_without_naming_repos() -> None:
     ]}  # fmt: skip
     labels, counts, unmatched = label_classes.label_findings([record])
     assert {lb.fingerprint: lb.label for lb in labels} == {
-        "a" * 16: "wontfix",
+        "a" * 16: "benign-context",
         "b" * 16: "tp",
-        "c" * 16: "wontfix",
+        "c" * 16: "benign-context",
     }
     assert [f["rule_id"] for f in unmatched] == ["GR999"]  # low severity is ignored, not unmatched
     assert all(lb.repo == "" for lb in labels) and sum(counts.values()) == 3

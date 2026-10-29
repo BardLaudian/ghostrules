@@ -82,6 +82,55 @@ def _hook_problem(command: str) -> str | None:
     return None
 
 
+_CODEX_SWITCHES = (
+    (
+        re.compile(r"^[ \t]*sandbox_mode[ \t]*=[ \t]*([\"'])danger-full-access\1", re.MULTILINE),
+        'sandbox_mode is "danger-full-access": commands run with no filesystem or network limits.',
+        'Use "workspace-write" (or "read-only").',
+    ),
+    (
+        re.compile(r"^[ \t]*approval_policy[ \t]*=[ \t]*([\"'])never\1", re.MULTILINE),
+        'approval_policy is "never": Codex runs commands without ever asking.',
+        'Use "on-request", and "never" only inside a sandbox you control.',
+    ),
+)
+_GEMINI_BARE_SHELL = re.compile(r"run_shell_command(?:\(\s*\*{0,2}\s*\))?", re.IGNORECASE)
+
+
+def _codex_findings(target: ScanTarget) -> Iterator[Finding]:
+    """The two ``config.toml`` switches that turn Codex's guards off."""
+    for pattern, message, hint in _CODEX_SWITCHES:
+        for match in pattern.finditer(target.text):
+            line_start = target.text.rfind("\n", 0, match.start()) + 1
+            if target.text[line_start : match.start()].strip().startswith("#"):
+                continue
+            yield _finding(
+                target, "GR107", Severity.HIGH, "Over-permissive agent settings",
+                message, (match.start(), match.end()), hint,
+            )  # fmt: skip
+
+
+def _gemini_findings(target: ScanTarget, root: JNode) -> Iterator[Finding]:
+    """Gemini CLI settings that skip confirmation (names from its configuration reference)."""
+    tools, security = root.get("tools"), root.get("security")
+    allowed = tools.get("allowed") if tools else None
+    for item in (allowed.elements or []) if allowed else []:
+        if isinstance(item.value, str) and _GEMINI_BARE_SHELL.fullmatch(item.value.strip()):
+            yield _finding(
+                target, "GR107", Severity.HIGH, "Over-permissive agent settings",
+                f"tools.allowed has '{item.value}': any shell command runs without confirmation.",
+                item.string_span(),
+                "Allow specific commands, for example run_shell_command(git status).",
+            )  # fmt: skip
+    permanent = security.get("enablePermanentToolApproval") if security else None
+    if permanent is not None and permanent.value is True:
+        yield _finding(
+            target, "GR107", Severity.HIGH, "Over-permissive agent settings",
+            "security.enablePermanentToolApproval is true: approvals are remembered for good.",
+            (permanent.start, permanent.end), "Remove it so each tool needs approval.",
+        )  # fmt: skip
+
+
 @rule(
     "GR107",
     Severity.HIGH,
@@ -92,11 +141,16 @@ def _hook_problem(command: str) -> str | None:
 def gr107_permissive_settings(target: ScanTarget) -> Iterator[Finding]:
     """``bypassPermissions``, blanket ``Bash``/``WebFetch``/``curl``/``sudo``/``rm`` allows, Gemini
     ``yolo``; hooks that fetch-and-run code or send secrets are critical."""
+    if target.path.replace("\\", "/").endswith(".codex/config.toml"):
+        yield from _codex_findings(target)
+        return
     if not is_settings_file(target.path):
         return
     root = parse_located(target.text)
     if root is None:
         return
+    if ".gemini/" in target.path.replace("\\", "/"):
+        yield from _gemini_findings(target, root)
     permissions = root.get("permissions")
     mode = permissions.get("defaultMode") if permissions else None
     if mode is not None and mode.value == "bypassPermissions":

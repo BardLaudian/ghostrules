@@ -88,6 +88,20 @@ model is one module, one section of `docs/AGENT_MODELS.md` and its tests:
    in `ContextGraph.notes`, and add a line to `CHANGELOG.md` and a decision to
    `docs/DECISIONS.md` for every judgement call.
 
+## Supply chain
+
+- Every `uses:` in `action.yml` and `.github/workflows/` is pinned to a full commit SHA with the
+  version in a comment (`actions/checkout@<sha> # v4`). Dependabot opens the update pull requests;
+  a test fails on a tag or branch reference.
+- The Action installs from `action-requirements.txt`, which has a hash for every package, the build
+  backend included. Regenerate it when `pyproject.toml` dependencies change:
+
+  ```bash
+  pip install pip-tools
+  pip-compile --generate-hashes --strip-extras --allow-unsafe \
+    -o action-requirements.txt action-requirements.in
+  ```
+
 ## Rules of the repository
 
 - **Defanged only.** Fixtures, demos and tests use `attacker.example`, `exfil.example`,

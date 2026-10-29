@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 import yaml
 from conftest import ROOT, load_script
+from pr_helpers import CLEAN, IGNORE, PAYLOAD, baselined_base, pull_request, reblessed_pr
 
 WORKFLOWS = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
 ACTION = yaml.safe_load((ROOT / "action.yml").read_text(encoding="utf-8"))
@@ -45,6 +46,11 @@ def test_action_inputs_follow_the_spec() -> None:
         "upload-sarif": "true",
         "follow-imports": "true",
         "lock-check": "false",
+        "config": "",
+        "trust-repo-config": "false",
+        "inline-suppressions": "base",
+        "approve-label": "",
+        "profile": "default",
     }
     assert all(v["description"] for v in inputs.values())
     assert ACTION["name"] == "ghostrules scan"
@@ -54,12 +60,13 @@ def test_action_is_a_composite_with_the_specified_steps_in_order() -> None:
     assert ACTION["runs"]["using"] == "composite"
     steps = ACTION["runs"]["steps"]
     uses = [s.get("uses", "") for s in steps]
-    assert uses[0].startswith("actions/setup-python@v")
-    assert any(u == "github/codeql-action/upload-sarif@v3" for u in uses)
+    assert uses[0].startswith("actions/setup-python@")
+    assert any(u.startswith("github/codeql-action/upload-sarif@") for u in uses)
     names = [s["name"] for s in steps]
     order = [
         "Set up Python",
         "Install",
+        "Resolve trusted settings",
         "Scan",
         "Upload SARIF",
         "Write job summary",
@@ -99,35 +106,66 @@ def test_no_expression_is_interpolated_into_a_shell_script(path: Path) -> None:
 
 
 @pytest.mark.parametrize("path", [ROOT / "action.yml", *WORKFLOWS], ids=lambda p: p.name)
-def test_every_third_party_action_is_pinned_to_a_version(path: Path) -> None:
+def test_every_third_party_action_is_pinned_to_a_commit_with_its_version_in_a_comment(
+    path: Path,
+) -> None:
+    """A tag can be moved; a commit cannot. The comment says which version the commit is."""
     data = load(path)
     steps = data["runs"]["steps"] if "runs" in data else list(steps_of(data))
-    for step in steps:
-        ref = step.get("uses")
-        if ref and not ref.startswith("./"):
-            assert "@" in ref, ref
-            assert ref.split("@")[1] not in ("main", "master"), ref
+    refs = [s["uses"] for s in steps if s.get("uses") and not s["uses"].startswith("./")]
+    text = path.read_text(encoding="utf-8")
+    for ref in refs:
+        name, _, sha = ref.partition("@")
+        assert re.fullmatch(r"[0-9a-f]{40}", sha), f"{ref} is not pinned to a full commit"
+        assert re.search(rf"uses: {re.escape(ref)} # \S+", text), f"{ref} has no version comment"
+
+
+def test_dependabot_keeps_the_pinned_actions_up_to_date() -> None:
+    config = load(ROOT / ".github" / "dependabot.yml")
+    assert config["version"] == 2
+    (update,) = [u for u in config["updates"] if u["package-ecosystem"] == "github-actions"]
+    assert update["directory"] == "/" and update["schedule"]["interval"] == "weekly"
+
+
+def test_the_action_installs_from_a_hash_pinned_requirements_file() -> None:
+    install = {s["name"]: s for s in ACTION["runs"]["steps"]}["Install ghostrules"]["run"]
+    assert "--require-hashes" in install and "action-requirements.txt" in install
+    assert "--no-deps" in install and "--no-build-isolation" in install  # nothing else is fetched
+    lines = (ROOT / "action-requirements.txt").read_text(encoding="utf-8").splitlines()
+    pinned = [ln for ln in lines if ln and not ln.startswith((" ", "#"))]
+    assert pinned and all("==" in ln for ln in pinned), pinned
+    text = "\n".join(lines)
+    assert text.count("--hash=sha256:") >= len(pinned)
+    for needed in ("typer==", "rich==", "hatchling=="):  # the runtime and the build backend
+        assert needed in text, needed
+    assert (ROOT / "action-requirements.in").is_file()
 
 
 # --- running the action's scripts for real ----------------------------------------------------
 
 
-def run_step(name: str, tmp_path: Path, **env: str) -> subprocess.CompletedProcess[str]:
+def run_step(
+    name: str, tmp_path: Path, cwd: Path | None = None, **env: str
+) -> subprocess.CompletedProcess[str]:
     steps = {s["name"]: s for s in ACTION["runs"]["steps"]}
     output, summary = tmp_path / "github_output", tmp_path / "step_summary"
     output.touch()
     summary.touch()
+    trusted = tmp_path / "ghostrules-trusted.args"
+    if not trusted.exists() and "NO_TRUSTED_ARGS" not in env:
+        trusted.touch()  # what the "Resolve trusted settings" step leaves when nothing applies
     environment = {
         **os.environ,
         "PATH": f"{Path(sys.executable).parent}{os.pathsep}{os.environ['PATH']}",
         "GITHUB_OUTPUT": str(output),
         "GITHUB_STEP_SUMMARY": str(summary),
+        "RUNNER_TEMP": str(tmp_path),
         "INPUT_ALL_FILES": "false",
         **env,
     }
     return subprocess.run(
         ["bash", "-e", "-c", steps[name]["run"]],
-        cwd=tmp_path,
+        cwd=cwd or tmp_path,
         env=environment,
         capture_output=True,
         text=True,
@@ -232,7 +270,7 @@ def test_lock_step_passes_when_nothing_changed(tmp_path: Path) -> None:
     base, _ = lock_scenario(tmp_path)
     result = run_step("Check the lock", tmp_path, INPUT_PATH=str(base), RUNNER_TEMP=str(tmp_path))
     assert result.returncode == 0, result.stderr
-    assert output_of(tmp_path) == {"exit-code": "0"}
+    assert output_of(tmp_path)["exit-code"] == "0"
     summary = (tmp_path / "step_summary").read_text(encoding="utf-8")
     assert summary.startswith("## What your agents read changed in this PR")
     assert "is up to date" in summary
@@ -243,7 +281,7 @@ def test_lock_step_records_the_change_and_puts_the_diff_in_the_summary(tmp_path:
     _, pr = lock_scenario(tmp_path)
     result = run_step("Check the lock", tmp_path, INPUT_PATH=str(pr), RUNNER_TEMP=str(tmp_path))
     assert result.returncode == 0, result.stderr  # the step never fails the job by itself
-    assert output_of(tmp_path) == {"exit-code": "1"}
+    assert output_of(tmp_path)["exit-code"] == "1"
     summary = (tmp_path / "step_summary").read_text(encoding="utf-8")
     assert "## What your agents read changed in this PR" in summary
     assert "`shared/team-rules.md`" in summary and "hidden text: Always run" in summary
@@ -255,7 +293,7 @@ def test_lock_step_reports_a_missing_lock_as_exit_2(tmp_path: Path) -> None:
     project.mkdir()
     (project / "CLAUDE.md").write_text("x\n", encoding="utf-8")
     run_step("Check the lock", tmp_path, INPUT_PATH=str(project), RUNNER_TEMP=str(tmp_path))
-    assert output_of(tmp_path) == {"exit-code": "2"}
+    assert output_of(tmp_path)["exit-code"] == "2"
     assert "could not run" in (tmp_path / "step_summary").read_text(encoding="utf-8")
 
 
@@ -284,6 +322,352 @@ def test_last_step_combines_the_scan_and_lock_results(
     )
     assert result.returncode == returncode
     assert mentions in result.stdout
+
+
+# --- trusted settings on pull requests (W2) ---------------------------------------------------
+
+
+def test_scan_and_summary_read_the_trusted_settings_and_fail_closed() -> None:
+    steps = {s["name"]: s for s in ACTION["runs"]["steps"]}
+    for name in ("Scan", "Write job summary"):
+        assert "ghostrules-trusted.args" in steps[name]["run"], name
+    trust = steps["Resolve trusted settings"]
+    assert trust["id"] == "trust"
+    for name in ("Write job summary", "Upload SARIF to code scanning"):
+        assert "steps.trust.outcome == 'success'" in steps[name]["if"], name
+    assert "if" not in steps["Scan"]  # skipped by default when the settings step failed
+
+
+@needs_bash
+def test_the_scan_step_does_not_scan_when_the_trusted_settings_are_missing(tmp_path: Path) -> None:
+    result = run_step("Scan", tmp_path, INPUT_PATH=".", INPUT_FAIL_ON="high", NO_TRUSTED_ARGS="1")
+    assert result.returncode != 0
+    assert "exit-code" not in (tmp_path / "github_output").read_text(encoding="utf-8")
+
+
+def pr_env(repo: Path, base: str, **env: str) -> dict[str, str]:
+    return {
+        "INPUT_PATH": ".",
+        "INPUT_FAIL_ON": "high",
+        "INPUT_CONFIG": "",
+        "INPUT_TRUST_REPO_CONFIG": "false",
+        "INPUT_INLINE_SUPPRESSIONS": "base",
+        "INPUT_PROFILE": "default",
+        "EVENT_NAME": "pull_request",
+        "BASE_SHA": base,
+        **env,
+    }
+
+
+def resolve_and_scan(repo: Path, base: str, tmp_path: Path, **env: str) -> str:
+    """Run the settings step and the scan step like the Action does; the scan exit code."""
+    settings = pr_env(repo, base, **env)
+    resolved = run_step("Resolve trusted settings", tmp_path, cwd=repo, **settings)
+    assert resolved.returncode == 0, resolved.stdout + resolved.stderr
+    run_step("Scan", tmp_path, cwd=repo, **settings)
+    return output_of(tmp_path)["exit-code"]
+
+
+@needs_bash
+def test_a_pull_request_cannot_silence_its_payload_with_an_ignore_comment(tmp_path: Path) -> None:
+    repo, base = pull_request(
+        tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}{PAYLOAD} {IGNORE}\n"}
+    )
+    assert resolve_and_scan(repo, base, tmp_path) == "1"
+
+
+@needs_bash
+def test_a_pull_request_cannot_exclude_its_own_file(tmp_path: Path) -> None:
+    repo, base = pull_request(
+        tmp_path / "w",
+        {"CLAUDE.md": CLEAN},
+        {"AGENTS.md": f"# Rules\n\n{PAYLOAD}\n", ".ghostrules.toml": 'exclude = ["AGENTS.md"]\n'},
+    )
+    assert resolve_and_scan(repo, base, tmp_path) == "1"
+
+
+@needs_bash
+def test_a_trusted_config_input_replaces_the_repository_config(tmp_path: Path) -> None:
+    repo, base = pull_request(
+        tmp_path / "w",
+        {"CLAUDE.md": CLEAN},
+        {"AGENTS.md": f"# Rules\n\n{PAYLOAD}\n", ".ghostrules.toml": 'exclude = ["AGENTS.md"]\n'},
+    )
+    trusted = tmp_path / "trusted.toml"
+    trusted.write_text('fail_on = "high"\n', encoding="utf-8")
+    assert resolve_and_scan(repo, base, tmp_path, INPUT_CONFIG=str(trusted)) == "1"
+
+
+@needs_bash
+@pytest.mark.parametrize(
+    "env",
+    [
+        {"EVENT_NAME": "push"},  # no pull request, nothing to compare with: 0.3 behaviour
+        {"INPUT_TRUST_REPO_CONFIG": "true", "INPUT_INLINE_SUPPRESSIONS": "all"},  # explicit opt-out
+    ],
+)
+def test_outside_a_pull_request_or_when_trusted_the_repository_settings_apply(
+    env: dict[str, str], tmp_path: Path
+) -> None:
+    repo, base = pull_request(
+        tmp_path / "w",
+        {"CLAUDE.md": CLEAN},
+        {"AGENTS.md": f"# Rules\n\n{PAYLOAD}\n", ".ghostrules.toml": 'exclude = ["AGENTS.md"]\n'},
+    )
+    assert resolve_and_scan(repo, base, tmp_path, **env) == "0"
+
+
+@needs_bash
+def test_inline_suppressions_off_ignores_every_comment_even_outside_a_pull_request(
+    tmp_path: Path,
+) -> None:
+    repo, base = pull_request(
+        tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}{PAYLOAD} {IGNORE}\n"}
+    )
+    code = resolve_and_scan(
+        repo,
+        base,
+        tmp_path,
+        EVENT_NAME="push",
+        INPUT_INLINE_SUPPRESSIONS="off",
+        INPUT_PROFILE="strict",
+    )
+    assert code == "1"
+
+
+@needs_bash
+def test_a_reviewed_ignore_still_works_on_a_pull_request(tmp_path: Path) -> None:
+    line = f"{PAYLOAD} {IGNORE}\n"
+    repo, base = pull_request(
+        tmp_path / "w",
+        {"CLAUDE.md": f"{CLEAN}{line}"},
+        {"CLAUDE.md": f"{CLEAN}{line}- A new, harmless line.\n"},
+    )
+    assert resolve_and_scan(repo, base, tmp_path) == "0"
+
+
+@needs_bash
+def test_a_path_outside_git_needs_the_explicit_opt_out_on_a_pull_request(tmp_path: Path) -> None:
+    plain = tmp_path / "plain"
+    plain.mkdir()
+    (plain / "CLAUDE.md").write_text(CLEAN, encoding="utf-8")
+    env = pr_env(plain, "0123456789abcdef0123456789abcdef01234567", INPUT_PATH=str(plain))
+    refused = run_step("Resolve trusted settings", tmp_path, **env)
+    assert refused.returncode == 2 and "not inside a git repository" in refused.stdout
+    env.update(INPUT_TRUST_REPO_CONFIG="true", INPUT_INLINE_SUPPRESSIONS="all")
+    allowed = run_step("Resolve trusted settings", tmp_path, **env)
+    assert allowed.returncode == 0, allowed.stdout
+
+
+@needs_bash
+@pytest.mark.parametrize(
+    ("base", "inline", "message"),
+    [
+        ("0123456789abcdef0123456789abcdef01234567", "base", "cannot read the base commit"),
+        ("", "base", "no base commit"),
+        ("not-a-sha; echo pwned", "base", "not a commit id"),
+        ("", "sometimes", "inline-suppressions must be"),
+    ],
+)
+def test_the_settings_step_fails_closed(
+    base: str, inline: str, message: str, tmp_path: Path
+) -> None:
+    repo, _ = pull_request(tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}\n"})
+    env = pr_env(repo, base, INPUT_INLINE_SUPPRESSIONS=inline)
+    result = run_step("Resolve trusted settings", tmp_path, cwd=repo, **env)
+    assert result.returncode == 2
+    assert "::error" in result.stdout and message in result.stdout
+    assert "pwned" not in result.stderr
+
+
+# --- the lock on pull requests (W3) -----------------------------------------------------------
+
+LABEL = "agent-context-approved"
+
+
+def lock_env(base: str, **env: str) -> dict[str, str]:
+    return {
+        "INPUT_PATH": ".",
+        "INPUT_TRUST_REPO_CONFIG": "false",
+        "INPUT_APPROVE_LABEL": "",
+        "EVENT_NAME": "pull_request",
+        "EVENT_ACTION": "synchronize",
+        "EVENT_LABEL": "",
+        "EVENT_SENDER": "author",
+        "EVENT_TIME": "2026-10-29T10:00:00Z",
+        "BASE_SHA": base,
+        **env,
+    }
+
+
+def lock_step(tmp_path: Path, repo: Path, base: str, **env: str) -> tuple[str, str]:
+    """Run the lock step; its exit-code output and the job summary."""
+    result = run_step("Check the lock", tmp_path, cwd=repo, **lock_env(base, **env))
+    assert result.returncode == 0, result.stdout + result.stderr
+    return output_of(tmp_path)["exit-code"], (tmp_path / "step_summary").read_text("utf-8")
+
+
+@needs_bash
+def test_the_lock_on_a_pull_request_is_compared_with_the_lock_at_the_base(tmp_path: Path) -> None:
+    repo, base = reblessed_pr(tmp_path)
+    code, summary = lock_step(tmp_path, repo, base)
+    assert code == "1" and "docs/style.md" in summary and "bootstrap.sh" in summary
+
+
+@needs_bash
+@pytest.mark.parametrize(
+    "env",
+    [{"EVENT_NAME": "push"}, {"INPUT_TRUST_REPO_CONFIG": "true"}],
+    ids=["push", "trust-repo-config"],
+)
+def test_outside_a_pull_request_or_when_trusted_the_working_tree_lock_is_used(
+    env: dict[str, str], tmp_path: Path
+) -> None:
+    repo, base = reblessed_pr(tmp_path)
+    assert lock_step(tmp_path, repo, base, **env)[0] == "0"
+
+
+@needs_bash
+def test_the_approval_label_applied_by_a_maintainer_passes_the_check(tmp_path: Path) -> None:
+    repo, base = reblessed_pr(tmp_path)
+    code, summary = lock_step(
+        tmp_path,
+        repo,
+        base,
+        INPUT_APPROVE_LABEL=LABEL,
+        EVENT_ACTION="labeled",
+        EVENT_LABEL=LABEL,
+        EVENT_SENDER="maintainer-1",
+    )
+    assert code == "1" and output_of(tmp_path)["approved"] == "true"
+    assert "Approved by @maintainer-1 at 2026-10-29T10:00:00Z" in summary and LABEL in summary
+    assert "docs/style.md" in summary  # the diff that was approved stays in the summary
+
+
+@needs_bash
+@pytest.mark.parametrize(
+    "env",
+    [
+        {"EVENT_ACTION": "synchronize", "EVENT_LABEL": ""},  # new commits void an old approval
+        {"EVENT_ACTION": "labeled", "EVENT_LABEL": "bug"},  # another label
+        {"EVENT_ACTION": "unlabeled", "EVENT_LABEL": LABEL},  # the label was removed
+    ],
+    ids=["new-push", "other-label", "removed"],
+)
+def test_the_label_only_approves_on_the_event_that_applies_it(
+    env: dict[str, str], tmp_path: Path
+) -> None:
+    repo, base = reblessed_pr(tmp_path)
+    code, summary = lock_step(tmp_path, repo, base, INPUT_APPROVE_LABEL=LABEL, **env)
+    assert code == "1" and output_of(tmp_path)["approved"] == "false"
+    assert "Approved by" not in summary and "apply the label" in summary
+
+
+@needs_bash
+def test_without_an_approval_label_input_nothing_can_approve(tmp_path: Path) -> None:
+    repo, base = reblessed_pr(tmp_path)
+    lock_step(tmp_path, repo, base, EVENT_ACTION="labeled", EVENT_LABEL=LABEL)
+    assert output_of(tmp_path)["approved"] == "false"
+
+
+@needs_bash
+def test_the_sender_name_cannot_inject_into_the_summary(tmp_path: Path) -> None:
+    repo, base = reblessed_pr(tmp_path)
+    _, summary = lock_step(
+        tmp_path,
+        repo,
+        base,
+        INPUT_APPROVE_LABEL=LABEL,
+        EVENT_ACTION="labeled",
+        EVENT_LABEL=LABEL,
+        EVENT_SENDER="x`echo pwned`\n## owned",
+    )
+    assert "`echo" not in summary and "## owned" not in summary
+
+
+@needs_bash
+def test_a_base_without_a_lock_cannot_be_approved_and_says_why(tmp_path: Path) -> None:
+    repo, base = pull_request(
+        tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}- A line.\n"}
+    )
+    code, summary = lock_step(
+        tmp_path,
+        repo,
+        base,
+        INPUT_APPROVE_LABEL=LABEL,
+        EVENT_ACTION="labeled",
+        EVENT_LABEL=LABEL,
+    )
+    assert code == "2" and output_of(tmp_path)["approved"] == "false"
+    assert "could not run" in summary and "has no .ghostrules.lock" in summary
+
+
+@needs_bash
+@pytest.mark.parametrize(
+    ("lock", "approved", "returncode", "mentions"),
+    [
+        ("1", "true", 0, "approved by label"),
+        ("1", "false", 1, "changed since .ghostrules.lock"),
+        ("2", "true", 2, "lock check failed to run"),  # an error is never approved
+        ("0", "true", 0, ""),
+    ],
+)
+def test_the_last_step_lets_an_approved_change_through_and_nothing_else(
+    lock: str, approved: str, returncode: int, mentions: str, tmp_path: Path
+) -> None:
+    result = run_step(
+        "Fail if ghostrules found problems",
+        tmp_path,
+        SCAN_EXIT_CODE="0",
+        LOCK_EXIT_CODE=lock,
+        LOCK_APPROVED=approved,
+        INPUT_FAIL_ON="high",
+    )
+    assert result.returncode == returncode
+    assert mentions in result.stdout
+
+
+@needs_bash
+def test_the_settings_step_checks_the_base_commit_for_the_lock_too(tmp_path: Path) -> None:
+    """With a trusted config and no suppressions mode, only the lock still needs the base."""
+    repo, _ = pull_request(tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}\n"})
+    trusted = tmp_path / "t.toml"
+    trusted.write_text("", encoding="utf-8")
+    env = pr_env(
+        repo,
+        "0123456789abcdef0123456789abcdef01234567",
+        INPUT_CONFIG=str(trusted),
+        INPUT_INLINE_SUPPRESSIONS="all",
+        INPUT_LOCK_CHECK="true",
+    )
+    result = run_step("Resolve trusted settings", tmp_path, cwd=repo, **env)
+    assert result.returncode == 2 and "cannot read the base commit" in result.stdout
+
+
+@needs_bash
+def test_a_pull_request_cannot_baseline_its_own_findings(tmp_path: Path) -> None:
+    repo, base = baselined_base(tmp_path)
+    assert resolve_and_scan(repo, base, tmp_path, INPUT_FAIL_ON="low") == "1"  # the base baseline
+    push = resolve_and_scan(repo, base, tmp_path, INPUT_FAIL_ON="low", EVENT_NAME="push")
+    assert push == "0"  # outside a pull request the baseline in the tree is the repository's own
+
+
+@needs_bash
+def test_the_profile_input_decides_whether_visible_prose_fails_the_check(tmp_path: Path) -> None:
+    repo, base = pull_request(
+        tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}{PAYLOAD}\n"}
+    )
+    assert resolve_and_scan(repo, base, tmp_path, EVENT_NAME="push") == "0"  # low: a reviewer's job
+    assert resolve_and_scan(repo, base, tmp_path, EVENT_NAME="push", INPUT_PROFILE="strict") == "1"
+
+
+@needs_bash
+def test_an_unknown_profile_stops_the_job(tmp_path: Path) -> None:
+    repo, base = pull_request(tmp_path / "w", {"CLAUDE.md": CLEAN}, {"CLAUDE.md": f"{CLEAN}\n"})
+    result = run_step(
+        "Resolve trusted settings", tmp_path, cwd=repo, **pr_env(repo, base, INPUT_PROFILE="loud")
+    )
+    assert result.returncode == 2 and "profile must be" in result.stdout
 
 
 def test_self_test_exercises_follow_imports_and_the_lock_check() -> None:
@@ -358,12 +742,23 @@ def test_release_uses_trusted_publishing_and_no_tokens() -> None:
     assert publish["permissions"] == {"id-token": "write"}
     assert publish["environment"] == "pypi"
     uses = [s["uses"] for s in publish["steps"]]
-    assert "pypa/gh-action-pypi-publish@release/v1" in uses
+    assert any(u.startswith("pypa/gh-action-pypi-publish@") for u in uses)
     text = path.read_text(encoding="utf-8")
     assert "password" not in text and "PYPI_TOKEN" not in text
     assert "secrets." not in text
     assert release["permissions"] == {"contents": "read"}
     assert release["jobs"]["github-release"]["permissions"] == {"contents": "write"}
+
+
+def test_release_moves_the_v0_tag_only_for_a_stable_release_and_only_with_write_access() -> None:
+    release = load(ROOT / ".github/workflows/release.yml")
+    job = release["jobs"]["move-major-tag"]
+    assert job["needs"] == "github-release" and job["permissions"] == {"contents": "write"}
+    step = next(s for s in job["steps"] if "run" in s)
+    assert "${{" not in step["run"]  # the tag reaches the script through the environment
+    assert step["env"]["TAG"] == "${{ github.ref_name }}"
+    assert "^v0\\.[0-9]+\\.[0-9]+$" in step["run"]  # a stable x.y.z only, never a pre-release
+    assert "git tag -f v0" in step["run"] and "git push --force origin v0" in step["run"]
 
 
 def test_release_builds_before_publishing_and_checks_tag_and_notes() -> None:
