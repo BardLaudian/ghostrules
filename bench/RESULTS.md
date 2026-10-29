@@ -7,28 +7,30 @@ measured and how. Nothing here was tuned on the held-out set.
 
 | Technique | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
-| agent-settings | 5 | 3 | 2 |
+| agent-settings | 9 | 7 | 6 |
 | bidi | 3 | 3 | 3 |
 | concealment | 4 | 3 | 0 |
 | encoded-payload | 3 | 3 | 3 |
-| exfiltration | 6 | 3 | 0 |
+| exfiltration | 9 | 4 | 0 |
 | homoglyph | 3 | 3 | 1 |
+| hook-scripts | 7 | 0 | 0 |
 | html-comment | 4 | 4 | 3 |
 | imports | 5 | 5 | 5 |
 | instruction-override | 9 | 6 | 0 |
-| mcp-config | 6 | 6 | 4 |
+| mcp-config | 7 | 7 | 4 |
 | mcp-server-content | 1 | 0 | 0 |
-| referenced-files | 2 | 0 | 0 |
+| referenced-files | 4 | 0 | 0 |
 | remote-code-execution | 7 | 6 | 1 |
 | safety-bypass | 3 | 3 | 0 |
 | scanner-evasion | 2 | 0 | 0 |
 | sensitive-file | 5 | 3 | 0 |
+| skill-scripts | 3 | 0 | 0 |
 | unicode-tags | 7 | 7 | 7 |
 | variation-selectors | 3 | 3 | 3 |
 | zero-width | 3 | 3 | 1 |
-| **All** | 81 | 64 (79%) | 33 (41%) |
+| **All** | 101 | 70 (69%) | 37 (37%) |
 
-64 of 81 cases are detected and 17 are known misses.
+70 of 101 cases are detected and 31 are known misses.
 
 | Rule | Cases naming it | Reported | Fails the default check |
 |---|---:|---:|---:|
@@ -41,7 +43,7 @@ measured and how. Nothing here was tuned on the held-out set.
 | GR010 | 11 | 7 | 1 |
 | GR011 | 5 | 4 | 1 |
 | GR012 | 7 | 6 | 1 |
-| GR013 | 11 | 4 | 1 |
+| GR013 | 16 | 5 | 1 |
 | GR014 | 5 | 3 | 0 |
 | GR015 | 2 | 2 | 2 |
 | GR016 | 3 | 3 | 0 |
@@ -49,13 +51,17 @@ measured and how. Nothing here was tuned on the held-out set.
 | GR021 | 1 | 1 | 1 |
 | GR025 | 1 | 1 | 1 |
 | GR101 | 1 | 1 | 1 |
-| GR102 | 1 | 1 | 0 |
+| GR102 | 2 | 2 | 0 |
 | GR103 | 1 | 1 | 1 |
 | GR104 | 1 | 1 | 0 |
 | GR105 | 1 | 1 | 1 |
 | GR106 | 1 | 1 | 1 |
-| GR107 | 4 | 2 | 2 |
+| GR107 | 7 | 6 | 6 |
 | GR108 | 1 | 1 | 0 |
+| GR110 | 8 | 0 | 0 |
+| GR111 | 1 | 0 | 0 |
+| GR112 | 2 | 0 | 0 |
+| GR113 | 1 | 0 | 0 |
 
 Known misses:
 
@@ -76,6 +82,20 @@ Known misses:
 - `sensitive-npmrc` (sensitive-file, public): Found when the bench ran: 'Open ~/.npmrc' is not matched, even at info; the read-verb list lacks 'open'.
 - `sensitive-paraphrase` (sensitive-file, ours): No path or file name to match: a description of the file.
 - `rce-python-urlopen-exec` (remote-code-execution, ours): GR012 knows shell pipes, PowerShell and eval of curl; not exec(urlopen(...)).
+- `gemini-hook-script` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
+- `claude-hook-python-aws` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
+- `claude-hook-script-curl-sh` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
+- `claude-hook-obfuscated-eval` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
+- `claude-hook-reads-ssh-key` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
+- `cursor-hook-script` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
+- `codex-hook-script` (hook-scripts, public): Scripts that hooks run are not read yet (REMEDIATION W5.1).
+- `skill-python-script-env-post` (skill-scripts, public): Scripts that SKILL.md references are not read yet (REMEDIATION W5.2).
+- `skill-shell-script-curl-sh` (skill-scripts, public): Scripts that SKILL.md references are not read yet (REMEDIATION W5.2).
+- `skill-script-not-mentioned` (skill-scripts, ours): Only scripts that SKILL.md references are scanned (REMEDIATION W5.2), by design.
+- `referenced-see-and-do` (referenced-files, ours): Files that prose points to are not read yet (REMEDIATION W5.4).
+- `referenced-follow-instructions-in` (referenced-files, ours): Files that prose points to are not read yet (REMEDIATION W5.4).
+- `exfil-read-then-upload` (exfiltration, ours): Instructions split across sentences are not matched yet (REMEDIATION W5.5).
+- `exfil-note-then-post` (exfiltration, ours): Instructions split across sentences are not matched yet (REMEDIATION W5.5).
 
 ## Precision on the held-out set
 

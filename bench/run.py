@@ -214,6 +214,37 @@ def render_results(data: dict[str, Any], labels: dict[str, str]) -> str:
     )
 
 
+def readme_block(outcomes: list[lib.Outcome]) -> str:
+    """The recall paragraph and table of the README, from the attack set."""
+    total = len(outcomes)
+    reported = sum(o.reported for o in outcomes)
+    fails = sum(o.fails_ci for o in outcomes)
+    rows = "\n".join(
+        f"| {r['technique']} | {r['cases']} | {r['reported']} | {r['fails_ci']} |"
+        for r in lib.recall_table(outcomes)
+    )
+    by_origin = {o: sum(1 for x in outcomes if x.case.origin == o) for o in lib.ORIGINS}
+    return (
+        f"**Recall: {total} attack cases** written from public sources and defanged. {reported} are "
+        f"reported ({reported / total:.0%}); {fails} ({fails / total:.0%}) fail the default "
+        "`--fail-on high` check, because visible prose is `low` by default (hidden text and "
+        f"configuration are not). The {total - reported} misses include paraphrases, other languages, "
+        "scripts and files that nothing points the scanner to, tool descriptions served by a running "
+        "MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; "
+        f"each is listed in the results. {by_origin['review']} cases come from the independent review; "
+        "its other 14 are not in the repository yet.\n\n"
+        "| Technique | Cases | Reported | Fails the default check |\n|---|---:|---:|---:|\n" + rows
+    )
+
+
+def write_readme(outcomes: list[lib.Outcome]) -> None:
+    path = HERE.parent / "README.md"
+    text = path.read_text(encoding="utf-8")
+    a, b = text.index("<!-- bench:start -->\n"), text.index("\n<!-- bench:end -->")
+    start = a + len("<!-- bench:start -->\n")
+    path.write_text(text[:start] + readme_block(outcomes) + text[b:], encoding="utf-8")
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     p.add_argument("command", choices=("attacks", "heldout", "report"))
@@ -228,7 +259,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         text = render_results(json.loads(results.read_text("utf-8")), load_labels())
         if args.write:
             (HERE / "RESULTS.md").write_text(text, encoding="utf-8")
-            print("bench/RESULTS.md written")
+            write_readme(lib.run_attacks(lib.load_cases()))
+            print("bench/RESULTS.md and the README recall table written")
         else:
             print(text, end="")
         return 0
