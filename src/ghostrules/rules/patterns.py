@@ -69,7 +69,8 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         # "do not tell the user to ...", "... which|what|how|where|when|why ..." is about what to
         # say, not concealment; "that" is concealment only as "that you ..."
         r"\b(?:do\s+not|don'?t)\s+(?:tell|inform|mention|show|reveal)(?:\s+this)?(?:\s+to)?"
-        r"\s+the\s+user(?!\s+(?:to|which|what|how|where|when|why)\b)(?!\s+that\b(?!\s+you\b))",
+        r"\s+the\s+user(?!\s+(?:to|which|what|how|where|when|why)\b)(?!\s+that\b(?!\s+you\b))"
+        r"(?!\s+(?:they|he|she|them|their)\b)",  # "tell the user they are wrong": wording advice
         r"\bwithout\s+(?:telling|notifying)\s+the\s+user",  # asking: permission, GR016
         r"\b(?:silently|secretly|quietly)\s+(?:run|execute|add|send|install|modify)\b",
         r"\bdon'?t\s+mention\s+(?:this|these)",

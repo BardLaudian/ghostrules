@@ -24,6 +24,7 @@ from ghostrules.changeset import ChangeBase
 from ghostrules.clean import clean_text, unified_diff
 from ghostrules.config import Config, ConfigError, load_config
 from ghostrules.context_command import ContextError, ContextReport, build_report, find_root
+from ghostrules.firstparty import first_party_installers
 from ghostrules.gitref import GitRefError, RefReader, config_at_ref, reviewed_lookup
 from ghostrules.models import ScanResult, Severity
 from ghostrules.reporters import context as context_report
@@ -247,6 +248,10 @@ def scan(
     if strict:
         cfg = replace(cfg, profile="strict")
 
+    cfg = replace(
+        cfg, first_party=_first_party(base, config_reader or suppression_reader or baseline_reader)
+    )
+
     policy = None
     if no_inline_suppressions:
         policy = SuppressionPolicy("off")
@@ -278,6 +283,25 @@ def scan(
         raise typer.Exit(EXIT_ERROR)
     if cfg.fail_on is not None and any(f.severity >= cfg.fail_on for f in result.findings):
         raise typer.Exit(EXIT_FINDINGS)
+
+
+def _first_party(base: Path, reader: RefReader | None) -> tuple[Any, ...]:
+    """The scanned project's own installer hosts. Read at the base ref when the scan has one, so a
+    change cannot declare its own domain first-party; ``.git/config`` is not part of a change."""
+
+    def read(name: str) -> str | None:
+        if reader is not None:
+            return reader.read(name)
+        try:
+            return (base / name).read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return None
+
+    try:
+        git_config = (base / ".git" / "config").read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        git_config = None
+    return first_party_installers(read, git_config)
 
 
 def _known_findings(

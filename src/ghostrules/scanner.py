@@ -65,6 +65,7 @@ def load_target(
     label: str | None = None,
     allow_domains: tuple[str, ...] = (),
     trust_known_installers: bool = True,
+    first_party: tuple[Any, ...] = (),
 ) -> ScanTarget:
     """Read a candidate as UTF-8 (``surrogateescape``, so bad bytes never crash) and parse it."""
     data = candidate.abs_path.read_bytes()
@@ -79,6 +80,7 @@ def load_target(
         parse_error=error,
         allow_domains=allow_domains,
         trust_known_installers=trust_known_installers,
+        first_party=first_party,
     )
 
 
@@ -435,7 +437,13 @@ def scan_paths(
             continue
         seen.add(resolved)
         try:
-            target = load_target(cand, label, config.allow_domains, config.trust_known_installers)
+            target = load_target(
+                cand,
+                label,
+                config.allow_domains,
+                config.trust_known_installers,
+                config.first_party,
+            )
         except OSError as exc:
             result.warnings.append(f"cannot read {label}: {exc.strerror or exc}")
             continue

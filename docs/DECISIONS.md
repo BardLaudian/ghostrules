@@ -1059,3 +1059,22 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   no baseline means nothing is baselined. Outside a pull request the file in the tree is used; on the
   CLI `.ghostrules-baseline.json` in the scan root is picked up unless `--no-baseline`.
 
+## v0.4 W4 — specific false positives
+
+- **First-party hosts come from `.git/config` and the manifests.** Owner of the `origin` remote
+  (GitHub only) gives `raw.githubusercontent.com/<owner>/` and `<owner>.github.io`; a homepage in
+  `pyproject.toml` / `package.json` gives its host (never github.com, gitlab.com, pypi.org, npmjs).
+  `.git/config` is not part of a change; manifests are read at the ref when the scan has one, so a
+  PR that edits its own homepage does not make its installer first-party (tested). Without a ref the
+  working tree is used, as for the config. The config file cannot add hosts: that is
+  `allow_domains` and it is the maintainer's.
+- **New known installers** each come from the project's own install page, with the URL in the
+  source. The corpus's other installers (`d.officecli.ai`, `strix.ai`, ...) are first-party in their
+  own repositories and need no entry. Flox: the script lives at `install.flox.dev` (flox.dev docs).
+  I did not re-fetch every page on the day; the URLs are in `known_installers.py` for a reader to
+  check.
+- **GR011 and "they".** `tell the user they|he|she|them|their …` describes wording; "that you …"
+  stays concealment. "Never tell the user you ran the script" is not matched, and was not before.
+- **GR016 documentation paragraphs** were already `info` after W4.1 (descriptive and visible); a
+  test pins it.
+

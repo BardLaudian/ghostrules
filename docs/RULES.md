@@ -148,6 +148,7 @@ it a description.
 Not concealment, and not reported: "do not tell the user **to** …", "… **which|what|how|where|when|why**
 …" and "… **that** …" unless it is "that you …": these say what to tell the user. "Do not tell the
 user about this", "Do not tell the user." and "Do not tell the user that you did it" are.
+Since 0.4 "do not tell the user **they|he|she** …" is wording advice ("…they are wrong"), not concealment.
 
 ### GR012 — Remote code execution patterns (context-aware in instructions, high elsewhere)
 `curl … | (ba|z)?sh`, `wget … -O- | sh`, `curl … | python`, `iwr|Invoke-WebRequest … | iex`,
@@ -187,7 +188,17 @@ Matching is the exact `https` host plus an optional path prefix, never a suffix,
 Bun `bun.sh`, Deno `deno.land`, pnpm `get.pnpm.io`, Poetry `install.python-poetry.org`, Homebrew
 `raw.githubusercontent.com/Homebrew/install/`, nvm `raw.githubusercontent.com/nvm-sh/nvm/`, SDKMAN
 `get.sdkman.io`, Docker `get.docker.com`, Ollama `ollama.com/install.sh`, Volta `get.volta.sh`,
-Claude Code `claude.ai/install.sh`.
+Claude Code `claude.ai/install.sh`. Added in 0.4 from each project's official install page (checked
+2026-10-29): Azure CLI `aka.ms/InstallAzureCLIDeb`, Flox `install.flox.dev`, golangci-lint
+`raw.githubusercontent.com/golangci/golangci-lint/`, Foundry `foundry.paradigm.xyz`, Flux
+`fluxcd.io/install.sh`, Linkerd `run.linkerd.io/install`.
+
+**First-party installers (0.4).** The project's own installer counts as known: the owner of the
+GitHub `origin` remote in `.git/config` (`raw.githubusercontent.com/<owner>/` and `<owner>.github.io`)
+and the homepage in `[project.urls]` of `pyproject.toml` or `homepage` in `package.json`. The remote is
+not part of a change; with `--config-from-ref` (or another ref option) the manifests are read at the
+base ref, so a pull request cannot declare its own domain first-party. Without a ref the working
+tree's manifest is used, like the rest of the configuration.
 
 GR105 and GR107 reuse the GR012 patterns for MCP server commands and hooks and are not affected:
 in configuration files a piped installer stays high/critical.

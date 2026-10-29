@@ -43,6 +43,7 @@ class Config:
     agents: tuple[str, ...] = AGENT_NAMES
     lockfile: str = ".ghostrules.lock"
     profile: str = "default"
+    first_party: tuple[Any, ...] = ()  # set by the CLI from the repository, not from TOML
     source: str | None = None
 
 
