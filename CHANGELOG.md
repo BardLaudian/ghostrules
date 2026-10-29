@@ -11,6 +11,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   --config-from-ref REF`, `--trusted-config FILE`, `--no-inline-suppressions` and
   `--suppressions-from-ref REF`. They close two ways a change could silence the scanner for its own
   payload: a `ghostrules-ignore` comment on the malicious line and `exclude` in `.ghostrules.toml`.
+- **Inline ignores no longer hide text a reviewer cannot see** (W2): a finding inside an HTML
+  comment is never suppressed, and no ignore counts inside a file that an agent reaches only
+  through an import (the report says how many were not honoured). Decoded hidden text, GR001 and
+  GR002 were already never suppressed. An ignore on a visible line works as before.
 - **GR030, scanner configuration changed** (high): with a base ref, the change adds or edits
   `.ghostrules.toml`, `[tool.ghostrules]`, the lockfile or a `ghostrules-ignore` comment. Reported
   even when legitimate, never suppressible inline, and the change cannot disable it. A new `change`

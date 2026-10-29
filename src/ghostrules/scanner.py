@@ -81,6 +81,9 @@ def load_target(
     )
 
 
+_NO_IGNORES = SuppressionPolicy("off")
+
+
 def parse_suppressions(lines: Sequence[str], honour: ReviewedMarks | None = None) -> Suppressions:
     """Find ``ghostrules-ignore[: GR010,GR012]`` markers; each covers its line and the next.
 
@@ -129,9 +132,15 @@ def unhonoured_markers(target: ScanTarget, policy: SuppressionPolicy | None) -> 
     return sum(1 for n in markers if n not in honoured)
 
 
-def is_suppressed(finding: Finding, table: Suppressions) -> bool:
-    """Whether an inline marker silences this finding (never GR001/GR002)."""
+def is_suppressed(finding: Finding, table: Suppressions, target: ScanTarget | None = None) -> bool:
+    """Whether an inline marker silences this finding.
+
+    Never GR001, GR002 or GR030, and never a finding inside an HTML comment: the agent reads that
+    text and a reviewer looking at the rendered file does not, so a marker next to it cannot be
+    taken as the reviewer's approval."""
     if finding.rule_id in NEVER_SUPPRESS or finding.line not in table:
+        return False
+    if target is not None and target.in_html_comment(target.offset(finding.line, finding.column)):
         return False
     scope = table[finding.line]
     return scope is None or finding.rule_id in scope
@@ -208,7 +217,7 @@ def scan_target(
     kept: list[Finding] = []
     suppressed = 0
     for finding in _run_rules(target, active, errors):
-        if is_suppressed(finding, table):
+        if is_suppressed(finding, table, target):
             suppressed += 1
         else:
             kept.append(finding)
@@ -278,6 +287,7 @@ def _run_graph_rules(
     rule_list: list[Rule],
     result: ScanResult,
     policy: SuppressionPolicy | None = None,
+    import_only: frozenset[str] = frozenset(),
 ) -> list[Finding]:
     """GR020-GR025: once per scan root, with suppression by the importing file's own markers."""
     graph_rules = [
@@ -312,8 +322,11 @@ def _run_graph_rules(
                 f = _relabel_finding(f, rc.label_of, ctx)
                 target = by_label.get(f.path)
                 if target is not None:
-                    table = tables.setdefault(f.path, suppressions_for(target, policy))
-                    if is_suppressed(f, table):
+                    table = tables.setdefault(
+                        f.path,
+                        suppressions_for(target, _NO_IGNORES if f.path in import_only else policy),
+                    )
+                    if is_suppressed(f, table, target):
                         result.suppressed += 1
                         continue
                 found.append(f)
@@ -411,7 +424,8 @@ def scan_paths(
         candidates.append((cand, label))
 
     seen: set[Path] = set()
-    unhonoured = 0
+    unhonoured = unhonoured_imported = 0
+    import_only_labels: set[str] = set()
     findings: list[Finding] = []
     by_label: dict[str, ScanTarget] = {}
     for cand, label in candidates:
@@ -431,14 +445,34 @@ def scan_paths(
         result.scanned_files += 1
         if target.parse_error:
             result.warnings.append(mask_secrets(f"cannot parse {label}: {target.parse_error}"))
-        kept, suppressed, errors = scan_target(target, config, rule_list, suppressions)
-        unhonoured += unhonoured_markers(target, suppressions)
         is_standalone = label in standalone or bool(info and info.rooted)
+        # A file an agent reaches only through an import is not reviewed with the file that imports
+        # it, so an ignore inside it is not an approval: no inline ignore counts there.
+        import_only = bool(info and info.via and not is_standalone)
+        policy = _NO_IGNORES if import_only else suppressions
+        if import_only:
+            import_only_labels.add(label)
+        kept, suppressed, errors = scan_target(target, config, rule_list, policy)
+        skipped = unhonoured_markers(target, policy)
+        if import_only:
+            unhonoured_imported += skipped
+        else:
+            unhonoured += skipped
         findings.extend(_annotate(f, info, is_standalone) for f in kept)
         result.suppressed += suppressed
         result.errors.extend(errors)
 
-    findings.extend(_run_graph_rules(contexts, by_label, config, rule_list, result, suppressions))
+    findings.extend(
+        _run_graph_rules(
+            contexts,
+            by_label,
+            config,
+            rule_list,
+            result,
+            suppressions,
+            frozenset(import_only_labels),
+        )
+    )
     if change_base is not None and len(roots) == 1:
         root = roots[0] if roots[0].is_dir() else roots[0].parent
         findings.extend(
@@ -448,6 +482,12 @@ def scan_paths(
                 rule_list,
                 result,
             )
+        )
+    if unhonoured_imported:
+        noun = "comment" if unhonoured_imported == 1 else "comments"
+        result.warnings.append(
+            f"{unhonoured_imported} ghostrules-ignore {noun} in files reached only through an "
+            "import not honoured: nobody reviews them together with the file that imports them"
         )
     if unhonoured:
         noun = "comment" if unhonoured == 1 else "comments"

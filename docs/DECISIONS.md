@@ -990,3 +990,18 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   anything; deleting the lockfile makes `lock --check` fail by itself. Neither is reported.
 - **`[tool.ghostrules]` compares tables, not files**, so unrelated pyproject edits stay quiet.
 
+## v0.4 W2 — ignores and hidden text
+
+- **"Hidden" means inside an HTML comment, decoded, or imported-only.** A finding whose position
+  falls in a comment span is never suppressed (`ScanTarget.html_comments`, mirroring GR005: comments
+  in code fences or inline code render as written and do not count; an unterminated `<!--` hides
+  the rest of the file; config files have none). Decoded text was already added after suppression.
+- **GR005 is not exempt.** A comment that addresses the agent is exactly the hidden text, so an
+  ignore cannot silence it either. A project that wants such comments should not write them.
+- **Imported-only files take no inline ignore at all**, in every mode, not only in PR mode: the
+  scanner marks a target import-only when an import reaches it and no agent-file pattern does. An
+  ignore in the importing file still covers findings on its own import lines (GR020 and friends).
+- **The visible-line ignore stays.** `- Do X. <!-- ghostrules-ignore -->` is the documented form and
+  the marker comment is not what the finding is about. In PR mode the base-ref rules (W2.1) are what
+  keep a change from adding one.
+

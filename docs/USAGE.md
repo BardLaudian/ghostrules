@@ -416,6 +416,17 @@ text.** Invisible characters cannot be reviewed by definition, and an ignore com
 same file an attacker controls, so letting it silence the very thing it hides would defeat the
 tool. Remove the characters instead (`ghostrules clean`).
 
+The same holds for any text an agent reads but a reviewer looking at the rendered file does not
+(since 0.4):
+- **A finding inside an HTML comment** is never suppressed, whatever ignore sits next to it. The
+  comment that carries the ignore is not what the finding is about: on a visible line
+  (`- Do X. <!-- ghostrules-ignore -->`) the ignore still works.
+- **An ignore inside a file reached only through an import** is not honoured, because nobody reviews
+  that file together with the file that imports it. The report counts them. A file that is also an
+  agent file (`AGENTS.md` imported by `CLAUDE.md`) keeps its ignores. An ignore in the importing
+  file still covers findings on its own import lines.
+- GR030 (the scanner's own configuration changed) can never be suppressed either.
+
 Because configuration and ignore comments also come from the repository being scanned, a
 malicious pull request could try to switch rules off. The report therefore says when a config file
 was loaded from the scanned repository and how many findings were hidden by `ghostrules-ignore`.

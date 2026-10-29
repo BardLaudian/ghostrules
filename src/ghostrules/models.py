@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import enum
+import re
 from bisect import bisect_right
 from dataclasses import dataclass, field
 from functools import cached_property
@@ -10,6 +11,8 @@ from typing import TYPE_CHECKING, Any, Literal, NamedTuple
 
 from ghostrules.markdown_utils import FencedBlock, fenced_blocks, inline_code_spans
 from ghostrules.secrets import mask_secrets
+
+_HTML_COMMENT_RE = re.compile(r"<!--.*?(?:-->|\Z)", re.DOTALL)
 
 if TYPE_CHECKING:
     from ghostrules.mcp_config import ServerDef
@@ -198,6 +201,25 @@ class ScanTarget:
             if block.start <= offset < block.end:
                 return block
         return None
+
+    @cached_property
+    def html_comments(self) -> list[tuple[int, int]]:
+        """Spans of HTML comments a renderer hides but an agent may read (computed once).
+
+        Empty for config files. Comments in fenced code or inline code render as written, so they
+        are not hidden. An unterminated ``<!--`` hides the rest of the document.
+        """
+        if self.kind == "config":
+            return []
+        spans = []
+        for match in _HTML_COMMENT_RE.finditer(self.text):
+            if self.code_block_at(match.start()) is None and not self.in_inline_code(match.start()):
+                spans.append((match.start(), match.end()))
+        return spans
+
+    def in_html_comment(self, offset: int) -> bool:
+        """Whether ``offset`` is inside a hidden HTML comment."""
+        return any(start <= offset < end for start, end in self.html_comments)
 
     def offset(self, line: int, column: int) -> int:
         """Character offset of a 1-based ``(line, column)`` (clamped to the text)."""
