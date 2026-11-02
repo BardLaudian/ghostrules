@@ -1,31 +1,34 @@
 {
   "by_rule": {
-    "GR003": 10,
-    "GR005": 19,
+    "GR003": 11,
+    "GR005": 18,
     "GR006": 9,
-    "GR010": 65,
+    "GR010": 66,
     "GR011": 3,
     "GR012": 48,
-    "GR013": 4,
-    "GR014": 7,
-    "GR016": 26,
+    "GR013": 5,
+    "GR014": 8,
+    "GR016": 28,
     "GR022": 2,
-    "GR025": 4,
+    "GR025": 6,
     "GR102": 10,
     "GR107": 4,
-    "GR108": 1
+    "GR108": 1,
+    "GR110": 11,
+    "GR112": 1,
+    "GR113": 1
   },
   "by_severity": {
-    "high": 53,
-    "info": 1,
-    "low": 121,
-    "medium": 37
+    "high": 19,
+    "info": 90,
+    "low": 100,
+    "medium": 23
   },
-  "date": "2026-10-28",
-  "findings": 212,
-  "gate": "pass",
-  "ghostrules_version": "0.3.0",
+  "date": "2026-11-02",
+  "findings": 232,
+  "gate": "fail",
+  "ghostrules_version": "0.4.1",
   "repos": 300,
   "tier": "regression",
-  "unlabelled_critical_high": 0
+  "unlabelled_critical_high": 14
 }

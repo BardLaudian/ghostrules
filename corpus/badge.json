@@ -1,6 +1,6 @@
 {
-  "color": "brightgreen",
+  "color": "red",
   "label": "corpus",
-  "message": "300 repos · 0 critical",
+  "message": "gate failing",
   "schemaVersion": 1
 }
