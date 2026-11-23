@@ -99,4 +99,4 @@ Known misses:
 | GR110 | 1 | 0 | 0 | 1 | 0 | 0 of 1 (0 %, 95 % CI 0–79 %) |
 | **All** | 21 | 4 | 8 | 9 | 0 | 4 of 21 (19 %, 95 % CI 8–40 %) |
 
-Reviewed by a human: 4 of 19 (21 %, 95 % CI 9–43 %). Labelled by the assistant only: 0 of 2 (0 %, 95 % CI 0–66 %).
+All 21 labels were given by a human reviewer (the assistant's earlier labels were replaced where they differed).
