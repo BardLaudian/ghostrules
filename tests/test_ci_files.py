@@ -708,6 +708,7 @@ def test_expected_workflows_exist() -> None:
         "self-test.yml",
         "release.yml",
         "corpus.yml",
+        "links.yml",
         "pages.yml",
     }
 

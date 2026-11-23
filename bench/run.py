@@ -306,6 +306,21 @@ def readme_block(outcomes: list[lib.Outcome]) -> str:
     )
 
 
+def recall_headline(outcomes: list[lib.Outcome]) -> str:
+    """The first paragraph of ``readme_block``: the only recall text the README carries."""
+    return readme_block(outcomes).split("\n\n", 1)[0]
+
+
+def recall_detail(outcomes: list[lib.Outcome]) -> str:
+    """The origin and technique tables, kept in bench/README.md."""
+    return readme_block(outcomes).split("\n\n", 1)[1]
+
+
+def precision_headline(block: str) -> str:
+    """``precision_block`` up to the per-rule list, which stays in bench/README.md."""
+    return block.split(" Per rule:", 1)[0]
+
+
 def provenance_sentence(
     data: dict[str, Any], labels: dict[str, str], sources: dict[str, str]
 ) -> str:
@@ -384,12 +399,15 @@ def block_of(text: str, name: str) -> str:
 def write_readme(outcomes: list[lib.Outcome], data: dict[str, Any], labels: dict[str, str]) -> None:
     """Rewrite every number the README and bench/README.md quote from the data."""
     path = HERE.parent / "README.md"
-    text = fill(path.read_text(encoding="utf-8"), "recall", readme_block(outcomes))
-    path.write_text(fill(text, "precision", precision_block(data, labels)), encoding="utf-8")
+    precision = precision_block(data, labels)
+    text = fill(path.read_text(encoding="utf-8"), "recall", recall_headline(outcomes))
+    path.write_text(fill(text, "precision", precision_headline(precision)), encoding="utf-8")
     bench = HERE / "README.md"
     text = bench.read_text(encoding="utf-8")
     for name, content in bench_readme_blocks(outcomes, data).items():
         text = fill(text, name, content)
+    text = fill(text, "recall-detail", recall_detail(outcomes))
+    text = fill(text, "precision-detail", precision)
     bench.write_text(text, encoding="utf-8")
 
 
