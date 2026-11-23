@@ -1,0 +1,746 @@
+exit=0
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "ghostrules",
+          "version": "0.4.1",
+          "semanticVersion": "0.4.1",
+          "informationUri": "https://github.com/BardLaudian/ghostrules",
+          "rules": [
+            {
+              "id": "GR001",
+              "name": "Unicode tag characters (ASCII smuggling)",
+              "shortDescription": {
+                "text": "Unicode tag characters (ASCII smuggling)"
+              },
+              "fullDescription": {
+                "text": "Characters in U+E0000-U+E007F render as nothing but spell ASCII text that models read."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr001",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "9.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR002",
+              "name": "Bidirectional control characters (Trojan Source)",
+              "shortDescription": {
+                "text": "Bidirectional control characters (Trojan Source)"
+              },
+              "fullDescription": {
+                "text": "Bidi controls reorder how text is displayed, so what you read differs from what is parsed."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr002",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR003",
+              "name": "Zero-width / invisible formatting characters",
+              "shortDescription": {
+                "text": "Zero-width / invisible formatting characters"
+              },
+              "fullDescription": {
+                "text": "Zero-width characters are invisible and can encode hidden data or split keywords."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr003",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "5.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR004",
+              "name": "Variation-selector steganography",
+              "shortDescription": {
+                "text": "Variation-selector steganography"
+              },
+              "fullDescription": {
+                "text": "Runs of variation selectors can hide arbitrary bytes behind a single visible character."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr004",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR005",
+              "name": "Hidden HTML comment with instructions",
+              "shortDescription": {
+                "text": "Hidden HTML comment with instructions"
+              },
+              "fullDescription": {
+                "text": "HTML comments are invisible when Markdown is rendered but are read by AI agents."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr005",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "5.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR006",
+              "name": "Mixed-script homoglyph word",
+              "shortDescription": {
+                "text": "Mixed-script homoglyph word"
+              },
+              "fullDescription": {
+                "text": "Latin words with Cyrillic/Greek lookalikes disguise keywords and domains."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr006",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "security-severity": "3.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR010",
+              "name": "Instruction override",
+              "shortDescription": {
+                "text": "Instruction override"
+              },
+              "fullDescription": {
+                "text": "Text telling the agent to ignore, forget or override its previous or system instructions."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr010",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR011",
+              "name": "Concealment from the user",
+              "shortDescription": {
+                "text": "Concealment from the user"
+              },
+              "fullDescription": {
+                "text": "Text telling the agent to hide what it does from the user."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr011",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR012",
+              "name": "Remote code execution pattern",
+              "shortDescription": {
+                "text": "Remote code execution pattern"
+              },
+              "fullDescription": {
+                "text": "Commands that download and execute remote code (curl | sh, iex, encoded PowerShell...); severity depends on the source and context."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr012",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "9.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR013",
+              "name": "Data exfiltration",
+              "shortDescription": {
+                "text": "Data exfiltration"
+              },
+              "fullDescription": {
+                "text": "Instructions to send secrets to a URL, markdown-image exfiltration, collector domains."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr013",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "9.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR014",
+              "name": "Sensitive file access",
+              "shortDescription": {
+                "text": "Sensitive file access"
+              },
+              "fullDescription": {
+                "text": "Instructions to read, print or send credentials files (~/.ssh, .env, .npmrc...)."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr014",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR015",
+              "name": "Encoded payload",
+              "shortDescription": {
+                "text": "Encoded payload"
+              },
+              "fullDescription": {
+                "text": "Long base64 or hex strings in instruction files, which hide their content from reviewers."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr015",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "5.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR016",
+              "name": "Agent safety bypass",
+              "shortDescription": {
+                "text": "Agent safety bypass"
+              },
+              "fullDescription": {
+                "text": "Instructions to skip permission prompts, disable sandboxes or auto-approve everything."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr016",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR017",
+              "name": "Secret in an instruction file",
+              "shortDescription": {
+                "text": "Secret in an instruction file"
+              },
+              "fullDescription": {
+                "text": "A token or API key of a known format (ghp_, sk-ant-, AKIA, xox...) written in a file the agent reads; always masked."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr017",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "9.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR020",
+              "name": "External import",
+              "shortDescription": {
+                "text": "External import"
+              },
+              "fullDescription": {
+                "text": "An @path import that resolves outside the repository (absolute, ~/ or ../ above the root)."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr020",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR021",
+              "name": "Sensitive file imported into context",
+              "shortDescription": {
+                "text": "Sensitive file imported into context"
+              },
+              "fullDescription": {
+                "text": "An @path import of a secrets or credentials file (.env, ~/.ssh/*, .npmrc, *.pem...)."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr021",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "9.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR022",
+              "name": "Import that silently does not load",
+              "shortDescription": {
+                "text": "Import that silently does not load"
+              },
+              "fullDescription": {
+                "text": "An @path the agent ignores: missing file, too deep, quoted path or a path cut at a space."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr022",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "security-severity": "3.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR023",
+              "name": "Import cycle",
+              "shortDescription": {
+                "text": "Import cycle"
+              },
+              "fullDescription": {
+                "text": "Files that import each other in a loop. Agents stop at the depth limit; it is only noise."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr023",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "security-severity": "1.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR024",
+              "name": "Payload reached only through an import",
+              "shortDescription": {
+                "text": "Payload reached only through an import"
+              },
+              "fullDescription": {
+                "text": "Not a detector: findings in a file that only an @import reaches carry the import chain and the tag reached-via-import. Disabling it stops ghostrules from following imports."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr024",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "security-severity": "1.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR025",
+              "name": "Symlinked instruction source",
+              "shortDescription": {
+                "text": "Symlinked instruction source"
+              },
+              "fullDescription": {
+                "text": "An instruction file or rules directory that is a symlink the agent would follow out of the repository, a broken or cyclic one, or a symlink checked out as a text file. A link whose target is a file inside the repository is an alias and is not reported."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr025",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR026",
+              "name": "Payload reached through a prose reference",
+              "shortDescription": {
+                "text": "Payload reached through a prose reference"
+              },
+              "fullDescription": {
+                "text": "Not a detector: prose that tells the agent to read and follow a file (or run a script) makes that file part of what is scanned; its findings carry the reference chain and the tag reached-via-reference. Lower confidence than an @import: the agent may or may not open it."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr026",
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "security-severity": "1.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR030",
+              "name": "Scanner configuration changed",
+              "shortDescription": {
+                "text": "Scanner configuration changed"
+              },
+              "fullDescription": {
+                "text": "The change adds or edits .ghostrules.toml, [tool.ghostrules], the lockfile or a ghostrules-ignore comment. Reported even when legitimate, so a reviewer always sees it. Needs a base: --config-from-ref or --suppressions-from-ref."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr030",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR101",
+              "name": "Hardcoded secret in agent config",
+              "shortDescription": {
+                "text": "Hardcoded secret in agent config"
+              },
+              "fullDescription": {
+                "text": "API keys and tokens written into MCP server env/args/headers/URLs or agent settings env."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr101",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "9.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR102",
+              "name": "Unpinned package execution",
+              "shortDescription": {
+                "text": "Unpinned package execution"
+              },
+              "fullDescription": {
+                "text": "MCP servers launched with npx/uvx/etc. without an exact version run whatever is latest."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr102",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "5.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR103",
+              "name": "Insecure remote MCP transport",
+              "shortDescription": {
+                "text": "Insecure remote MCP transport"
+              },
+              "fullDescription": {
+                "text": "Remote MCP servers reached over plain http:// expose traffic and credentials."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr103",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR104",
+              "name": "Overly broad filesystem scope",
+              "shortDescription": {
+                "text": "Overly broad filesystem scope"
+              },
+              "fullDescription": {
+                "text": "Filesystem MCP servers given the whole disk or the whole home directory."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr104",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "5.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR105",
+              "name": "Shell wrapper in server command",
+              "shortDescription": {
+                "text": "Shell wrapper in server command"
+              },
+              "fullDescription": {
+                "text": "MCP servers started through a shell command string can run arbitrary commands."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr105",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR106",
+              "name": "Dangerous Docker options",
+              "shortDescription": {
+                "text": "Dangerous Docker options"
+              },
+              "fullDescription": {
+                "text": "Docker-based MCP servers started with options that break container isolation."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr106",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR107",
+              "name": "Over-permissive agent settings",
+              "shortDescription": {
+                "text": "Over-permissive agent settings"
+              },
+              "fullDescription": {
+                "text": "Agent settings that skip permission prompts, allow unrestricted tools, or run risky hooks."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr107",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR108",
+              "name": "Auto-enabled project MCP servers",
+              "shortDescription": {
+                "text": "Auto-enabled project MCP servers"
+              },
+              "fullDescription": {
+                "text": "Settings that start MCP servers from a cloned repository without review."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr108",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "5.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR110",
+              "name": "Script sends the environment or a secret",
+              "shortDescription": {
+                "text": "Script sends the environment or a secret"
+              },
+              "fullDescription": {
+                "text": "A script that a hook or a skill runs posts the environment, a token or a credentials file to a remote host."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr110",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR111",
+              "name": "Script reads credential files",
+              "shortDescription": {
+                "text": "Script reads credential files"
+              },
+              "fullDescription": {
+                "text": "A script that a hook or a skill runs reads credentials (~/.ssh, ~/.aws, .npmrc, the keychain)."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr111",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "5.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR112",
+              "name": "Script downloads and runs code",
+              "shortDescription": {
+                "text": "Script downloads and runs code"
+              },
+              "fullDescription": {
+                "text": "A script that a hook or a skill runs downloads code and executes it (curl | sh, eval of a download, exec of urlopen)."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr112",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR113",
+              "name": "Script hides what it runs",
+              "shortDescription": {
+                "text": "Script hides what it runs"
+              },
+              "fullDescription": {
+                "text": "A script that a hook or a skill runs decodes an encoded string and executes it (eval of base64, exec of a decoded blob)."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr113",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            }
+          ]
+        }
+      },
+      "columnKind": "unicodeCodePoints",
+      "originalUriBaseIds": {
+        "%SRCROOT%": {
+          "uri": "file:///"
+        }
+      },
+      "results": [],
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "toolExecutionNotifications": []
+        }
+      ]
+    }
+  ]
+}

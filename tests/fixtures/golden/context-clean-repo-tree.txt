@@ -1,0 +1,19 @@
+exit=0
+claude-code · session start (no target file)
+├── ● always      CLAUDE.md  4 lines · HTML comments stripped
+└── ✕ skipped     AGENTS.md  a CLAUDE.md exists (default "claude-md-or-agents-md"): AGENTS.md is not read
+
+copilot-cli · session start (no target file)
+├── ● always      AGENTS.md  11 lines
+└── ● always      CLAUDE.md  5 lines · (unverified) · unverified whether HTML comments are stripped here: kept as seen
+
+cursor · session start (no target file)
+└── ● always      AGENTS.md  11 lines
+
+generic · session start (no target file)
+└── ● always      AGENTS.md  11 lines
+
+✔ No findings in what these agents read.
+note: directories above the repository root, managed policy files, claudeMdExcludes and --add-dir are not examined
+note: COPILOT_CUSTOM_INSTRUCTIONS_DIRS and instructions disabled with /instructions are not examined
+note: User Rules and Team Rules are configured outside the repository

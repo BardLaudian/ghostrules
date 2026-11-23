@@ -1,0 +1,44 @@
+exit=0
+claude-code · session start (no target file)
+├── ● always      CLAUDE.md  4 lines · HTML comments stripped
+└── ✕ skipped     AGENTS.md  a CLAUDE.md exists (default "claude-md-or-agents-md"): AGENTS.md is not read
+
+copilot-cli · session start (no target file)
+├── ● always      AGENTS.md  11 lines
+└── ● always      CLAUDE.md  5 lines · (unverified) · unverified whether HTML comments are stripped here: kept as seen
+
+cursor · session start (no target file)
+└── ● always      AGENTS.md  11 lines
+
+generic · session start (no target file)
+└── ● always      AGENTS.md  11 lines
+
+note: directories above the repository root, managed policy files, claudeMdExcludes and --add-dir are not examined
+note: COPILOT_CUSTOM_INSTRUCTIONS_DIRS and instructions disabled with /instructions are not examined
+note: User Rules and Team Rules are configured outside the repository
+CLAUDE.md · text seen by claude-code ───────────────────────────────────────────────────────────────────────────────────
+   1 │ # Claude notes
+   2 │ 
+   3 │ Follow the conventions in AGENTS.md.
+   4 │ Open a pull request for every change.
+   5 │ 
+AGENTS.md · text seen by copilot-cli, cursor, generic ──────────────────────────────────────────────────────────────────
+   1 │ # Project guide
+   2 │ 
+   3 │ ## Setup
+   4 │ - Run `uv sync`, then `pytest -q`.
+   5 │ - Copy `.env.example` to `.env.local` and fill in your own values.
+   6 │ 
+   7 │ ## Rules
+   8 │ - Never commit `.env` files or secrets.
+   9 │ - Ask for permission before deleting files.
+  10 │ - Tell the user when tests fail and summarise what changed.
+  11 │ - API reference: https://example.com/docs
+  12 │ 
+CLAUDE.md · text seen by copilot-cli ───────────────────────────────────────────────────────────────────────────────────
+   1 │ # Claude notes
+   2 │ 
+   3 │ Follow the conventions in AGENTS.md.
+   4 │ <!-- Generated sections below are refreshed by the docs build. -->
+   5 │ Open a pull request for every change.
+   6 │ 
