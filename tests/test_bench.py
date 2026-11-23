@@ -170,9 +170,12 @@ def test_the_numbers_in_the_readmes_are_what_the_runner_generates() -> None:
     outcomes = lib.run_attacks(CASES)
     data = json.loads((ROOT / "bench" / "heldout-results.json").read_text(encoding="utf-8"))
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert run.block_of(readme, "recall") == run.readme_block(outcomes)
-    assert run.block_of(readme, "precision") == run.precision_block(data, run.load_labels())
+    precision = run.precision_block(data, run.load_labels())
+    assert run.block_of(readme, "recall") == run.recall_headline(outcomes)
+    assert run.block_of(readme, "precision") == run.precision_headline(precision)
     bench = (ROOT / "bench" / "README.md").read_text(encoding="utf-8")
+    assert run.block_of(bench, "recall-detail") == run.recall_detail(outcomes)
+    assert run.block_of(bench, "precision-detail") == precision
     for name, content in run.bench_readme_blocks(outcomes, data).items():
         assert run.block_of(bench, name) == content
 

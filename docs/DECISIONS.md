@@ -1263,3 +1263,19 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   (2.5 s for 60 files in an import chain); not investigated in this phase.
 - **Platform tests run on the existing matrix.** They were written on Linux; the Windows and macOS
   results are known only after the first CI run.
+
+## Phase 9 (documentation and governance)
+
+- **Bench detail leaves the README.** The README keeps the recall and precision headlines, generated
+  into the same marker blocks as before; the tables and the per-rule list are generated into
+  `bench/README.md` (`recall-detail`, `precision-detail`). Reason: the front page states the
+  independent figure and its sample size, the rest is for readers of the benchmark.
+- **Link check is a separate workflow (`links.yml`), not part of `ci-ok`.** A third-party site being
+  down must not block a merge. It runs on pull requests that touch Markdown, weekly and by hand.
+  The action is pinned by SHA (`lycheeverse/lychee-action` v2.9.0, read with `gh api`).
+- **Thresholds in GOVERNANCE.md** (3 independent reports, or precision under 50 % on at least 10
+  labelled findings) and the deprecation period (two minor releases) are proposals by the author of
+  this phase; the maintainer may change them.
+- **Code of Conduct contact** uses GitHub's private reporting; a dedicated email is `[HUMANO]`.
+- **Changelog:** Unreleased sections were merged into the Keep a Changelog categories and internal
+  tracking labels (H1…H14) removed. Older "Known limits" sections are kept as written.
