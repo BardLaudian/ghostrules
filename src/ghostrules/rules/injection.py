@@ -13,7 +13,7 @@ from collections.abc import Iterable, Iterator
 from dataclasses import replace
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
-from ghostrules.rules.directive import classify, downgrade_note, severity_for
+from ghostrules.rules.directive import OBFUSCATION_NOTE, classify, downgrade_note, severity_for
 from ghostrules.rules.helpers import build_finding, host_allowed, urls_allowed
 from ghostrules.rules.known_installers import extract_urls, is_risky_url, known_installer
 from ghostrules.rules.patterns import (
@@ -48,6 +48,16 @@ def _spans(
         for m in p.finditer(normalised):
             if m.end() > m.start():
                 spans.append((offsets[m.start()], offsets[m.end() - 1] + 1))
+    if target.needs_deobfuscation:
+        plain = list(spans)
+        deob, deob_offsets = target.deobfuscated
+        for p in patterns:
+            for m in p.finditer(deob):
+                if m.end() > m.start():
+                    span = (deob_offsets[m.start()], deob_offsets[m.end() - 1] + 1)
+                    if not any(span[0] < e and s < span[1] for s, e in plain):
+                        spans.append(span)
+                        target.obfuscated_spans.add(span)
     if not fence_ok:
         spans = [s for s in spans if "```" not in target.text[s[0] : s[1]]]
     kept: list[tuple[int, int]] = []
@@ -75,6 +85,9 @@ def _finding(
     limit: int = 120,
 ) -> Finding:
     start, end = span
+    if span in target.obfuscated_spans:
+        severity = max(severity, Severity.HIGH)
+        message += OBFUSCATION_NOTE
     return build_finding(
         target=target,
         rule_id=rule_id,

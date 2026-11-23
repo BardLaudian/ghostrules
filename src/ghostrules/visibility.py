@@ -16,7 +16,7 @@ from collections.abc import Iterable
 from dataclasses import replace
 
 from ghostrules.models import Finding, ScanTarget, Severity
-from ghostrules.rules.directive import _inside_quotes
+from ghostrules.rules.directive import OBFUSCATION_NOTE, _inside_quotes
 from ghostrules.rules.helpers import _URL_HOST_RE, host_allowed
 
 # GR015 is not here: a base64 blob is on screen but nobody can read it, so it keeps its severity.
@@ -73,6 +73,7 @@ def by_visibility(finding: Finding, target: ScanTarget, *, import_only: bool) ->
     if (
         finding.rule_id not in VISIBLE_PROSE_RULES
         or finding.decoded  # decoded from hidden characters
+        or OBFUSCATION_NOTE in finding.message  # not readable as written
         or import_only
         or target.kind == "config"
         or target.in_html_comment(target.offset(finding.line, finding.column))

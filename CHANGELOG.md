@@ -5,8 +5,18 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Unicode evasion of the injection patterns (H1).** GR010-GR016 now also match a de-obfuscated
+  view of the text (invisible characters dropped, NFKC, Cyrillic/Greek look-alikes folded to
+  Latin) and report against the original line and column. A match that only appears after
+  de-obfuscation is raised to at least `high`, is not lowered by the visible-prose policy, and says
+  the text was obfuscated. Plain ASCII and single-script text skip the extra pass (no measurable
+  cost on a 3,000-file tree).
+
 ### Tests
 
+- H1 cases (zero-width, soft hyphen, fullwidth, Cyrillic, mixed) now pass; added legitimate emoji ZWJ, Arabic, Persian, Hindi and Russian text as no-escalation tests.
 - Regression net for the audit findings H1–H5 (`tests/test_evasion_regressions.py`): strict-xfail evasion cases plus six legitimate-content cases that must stay clean.
 
 ### Docs
