@@ -149,7 +149,7 @@ All origins, by technique:
 <!-- bench:recall:end -->
 
 <!-- bench:precision:start -->
-**Precision: 100 repositories** frozen before any v0.4 tuning (851 agent files, default settings). They gave 21 findings, and 2 repositories would fail the default check. Precision for a user is true positives over everything reported, because a right pattern in a harmless place is still something to read: **4 of 21 (19 %, 95 % CI 8–40 %)** (0 findings unlabelled). All 21 labels were given by the assistant that ran the benchmark: no label has been reviewed by a human, so treat the figure as provisional. Per rule: GR014 1 of 5; GR022 1 of 6; GR102 1 of 1; GR107 1 of 1; GR003 0 of 2; GR011 0 of 1; GR012 0 of 4; GR110 0 of 1. 21 findings are too few for a percentage per rule to mean much.
+**Precision: 100 repositories** frozen before any v0.4 tuning (851 agent files, default settings). They gave 21 findings, and 2 repositories would fail the default check. Precision for a user is true positives over everything reported, because a right pattern in a harmless place is still something to read: **4 of 21 (19 %, 95 % CI 8–40 %)** (0 findings unlabelled). Reviewed by a human: 4 of 19 (21 %, 95 % CI 9–43 %). Labelled by the assistant only: 0 of 2 (0 %, 95 % CI 0–66 %). Per rule: GR014 1 of 5; GR022 1 of 6; GR102 1 of 1; GR107 1 of 1; GR003 0 of 2; GR011 0 of 1; GR012 0 of 4; GR110 0 of 1. 21 findings are too few for a percentage per rule to mean much.
 <!-- bench:precision:end -->
 
 The new GR110 finding is a script that sends its own API key to the API it documents.
