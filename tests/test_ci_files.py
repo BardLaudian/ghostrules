@@ -704,6 +704,7 @@ def test_pre_commit_hook() -> None:
 def test_expected_workflows_exist() -> None:
     assert {p.name for p in WORKFLOWS} == {
         "ci.yml",
+        "scorecard.yml",
         "self-test.yml",
         "release.yml",
         "corpus.yml",
@@ -749,7 +750,12 @@ def test_release_uses_trusted_publishing_and_no_tokens() -> None:
     assert "password" not in text and "PYPI_TOKEN" not in text
     assert "secrets." not in text
     assert release["permissions"] == {"contents": "read"}
-    assert release["jobs"]["github-release"]["permissions"] == {"contents": "write"}
+    # contents to create the release; the other two only to sign the build provenance
+    assert release["jobs"]["github-release"]["permissions"] == {
+        "contents": "write",
+        "id-token": "write",
+        "attestations": "write",
+    }
 
 
 def test_release_moves_the_v0_tag_only_for_a_stable_release_and_only_with_write_access() -> None:
@@ -916,3 +922,54 @@ def test_corpus_workflow_never_runs_on_pull_requests_and_publishes_from_main_onl
         in readme
     )
     assert "github.io%2Fghostrules%2Fcorpus" not in readme
+
+
+# --- supply chain (phase 6: H8, H9, H12) ---------------------------------------------------------
+
+
+def test_every_workflow_declares_least_privilege_permissions_at_the_top() -> None:
+    for path in WORKFLOWS:
+        assert "permissions" in load(path), f"{path.name} has no workflow-level permissions"
+    assert load(ROOT / ".github/workflows/ci.yml")["permissions"] == {"contents": "read"}
+
+
+def test_ci_cancels_obsolete_runs_and_has_typecheck_audit_and_self_scan_jobs() -> None:
+    ci = load(ROOT / ".github/workflows/ci.yml")
+    assert ci["concurrency"]["cancel-in-progress"] is True
+    text = (ROOT / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert {"test", "typecheck", "audit", "self-scan"} <= set(ci["jobs"])
+    assert "mypy src" in text and "pip-audit" in text and "ghostrules lock --check" in text
+
+
+def test_dependabot_watches_actions_and_pip_with_weekly_groups() -> None:
+    config = load(ROOT / ".github/dependabot.yml")
+    by_name = {u["package-ecosystem"]: u for u in config["updates"]}
+    assert set(by_name) == {"github-actions", "pip"}
+    for update in by_name.values():
+        assert update["schedule"]["interval"] == "weekly" and update["groups"]
+
+
+def test_release_attests_provenance_and_attaches_a_cyclonedx_sbom() -> None:
+    release = load(ROOT / ".github/workflows/release.yml")
+    text = (ROOT / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    assert "attestations: true" in text  # PyPI attestations
+    assert "actions/attest-build-provenance@" in text
+    assert "cyclonedx-py" in text and "ghostrules-sbom.cdx.json" in text
+    assert "sbom/ghostrules-sbom.cdx.json" in " ".join(
+        s.get("run", "") for s in release["jobs"]["github-release"]["steps"]
+    )
+
+
+def test_scorecard_workflow_is_read_only_by_default() -> None:
+    workflow = load(ROOT / ".github/workflows/scorecard.yml")
+    assert workflow["permissions"] == "read-all"
+    assert "ossf/scorecard-action@" in (ROOT / ".github/workflows/scorecard.yml").read_text(
+        encoding="utf-8"
+    )
+
+
+@pytest.mark.parametrize("doc", ["README.md", "docs/USAGE.md"])
+def test_documented_uses_lines_are_pinned_to_a_full_sha(doc: str) -> None:
+    text = (ROOT / doc).read_text(encoding="utf-8")
+    for ref in re.findall(r"uses: (\S+@\S+)", text):
+        assert re.fullmatch(r".+@[0-9a-f]{40}", ref), f"{doc}: {ref} is not a full SHA"

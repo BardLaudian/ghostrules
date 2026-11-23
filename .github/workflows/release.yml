@@ -41,6 +41,15 @@ jobs:
           python -m pip install --disable-pip-version-check --quiet build
           python -m build
 
+      - name: SBOM (CycloneDX)
+        run: |
+          # a clean environment, so the SBOM lists ghostrules and its runtime dependencies only
+          python -m venv sbom-env
+          sbom-env/bin/python -m pip install --disable-pip-version-check --quiet .
+          python -m pip install --disable-pip-version-check --quiet cyclonedx-bom
+          mkdir sbom
+          cyclonedx-py environment --of JSON -o sbom/ghostrules-sbom.cdx.json sbom-env
+
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: dist
@@ -48,33 +57,50 @@ jobs:
             dist/
             release-notes.md
 
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: sbom
+          path: sbom/
+
   publish-pypi:
     needs: build
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
-      id-token: write # Trusted Publishing
+      id-token: write # Trusted Publishing and PyPI attestations
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: dist
       - uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # release/v1
+        with:
+          attestations: true # PEP 740 attestations, signed with this workflow's OIDC identity
 
   github-release:
     needs: publish-pypi
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write # sign the build provenance
+      attestations: write
     steps:
       - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: dist
-      - name: Create the GitHub release
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: sbom
+          path: sbom
+      - name: Attest the build provenance of the distributions
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/*
+      - name: Create the GitHub release (distributions and SBOM)
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ github.ref_name }}
           REPO: ${{ github.repository }}
-        run: gh release create "$TAG" dist/* --repo "$REPO" --title "$TAG" --notes-file release-notes.md
+        run: gh release create "$TAG" dist/* sbom/ghostrules-sbom.cdx.json --repo "$REPO" --title "$TAG" --notes-file release-notes.md
 
   move-major-tag:
     # Users pin BardLaudian/ghostrules@v0 (or an exact tag). Only a stable x.y.z release moves it.
