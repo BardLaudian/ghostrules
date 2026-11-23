@@ -22,54 +22,6 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   a 1 MiB file) with a loose time budget checked in CI (job `perf`); figures in `docs/PERFORMANCE.md`.
 - **Tests** for CRLF, a UTF-8 BOM, mixed-case names, path separators and platforms without symlinks,
   and a test that `scan --help` and the option table of the usage guide list the same options.
-
-### Changed
-
-- **Benchmark honesty (H6).** Every recall and precision figure the benchmark prints now carries
-  its sample size and a 95 % Wilson interval. Labels record who gave them (`assistant` or `human`)
-  and the report keeps the two apart. `python bench/run.py review-sheet` writes
-  `bench/labels-review.csv` (blind, `human_label` empty) for a person to label; nothing was filled
-  in. `docs/CLAIMS.md` maps each README claim to its evidence. `docs/AI_PROVENANCE.md` lays out the
-  options for the AI co-author trailers; the maintainer chose to keep the history and declare AI
-  use in general (no history was touched). All 21 held-out findings now have a human label
-  (4 of 21 true positives, 19 %, 95 % CI 8–40 %).
-
-### Security
-
-- **CI and release supply chain (H8, H9, H12).** `ci.yml` has read-only `permissions` and cancels
-  obsolete runs, and `mypy`, `pip-audit` and the self-scan run as their own jobs. Dependabot also
-  watches the Python dependencies, grouped weekly. Releases publish PyPI attestations, a GitHub
-  build-provenance attestation and a CycloneDX SBOM. An OpenSSF Scorecard workflow was added and its badge shown in the README.
-  The README and usage guide show the Action pinned by commit SHA. Settings that need a
-  maintainer are listed in `docs/GITHUB_SETTINGS.md`.
-
-### Changed
-
-- **Type checking is strict and runs in CI (H7).** `mypy src` passes with `strict = true`
-  and is a CI step. The long functions behind `scan`, `lock`, `scan_paths`, the context builder
-  and the symlink resolver are split into steps with one job each, with no change in output
-  (pinned by golden tests of `scan`, `context` and `lock` on `examples/*`). Ruff now fails the build
-  on a function over 15 branches or 60 statements (H10).
-### Changed
-
-- **An imperative remote-code command in prose now fails the default check (H2).** GR012 on a line
-  such as `Run: curl URL | bash` in plain prose of an agent file keeps its own severity instead of
-  being lowered to `low`. Code blocks, code spans, quotations and descriptions are unchanged, and
-  the other visible-prose rules (GR010, GR011, GR013, GR014, GR016) keep the 0.4 policy.
-  **Migration:** if the new exit code breaks a pipeline, pass `--lenient` or set
-  `profile = "lenient"` to get the 0.4 behaviour; review the finding rather than silencing it.
-
-### Fixed
-
-- **Terminal escape sequences in the table report (H11).** A control character in a scanned file
-  (ESC, CSI, CR, BS...) reached the terminal through the snippet or message. Every report now
-  prints control characters as `⟦U+XXXX⟧`. Found by the new property tests.
-- **Quadratic cost on a line with many findings (H11).** 60,000 repetitions of one sentence took
-  minutes (masking the whole line and counting quotes from the start of the paragraph for each
-  finding); it is now linear (about 21 s for a 2 MB file, which the default size limit skips).
-
-### Added
-
 - **`--max-file-size` / `max_file_size` (default 1 MiB, `0` = no limit).** A larger file is skipped
   with a warning naming it and its size, shown in every output format. It is never skipped
   silently.
@@ -77,34 +29,69 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   locator and the reporters, and `slow` time-budget tests on hostile input (`pytest -m slow`;
   excluded from the normal run).
 
-- **GR017, a known-format secret written in an instruction file (H5).** `ghp_`, `github_pat_`,
+- **GR017, a known-format secret written in an instruction file.** `ghp_`, `github_pat_`,
   `sk-ant-`, `sk-`, `AKIA`, `xox*`, `AIza`, `glpat-`, `hf_`, `npm_` and webhook URLs in `AGENTS.md`,
   `CLAUDE.md`, `.cursorrules` and the other instruction files are `critical` and always masked.
-- **GR012 (H3):** a download tool kept in a variable then a shell (`c=curl; $c … && sh`),
+- **GR012:** a download tool kept in a variable then a shell (`c=curl; $c … && sh`),
   `python -c` / `node -e` that `exec`/`eval` what `urlopen`, `requests.get` or `fetch` returns, and
   `sh|zsh|source <(curl …)`.
-- **GR014 (H4):** the verb `open`, `.git-credentials`, `~/.config/gh/hosts.yml`, and a low-severity
+- **GR014:** the verb `open`, `.git-credentials`, `~/.config/gh/hosts.yml`, and a low-severity
   heuristic for `private key` + `ssh` in one sentence.
-- **French patterns (H4)** for GR010, GR011 and GR013, and Spanish for GR013.
+- **French patterns** for GR010, GR011 and GR013, and Spanish for GR013.
 - Nine bench cases (origin `author`) for the above; four former known misses are now detected.
+- Unicode-evasion cases (zero-width, soft hyphen, fullwidth, Cyrillic, mixed) now pass; added legitimate emoji ZWJ, Arabic, Persian, Hindi and Russian text as no-escalation tests.
+- Regression net for the evasion and false-positive audit (`tests/test_evasion_regressions.py`): strict-xfail evasion cases plus six legitimate-content cases that must stay clean.
+- `docs/improvement/BASELINE.md`: measured baseline before the improvement plan.
+- **Documentation and governance.** `docs/THREAT_MODEL.md` (assets, attackers, trust boundaries, attacks on the scanner, non-goals), `docs/VERSIONING.md` (the stable surface, deprecation policy, criteria for 1.0), `GOVERNANCE.md`, `CODE_OF_CONDUCT.md`, a pull request template with a false-positive checkbox, and a link check in CI.
+- `docs/improvement/BASELINE.md`: measured baseline before the improvement plan.
+
+### Changed
+
+- **Benchmark honesty.** Every recall and precision figure the benchmark prints now carries
+  its sample size and a 95 % Wilson interval. Labels record who gave them (`assistant` or `human`)
+  and the report keeps the two apart. `python bench/run.py review-sheet` writes
+  `bench/labels-review.csv` (blind, `human_label` empty) for a person to label; nothing was filled
+  in. `docs/CLAIMS.md` maps each README claim to its evidence. `docs/AI_PROVENANCE.md` lays out the
+  options for the AI co-author trailers; the maintainer chose to keep the history and declare AI
+  use in general (no history was touched). All 21 held-out findings now have a human label
+  (4 of 21 true positives, 19 %, 95 % CI 8–40 %).
+- **Type checking is strict and runs in CI.** `mypy src` passes with `strict = true`
+  and is a CI step. The long functions behind `scan`, `lock`, `scan_paths`, the context builder
+  and the symlink resolver are split into steps with one job each, with no change in output
+  (pinned by golden tests of `scan`, `context` and `lock` on `examples/*`). Ruff now fails the build
+  on a function over 15 branches or 60 statements.
+- **An imperative remote-code command in prose now fails the default check.** GR012 on a line
+  such as `Run: curl URL | bash` in plain prose of an agent file keeps its own severity instead of
+  being lowered to `low`. Code blocks, code spans, quotations and descriptions are unchanged, and
+  the other visible-prose rules (GR010, GR011, GR013, GR014, GR016) keep the 0.4 policy.
+  **Migration:** if the new exit code breaks a pipeline, pass `--lenient` or set
+  `profile = "lenient"` to get the 0.4 behaviour; review the finding rather than silencing it.
+- The README is shorter: the benchmark detail lives in `bench/README.md`, and a "How this was built" section declares the use of AI assistants.
+- This changelog: Keep a Changelog categories only, internal tracking labels removed, comparison links between tags.
 
 ### Fixed
 
-- **Unicode evasion of the injection patterns (H1).** GR010-GR016 now also match a de-obfuscated
+- **Terminal escape sequences in the table report.** A control character in a scanned file
+  (ESC, CSI, CR, BS...) reached the terminal through the snippet or message. Every report now
+  prints control characters as `⟦U+XXXX⟧`. Found by the new property tests.
+- **Quadratic cost on a line with many findings.** 60,000 repetitions of one sentence took
+  minutes (masking the whole line and counting quotes from the start of the paragraph for each
+  finding); it is now linear (about 21 s for a 2 MB file, which the default size limit skips).
+- **Unicode evasion of the injection patterns.** GR010-GR016 now also match a de-obfuscated
   view of the text (invisible characters dropped, NFKC, Cyrillic/Greek look-alikes folded to
   Latin) and report against the original line and column. A match that only appears after
   de-obfuscation is raised to at least `high`, is not lowered by the visible-prose policy, and says
   the text was obfuscated. Plain ASCII and single-script text skip the extra pass (no measurable
   cost on a 3,000-file tree).
 
-### Tests
+### Security
 
-- H1 cases (zero-width, soft hyphen, fullwidth, Cyrillic, mixed) now pass; added legitimate emoji ZWJ, Arabic, Persian, Hindi and Russian text as no-escalation tests.
-- Regression net for the audit findings H1–H5 (`tests/test_evasion_regressions.py`): strict-xfail evasion cases plus six legitimate-content cases that must stay clean.
-
-### Docs
-
-- `docs/improvement/BASELINE.md`: measured baseline before the improvement plan.
+- **CI and release supply chain.** `ci.yml` has read-only `permissions` and cancels
+  obsolete runs, and `mypy`, `pip-audit` and the self-scan run as their own jobs. Dependabot also
+  watches the Python dependencies, grouped weekly. Releases publish PyPI attestations, a GitHub
+  build-provenance attestation and a CycloneDX SBOM. An OpenSSF Scorecard workflow was added and its badge shown in the README.
+  The README and usage guide show the Action pinned by commit SHA. Settings that need a
+  maintainer are listed in `docs/GITHUB_SETTINGS.md`.
 
 ## [0.4.1] - 2026-10-29
 
@@ -443,3 +430,12 @@ First release.
   and the tool makes no network requests. Symbolic links are not followed.
 - Secrets are never printed: every finding, warning and error passes through one masking step
   (`ghp_****…a1b2`), and a test fails if a secret appears in any report format.
+
+[Unreleased]: https://github.com/BardLaudian/ghostrules/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/BardLaudian/ghostrules/compare/v0.4.0...v0.4.1
+[0.4.0]: https://github.com/BardLaudian/ghostrules/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/BardLaudian/ghostrules/compare/v0.2.1...v0.3.0
+[0.2.1]: https://github.com/BardLaudian/ghostrules/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/BardLaudian/ghostrules/compare/v0.1.1...v0.2.0
+[0.1.1]: https://github.com/BardLaudian/ghostrules/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/BardLaudian/ghostrules/releases/tag/v0.1.0
