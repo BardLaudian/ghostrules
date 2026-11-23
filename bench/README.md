@@ -42,7 +42,7 @@ right pattern in a harmless place is still something someone has to read.
   three lines of context, an empty `human_label`; the assistant's label is left out so the review
   is blind). A person fills `human_label` with `tp`, `benign-context` or `fp`; those labels win over
   the assistant's and the report then gives the human-reviewed and the assistant-only figures
-  separately, never as one number. **Pending `[HUMANO]`: the column is empty today.**
+  separately, never as one number. All 21 findings have a human label today; one person labelled them, so there is no second opinion.
 - **Every percentage carries its sample size and a 95 % Wilson interval** (`lib.share`).
 - **The set is small.** <!-- bench:heldout:start -->100 repositories gave 21 findings<!-- bench:heldout:end -->: a per-rule percentage on 1 to 6 findings
   is an anecdote, not an estimate.

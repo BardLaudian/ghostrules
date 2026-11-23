@@ -35,8 +35,8 @@ ooiyeefei/ccc,GR014,high,skills/streak/SKILL.md:405,"|-------|----------|
 ooiyeefei/ccc,GR014,high,skills/streak/SKILL.md:406,"| No .env file | Show: ""Create .env first with TELEGRAM_BOT_TOKEN and ALLOWED_USERS"" |
 | Empty token | Show: ""TELEGRAM_BOT_TOKEN in .env is empty - add your bot token from @BotFather"" |
 | Docker not found | Show: ""Docker not installed. Install from https://docker.com"" |",7f3c86ebf1cbcb23,fp
-a2aproject/a2a-go,GR022,low,AGENTS.md:24,[file changed since the scan] …isting mocking utilities from @./internal/testutil or create a new utility in th…,7e1e4c0519e13b45,
-a2aproject/a2a-go,GR022,low,AGENTS.md:7,[file changed since the scan] …pdate or create a document in @./docs/ai/ to capture that knowledge so …,d50de00e0809c6dd,
+a2aproject/a2a-go,GR022,low,AGENTS.md:24,[file changed since the scan] …isting mocking utilities from @./internal/testutil or create a new utility in th…,7e1e4c0519e13b45,benign-context
+a2aproject/a2a-go,GR022,low,AGENTS.md:7,[file changed since the scan] …pdate or create a document in @./docs/ai/ to capture that knowledge so …,d50de00e0809c6dd,benign-context
 lalabuy948/PhoenixAnalytics,GR022,low,examples/phoenix_mysql/AGENTS.md:213,"        <div class=""hidden only:block"">No tasks yet</div>
         <div :for={{id, task} <- @stream.tasks} id={id}>
           {task.name}",0b013db928942af7,fp

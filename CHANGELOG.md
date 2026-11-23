@@ -12,7 +12,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   and the report keeps the two apart. `python bench/run.py review-sheet` writes
   `bench/labels-review.csv` (blind, `human_label` empty) for a person to label; nothing was filled
   in. `docs/CLAIMS.md` maps each README claim to its evidence. `docs/AI_PROVENANCE.md` lays out the
-  options for the AI co-author trailers (decision pending; no history was touched).
+  options for the AI co-author trailers; the maintainer chose to keep the history and declare AI
+  use in general (no history was touched). All 21 held-out findings now have a human label
+  (4 of 21 true positives, 19 %, 95 % CI 8–40 %).
 
 ### Security
 

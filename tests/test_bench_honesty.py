@@ -125,3 +125,9 @@ def test_sheet_row_builder_takes_three_lines_of_context_and_flags_drift() -> Non
         text,
     )
     assert drift["context"].startswith("[file changed since the scan]")
+
+
+def test_when_every_label_is_human_the_report_says_so_without_an_empty_assistant_figure() -> None:
+    data = {"findings": [{"rule_id": "GR011", "fingerprint": "a"}]}
+    text = run.provenance_sentence(data, {"a": "tp"}, {"a": "human"})
+    assert text.startswith("All 1 labels were given by a human") and "n/a" not in text
