@@ -5,6 +5,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Tests
+
+- Regression net for the audit findings H1–H5 (`tests/test_evasion_regressions.py`): strict-xfail evasion cases plus six legitimate-content cases that must stay clean.
+
+### Docs
+
+- `docs/improvement/BASELINE.md`: measured baseline before the improvement plan.
+
 ## [0.4.1] - 2026-10-29
 
 Follow-up to 0.4.0: fewer false positives on scripts, fewer misses on visible attacks, and a
