@@ -1195,3 +1195,13 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 - **`safe()` replaces control characters** (including CR and C1) with a visible token in every
   report that uses it.
 
+
+## Improvement plan, phase 5 — code quality (H7, H10)
+
+- `strict = true` for the whole package at once: it already passed after seven small fixes
+  (`Any` returns from `tomllib`/`json`, one re-export), so a per-module ratchet was not needed.
+- Golden files live in `tests/fixtures/golden` (excluded from the self-scan: they contain the
+  poisoned example's hidden text). Regenerate only on purpose with `GHOSTRULES_UPDATE_GOLDEN=1`.
+- Complexity is enforced by ruff (`C901`, `PLR0912`, `PLR0915`; 15 / 15 / 60), not `radon`: ruff
+  already runs in CI and adds no dependency. The ~80-line target is not enforced by a tool.
+- One commit per refactored function; the output diff of every step was zero.
