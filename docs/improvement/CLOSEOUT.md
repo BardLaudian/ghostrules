@@ -64,7 +64,7 @@ Criterios de `PLAN.md` ("Definición de profesional") y de `docs/VERSIONING.md`.
 ## 4. Lista `[HUMANO]` consolidada
 
 1. Aprobar el texto del README ("Limits", "How this was built") y los umbrales de `GOVERNANCE.md`.
-2. Dar un contacto (correo o canal) para `CODE_OF_CONDUCT.md`.
+2. ~~Contacto para `CODE_OF_CONDUCT.md`~~: decidido, solo el reporte privado de GitHub, sin correo.
 3. Revisión de etiquetas: segunda persona sobre los 21 hallazgos; recuperar o escribir los 14 casos
    independientes que faltan (si el texto original se perdió, anotarlo en `DECISIONS.md`).
 4. Decisión sobre el historial (80 de 88 commits con trailer): se mantiene; confirmar.
