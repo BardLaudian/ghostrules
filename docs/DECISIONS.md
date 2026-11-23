@@ -1205,3 +1205,19 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 - Complexity is enforced by ruff (`C901`, `PLR0912`, `PLR0915`; 15 / 15 / 60), not `radon`: ruff
   already runs in CI and adds no dependency. The ~80-line target is not enforced by a tool.
 - One commit per refactored function; the output diff of every step was zero.
+
+## Improvement plan, phase 6 — supply chain and CI (H8, H9, H12)
+
+- **SHAs come from `git ls-remote`** (peeled tag commits), not from memory. The Action example
+  pins `ghostrules` to the commit of `v0.4.1`.
+- **`mypy`, `pip-audit` and the self-scan are separate jobs** on one Python (3.12), not part of
+  the 12-way test matrix, so they run once and fail on their own.
+- **SBOM from a clean virtualenv** with CycloneDX (`cyclonedx-bom`, installed in the build job),
+  so it lists ghostrules and its runtime dependencies, not the build tools. It is attached to the
+  GitHub release, not uploaded to PyPI.
+- **Two attestations:** PEP 740 via `pypa/gh-action-pypi-publish` (`attestations: true`) and
+  `actions/attest-build-provenance` on the distributions. Not yet verified: no release has run
+  with them (`gh attestation verify` / `pypi-attestations verify` pending the next release).
+- **Scorecard badge not added** until the workflow has run on `main` and published a result.
+- **GitHub settings** are a checklist in `docs/GITHUB_SETTINGS.md`, not applied.
+

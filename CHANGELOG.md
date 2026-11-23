@@ -5,6 +5,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+
+- **CI and release supply chain (H8, H9, H12).** `ci.yml` has read-only `permissions` and cancels
+  obsolete runs, and `mypy`, `pip-audit` and the self-scan run as their own jobs. Dependabot also
+  watches the Python dependencies, grouped weekly. Releases publish PyPI attestations, a GitHub
+  build-provenance attestation and a CycloneDX SBOM. An OpenSSF Scorecard workflow was added.
+  The README and usage guide show the Action pinned by commit SHA. Settings that need a
+  maintainer are listed in `docs/GITHUB_SETTINGS.md`.
+
 ### Changed
 
 - **Type checking is strict and runs in CI (H7).** `mypy src` passes with `strict = true`
