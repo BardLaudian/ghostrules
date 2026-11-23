@@ -182,5 +182,6 @@ Other tools look at the same files. This is what their repositories say they do 
 ## Contributing, security, license
 
 - Contributions are welcome: see [CONTRIBUTING.md](https://github.com/BardLaudian/ghostrules/blob/main/CONTRIBUTING.md) (how to add a rule or an agent model).
+- **AI assistance:** the project is maintained by one person with an AI coding assistant for code, tests and documentation; a person reviews and merges everything. Commits made after 2026-11-23 carry no AI trailer, the earlier 80 do: see [how this project is built](https://github.com/BardLaudian/ghostrules/blob/main/CONTRIBUTING.md#how-this-project-is-built-ai-assistance).
 - To report a vulnerability in `ghostrules` itself, see [SECURITY.md](https://github.com/BardLaudian/ghostrules/blob/main/SECURITY.md).
 - [MIT](https://github.com/BardLaudian/ghostrules/blob/main/LICENSE) © Pablo Seoane Temprano.

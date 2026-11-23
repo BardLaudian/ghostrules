@@ -1,6 +1,6 @@
 # AI assistance and commit attribution — decision pending
 
-**Status: `[HUMANO]` — the maintainer decides. Nothing here has been executed.**
+**Status: decided 2026-11-23 — option A + B (history kept; use declared in general; no trailer on new commits).** The text is in `CONTRIBUTING.md` and the README. Option C was rejected.
 
 ## Facts (measured, `git log` on `main`, 2026-11-23)
 
@@ -23,7 +23,6 @@
 It does not rewrite history, force-push or move tags. If option C is chosen, take a full backup
 (`git clone --mirror`) first and do it by hand.
 
-## To close this item
+## Resolution
 
-Pick A, B or C and record the choice in `docs/DECISIONS.md`. If A or B: say so in
-`CONTRIBUTING.md`/README (the claims audit, [CLAIMS.md](CLAIMS.md), lists the wording).
+Recorded in `docs/DECISIONS.md`; the wording is in `CONTRIBUTING.md` (section "How this project is built") and in the README's last section.
