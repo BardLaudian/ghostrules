@@ -12,6 +12,7 @@
 [![PyPI](https://img.shields.io/pypi/v/ghostrules.svg)](https://pypi.org/project/ghostrules/)
 [![Python versions](https://img.shields.io/pypi/pyversions/ghostrules.svg)](https://pypi.org/project/ghostrules/)
 [![Corpus](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FBardLaudian%2Fghostrules%2Fbadges%2Fcorpus%2Fbadge.json)](https://github.com/BardLaudian/ghostrules/blob/main/corpus/README.md)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/BardLaudian/ghostrules/badge)](https://securityscorecards.dev/viewer/?uri=github.com/BardLaudian/ghostrules)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/BardLaudian/ghostrules/blob/main/LICENSE)
 
 ![A CLAUDE.md that looks clean imports a file that imports a file with a hidden instruction; ghostrules finds it and shows the chain](https://raw.githubusercontent.com/BardLaudian/ghostrules/main/demo/imports.gif)
