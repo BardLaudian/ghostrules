@@ -318,6 +318,11 @@ def provenance_sentence(
             f"All {a_n} labels were given by the assistant that ran the benchmark: no label has "
             "been reviewed by a human, so treat the figure as provisional."
         )
+    if not other:
+        return (
+            f"All {h_n} labels were given by a human reviewer (the assistant's earlier labels "
+            "were replaced where they differed)."
+        )
     return (
         f"Reviewed by a human: {lib.share(h_tp, h_n)}. Labelled by the assistant only: "
         f"{lib.share(a_tp, a_n)}."
