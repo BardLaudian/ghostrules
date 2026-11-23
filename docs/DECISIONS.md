@@ -1235,4 +1235,7 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 - **The review sheet is blind** (no assistant label) so the reviewer is not anchored. Its context is
   re-read from a fresh shallow clone, so a row says `[file changed since the scan]` when the file no
   longer shows the finding. Invisible characters in the context are rendered, not written raw.
-- **Commit trailers:** options in `docs/AI_PROVENANCE.md`; no history was rewritten.
+- **Commit trailers: decided by the maintainer, option A + B** (`docs/AI_PROVENANCE.md`). History is
+  kept (rewriting it would change every hash and break the tags, releases and attestations). AI use
+  is declared once in `CONTRIBUTING.md` and the README, and new commits carry no AI trailer. A
+  commit without a trailer is not a claim that no AI was involved.
