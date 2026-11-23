@@ -50,3 +50,5 @@ body:
       label: Contribution
       options:
         - label: I can send a pull request (see CONTRIBUTING.md).
+        - label: I will add a positive test and a false-positive (negative) test, with defanged fixtures.
+          required: true
