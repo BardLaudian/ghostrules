@@ -50,3 +50,25 @@ Only the latest released `0.x` version receives fixes.
 - Test fixtures and demos are defanged (`*.example` domains, fake tokens).
 - Secrets are masked in a single place that every output passes through, and a dedicated test
   fails if any appears in any report.
+
+## What the tests cover
+
+Backed by tests (`tests/test_robustness_*.py`, hypothesis property tests plus fixed cases), and
+only that:
+
+- The Unicode normaliser is idempotent and its offset map is valid and monotonic.
+- `@path` resolution never resolves above the scan root; imports through a symlink to a file
+  outside the tree, a symlink loop or `..` do not read the outside file and do not loop.
+- The located-JSON parser does not raise on arbitrary text or on 50,000 levels of nesting.
+- No report format (table, JSON, SARIF, Markdown) prints a known-format secret or an ESC
+  character for generated file content; SARIF validates against the 2.1.0 schema.
+- A file over `--max-file-size` (default 1 MiB) is skipped with a warning in every format, never
+  silently. A rule that raises is reported as an error and the exit code is 2.
+- Hostile inputs (3 MB without spaces or on one line, 60,000 repeated sentences, 200,000 brackets
+  or quotes) finish within a 60 s budget in `pytest -m slow`. This is a regression guard, not a
+  promise about speed, and it runs with the size limit off. A file under the default limit is
+  well inside it.
+
+Not covered: fuzzing of the standard-library JSON and TOML parsers, memory limits, and
+patterns outside the tested inputs.
+

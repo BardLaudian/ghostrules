@@ -1181,3 +1181,17 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 - **Evidence:** the ten new bench cases are `author` cases written after the fix, so the recall
   gain is not independent evidence. Four older known misses flipped to detected as a side effect.
 - **Not done:** paraphrase detection (H4 paraphrase xfail stays), generic secrets in prose.
+
+## Improvement plan, phase 4 — robustness (H11)
+
+- **Size limit:** 1 MiB default, in bytes, applied to files the scan reads. The skip is a warning
+  (visible in table, JSON, SARIF, Markdown), not a finding: findings are filtered by
+  `--min-severity` and baselines, a warning is not. A skipped file does not change the exit code.
+  `lock` still fingerprints the file, so a change to it is not invisible to the lock.
+- **Failing rules:** already reported and exit 2 for file rules; tests added for graph and change
+  rules. No separate strict mode was needed: the exit code is 2 in every mode.
+- **Timing tests:** marker `slow`, excluded by `addopts`; budget 60 s (generous, about 3x the
+  slowest measured case), not a performance benchmark.
+- **`safe()` replaces control characters** (including CR and C1) with a visible token in every
+  report that uses it.
+

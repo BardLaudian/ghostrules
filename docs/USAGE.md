@@ -85,6 +85,7 @@ ghostrules scan . --format markdown >> "$GITHUB_STEP_SUMMARY"
 | `--home` | off | Also scan user-level agent configs |
 | `--disable GR010,GR012` | | Disable rules |
 | `--follow-imports`, `--no-follow-imports` | on | Scan the files that `@path` imports in instruction files reach |
+| `--max-file-size BYTES` | `1048576` | Skip files larger than this, with a warning that names each one (`0` = no limit) |
 | `--config FILE` | auto | Config file (default: `.ghostrules.toml` in the scan root) |
 | `--trusted-config FILE` | | Use this config file and never the scanned repository's own config |
 | `--config-from-ref REF` | | Read `.ghostrules.toml` (or `[tool.ghostrules]`) from this git ref, never the working tree |
@@ -496,6 +497,7 @@ extra_targets = ["docs/ai/*.md"]    # extra files, treated as instructions
 allow_domains = ["mycompany.com"]   # never flagged by the URL and exfiltration rules (GR012, GR013)
 trust_known_installers = true       # GR012: lower the severity of well-known installers (uv, rustup...)
 follow_imports = true               # scan files reached through @path imports
+max_file_size = 1048576             # bytes; a bigger file is skipped with a warning (0 = no limit)
 lockfile = ".ghostrules.lock"       # where `ghostrules lock` writes the pinned context
 agents = ["claude-code", "copilot-cli", "cursor", "generic"]  # agents whose loading is modelled
 profile = "default"                 # "strict": visible prose at the rules' own severity (0.3); "lenient": 0.4 cap
