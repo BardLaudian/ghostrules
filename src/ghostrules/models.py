@@ -172,6 +172,25 @@ class ScanTarget:
         return "".join(chars), offsets
 
     @cached_property
+    def deobfuscated(self) -> tuple[str, list[int]]:
+        """Matching view without invisible characters or look-alikes, with original offsets."""
+        from ghostrules.unicode_utils import deobfuscate
+
+        return deobfuscate(self.text)
+
+    @cached_property
+    def needs_deobfuscation(self) -> bool:
+        """True when the text has characters that may hide a phrase from the patterns."""
+        from ghostrules.unicode_utils import needs_deobfuscation
+
+        return needs_deobfuscation(self.text)
+
+    @cached_property
+    def obfuscated_spans(self) -> set[tuple[int, int]]:
+        """Spans a rule matched only after de-obfuscation (filled in by the rules)."""
+        return set()
+
+    @cached_property
     def servers(self) -> list[ServerDef]:
         """MCP servers defined in this config file (computed once)."""
         from ghostrules.mcp_config import extract_servers

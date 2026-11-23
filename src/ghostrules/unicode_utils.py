@@ -136,3 +136,56 @@ def decode_variation_selectors(text: str) -> str | None:
     except UnicodeDecodeError:
         return None
     return decoded if is_mostly_printable(decoded) else None
+
+
+# High-confidence look-alikes (Cyrillic and Greek letters that render like Latin ones). NFKC
+# already handles fullwidth, ligatures and similar compatibility forms.
+_CONFUSABLES = {
+    **dict(zip("аеорсухѕіјԁɡ", "aeopcyxsijdg", strict=True)),
+    **dict(zip("АВЕКМНОРСТХУЅІЈ", "ABEKMHOPCTXYSIJ", strict=True)),
+    **dict(zip("αεορνυικχ", "aeopvuikx", strict=True)),
+    **dict(zip("ΑΒΕΖΗΙΚΜΝΟΡΤΥΧ", "ABEZHIKMNOPTYX", strict=True)),
+}
+
+
+_FOLDED = "".join(_CONFUSABLES)
+_MIXED_SCRIPT_RE = re.compile(f"[A-Za-z][{_FOLDED}]|[{_FOLDED}][A-Za-z]")
+
+
+def needs_deobfuscation(text: str) -> bool:
+    """Cheap check: could ``deobfuscate`` change what a pattern sees? True for invisible
+    characters, compatibility forms (fullwidth, ligatures) and a look-alike next to a Latin letter.
+    Plain ASCII and single-script text (Cyrillic, Arabic, Devanagari...) return False."""
+    if text.isascii():
+        return False
+    return (
+        _INVISIBLE_RE.search(text) is not None
+        or not unicodedata.is_normalized("NFKC", text)
+        or _MIXED_SCRIPT_RE.search(text) is not None
+    )
+
+
+def deobfuscate(text: str) -> tuple[str, list[int]]:
+    """Matching view of ``text``: invisible characters dropped, NFKC applied, look-alikes folded
+    to Latin and whitespace runs collapsed to one space.
+
+    Returns the view plus, for each of its characters, the offset in the original text, so a
+    match can be reported against what is really in the file."""
+    chars: list[str] = []
+    offsets: list[int] = []
+    in_space = False
+    for i, ch in enumerate(text):
+        if classify(ch) is not None:
+            continue
+        for out in unicodedata.normalize("NFKC", ch):
+            out = _CONFUSABLES.get(out, out)
+            if out.isspace():
+                if not in_space:
+                    chars.append(" ")
+                    offsets.append(i)
+                in_space = True
+            else:
+                chars.append(out)
+                offsets.append(i)
+                in_space = False
+    return "".join(chars), offsets
