@@ -669,15 +669,7 @@ def lock(
         _fail("--base only works with --check")
     if base is not None and config is not None:
         _fail("--base and --config cannot be used together: --base reads the config at the ref")
-    reader = None
-    try:
-        if base is not None:
-            reader = RefReader(repo_root, base)
-            cfg = config_at_ref(reader)
-        else:
-            cfg = load_config(repo_root, config)
-    except (ConfigError, GitRefError) as exc:
-        _fail(str(exc))
+    cfg, reader = _lock_config(repo_root, base, config)
     if claude_instructions_mode not in CLAUDE_MODES:
         raise typer.BadParameter(
             f"expected one of: {', '.join(CLAUDE_MODES)}", param_hint="--claude-instructions-mode"
@@ -688,24 +680,56 @@ def lock(
     name = lockfile.as_posix() if lockfile is not None else cfg.lockfile
     snapshot = lock_mod.build_snapshot(repo_root, cfg, instructions_mode=claude_instructions_mode)
     if check:
-        try:
-            if reader is not None:
-                recorded = reader.read(name)
-                if recorded is None:
-                    raise lock_mod.LockError(
-                        f"{reader.ref} has no {name}: there is nothing to compare with. Commit a "
-                        "lock to the base first (create it with: ghostrules lock)"
-                    )
-                pinned = lock_mod.parse_lock(recorded)
-            else:
-                pinned = lock_mod.read_lock(lock_path)
-            diff = lock_mod.diff_lock(pinned, snapshot)
-        except lock_mod.LockError as exc:
-            _fail(str(exc))
-        _emit_lock(diff, name, format_, output, no_color)
-        if not diff.empty:
-            raise typer.Exit(EXIT_FINDINGS)
-        return
+        _lock_check(snapshot, reader, name, lock_path, format_, output, no_color)
+    else:
+        _lock_write(snapshot, lock_path, name)
+
+
+def _lock_config(
+    repo_root: Path, base: str | None, config: Path | None
+) -> tuple[Config, RefReader | None]:
+    """The configuration for ``lock`` (read at ``base`` when given) and the ref reader, if any."""
+    reader = None
+    try:
+        if base is not None:
+            reader = RefReader(repo_root, base)
+            return config_at_ref(reader), reader
+        return load_config(repo_root, config), reader
+    except (ConfigError, GitRefError) as exc:
+        _fail(str(exc))
+
+
+def _lock_check(
+    snapshot: lock_mod.Snapshot,
+    reader: RefReader | None,
+    name: str,
+    lock_path: Path,
+    format_: LockFormat,
+    output: Path | None,
+    no_color: bool,
+) -> None:
+    """``lock --check``: report what changed against the lock; exit 1 when something did."""
+    try:
+        if reader is not None:
+            recorded = reader.read(name)
+            if recorded is None:
+                raise lock_mod.LockError(
+                    f"{reader.ref} has no {name}: there is nothing to compare with. Commit a "
+                    "lock to the base first (create it with: ghostrules lock)"
+                )
+            pinned = lock_mod.parse_lock(recorded)
+        else:
+            pinned = lock_mod.read_lock(lock_path)
+        diff = lock_mod.diff_lock(pinned, snapshot)
+    except lock_mod.LockError as exc:
+        _fail(str(exc))
+    _emit_lock(diff, name, format_, output, no_color)
+    if not diff.empty:
+        raise typer.Exit(EXIT_FINDINGS)
+
+
+def _lock_write(snapshot: lock_mod.Snapshot, lock_path: Path, name: str) -> None:
+    """``lock`` / ``lock --update``: rewrite the lock and say what changed since the last one."""
     summary = ""
     if lock_path.exists():
         try:
