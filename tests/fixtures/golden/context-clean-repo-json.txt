@@ -1,0 +1,137 @@
+exit=0
+{
+  "version": "0.4.1",
+  "cwd": "",
+  "target": null,
+  "agents": {
+    "claude-code": {
+      "entries": [
+        {
+          "path": "CLAUDE.md",
+          "load": "always",
+          "reason": "CLAUDE.md in working directory",
+          "via": [],
+          "transforms": [
+            "strip_html_comments"
+          ],
+          "raw_sha256": "4053a12db909064e66d8191364e78b2183267a4945d74897766d1944623fb97e",
+          "seen_sha256": "699177f8f31dc4a162612acdb41ae4228483f2a935511dff5658fbc26f90a206",
+          "readable": true,
+          "unverified": false,
+          "condition": "",
+          "matches": null,
+          "note": ""
+        },
+        {
+          "path": "AGENTS.md",
+          "load": "blocked",
+          "reason": "AGENTS.md in working directory",
+          "via": [],
+          "transforms": [],
+          "raw_sha256": "",
+          "seen_sha256": "",
+          "readable": false,
+          "unverified": false,
+          "condition": "",
+          "matches": null,
+          "note": "a CLAUDE.md exists (default \"claude-md-or-agents-md\"): AGENTS.md is not read"
+        }
+      ],
+      "edges": [],
+      "cycles": [],
+      "notes": [
+        "directories above the repository root, managed policy files, claudeMdExcludes and --add-dir are not examined"
+      ]
+    },
+    "copilot-cli": {
+      "entries": [
+        {
+          "path": "AGENTS.md",
+          "load": "always",
+          "reason": "AGENTS.md in the repository root and working directory",
+          "via": [],
+          "transforms": [],
+          "raw_sha256": "0884ef40877b4f26da259b2988fb58512d986ec4b56abc7e0fe87f70bba90407",
+          "seen_sha256": "0884ef40877b4f26da259b2988fb58512d986ec4b56abc7e0fe87f70bba90407",
+          "readable": true,
+          "unverified": false,
+          "condition": "",
+          "matches": null,
+          "note": ""
+        },
+        {
+          "path": "CLAUDE.md",
+          "load": "always",
+          "reason": "CLAUDE.md in the repository root and working directory",
+          "via": [],
+          "transforms": [],
+          "raw_sha256": "4053a12db909064e66d8191364e78b2183267a4945d74897766d1944623fb97e",
+          "seen_sha256": "4053a12db909064e66d8191364e78b2183267a4945d74897766d1944623fb97e",
+          "readable": true,
+          "unverified": true,
+          "condition": "",
+          "matches": null,
+          "note": "unverified whether HTML comments are stripped here: kept as seen"
+        }
+      ],
+      "edges": [],
+      "cycles": [],
+      "notes": [
+        "COPILOT_CUSTOM_INSTRUCTIONS_DIRS and instructions disabled with /instructions are not examined"
+      ]
+    },
+    "cursor": {
+      "entries": [
+        {
+          "path": "AGENTS.md",
+          "load": "always",
+          "reason": "AGENTS.md",
+          "via": [],
+          "transforms": [],
+          "raw_sha256": "0884ef40877b4f26da259b2988fb58512d986ec4b56abc7e0fe87f70bba90407",
+          "seen_sha256": "0884ef40877b4f26da259b2988fb58512d986ec4b56abc7e0fe87f70bba90407",
+          "readable": true,
+          "unverified": false,
+          "condition": "",
+          "matches": null,
+          "note": ""
+        }
+      ],
+      "edges": [],
+      "cycles": [],
+      "notes": [
+        "User Rules and Team Rules are configured outside the repository"
+      ]
+    },
+    "generic": {
+      "entries": [
+        {
+          "path": "AGENTS.md",
+          "load": "always",
+          "reason": "nearest AGENTS.md to the edited file",
+          "via": [],
+          "transforms": [],
+          "raw_sha256": "0884ef40877b4f26da259b2988fb58512d986ec4b56abc7e0fe87f70bba90407",
+          "seen_sha256": "0884ef40877b4f26da259b2988fb58512d986ec4b56abc7e0fe87f70bba90407",
+          "readable": true,
+          "unverified": false,
+          "condition": "",
+          "matches": null,
+          "note": ""
+        }
+      ],
+      "edges": [],
+      "cycles": [],
+      "notes": []
+    }
+  },
+  "findings": [],
+  "summary": {
+    "files": 2,
+    "findings": 0,
+    "findings_outside_context": 0,
+    "by_severity": {}
+  },
+  "warnings": [],
+  "errors": []
+}

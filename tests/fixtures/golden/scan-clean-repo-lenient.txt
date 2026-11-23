@@ -1,0 +1,16 @@
+exit=0
+{
+  "version": "0.4.1",
+  "scanned_files": 4,
+  "findings": [],
+  "summary": {
+    "total": 0,
+    "by_severity": {},
+    "files_with_findings": 0,
+    "suppressed": 0,
+    "baselined": 0,
+    "config_source": null
+  },
+  "warnings": [],
+  "errors": []
+}
