@@ -28,11 +28,11 @@ uvx ghostrules scan .            # or run once without installing
 ghostrules scan .                # exit 1 on findings at or above "high"
 ```
 
-**[Try it in your browser →](https://bardlaudian.github.io/ghostrules/)** Paste an `AGENTS.md`, drop a folder or name a public repo. It runs the real scanner in the page: your files never leave it.
+**[Try it in your browser →](https://bardlaudian.github.io/ghostrules/)** Paste an `AGENTS.md`, drop a folder or name a public repo. It runs the real scanner in the page: pasted and dropped files are not uploaded; naming a public repo fetches its files from GitHub.
 
 ## Why
 
-AI coding agents load instruction files from your repository and follow them, and a reviewer cannot see everything in those files. Unicode **tag characters** render as nothing but spell ASCII text models can read (["ASCII smuggling"](https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/)); **variation selectors** carry bytes behind one visible character ([Butler](https://paulbutler.org/2025/smuggling-arbitrary-data-through-an-emoji/)); **bidirectional controls** show text differently from how it is parsed ([Trojan Source](https://trojansource.codes/)). Hidden Unicode in rule files has steered Cursor and GitHub Copilot into writing malicious code (["Rules File Backdoor"](https://www.pillar.security/blog/new-vulnerability-in-github-copilot-and-cursor-how-hackers-can-weaponize-code-agents)), and MCP servers can be set up with hardcoded tokens, unpinned packages or plain `http://` ([tool poisoning](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)). `ghostrules` makes this visible in the terminal, in CI and in GitHub's Security tab. It only **reads** files: it never executes what it finds, never uses the network, and prints secrets masked (`ghp_****…a1b2`).
+AI coding agents load instruction files from your repository and follow them, and a reviewer cannot see everything in those files. Unicode **tag characters** render as nothing but spell ASCII text models can read (["ASCII smuggling"](https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/)); **variation selectors** carry bytes behind one visible character ([Butler](https://paulbutler.org/2025/smuggling-arbitrary-data-through-an-emoji/)); **bidirectional controls** show text differently from how it is parsed ([Trojan Source](https://trojansource.codes/)). Hidden Unicode in rule files was reported to be able to steer Cursor and GitHub Copilot into writing malicious code (["Rules File Backdoor"](https://www.pillar.security/blog/new-vulnerability-in-github-copilot-and-cursor-how-hackers-can-weaponize-code-agents)), and MCP servers can be set up with hardcoded tokens, unpinned packages or plain `http://` ([tool poisoning](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)). `ghostrules` makes this visible in the terminal, in CI and in GitHub's Security tab. It only **reads** files: it never executes what it finds, never uses the network, and prints secrets masked (`ghp_****…a1b2`).
 
 ## What your agents actually read
 
@@ -58,7 +58,7 @@ Findings ───────────────────────�
 
 ## Hidden Unicode
 
-A classic trick: an innocent-looking `AGENTS.md` that carries an instruction only the model can read. `ghostrules` decodes it, scans the decoded text again and reports it one severity higher. `reveal` shows every invisible character as a visible token, and `clean` removes exactly what the Unicode rules flag.
+A classic trick: an innocent-looking `AGENTS.md` that carries an instruction only the model can read. `ghostrules` decodes it, scans the decoded text again and reports it one severity higher. `reveal` shows every invisible character as a visible token, and `clean` removes the invisible characters the Unicode rules flag.
 
 ![ghostrules finds an instruction hidden in an innocent-looking AGENTS.md](https://raw.githubusercontent.com/BardLaudian/ghostrules/main/demo/demo.gif)
 
@@ -109,7 +109,7 @@ On pull requests the Action reads the config and the `ghostrules-ignore` comment
 
 A scanner that cries wolf gets switched off, and one that misses gets trusted by mistake, so both are
 measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghostrules/blob/main/bench/README.md),
-[full results](https://github.com/BardLaudian/ghostrules/blob/main/bench/RESULTS.md)). Nothing below was tuned on the data it is measured on.
+[full results](https://github.com/BardLaudian/ghostrules/blob/main/bench/RESULTS.md)). The independent cases and the held-out repositories were not used to tune rules; the corpus below was.
 
 <!-- bench:recall:start -->
 **Recall on independent cases: 1 of 4 reported (25 %, 95 % CI 5–70 %); 1 of 4 (25 %, 95 % CI 5–70 %) fail the default `--fail-on high` check.** They are 4 of the 18 cases an independent review wrote; the other 14 are not in the repository yet, so this is a small sample. The 106 cases written by the author or taken from public sources are shown separately because the author knew what the rules match; across all cases 101 of 110 (92 %, 95 % CI 85–96 %) are reported. Visible prose is `low` by default, so the check fails less often than the rules report (hidden text and configuration are not lowered). The misses include paraphrases, other languages, scripts and files that nothing points the scanner to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed in the results.
@@ -154,7 +154,7 @@ All origins, by technique:
 
 The new GR110 finding is a script that sends its own API key to the API it documents.
 
-A workflow scheduled weekly scans 300 popular public repositories (`corpus/`, the only part of the project that uses the network) and fails if a critical or high finding has not been reviewed; last run: 2026-10-28. Those rules were tuned on that data, so its numbers are not an estimate of precision on new repositories. On it, 0.2.1 reported 84 critical and 156 high findings and 0.3.0 reports none critical and 53 high. The [study](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md) used the same tooling; `ghostrules` is a set of heuristics, not a proof: see the [limits](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits).
+A workflow scheduled weekly scans 300 popular public repositories (`corpus/`; the scanner itself makes no network requests) and fails if a critical or high finding has not been reviewed; last run: 2026-10-28. Those rules were tuned on that data, so its numbers are not an estimate of precision on new repositories. On it, 0.2.1 reported 84 critical and 156 high findings and 0.3.0 reports none critical and 53 high. The [study](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md) used the same tooling; `ghostrules` is a set of heuristics, not a proof: see the [limits](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits).
 
 ## Alternatives
 
@@ -169,7 +169,7 @@ Other tools look at the same files. This is what their repositories say they do 
 | [skill-scanner](https://github.com/cisco-ai-defense/skill-scanner) (Cisco) | A scanner for agent skills | skills are what you install from others |
 | [agent-scan](https://github.com/snyk/agent-scan) (Snyk) | A scanner for agents, MCP servers and skills | you want a vendor-backed scan of those three |
 
-`ghostrules` is not a general secret scanner: it finds hardcoded secrets only in agent and MCP configuration. Run a tool such as [gitleaks](https://github.com/gitleaks/gitleaks) over the whole repository as well. The context engine is a [library](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#use-the-context-engine-as-a-library) with a JSON schema, so other tools can use it.
+`ghostrules` is not a general secret scanner: it finds hardcoded secrets only in the agent files it reads (instructions and MCP configuration). Run a tool such as [gitleaks](https://github.com/gitleaks/gitleaks) over the whole repository as well. The context engine is a [library](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#use-the-context-engine-as-a-library) with a JSON schema, so other tools can use it.
 
 ## Documentation
 
@@ -181,6 +181,6 @@ Other tools look at the same files. This is what their repositories say they do 
 
 ## Contributing, security, license
 
-- Contributions are welcome: see [CONTRIBUTING.md](https://github.com/BardLaudian/ghostrules/blob/main/CONTRIBUTING.md) (adding a rule takes three steps; adding an agent model takes one module and one section of [docs/AGENT_MODELS.md](https://github.com/BardLaudian/ghostrules/blob/main/docs/AGENT_MODELS.md)).
+- Contributions are welcome: see [CONTRIBUTING.md](https://github.com/BardLaudian/ghostrules/blob/main/CONTRIBUTING.md) (how to add a rule or an agent model).
 - To report a vulnerability in `ghostrules` itself, see [SECURITY.md](https://github.com/BardLaudian/ghostrules/blob/main/SECURITY.md).
 - [MIT](https://github.com/BardLaudian/ghostrules/blob/main/LICENSE) © Pablo Seoane Temprano.
