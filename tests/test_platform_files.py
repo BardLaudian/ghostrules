@@ -75,7 +75,7 @@ def test_the_lockfile_ignores_line_endings(tmp_path: Path) -> None:
 
 
 def test_clean_keeps_the_line_endings_it_does_not_touch(tmp_path: Path) -> None:
-    hidden = "​"
+    hidden = chr(0x200B)  # zero width space, built so this file stays clean
     path = put(tmp_path, "AGENTS.md", f"Run{hidden} pytest.\r\nUse ruff.\r\n".encode())
     out = runner.invoke(app, ["clean", str(path), "--write"])
     assert out.exit_code == 0, out.output
