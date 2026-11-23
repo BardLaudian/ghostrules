@@ -89,12 +89,14 @@ Known misses:
 
 | Rule | Findings | True positive | Benign context | False positive | Unlabelled | Precision for a user |
 |---|---:|---:|---:|---:|---:|---:|
-| GR003 | 2 | 0 | 2 | 0 | 0 | 0% (0 of 2) |
-| GR011 | 1 | 0 | 1 | 0 | 0 | 0% (0 of 1) |
-| GR012 | 4 | 0 | 4 | 0 | 0 | 0% (0 of 4) |
-| GR014 | 5 | 1 | 2 | 2 | 0 | 20% (1 of 5) |
-| GR022 | 6 | 1 | 2 | 3 | 0 | 17% (1 of 6) |
-| GR102 | 1 | 1 | 0 | 0 | 0 | 100% (1 of 1) |
-| GR107 | 1 | 1 | 0 | 0 | 0 | 100% (1 of 1) |
-| GR110 | 1 | 0 | 0 | 1 | 0 | 0% (0 of 1) |
-| **All** | 21 | 4 | 11 | 6 | 0 | 19% (4 of 21) |
+| GR003 | 2 | 0 | 2 | 0 | 0 | 0 of 2 (0 %, 95 % CI 0–66 %) |
+| GR011 | 1 | 0 | 1 | 0 | 0 | 0 of 1 (0 %, 95 % CI 0–79 %) |
+| GR012 | 4 | 0 | 4 | 0 | 0 | 0 of 4 (0 %, 95 % CI 0–49 %) |
+| GR014 | 5 | 1 | 2 | 2 | 0 | 1 of 5 (20 %, 95 % CI 4–62 %) |
+| GR022 | 6 | 1 | 2 | 3 | 0 | 1 of 6 (17 %, 95 % CI 3–56 %) |
+| GR102 | 1 | 1 | 0 | 0 | 0 | 1 of 1 (100 %, 95 % CI 21–100 %) |
+| GR107 | 1 | 1 | 0 | 0 | 0 | 1 of 1 (100 %, 95 % CI 21–100 %) |
+| GR110 | 1 | 0 | 0 | 1 | 0 | 0 of 1 (0 %, 95 % CI 0–79 %) |
+| **All** | 21 | 4 | 11 | 6 | 0 | 4 of 21 (19 %, 95 % CI 8–40 %) |
+
+All 21 labels were given by the assistant that ran the benchmark: no label has been reviewed by a human, so treat the figure as provisional.

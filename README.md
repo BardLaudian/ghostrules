@@ -112,7 +112,7 @@ measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghos
 [full results](https://github.com/BardLaudian/ghostrules/blob/main/bench/RESULTS.md)). Nothing below was tuned on the data it is measured on.
 
 <!-- bench:recall:start -->
-**Recall on independent cases: 1 of 4 reported (25%); 1 fail the default `--fail-on high` check.** They are 4 of the 18 cases an independent review wrote; the other 14 are not in the repository yet, so this is a small sample. The 106 cases written by the author or taken from public sources are shown separately because the author knew what the rules match: of all 110 cases 101 are reported (92%). Visible prose is `low` by default, so the check fails less often than the rules report (hidden text and configuration are not lowered). The misses include paraphrases, other languages, scripts and files that nothing points the scanner to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed in the results.
+**Recall on independent cases: 1 of 4 reported (25 %, 95 % CI 5–70 %); 1 of 4 (25 %, 95 % CI 5–70 %) fail the default `--fail-on high` check.** They are 4 of the 18 cases an independent review wrote; the other 14 are not in the repository yet, so this is a small sample. The 106 cases written by the author or taken from public sources are shown separately because the author knew what the rules match; across all cases 101 of 110 (92 %, 95 % CI 85–96 %) are reported. Visible prose is `low` by default, so the check fails less often than the rules report (hidden text and configuration are not lowered). The misses include paraphrases, other languages, scripts and files that nothing points the scanner to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed in the results.
 
 | Origin | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
@@ -149,7 +149,7 @@ All origins, by technique:
 <!-- bench:recall:end -->
 
 <!-- bench:precision:start -->
-**Precision: 100 repositories** frozen before any v0.4 tuning (851 agent files, default settings). They gave 21 findings, and 2 repositories would fail the default check. Precision for a user is true positives over everything reported, because a right pattern in a harmless place is still something to read: **4 of 21 (19 %)**, from labels given by the assistant that ran the benchmark and **not reviewed by a human** (0 findings unlabelled). Per rule: GR014 1 of 5; GR022 1 of 6; GR102 1 of 1; GR107 1 of 1; GR003 0 of 2; GR011 0 of 1; GR012 0 of 4; GR110 0 of 1. 21 findings are too few for a percentage per rule to mean much.
+**Precision: 100 repositories** frozen before any v0.4 tuning (851 agent files, default settings). They gave 21 findings, and 2 repositories would fail the default check. Precision for a user is true positives over everything reported, because a right pattern in a harmless place is still something to read: **4 of 21 (19 %, 95 % CI 8–40 %)** (0 findings unlabelled). All 21 labels were given by the assistant that ran the benchmark: no label has been reviewed by a human, so treat the figure as provisional. Per rule: GR014 1 of 5; GR022 1 of 6; GR102 1 of 1; GR107 1 of 1; GR003 0 of 2; GR011 0 of 1; GR012 0 of 4; GR110 0 of 1. 21 findings are too few for a percentage per rule to mean much.
 <!-- bench:precision:end -->
 
 The new GR110 finding is a script that sends its own API key to the API it documents.

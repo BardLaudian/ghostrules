@@ -4,6 +4,7 @@
     python bench/run.py attacks                 # recall per technique, misses listed
     python bench/run.py heldout [--workers 4]   # clone, scan and print findings per rule
     python bench/run.py report                  # both, with the labels of bench/heldout-labels.toml
+    python bench/run.py review-sheet            # bench/labels-review.csv for a human to label
 
 ``heldout`` clones the repositories of ``bench/heldout.toml`` shallowly (the only networked step),
 scans them with the default settings and an empty configuration, and keeps the findings in
@@ -14,8 +15,10 @@ held-out set: it exists to be reported on. Nothing a repository contains is exec
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -33,6 +36,7 @@ import lib  # noqa: E402
 
 CACHE = HERE / ".cache"
 LABELS_FILE = HERE / "heldout-labels.toml"
+REVIEW_SHEET = HERE / "labels-review.csv"
 
 
 def fingerprint(f: dict[str, Any]) -> str:
@@ -152,11 +156,47 @@ def run_heldout(workers: int) -> Path:
     return out
 
 
-def load_labels() -> dict[str, str]:
-    if not LABELS_FILE.exists():
+def _human_labels() -> dict[str, str]:
+    """Labels a person wrote in the review sheet (``human_label``); invalid values are ignored."""
+    if not REVIEW_SHEET.exists():
         return {}
-    data = tomllib.loads(LABELS_FILE.read_text(encoding="utf-8"))
-    return {entry["fingerprint"]: entry["label"] for entry in data.get("label", [])}
+    with REVIEW_SHEET.open(encoding="utf-8", newline="") as handle:
+        rows = csv.DictReader(handle)
+        return {
+            r["fingerprint"]: r["human_label"].strip()
+            for r in rows
+            if r.get("human_label", "").strip() in lib.LABELS
+        }
+
+
+def load_labels() -> dict[str, str]:
+    """fingerprint -> label. A label a human gave in the review sheet beats the assistant's."""
+    data = tomllib.loads(LABELS_FILE.read_text(encoding="utf-8")) if LABELS_FILE.exists() else {}
+    labels = {entry["fingerprint"]: entry["label"] for entry in data.get("label", [])}
+    return {**labels, **_human_labels()}
+
+
+def load_label_sources() -> dict[str, str]:
+    """fingerprint -> ``assistant`` or ``human``: who gave the label that load_labels returns."""
+    data = tomllib.loads(LABELS_FILE.read_text(encoding="utf-8")) if LABELS_FILE.exists() else {}
+    sources = {e["fingerprint"]: e.get("labeler", "assistant") for e in data.get("label", [])}
+    return {**sources, **dict.fromkeys(_human_labels(), "human")}
+
+
+def _split_by_labeler(
+    findings: list[dict[str, Any]], sources: dict[str, str]
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    human = [f for f in findings if sources.get(f["fingerprint"]) == "human"]
+    other = [f for f in findings if sources.get(f["fingerprint"]) != "human"]
+    return human, other
+
+
+def _counted(findings: list[dict[str, Any]], labels: dict[str, str]) -> tuple[int, int]:
+    """(true positives, labelled findings) over ``findings``."""
+    mine = [
+        labels[f["fingerprint"]] for f in findings if labels.get(f["fingerprint"]) in lib.LABELS
+    ]
+    return mine.count("tp"), len(mine)
 
 
 def aggregate(results: list[dict[str, Any]]) -> dict[str, Any]:
@@ -189,7 +229,10 @@ def aggregate(results: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
-def heldout_report(data: dict[str, Any], labels: dict[str, str]) -> str:
+def heldout_report(
+    data: dict[str, Any], labels: dict[str, str], sources: dict[str, str] | None = None
+) -> str:
+    sources = load_label_sources() if sources is None else sources
     rows, unlabelled = lib.precision_table(data["findings"], labels)
     tp = sum(r["tp"] for r in rows)
     bc = sum(r["benign-context"] for r in rows)
@@ -207,19 +250,22 @@ def heldout_report(data: dict[str, Any], labels: dict[str, str]) -> str:
     for r in rows:
         p = r["precision"]
         n = r["tp"] + r["benign-context"] + r["fp"]
-        shown = f"{p:.0%} ({r['tp']} of {n})" if p is not None else "n/a"
+        shown = lib.share(r["tp"], n) if p is not None else "n/a"
         lines.append(
             f"| {r['rule']} | {r['findings']} | {r['tp']} | {r['benign-context']} | {r['fp']} | {r['unlabelled']} | {shown} |"
         )
     total = tp + bc + fp
-    overall = f"{tp / total:.0%} ({tp} of {total})" if total else "n/a"
+    overall = lib.share(tp, total)
     lines.append(
         f"| **All** | {len(data['findings'])} | {tp} | {bc} | {fp} | {unlabelled} | {overall} |"
     )
+    lines += ["", provenance_sentence(data, labels, sources)]
     return "\n".join(lines) + "\n"
 
 
-def render_results(data: dict[str, Any], labels: dict[str, str]) -> str:
+def render_results(
+    data: dict[str, Any], labels: dict[str, str], sources: dict[str, str] | None = None
+) -> str:
     """bench/RESULTS.md: recall on the attack set, precision on the held-out set, misses listed."""
     return (
         "# Benchmark results\n\n"
@@ -228,7 +274,7 @@ def render_results(data: dict[str, Any], labels: dict[str, str]) -> str:
         "## Recall on the attack set\n\n"
         + attacks_report(lib.run_attacks(lib.load_cases()))
         + "\n## Precision on the held-out set\n\n"
-        + heldout_report(data, labels)
+        + heldout_report(data, labels, sources)
     )
 
 
@@ -244,13 +290,13 @@ def readme_block(outcomes: list[lib.Outcome]) -> str:
     )
     total, all_reported = len(outcomes), sum(o.reported for o in outcomes)
     return (
-        f"**Recall on independent cases: {reported} of {len(mine)} reported "
-        f"({_pct(reported, len(mine))}); {fails} fail the default `--fail-on high` check.** They "
+        f"**Recall on independent cases: {lib.share(reported, len(mine), 'reported')}; "
+        f"{lib.share(fails, len(mine))} fail the default `--fail-on high` check.** They "
         f"are {len(mine)} of the {lib.REVIEW_TOTAL} cases an independent review wrote; the other "
         f"{lib.REVIEW_TOTAL - len(mine)} are not in the repository yet, so this is a small sample. "
         f"The {total - len(mine)} cases written by the author or taken from public sources are "
-        f"shown separately because the author knew what the rules match: of all {total} cases "
-        f"{all_reported} are reported ({_pct(all_reported, total)}). Visible prose is `low` by "
+        f"shown separately because the author knew what the rules match; across all cases "
+        f"{lib.share(all_reported, total)} are reported. Visible prose is `low` by "
         "default, so the check fails less often than the rules report (hidden text and configuration "
         "are not lowered). The misses include paraphrases, other languages, scripts and files that "
         "nothing points the scanner to, tool descriptions served by a running MCP server, two "
@@ -260,12 +306,29 @@ def readme_block(outcomes: list[lib.Outcome]) -> str:
     )
 
 
-def _pct(count: int, total: int) -> str:
-    return f"{count / total:.0%}" if total else "n/a"
+def provenance_sentence(
+    data: dict[str, Any], labels: dict[str, str], sources: dict[str, str]
+) -> str:
+    """Who labelled what: assistant and human labels are never merged into one claim."""
+    human, other = _split_by_labeler(data["findings"], sources)
+    h_tp, h_n = _counted(human, labels)
+    a_tp, a_n = _counted(other, labels)
+    if not human:
+        return (
+            f"All {a_n} labels were given by the assistant that ran the benchmark: no label has "
+            "been reviewed by a human, so treat the figure as provisional."
+        )
+    return (
+        f"Reviewed by a human: {lib.share(h_tp, h_n)}. Labelled by the assistant only: "
+        f"{lib.share(a_tp, a_n)}."
+    )
 
 
-def precision_block(data: dict[str, Any], labels: dict[str, str]) -> str:
+def precision_block(
+    data: dict[str, Any], labels: dict[str, str], sources: dict[str, str] | None = None
+) -> str:
     """The README paragraph on the held-out set, from the committed results and labels."""
+    sources = load_label_sources() if sources is None else sources
     rows, unlabelled = lib.precision_table(data["findings"], labels)
     tp = sum(r["tp"] for r in rows)
     total = sum(r["tp"] + r["benign-context"] + r["fp"] for r in rows)
@@ -278,11 +341,10 @@ def precision_block(data: dict[str, Any], labels: dict[str, str]) -> str:
         f"({data['files_scanned']} agent files, default settings). They gave {len(data['findings'])} "
         f"findings, and {data['repos_failing_default_check']} repositories would fail the default "
         "check. Precision for a user is true positives over everything reported, because a right "
-        f"pattern in a harmless place is still something to read: **{tp} of {total} "
-        f"({_pct(tp, total).replace('%', ' %')})**, from labels given by the assistant that ran the "
-        f"benchmark and **not reviewed by a human** ({unlabelled} findings unlabelled). Per rule: "
-        f"{per_rule}. {len(data['findings'])} findings are too few for a percentage per rule to "
-        "mean much."
+        f"pattern in a harmless place is still something to read: **{lib.share(tp, total)}** "
+        f"({unlabelled} findings unlabelled). {provenance_sentence(data, labels, sources)} "
+        f"Per rule: {per_rule}. {len(data['findings'])} findings are too few for a percentage per "
+        "rule to mean much."
     )
 
 
@@ -326,9 +388,71 @@ def write_readme(outcomes: list[lib.Outcome], data: dict[str, Any], labels: dict
     bench.write_text(text, encoding="utf-8")
 
 
+SHEET_COLUMNS = ("repo", "rule_id", "severity", "location", "context", "fingerprint", "human_label")
+
+
+def sheet_row(repo: str, finding: dict[str, Any], text: str) -> dict[str, str]:
+    """One row of the review sheet: the finding's line with one line either side. ``human_label``
+    is always empty (a person fills it with tp, benign-context or fp) and the assistant's own
+    label is left out on purpose, so the review is blind. If the file no longer shows the
+    finding's snippet (the repository moved on since the scan), the row says so."""
+    lines = text.splitlines()
+    n = finding["line"]
+    # The snippet renders invisible characters as ⟦U+XXXX NAME⟧: compare its longest plain piece.
+    pieces = re.split(r"⟦[^⟧]*⟧", finding["snippet"].strip("…"))
+    needle = max(pieces, key=len).strip()
+    at = lines[n - 1] if 0 < n <= len(lines) else ""
+    if needle and needle[:40] not in at:
+        context = "[file changed since the scan] " + finding["snippet"]
+    else:
+        from ghostrules.unicode_utils import render_invisible
+
+        # Invisible characters are shown, never written raw: the sheet must be safe to open.
+        context = render_invisible("\n".join(lines[max(0, n - 2) : n + 1]))
+    return {
+        "repo": repo,
+        "rule_id": finding["rule_id"],
+        "severity": finding["severity"],
+        "location": f"{finding['path']}:{n}",
+        "context": context,
+        "fingerprint": finding["fingerprint"],
+        "human_label": "",
+    }
+
+
+def write_review_sheet() -> Path:
+    """Clone the repositories that have findings (the networked step) and write the sheet."""
+    cached = json.loads((CACHE / "heldout-findings.json").read_text(encoding="utf-8"))
+    rows: list[dict[str, str]] = []
+    env = {**os.environ, "GIT_TERMINAL_PROMPT": "0", "GIT_LFS_SKIP_SMUDGE": "1"}
+    for entry in cached:
+        shown = [f for f in entry.get("findings", []) if f["severity"] != "info"]
+        if not shown:
+            continue
+        work = Path(tempfile.mkdtemp(prefix="sheet-", dir=CACHE))
+        try:
+            subprocess.run(
+                ["git", "clone", "--depth", "1", "--no-tags", "--quiet", "--",
+                 f"https://github.com/{entry['repo']}.git", str(work / "r")],
+                capture_output=True, env=env, timeout=600, check=False,
+            )  # fmt: skip
+            for f in shown:
+                path = work / "r" / f["path"]
+                text = path.read_text("utf-8", errors="replace") if path.is_file() else ""
+                rows.append(sheet_row(entry["repo"], f, text))
+        finally:
+            shutil.rmtree(work, ignore_errors=True)
+    rows.sort(key=lambda r: (r["rule_id"], r["repo"], r["location"]))
+    with REVIEW_SHEET.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=SHEET_COLUMNS)
+        writer.writeheader()
+        writer.writerows(rows)
+    return REVIEW_SHEET
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    p.add_argument("command", choices=("attacks", "heldout", "report"))
+    p.add_argument("command", choices=("attacks", "heldout", "report", "review-sheet"))
     p.add_argument("--workers", type=int, default=4)
     p.add_argument("--write", action="store_true", help="report: write bench/RESULTS.md")
     args = p.parse_args(argv)
@@ -346,6 +470,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         else:
             print(text, end="")
         return 0
+    if args.command == "review-sheet":
+        print(write_review_sheet())
     if args.command == "attacks":
         print(attacks_report(lib.run_attacks(lib.load_cases())))
     if args.command == "heldout":
