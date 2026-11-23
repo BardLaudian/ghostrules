@@ -47,3 +47,11 @@ body:
       description: What the text is for, and how a rule could tell it apart from a real problem.
     validations:
       required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before sending
+      options:
+        - label: The snippet is defanged (no real secret, domain or private text).
+          required: true
+        - label: I am willing to have it added as a false-positive test case.
