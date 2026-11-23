@@ -90,8 +90,8 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
     if not isinstance(lockfile, str) or not lockfile.strip():
         raise ConfigError("'lockfile' must be a non-empty string")
     profile = table.get("profile", "default")
-    if profile not in ("default", "strict"):
-        raise ConfigError('\'profile\' must be "default" or "strict"')
+    if profile not in ("default", "strict", "lenient"):
+        raise ConfigError('\'profile\' must be "default", "strict" or "lenient"')
     return Config(
         disable=frozenset(rule.strip().upper() for rule in _string_list(table, "disable")),
         fail_on=fail_on,

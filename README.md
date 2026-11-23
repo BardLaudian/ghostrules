@@ -118,7 +118,7 @@ measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghos
 |---|---:|---:|---:|
 | author | 28 | 20 (71%) | 9 (32%) |
 | review (independent) | 4 | 1 (25%) | 1 (25%) |
-| public | 69 | 66 (96%) | 40 (58%) |
+| public | 69 | 66 (96%) | 42 (61%) |
 
 All origins, by technique:
 
@@ -137,7 +137,7 @@ All origins, by technique:
 | mcp-config | 7 | 7 | 4 |
 | mcp-server-content | 1 | 0 | 0 |
 | referenced-files | 4 | 4 | 4 |
-| remote-code-execution | 7 | 6 | 1 |
+| remote-code-execution | 7 | 6 | 3 |
 | safety-bypass | 3 | 3 | 0 |
 | scanner-evasion | 2 | 0 | 0 |
 | sensitive-file | 5 | 3 | 0 |

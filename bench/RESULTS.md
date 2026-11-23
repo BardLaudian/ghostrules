@@ -9,7 +9,7 @@ measured and how. Nothing here was tuned on the held-out set.
 |---|---:|---:|---:|
 | author | 28 | 20 (71%) | 9 (32%) |
 | review (independent) | 4 | 1 (25%) | 1 (25%) |
-| public | 69 | 66 (96%) | 40 (58%) |
+| public | 69 | 66 (96%) | 42 (61%) |
 
 | Technique | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
@@ -26,7 +26,7 @@ measured and how. Nothing here was tuned on the held-out set.
 | mcp-config | 7 | 7 | 4 |
 | mcp-server-content | 1 | 0 | 0 |
 | referenced-files | 4 | 4 | 4 |
-| remote-code-execution | 7 | 6 | 1 |
+| remote-code-execution | 7 | 6 | 3 |
 | safety-bypass | 3 | 3 | 0 |
 | scanner-evasion | 2 | 0 | 0 |
 | sensitive-file | 5 | 3 | 0 |
@@ -34,7 +34,7 @@ measured and how. Nothing here was tuned on the held-out set.
 | unicode-tags | 7 | 7 | 7 |
 | variation-selectors | 3 | 3 | 3 |
 | zero-width | 3 | 3 | 1 |
-| **All** | 101 | 87 (86%) | 50 (50%) |
+| **All** | 101 | 87 (86%) | 52 (51%) |
 
 87 of 101 cases are detected and 14 are known misses.
 
@@ -48,7 +48,7 @@ measured and how. Nothing here was tuned on the held-out set.
 | GR006 | 3 | 3 | 1 |
 | GR010 | 11 | 7 | 1 |
 | GR011 | 5 | 4 | 1 |
-| GR012 | 7 | 6 | 1 |
+| GR012 | 7 | 6 | 3 |
 | GR013 | 16 | 12 | 5 |
 | GR014 | 5 | 3 | 0 |
 | GR015 | 2 | 2 | 2 |

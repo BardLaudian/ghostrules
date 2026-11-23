@@ -93,6 +93,7 @@ ghostrules scan . --format markdown >> "$GITHUB_STEP_SUMMARY"
 | `--baseline FILE` | `.ghostrules-baseline.json` if present | Leave out the findings listed in this baseline |
 | `--no-baseline` | off | Do not use a baseline |
 | `--baseline-from-ref REF` | | Read the baseline from this git ref, never the working tree |
+| `--lenient` | off | Report all plain visible prose at `low`, including an imperative `curl \| sh` (the 0.4 behaviour; see below) |
 | `--strict` | off | Report plain visible prose at the rules' own severity (the 0.3 behaviour; see below) |
 | `--no-color` | off | Plain output |
 
@@ -110,8 +111,12 @@ file at `low` when it instructs the agent and `info` when it only describes or q
 for text that is **hidden** (in an HTML comment, decoded from invisible characters) or **indirect**
 (a file reached only through an import). GR015 (encoded payloads), the Unicode rules, the import
 rules, GR030 and every configuration rule (GR101 to GR108) are never lowered: they are about what
-cannot be read or what executes. A visible `curl | sh` or "send `.env` to a URL" therefore no longer
-fails the default check, it is a `low` finding for the reviewer. `--strict` (config `profile =
+cannot be read or what executes. A visible "send `.env` to a URL" therefore does not fail the default
+check, it is a `low` finding for the reviewer. The exception is GR012: a remote-code command written
+as an instruction in plain prose (`Run: curl URL | bash`, outside a code block or code span, not
+quoted or described) keeps its own severity and fails the default check; the same command in a code
+block, a code span, a quotation or a description stays `low`. `--lenient` (config `profile =
+"lenient"`) restores the 0.4 cap for that command too. `--strict` (config `profile =
 "strict"`, Action input `profile: strict`) restores the 0.3 severities for teams that want the check
 to fail on them too.
 
@@ -382,7 +387,7 @@ jobs:
 | `follow-imports` | `true` | Also scan the files that `@path` imports in instruction files reach |
 | `lock-check` | `false` | Run `ghostrules lock --check`; fail the job if it differs from `.ghostrules.lock`. On pull requests the lock is the one at the base commit |
 | `approve-label` | none | A label that approves a change to what the agents read (see below) |
-| `profile` | `default` | `strict` reports plain visible prose at the rules' own severity (see [Severity by visibility](#severity-by-visibility-default-since-04)) |
+| `profile` | `default` | `lenient` caps every plain visible prose finding at `low` (0.4); `strict` reports plain visible prose at the rules' own severity (see [Severity by visibility](#severity-by-visibility-default-since-04)) |
 | `config` | none | A trusted config file that replaces the repository's own (see below) |
 | `trust-repo-config` | `false` | On pull requests, read the pull request's own `.ghostrules.toml` (the 0.3 behaviour) |
 | `inline-suppressions` | `base` | `base`: on pull requests, only ignore comments that already existed at the base commit. `off`: none. `all`: every comment (0.3) |
@@ -493,7 +498,7 @@ trust_known_installers = true       # GR012: lower the severity of well-known in
 follow_imports = true               # scan files reached through @path imports
 lockfile = ".ghostrules.lock"       # where `ghostrules lock` writes the pinned context
 agents = ["claude-code", "copilot-cli", "cursor", "generic"]  # agents whose loading is modelled
-profile = "default"                 # "strict": visible prose at the rules' own severity (0.3)
+profile = "default"                 # "strict": visible prose at the rules' own severity (0.3); "lenient": 0.4 cap
 ```
 
 Command-line options override the config file. Unknown keys are an error, so typos do not silently

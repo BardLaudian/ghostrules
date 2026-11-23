@@ -16,7 +16,7 @@ from collections.abc import Iterable
 from dataclasses import replace
 
 from ghostrules.models import Finding, ScanTarget, Severity
-from ghostrules.rules.directive import OBFUSCATION_NOTE, _inside_quotes
+from ghostrules.rules.directive import OBFUSCATION_NOTE, _inside_quotes, classify
 from ghostrules.rules.helpers import _URL_HOST_RE, host_allowed
 
 # GR015 is not here: a base64 blob is on screen but nobody can read it, so it keeps its severity.
@@ -68,8 +68,23 @@ def attack_findings(
     return kept
 
 
-def by_visibility(finding: Finding, target: ScanTarget, *, import_only: bool) -> Finding:
+def _imperative_prose_command(finding: Finding, target: ScanTarget) -> bool:
+    """A GR012 command written as an instruction in plain prose (not in a code block or span, not
+    quoted, not described): a reviewer can read it, but it tells the agent to run remote code."""
+    if finding.rule_id != "GR012" or "severity lowered" in finding.message:
+        return False
+    offset = target.offset(finding.line, finding.column)
+    if target.code_block_at(offset) is not None or target.code_span_at(offset) is not None:
+        return False
+    return classify(target, (offset, offset + 1)) == "directive"
+
+
+def by_visibility(
+    finding: Finding, target: ScanTarget, *, import_only: bool, lenient: bool = False
+) -> Finding:
     """``finding`` with the severity its visibility calls for (never raised)."""
+    if not lenient and _imperative_prose_command(finding, target):
+        return finding
     if (
         finding.rule_id not in VISIBLE_PROSE_RULES
         or finding.decoded  # decoded from hidden characters

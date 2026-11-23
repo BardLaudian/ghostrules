@@ -189,6 +189,13 @@ def scan(
             help="Report plain visible prose at the rule's own severity (the 0.3 behaviour).",
         ),
     ] = False,
+    lenient: Annotated[
+        bool,
+        typer.Option(
+            "--lenient",
+            help="Report all plain visible prose at low, including a curl | sh instruction (0.4).",
+        ),
+    ] = False,
     baseline_file: Annotated[
         Optional[Path],  # noqa: UP045
         typer.Option(
@@ -247,6 +254,8 @@ def scan(
         cfg = replace(cfg, follow_imports=follow_imports)
     if strict:
         cfg = replace(cfg, profile="strict")
+    elif lenient:
+        cfg = replace(cfg, profile="lenient")
 
     cfg = replace(
         cfg, first_party=_first_party(base, config_reader or suppression_reader or baseline_reader)
