@@ -1,0 +1,60 @@
+repo,rule_id,severity,location,context,fingerprint,human_label
+ShareX/XerahS,GR003,medium,.ai/skills/port-imageeditor/scripts/sync.py:85,"    """"""LF, no BOM, header removed; returns (header, body).""""""
+    text = text.lstrip(""⟦U+FEFF ZERO WIDTH NO-BREAK SPACE⟧"").replace(""\r\n"", ""\n"").replace(""\r"", ""\n"")
+    m = triage.HEADER_RE.match(text)",9bbdb7040fd0ec4c,
+ShareX/XerahS,GR003,medium,.ai/skills/port-imageeditor/scripts/triage.py:67,"        return None
+    text = text.lstrip(""⟦U+FEFF ZERO WIDTH NO-BREAK SPACE⟧"").replace(""\r\n"", ""\n"").replace(""\r"", ""\n"")
+    text = HEADER_RE.sub("""", text, count=1)",bb0c349b96b0b696,
+luadotsh/lua,GR011,low,.claude/skills/laravel-best-practices/rules/eloquent.md:45,"
+Global scopes silently modify every query on the model, making debugging difficult. Prefer local scopes and reserve global scopes for truly universal constraints like soft deletes or multi-tenancy.
+",3af6852303974536,
+dkyazzentwatwa/project-starbeam,GR012,low,AGENTS.md:77,"# macOS: brew install arduino-cli
+# Linux: curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+# Windows: Download from https://arduino.github.io/arduino-cli/",7b302e46fc168571,
+dkyazzentwatwa/project-starbeam,GR012,low,CLAUDE.md:77,"# macOS: brew install arduino-cli
+# Linux: curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
+# Windows: Download from https://arduino.github.io/arduino-cli/",8046e4aa3d7fff17,
+tile-ai/tilelang-ascend,GR012,low,.agents/skills/tilelang-custom-skill/tilelang-review/SKILL.md:110,"if ! command -v ruff &>/dev/null; then
+    curl -LsSf https://astral.sh/ruff/install.sh | sh
+fi",87af339eb5cc1626,
+tile-ai/tilelang-ascend,GR012,low,.agents/skills/tilelang-custom-skill/tilelang-review/SKILL.md:125,"|------|-------------|------|
+| ruff | `curl -LsSf https://astral.sh/ruff/install.sh \| sh` | 下载独立二进制文件，安装到 `~/.local/bin` |
+| clang-format | `sudo apt-get install clang-format-18` | 系统包管理器安装 |",39a619f0add3d572,
+UNITRONIX/BetterDesk,GR014,low,.github/copilot-instructions.md:485,"#### ALL-IN-ONE Scripts — Database Config Preservation (Phase 11) ✅ COMPLETED 2026-03-13
+71. [x] **PostgreSQL→SQLite switch on UPDATE**: `betterdesk.sh` and `betterdesk.ps1` were overwriting `.env` with default SQLite config during UPDATE/REPAIR, losing PostgreSQL DSN. Added `preserve_database_config()` / `Preserve-DatabaseConfig` functions that read existing `.env` before reinstall.
+72. [x] **betterdesk.sh fix**: Added `preserve_database_config()` after `detect_installation()` in `do_update()` and `do_repair()`. Reads `DB_TYPE` and `DATABASE_URL` from existing `.env`, sets `USE_POSTGRESQL` and `POSTGRESQL_URI` global vars.",8667a78c2845032e,
+UNITRONIX/BetterDesk,GR014,low,.github/copilot-instructions.md:536,"#### ALL-IN-ONE Scripts — Installer Stability Fix (Phase 20) ✅ COMPLETED 2026-03-18
+106. [x] **PostgreSQL→SQLite regression on UPDATE (CRITICAL)**: `setup_services()` in `betterdesk.sh` relied solely on ephemeral shell variables (`$USE_POSTGRESQL`, `$POSTGRESQL_URI`) for database config. If vars were lost between function calls, service files defaulted to SQLite. Added safety-net re-read from `.env` at start of `setup_services()`. Same fix applied to `Setup-Services` in `betterdesk.ps1`.
+107. [x] **Hard-coded `/usr/bin/node` in systemd service**: `betterdesk-console.service` template used `ExecStart=/usr/bin/node server.js`. On systems with NodeSource/nvm/snap, node is at different path. Changed to dynamic detection via `command -v node`. Added `StandardOutput=journal`, `StandardError=journal`, `SyslogIdentifier=betterdesk-console` for visible error logs.",b849861e014b5402,
+luadotsh/lua,GR014,low,AGENTS.md:105,"- Read configuration values using dot notation: `php artisan config:show app.name`, `php artisan config:show database.default`. Or read config files directly from the `config/` directory.
+- To check environment variables, read the `.env` file directly.
+",b6f4e55477e27b6e,
+ooiyeefei/ccc,GR014,high,skills/streak/SKILL.md:405,"|-------|----------|
+| No .env file | Show: ""Create .env first with TELEGRAM_BOT_TOKEN and ALLOWED_USERS"" |
+| Empty token | Show: ""TELEGRAM_BOT_TOKEN in .env is empty - add your bot token from @BotFather"" |",95602096758bd17b,
+ooiyeefei/ccc,GR014,high,skills/streak/SKILL.md:406,"| No .env file | Show: ""Create .env first with TELEGRAM_BOT_TOKEN and ALLOWED_USERS"" |
+| Empty token | Show: ""TELEGRAM_BOT_TOKEN in .env is empty - add your bot token from @BotFather"" |
+| Docker not found | Show: ""Docker not installed. Install from https://docker.com"" |",7f3c86ebf1cbcb23,
+a2aproject/a2a-go,GR022,low,AGENTS.md:24,[file changed since the scan] …isting mocking utilities from @./internal/testutil or create a new utility in th…,7e1e4c0519e13b45,
+a2aproject/a2a-go,GR022,low,AGENTS.md:7,[file changed since the scan] …pdate or create a document in @./docs/ai/ to capture that knowledge so …,d50de00e0809c6dd,
+lalabuy948/PhoenixAnalytics,GR022,low,examples/phoenix_mysql/AGENTS.md:213,"        <div class=""hidden only:block"">No tasks yet</div>
+        <div :for={{id, task} <- @stream.tasks} id={id}>
+          {task.name}",0b013db928942af7,
+lalabuy948/PhoenixAnalytics,GR022,low,examples/phoenix_postgres/AGENTS.md:213,"        <div class=""hidden only:block"">No tasks yet</div>
+        <div :for={{id, task} <- @stream.tasks} id={id}>
+          {task.name}",c1659ad8b7f41976,
+lalabuy948/PhoenixAnalytics,GR022,low,examples/phoenix_sqlite/AGENTS.md:213,"        <div class=""hidden only:block"">No tasks yet</div>
+        <div :for={{id, task} <- @stream.tasks} id={id}>
+          {task.name}",0f25eefee1ec571d,
+luadotsh/lua,GR022,low,CLAUDE.md:75,"
+- This project keeps committed, area-grouped rules in `.ai/rules` (settled decisions, non-obvious traps, standing constraints). Framework and package guidelines that only apply to specific paths (testing, frontend, components) also live there, under `.ai/rules/boost` — this is not just recorded decisions, it is load-bearing guidance you have not seen inline. Before you enter plan mode or create/edit any file, you MUST first: open @.ai/rules/index.md (it maps file globs to rule files), read every rule file whose globs cover the path(s) in scope, and run `grep -rin 'keyword' .ai/rules` to catch what a path match alone misses. Do not write code until you have read and are following every matching rule.
+- Record durable rules with `record-rule` so the next agent or teammate inherits them instead of working them out again. Pass a `glob` (e.g. `app/Http/Controllers/**`), a short `title`, and a few-line `note`. Always use `record-rule`, never your native memory or notes tool — native memory is personal and session-scoped; only `.ai/rules` is shared with the team and persists in the repo.",8791df166ba3fb61,
+jabrena/plinth,GR102,medium,.cursor/mcp.json:33,"                ""-y"",
+                ""mongodb-mcp-server@latest"",
+                ""--readOnly""",c1ceb1be9a299196,
+testdriverai/testdriverai,GR107,high,.claude/settings.local.json:4,"    ""allow"": [
+      ""Bash(curl:*)""
+    ]",ee4e0163bb47a5ef,
+ooiyeefei/ccc,GR110,high,skills/scribe/scripts/transcribe.py:194,"    with open(path, ""rb"") as fh:
+        r = httpx.post(url, params=params,
+                       headers={""Authorization"": f""Token {key}"",",b0bc035fe09bc4a1,
