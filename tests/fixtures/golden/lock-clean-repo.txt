@@ -1,5 +1,5 @@
 exit=0
-wrote <tmp>/lock: 2 file(s) in the contexts of 4 agent(s)
+wrote lock: 2 file(s) in the contexts of 4 agent(s)
 
 =====
 {
@@ -85,16 +85,16 @@ wrote <tmp>/lock: 2 file(s) in the contexts of 4 agent(s)
 
 =====
 exit=0
-✔ <tmp>/lock is up to date (2 files in the contexts)
+✔ lock is up to date (2 files in the contexts)
 
 =====
 exit=0
-✅ <tmp>/lock` is up to date** (2 files in the contexts).
+✅ **`lock` is up to date** (2 files in the contexts).
 
 =====
 exit=0
 {
-  "lockfile": <tmp>/lock",
+  "lockfile": "lock",
   "up_to_date": true,
   "changes": [],
   "not_visible_to_the_agent": [],
@@ -104,7 +104,7 @@ exit=0
 
 =====
 exit=1
-ghostrules lock --check  <tmp>/lock
+ghostrules lock --check  lock
 
 ✎ changed  AGENTS.md
   seen by copilot-cli, cursor, generic                                                                                  
@@ -116,7 +116,7 @@ ghostrules lock --check  <tmp>/lock
 =====
 exit=1
 {
-  "lockfile": <tmp>/lock",
+  "lockfile": "lock",
   "up_to_date": false,
   "changes": [
     {

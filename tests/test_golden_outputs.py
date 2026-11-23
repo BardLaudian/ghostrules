@@ -39,9 +39,9 @@ for _ex in EXAMPLES:
     ]
 
 
-def _run(args: list[str], monkeypatch: pytest.MonkeyPatch, columns: int = 120) -> str:
+def _run(args: list[str], monkeypatch: pytest.MonkeyPatch) -> str:
     monkeypatch.chdir(ROOT)
-    monkeypatch.setenv("COLUMNS", str(columns))
+    monkeypatch.setenv("COLUMNS", "120")
     monkeypatch.setenv("NO_COLOR", "1")
     result = CliRunner().invoke(app, [*args, "--no-color"], catch_exceptions=False)
     output = re.sub(r"\S*pytest-\d+[/\\]\w+[/\\]", "<tmp>/", result.output)  # pytest temp dirs
@@ -65,19 +65,22 @@ def test_command_output_is_unchanged(name: str, monkeypatch: pytest.MonkeyPatch)
 def test_lock_update_and_check_are_unchanged(
     example: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    lockfile = tmp_path / "lock"
-    base = ["--root", f"examples/{example}", "--lockfile", str(lockfile)]
-    # wide console: the length of the temp dir (macOS, Windows) must not change where Rich wraps
-    run = lambda a: _run(a, monkeypatch, columns=1000)  # noqa: E731
+    # A copy of the example with a relative lockfile name: the length of an absolute temp path
+    # (long on macOS and Windows) must not change where Rich wraps the report.
+    repo = tmp_path / "repo"
+    shutil.copytree(ROOT / "examples" / example, repo)
+    lockfile = repo / "lock"
+    base = ["--root", str(repo), "--lockfile", "lock"]
+    run = lambda a: _run(a, monkeypatch)  # noqa: E731
     out = [run(["lock", "--update", *base])]
     out.append(lockfile.read_text(encoding="utf-8"))
     for fmt in ("text", "markdown", "json"):
         out.append(run(["lock", "--check", "--format", fmt, *base]))
     # a changed file is reported
     work = tmp_path / "work"
-    shutil.copytree(ROOT / "examples" / example, work)
+    shutil.copytree(repo, work)
     (work / "AGENTS.md").write_text("changed\n", encoding="utf-8")
-    drift = ["--root", str(work), "--lockfile", str(lockfile)]
+    drift = ["--root", str(work), "--lockfile", "lock"]
     for fmt in ("text", "json"):
         out.append(run(["lock", "--check", "--format", fmt, *drift]))
     _check(f"lock-{example}", "\n=====\n".join(out))
