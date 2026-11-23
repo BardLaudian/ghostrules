@@ -387,7 +387,7 @@ def _scan_inline_hook_code(
             shebang = "#!/usr/bin/env python3\n" if inline.language == "python" else ""
             script = ScanTarget(
                 f"{label} (inline {inline.language})", "script", shebang + inline.code
-            )  # type: ignore[arg-type]
+            )
             kept, _, errors = scan_target(script, config, code_rules, _NO_IGNORES)
             result.errors.extend(errors)
             found.extend(

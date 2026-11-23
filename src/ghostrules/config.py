@@ -118,7 +118,8 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
 def _read_toml(path: Path) -> dict[str, Any]:
     try:
         with path.open("rb") as handle:
-            return tomllib.load(handle)
+            data: dict[str, Any] = tomllib.load(handle)
+            return data
     except OSError as exc:
         raise ConfigError(f"cannot read {path}: {exc.strerror or exc}") from None
     except tomllib.TOMLDecodeError as exc:

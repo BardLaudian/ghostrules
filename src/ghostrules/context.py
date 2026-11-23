@@ -56,4 +56,5 @@ def resolve(
 def schema() -> dict[str, Any]:
     """The JSON schema (draft 7) of what ``resolve`` returns."""
     text = resources.files("ghostrules").joinpath("schemas/context.schema.json").read_text("utf-8")
-    return json.loads(text)
+    schema: dict[str, Any] = json.loads(text)
+    return schema
