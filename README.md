@@ -33,7 +33,7 @@ ghostrules scan .                # exit 1 on findings at or above "high"
 
 ## Why
 
-AI coding agents load instruction files from your repository and follow them, and a reviewer cannot see everything in those files. Unicode **tag characters** render as nothing but spell ASCII text models can read (["ASCII smuggling"](https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/)); **variation selectors** carry bytes behind one visible character ([Butler](https://paulbutler.org/2025/smuggling-arbitrary-data-through-an-emoji/)); **bidirectional controls** show text differently from how it is parsed ([Trojan Source](https://trojansource.codes/)). Hidden Unicode in rule files was reported to be able to steer Cursor and GitHub Copilot into writing malicious code (["Rules File Backdoor"](https://www.pillar.security/blog/new-vulnerability-in-github-copilot-and-cursor-how-hackers-can-weaponize-code-agents)), and MCP servers can be set up with hardcoded tokens, unpinned packages or plain `http://` ([tool poisoning](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)). `ghostrules` makes this visible in the terminal, in CI and in GitHub's Security tab. It only **reads** files: it never executes what it finds, never uses the network, and prints secrets masked (`ghp_****…a1b2`).
+AI coding agents load instruction files from your repository and follow them, and a reviewer cannot see everything in those files. Unicode **tag characters** render as nothing but spell ASCII text models can read (["ASCII smuggling"](https://embracethered.com/blog/posts/2024/hiding-and-finding-text-with-unicode-tags/)); **variation selectors** carry bytes behind one visible character ([Butler](https://paulbutler.org/2025/smuggling-arbitrary-data-through-an-emoji/)); **bidirectional controls** show text differently from how it is parsed ([Trojan Source](https://trojansource.codes/)). Hidden Unicode in rule files was reported by Pillar Security to be able to steer Cursor and GitHub Copilot into writing malicious code (["Rules File Backdoor"](https://www.pillar.security/blog/new-vulnerability-in-github-copilot-and-cursor-how-hackers-can-weaponize-code-agents)), and MCP servers can be set up with hardcoded tokens, unpinned packages or plain `http://` ([tool poisoning](https://invariantlabs.ai/blog/mcp-security-notification-tool-poisoning-attacks)). `ghostrules` makes this visible in the terminal, in CI and in GitHub's Security tab. It only **reads** files: it never executes what it finds, never uses the network, and prints secrets masked (`ghp_****…a1b2`).
 
 ## What your agents actually read
 
@@ -104,58 +104,31 @@ repos:
       - id: ghostrules
 ```
 
-On pull requests the Action reads the config and the `ghostrules-ignore` comments from the base commit, so a change cannot switch the scanner off for its own payload. Pin the Action to a full commit SHA, as in the example (a tag can be moved, a commit cannot, and Dependabot keeps the SHA and its version comment current); `@v0` follows the latest stable 0.x release and is the alternative if you accept a moving tag. Findings go to the job summary and, with `upload-sarif` (the default), to **Security → Code scanning**. All inputs, permissions and the full workflow are in the [usage guide](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#github-action).
+On pull requests the Action reads the config and the `ghostrules-ignore` comments from the base commit, so a change cannot switch the scanner off for its own payload. Pin the Action to a full commit SHA, as in the example (a tag can be moved, a commit cannot, and Dependabot keeps the SHA and its version comment current); `@v0` is a moving tag that is moved on each 0.x release, the alternative if you accept that. Findings go to the job summary and, with `upload-sarif` (the default), to **Security → Code scanning**. All inputs, permissions and the full workflow are in the [usage guide](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#github-action).
 
 ## How we test precision
 
 A scanner that cries wolf gets switched off, and one that misses gets trusted by mistake, so both are
 measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghostrules/blob/main/bench/README.md),
-[full results](https://github.com/BardLaudian/ghostrules/blob/main/bench/RESULTS.md)). The independent cases and the held-out repositories were not used to tune rules; the corpus below was.
+[full results](https://github.com/BardLaudian/ghostrules/blob/main/bench/RESULTS.md)). The independent cases and the held-out repositories were not used to tune rules; the corpus was. The tables by technique and by rule are in [bench/README.md](https://github.com/BardLaudian/ghostrules/blob/main/bench/README.md#the-numbers).
 
 <!-- bench:recall:start -->
 **Recall on independent cases: 1 of 4 reported (25 %, 95 % CI 5–70 %); 1 of 4 (25 %, 95 % CI 5–70 %) fail the default `--fail-on high` check.** They are 4 of the 18 cases an independent review wrote; the other 14 are not in the repository yet, so this is a small sample. The 106 cases written by the author or taken from public sources are shown separately because the author knew what the rules match; across all cases 101 of 110 (92 %, 95 % CI 85–96 %) are reported. Visible prose is `low` by default, so the check fails less often than the rules report (hidden text and configuration are not lowered). The misses include paraphrases, other languages, scripts and files that nothing points the scanner to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed in the results.
-
-| Origin | Cases | Reported | Fails the default check |
-|---|---:|---:|---:|
-| author | 37 | 33 (89%) | 13 (35%) |
-| review (independent) | 4 | 1 (25%) | 1 (25%) |
-| public | 69 | 67 (97%) | 42 (61%) |
-
-All origins, by technique:
-
-| Technique | Cases | Reported | Fails the default check |
-|---|---:|---:|---:|
-| agent-settings | 9 | 8 | 7 |
-| bidi | 3 | 3 | 3 |
-| concealment | 5 | 4 | 0 |
-| encoded-payload | 3 | 3 | 3 |
-| exfiltration | 11 | 10 | 0 |
-| homoglyph | 3 | 3 | 1 |
-| hook-scripts | 7 | 7 | 6 |
-| html-comment | 4 | 4 | 3 |
-| imports | 5 | 5 | 5 |
-| instruction-override | 9 | 7 | 0 |
-| mcp-config | 7 | 7 | 4 |
-| mcp-server-content | 1 | 0 | 0 |
-| referenced-files | 4 | 4 | 4 |
-| remote-code-execution | 10 | 10 | 6 |
-| safety-bypass | 3 | 3 | 0 |
-| scanner-evasion | 2 | 0 | 0 |
-| secret-in-prose | 1 | 1 | 1 |
-| sensitive-file | 7 | 7 | 0 |
-| skill-scripts | 3 | 2 | 2 |
-| unicode-tags | 7 | 7 | 7 |
-| variation-selectors | 3 | 3 | 3 |
-| zero-width | 3 | 3 | 1 |
 <!-- bench:recall:end -->
 
 <!-- bench:precision:start -->
-**Precision: 100 repositories** frozen before any v0.4 tuning (851 agent files, default settings). They gave 21 findings, and 2 repositories would fail the default check. Precision for a user is true positives over everything reported, because a right pattern in a harmless place is still something to read: **4 of 21 (19 %, 95 % CI 8–40 %)** (0 findings unlabelled). All 21 labels were given by a human reviewer (the assistant's earlier labels were replaced where they differed). Per rule: GR014 1 of 5; GR022 1 of 6; GR102 1 of 1; GR107 1 of 1; GR003 0 of 2; GR011 0 of 1; GR012 0 of 4; GR110 0 of 1. 21 findings are too few for a percentage per rule to mean much.
+**Precision: 100 repositories** frozen before any v0.4 tuning (851 agent files, default settings). They gave 21 findings, and 2 repositories would fail the default check. Precision for a user is true positives over everything reported, because a right pattern in a harmless place is still something to read: **4 of 21 (19 %, 95 % CI 8–40 %)** (0 findings unlabelled). All 21 labels were given by a human reviewer (the assistant's earlier labels were replaced where they differed).
 <!-- bench:precision:end -->
 
-The new GR110 finding is a script that sends its own API key to the API it documents.
-
 A workflow scheduled weekly scans 300 popular public repositories (`corpus/`; the scanner itself makes no network requests) and fails if a critical or high finding has not been reviewed; last run: 2026-10-28. Those rules were tuned on that data, so its numbers are not an estimate of precision on new repositories. On it, 0.2.1 reported 84 critical and 156 high findings and 0.3.0 reports none critical and 53 high. The [study](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md) used the same tooling; `ghostrules` is a set of heuristics, not a proof: see the [limits](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits).
+
+## Limits
+
+`ghostrules` is a set of heuristics, not a proof: "no findings" does not mean a file is safe. It matches patterns, so it misses a paraphrase that shares no words with them, languages other than English, Spanish and French, a command built from variables, a secret without a known format and tool descriptions served by a running MCP server, and it does not see files outside the repository. Prose that a reviewer can read in the diff is reported as `low` by default; hidden text and configuration are not lowered. What it does and does not cover is written down in the [threat model](https://github.com/BardLaudian/ghostrules/blob/main/docs/THREAT_MODEL.md) and the [usage guide](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits). The project is `0.x` and Alpha: [what is stable](https://github.com/BardLaudian/ghostrules/blob/main/docs/VERSIONING.md) and the criteria for 1.0 are public.
+
+## How this was built
+
+One person maintains `ghostrules` and works with AI coding assistants for code, tests and documentation. The author decides what is merged, reads the diffs, and is responsible for the result; the assistants do not publish, push or release. Labels and figures that no person has reviewed are marked as such, and the benchmark's headline counts only cases the rule author did not write. Commits made before 2026-11-23 carry an AI trailer, later ones do not, and the use is declared here instead ([details](https://github.com/BardLaudian/ghostrules/blob/main/CONTRIBUTING.md#how-this-project-is-built-ai-assistance)).
 
 ## Alternatives
 
@@ -178,11 +151,11 @@ Other tools look at the same files. This is what their repositories say they do 
 - [Rules](https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md): every rule, with severity, logic and true and false positive examples.
 - [Agent models](https://github.com/BardLaudian/ghostrules/blob/main/docs/AGENT_MODELS.md): how each agent loads its files, with links to its documentation.
 - [Study report](https://github.com/BardLaudian/ghostrules/blob/main/study/report.md) and [corpus](https://github.com/BardLaudian/ghostrules/blob/main/corpus/README.md): how precision is measured.
+- [Threat model](https://github.com/BardLaudian/ghostrules/blob/main/docs/THREAT_MODEL.md), [versioning and stability](https://github.com/BardLaudian/ghostrules/blob/main/docs/VERSIONING.md) and [governance](https://github.com/BardLaudian/ghostrules/blob/main/GOVERNANCE.md).
 - [Changelog](https://github.com/BardLaudian/ghostrules/blob/main/CHANGELOG.md) and [design decisions](https://github.com/BardLaudian/ghostrules/blob/main/docs/DECISIONS.md).
 
 ## Contributing, security, license
 
-- Contributions are welcome: see [CONTRIBUTING.md](https://github.com/BardLaudian/ghostrules/blob/main/CONTRIBUTING.md) (how to add a rule or an agent model).
-- **AI assistance:** the project is maintained by one person with an AI coding assistant for code, tests and documentation; a person reviews and merges everything. Commits made after 2026-11-23 carry no AI trailer, the earlier 80 do: see [how this project is built](https://github.com/BardLaudian/ghostrules/blob/main/CONTRIBUTING.md#how-this-project-is-built-ai-assistance).
+- Contributions are welcome: see [CONTRIBUTING.md](https://github.com/BardLaudian/ghostrules/blob/main/CONTRIBUTING.md) (how to add a rule or an agent model) and the [Code of Conduct](https://github.com/BardLaudian/ghostrules/blob/main/CODE_OF_CONDUCT.md).
 - To report a vulnerability in `ghostrules` itself, see [SECURITY.md](https://github.com/BardLaudian/ghostrules/blob/main/SECURITY.md).
 - [MIT](https://github.com/BardLaudian/ghostrules/blob/main/LICENSE) © Pablo Seoane Temprano.

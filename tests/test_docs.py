@@ -67,6 +67,8 @@ def test_readme_section_order_converts_visitors() -> None:
         "Review every change to what your agents read",
         "GitHub Action and pre-commit",
         "How we test precision",
+        "Limits",
+        "How this was built",
         "Alternatives",
         "Documentation",
         "Contributing, security, license",
