@@ -1221,3 +1221,18 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 - **Scorecard badge not added** until the workflow has run on `main` and published a result.
 - **GitHub settings** are a checklist in `docs/GITHUB_SETTINGS.md`, not applied.
 
+
+## Improvement plan, phase 7 — honesty of the metrics (H6, H14)
+
+- **The 14 missing independent cases were not added.** Their text is not in the repository
+  (`REMEDIATION.md` only describes 4 of the 18) and inventing them would defeat the point of an
+  independent sample. Pending `[HUMANO]`: provide the review's cases; add them as `origin = "review"`.
+- **Wilson interval, 95 %**, because the samples are tiny (4 and 21) and the normal approximation is
+  wrong there. A percentage is never printed without `k of n`.
+- **Assistant and human labels are separate figures.** A human label in `labels-review.csv` overrides
+  the assistant's for that finding, and the report states both counts. With no human label the
+  report says so in words.
+- **The review sheet is blind** (no assistant label) so the reviewer is not anchored. Its context is
+  re-read from a fresh shallow clone, so a row says `[file changed since the scan]` when the file no
+  longer shows the finding. Invisible characters in the context are rendered, not written raw.
+- **Commit trailers:** options in `docs/AI_PROVENANCE.md`; no history was rewritten.

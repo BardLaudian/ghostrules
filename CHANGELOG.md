@@ -5,6 +5,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **Benchmark honesty (H6).** Every recall and precision figure the benchmark prints now carries
+  its sample size and a 95 % Wilson interval. Labels record who gave them (`assistant` or `human`)
+  and the report keeps the two apart. `python bench/run.py review-sheet` writes
+  `bench/labels-review.csv` (blind, `human_label` empty) for a person to label; nothing was filled
+  in. `docs/CLAIMS.md` maps each README claim to its evidence. `docs/AI_PROVENANCE.md` lays out the
+  options for the AI co-author trailers (decision pending; no history was touched).
+
 ### Security
 
 - **CI and release supply chain (H8, H9, H12).** `ci.yml` has read-only `permissions` and cancels
