@@ -577,18 +577,8 @@ class Builder:
         if is_sensitive_path(rel) and repo.kind(rel) is not None:
             self._sensitive(parent, imp, label, via, slot)
             return
-        notes: list[str] = []
         uncertain = hop in self.policy.uncertain_hops
-        if uncertain:
-            notes.append(
-                f"hop {hop}: loaded only if the {self.policy.max_hops}-hop limit counts from 0"
-            )
-        if imp.in_comment:
-            notes.append("import inside an HTML comment: unverified whether it is expanded")
-        if not imp.certain:
-            notes.append("loose '@' (after punctuation): unverified whether it is an import")
-        if self._is_external(repo, rel):
-            notes.append("external import: requires approval (outside the working directory)")
+        notes = self._import_notes(repo, rel, imp, hop)
         entry, status = self.add_file(
             repo,
             rel,
@@ -613,6 +603,21 @@ class Builder:
             hint=hint,
             intended=self._intended(repo, parent_rel, imp),
         )
+
+    def _import_notes(self, repo: Repo, rel: str, imp: Import, hop: int) -> list[str]:
+        """Why an import is only partly trusted (depth limit, comment, loose ``@``, external)."""
+        notes: list[str] = []
+        if hop in self.policy.uncertain_hops:
+            notes.append(
+                f"hop {hop}: loaded only if the {self.policy.max_hops}-hop limit counts from 0"
+            )
+        if imp.in_comment:
+            notes.append("import inside an HTML comment: unverified whether it is expanded")
+        if not imp.certain:
+            notes.append("loose '@' (after punctuation): unverified whether it is an import")
+        if self._is_external(repo, rel):
+            notes.append("external import: requires approval (outside the working directory)")
+        return notes
 
     def _sensitive(
         self, parent: ContextEntry, imp: Import, label: str, via: tuple[str, ...], slot: int
