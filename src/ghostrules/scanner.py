@@ -459,6 +459,17 @@ def _relabel_finding(finding: Finding, label_of: Callable[[str], str], ctx: Scan
     )
 
 
+def _oversize(candidate: Candidate, limit: int) -> int | None:
+    """The size in bytes of ``candidate`` when it is over ``limit`` (0 = no limit), else None."""
+    if limit <= 0:
+        return None
+    try:
+        size = candidate.abs_path.stat().st_size
+    except OSError:
+        return None  # load_target reports an unreadable file
+    return size if size > limit else None
+
+
 def scan_paths(
     paths: Iterable[Path],
     config: Config,
@@ -532,6 +543,14 @@ def scan_paths(
         if resolved in seen:
             continue
         seen.add(resolved)
+        too_big = _oversize(cand, config.max_file_size)
+        if too_big is not None:
+            result.warnings.append(
+                f"skipped {label}: {too_big} bytes exceeds max_file_size "
+                f"({config.max_file_size}); raise it with --max-file-size to scan this file"
+            )
+            result.skipped_files += 1
+            continue
         try:
             target = load_target(
                 cand,

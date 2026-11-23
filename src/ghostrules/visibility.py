@@ -16,7 +16,7 @@ from collections.abc import Iterable
 from dataclasses import replace
 
 from ghostrules.models import Finding, ScanTarget, Severity
-from ghostrules.rules.directive import OBFUSCATION_NOTE, _inside_quotes, classify
+from ghostrules.rules.directive import OBFUSCATION_NOTE, classify
 from ghostrules.rules.helpers import _URL_HOST_RE, host_allowed
 
 # GR015 is not here: a base64 blob is on screen but nobody can read it, so it keeps its severity.
@@ -32,6 +32,15 @@ _NOTE = (
 # they read as an attack, not as a rule written for a team. A quotation, an example or a
 # description (the rules already lower those, see ``directive.classify``) is never kept high.
 _BLANK_LINE = re.compile(r"\n[ \t]*\r?\n")
+_QUOTE_MARKS = ('"', "“", "”", "«", "»")
+
+
+def _counts_inside_quotes(counts: list[int]) -> bool:
+    """``directive._inside_quotes`` over precomputed counts of ``_QUOTE_MARKS``."""
+    straight, open_curly, close_curly, open_guillemet, close_guillemet = counts
+    return straight % 2 == 1 or open_curly > close_curly or open_guillemet > close_guillemet
+
+
 _COMBINATIONS = (frozenset({"GR013", "GR011"}), frozenset({"GR010", "GR013"}))
 
 
@@ -48,13 +57,24 @@ def attack_findings(
     breaks = list(_BLANK_LINE.finditer(target.text))
     starts = [m.end() for m in breaks]
     groups: dict[int, list[int]] = {}
-    for index, finding in enumerate(findings):
-        if finding.rule_id in VISIBLE_PROSE_RULES and "severity lowered" not in finding.message:
-            offset = target.offset(finding.line, finding.column)
-            paragraph = bisect_right(starts, offset)
-            if _inside_quotes(target.text[starts[paragraph - 1] if paragraph else 0 : offset]):
-                continue  # a quotation that opened in an earlier sentence of the paragraph
-            groups.setdefault(paragraph, []).append(index)
+    candidates = sorted(
+        (target.offset(f.line, f.column), i)
+        for i, f in enumerate(findings)
+        if f.rule_id in VISIBLE_PROSE_RULES and "severity lowered" not in f.message
+    )
+    # Quote counts are carried from one finding to the next inside a paragraph, so a long
+    # paragraph with many findings is read once, not once per finding.
+    seen: dict[int, tuple[int, list[int]]] = {}  # paragraph -> (offset reached, running counts)
+    for offset, index in candidates:
+        paragraph = bisect_right(starts, offset)
+        reached, counts = seen.get(paragraph, (starts[paragraph - 1] if paragraph else 0, [0] * 5))
+        chunk = target.text[reached:offset]
+        for slot, mark in enumerate(_QUOTE_MARKS):
+            counts[slot] += chunk.count(mark)
+        seen[paragraph] = (offset, counts)
+        if _counts_inside_quotes(counts):
+            continue  # a quotation that opened in an earlier sentence of the paragraph
+        groups.setdefault(paragraph, []).append(index)
     kept: set[int] = set()
     for paragraph, indexes in groups.items():
         ids = {findings[i].rule_id for i in indexes}

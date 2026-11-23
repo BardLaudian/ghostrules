@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 from dataclasses import dataclass
 
@@ -16,9 +17,16 @@ SEVERITY_ORDER = (
 )
 
 
+# Control characters other than tab and newline: ESC and CSI start terminal escape sequences, CR
+# and BS overwrite what is already on the line. File content must never reach a terminal as one.
+_CONTROLS = re.compile("[\x00-\x08\x0b-\x1f\x7f-\x9f]")
+
+
 def safe(text: str) -> str:
-    """Replace lone surrogates (from undecodable input bytes) so output can always be encoded."""
-    return text.encode("utf-8", errors="replace").decode("utf-8")
+    """Make ``text`` safe to print: lone surrogates (from undecodable input bytes) are replaced so
+    output can always be encoded, and control characters become a visible ``⟦U+XXXX⟧`` token."""
+    text = text.encode("utf-8", errors="replace").decode("utf-8")
+    return _CONTROLS.sub(lambda m: f"⟦U+{ord(m.group()):04X}⟧", text)
 
 
 def via_text(finding: Finding) -> str:

@@ -33,6 +33,7 @@ dependencies = [
 dev = [
     "pytest>=8",
     "pytest-cov>=5",
+    "hypothesis>=6",
     "ruff>=0.6",
     "mypy>=1.10",
     "jsonschema>=4",
@@ -62,6 +63,8 @@ packages = ["src/ghostrules"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+addopts = "-m 'not slow'"
+markers = ["slow: hostile-input time budget; run with pytest -m slow"]
 
 [tool.ruff]
 line-length = 100

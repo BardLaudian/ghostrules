@@ -14,7 +14,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   **Migration:** if the new exit code breaks a pipeline, pass `--lenient` or set
   `profile = "lenient"` to get the 0.4 behaviour; review the finding rather than silencing it.
 
+### Fixed
+
+- **Terminal escape sequences in the table report (H11).** A control character in a scanned file
+  (ESC, CSI, CR, BS...) reached the terminal through the snippet or message. Every report now
+  prints control characters as `⟦U+XXXX⟧`. Found by the new property tests.
+- **Quadratic cost on a line with many findings (H11).** 60,000 repetitions of one sentence took
+  minutes (masking the whole line and counting quotes from the start of the paragraph for each
+  finding); it is now linear (about 21 s for a 2 MB file, which the default size limit skips).
+
 ### Added
+
+- **`--max-file-size` / `max_file_size` (default 1 MiB, `0` = no limit).** A larger file is skipped
+  with a warning naming it and its size, shown in every output format. It is never skipped
+  silently.
+- Property tests (`hypothesis`, new `dev` extra) for the normaliser, `@path` resolution, the JSON
+  locator and the reporters, and `slow` time-budget tests on hostile input (`pytest -m slow`;
+  excluded from the normal run).
 
 - **GR017, a known-format secret written in an instruction file (H5).** `ghp_`, `github_pat_`,
   `sk-ant-`, `sk-`, `AKIA`, `xox*`, `AIza`, `glpat-`, `hf_`, `npm_` and webhook URLs in `AGENTS.md`,

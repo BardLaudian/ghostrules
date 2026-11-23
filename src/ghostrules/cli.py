@@ -214,6 +214,15 @@ def scan(
             help="Read the baseline from this git ref, not the working tree.",
         ),
     ] = None,
+    max_file_size: Annotated[
+        Optional[int],  # noqa: UP045
+        typer.Option(
+            "--max-file-size",
+            min=0,
+            help="Skip files larger than this many bytes, with a warning (0 = no limit; "
+            "default 1048576).",
+        ),
+    ] = None,
     no_color: Annotated[bool, typer.Option("--no-color", help="Plain output, no colours.")] = False,
 ) -> None:
     """Scan agent instruction and configuration files for hidden or dangerous content.
@@ -252,6 +261,8 @@ def scan(
     cfg = _apply_overrides(cfg, fail_on, min_severity, disable)
     if follow_imports is not None:
         cfg = replace(cfg, follow_imports=follow_imports)
+    if max_file_size is not None:
+        cfg = replace(cfg, max_file_size=max_file_size)
     if strict:
         cfg = replace(cfg, profile="strict")
     elif lenient:

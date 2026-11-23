@@ -6,9 +6,10 @@ import re
 import shlex
 from collections import defaultdict
 from collections.abc import Iterable
+from functools import lru_cache
 
 from ghostrules.models import Finding, ScanTarget, Severity
-from ghostrules.secrets import apply_spans, map_offset, mask_secrets, mask_spans
+from ghostrules.secrets import Replacement, apply_spans, map_offset, mask_secrets, mask_spans
 from ghostrules.unicode_utils import render_invisible
 
 
@@ -35,6 +36,13 @@ def make_snippet(
     lead = "…" if start > context else ""
     trail = "…" if end + context < len(line) else ""
     return f"{lead}{before}{shown}{after}{trail}"
+
+
+@lru_cache(maxsize=8)
+def _line_spans(line: str, secrets: tuple[str, ...]) -> tuple[Replacement, ...]:
+    """``mask_spans`` of one line, remembered: a line with thousands of findings (a hostile file
+    of one repeated sentence) would otherwise be re-scanned in full for each of them."""
+    return tuple(mask_spans(line, secrets))
 
 
 def build_finding(
@@ -66,7 +74,7 @@ def build_finding(
     last_line, last_column = target.position(max(end - 1, start))
     end_column = last_column + 1 if last_line == line else len(raw_line) + 1
     secret_values = tuple(secrets)
-    spans = mask_spans(raw_line, secret_values)
+    spans = _line_spans(raw_line, secret_values)
     snippet = make_snippet(
         apply_spans(raw_line, spans),
         map_offset(spans, column - 1),
