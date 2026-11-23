@@ -1,0 +1,7 @@
+exit=0
+◆ ghostrules v0.4.1  scanning examples/clean-repo
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+✔ No findings  (scanned 2 files)
+warning: skipped .mcp.json: 471 bytes exceeds max_file_size (200); raise it with --max-file-size to scan this file
+warning: skipped AGENTS.md: 324 bytes exceeds max_file_size (200); raise it with --max-file-size to scan this file

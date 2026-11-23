@@ -1,0 +1,20 @@
+exit=1
+◆ ghostrules v0.4.1  scanning examples/import-chain-repo
+
+docs/setup.md  2 findings ──────────────────────────────────────────────────────────────────────────────────────────────
+ CRITICAL  GR021 Sensitive file imported into context                                                 docs/setup.md:3:14
+     3 │ Environment: @../.env                                                                                          
+  Import '@../.env' brings a credentials file into the agent's context, so its contents are sent to the model provider  
+  with every prompt                                                                                                     
+  fix  Remove the import; keep secrets out of the agent's context.                                                      
+
+   HIGH    GR020 External import                                                                      docs/setup.md:4:23
+     4 │ Shared tooling notes: @/opt/acme/tooling.md                                                                    
+  Import '@/opt/acme/tooling.md' points outside the repository: claude-code asks for one-time approval (an earlier      
+  approval silently covers new imports); copilot-cli does not load it                                                   
+  fix  Move the file into the repository, or remove the import.                                                         
+
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+1 critical · 1 high in 1 file (scanned 6)
+warning: skipped shared/team-rules.md: 523 bytes exceeds max_file_size (200); raise it with --max-file-size to scan this
+file

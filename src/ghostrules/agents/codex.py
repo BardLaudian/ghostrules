@@ -34,7 +34,8 @@ def user_config(home: Repo | None) -> dict[str, Any]:
     if raw is None:
         return {}
     try:
-        return tomllib.loads(raw.decode("utf-8", errors="replace"))
+        parsed: dict[str, Any] = tomllib.loads(raw.decode("utf-8", errors="replace"))
+        return parsed
     except tomllib.TOMLDecodeError:
         return {}
 

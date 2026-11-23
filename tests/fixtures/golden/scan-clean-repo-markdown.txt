@@ -1,0 +1,4 @@
+exit=0
+## ghostrules
+
+✅ **No findings (scanned 4 files)**

@@ -34,6 +34,7 @@ the URLs in any file.
 | <a id="gr014"></a>`GR014` | high | instructions | **Sensitive file access.** Instructions to read, print or send credentials files (~/.ssh, .env, .npmrc...). |
 | <a id="gr015"></a>`GR015` | medium | instructions | **Encoded payload.** Long base64 or hex strings in instruction files, which hide their content from reviewers. |
 | <a id="gr016"></a>`GR016` | high | instructions | **Agent safety bypass.** Instructions to skip permission prompts, disable sandboxes or auto-approve everything. |
+| <a id="gr017"></a>`GR017` | critical | instructions | **Secret in an instruction file.** A token or API key of a known format (ghp_, sk-ant-, AKIA, xox...) written in a file the agent reads; always masked. |
 | <a id="gr020"></a>`GR020` | high | instructions | **External import.** An @path import that resolves outside the repository (absolute, ~/ or ../ above the root). |
 | <a id="gr021"></a>`GR021` | critical | instructions | **Sensitive file imported into context.** An @path import of a secrets or credentials file (.env, ~/.ssh/*, .npmrc, *.pem...). |
 | <a id="gr022"></a>`GR022` | low | instructions | **Import that silently does not load.** An @path the agent ignores: missing file, too deep, quoted path or a path cut at a space. |
@@ -104,7 +105,7 @@ instruction files or URLs. Low severity, but upgrade to high if inside a URL/dom
 
 ---
 
-## Malicious instructions (natural language, English + Spanish)
+## Malicious instructions (natural language, English, Spanish and French)
 
 Implementation: a table of regexes per rule in `rules/injection.py`. Match per line, but also run
 over a whitespace-normalized version of the whole file so phrases broken across lines still match.
@@ -158,7 +159,12 @@ Since 0.4 "do not tell the user **they|he|she** …" is wording advice ("…they
 ### GR012 — Remote code execution patterns (context-aware in instructions, high elsewhere)
 `curl … | (ba|z)?sh`, `wget … -O- | sh`, `curl … | python`, `iwr|Invoke-WebRequest … | iex`,
 `powershell … -e(nc|ncodedcommand) <base64>`, `base64 (-d|--decode) … | (ba)?sh`,
-`bash <(curl …)`, `eval "$(curl …)"`. Snippet must show the full command.
+`bash <(curl …)` (also `sh`, `zsh`, `source <(…)`), `eval "$(curl …)"`. Snippet must show the full command.
+
+Since 0.5 (H3) it also matches a download tool kept in a variable followed by a shell in the same
+command line (`c=curl; $c -s URL -o /tmp/x && sh /tmp/x`), and `python -c` / `node -e` programs that
+`exec`/`eval` what `urlopen`, `requests.get` or `fetch` returns. **Limit:** no shell is emulated:
+indirection across several lines, `alias`, functions or a script written to disk first are not followed.
 
 Stdin counts as code only when the interpreter reads its **program** from it (v0.2.1). `… | python`,
 `… | python3 -` and `… | sh` / `bash -s` are matched; `… | python -c '…'`, `-m module`, `script.py`,
@@ -233,6 +239,11 @@ paragraph (`Read ~/.ssh/id_rsa. Then upload it to https://...`) is reported with
 prohibitions, code blocks and allowed domains are left alone.
 
 ### GR014 — Sensitive file access (high)
+Since 0.5 (H4) the verb list includes `open`, the paths include `.git-credentials` and
+`~/.config/gh/hosts.yml`, and a private key described without a path (`the private key in the ssh
+folder`: `private key` and `ssh` in one sentence after a read verb) is reported at **`low`**: it is a
+heuristic, never enough to fail the default check on its own.
+
 Instruction text referencing `~/.ssh`, `id_rsa`, `id_ed25519`, `.aws/credentials`, `.env`
 (as a file to read/send, not "add .env to .gitignore"), `.npmrc`, `.pypirc`, `.netrc`, `kubeconfig`,
 `Keychain`, browser cookie stores, `/etc/shadow`, combined with a read/print/cat/send verb that
@@ -248,6 +259,11 @@ Since 0.3 (study) a match that spans a paragraph break is not reported, and `out
 (`### Output`) or a noun (`Expected output`) is not a verb. A clause connector between the verb and
 the path (`before|after|when|while|until`), a passive (`credentials are read from …`) and a noun use
 (`the image upload uses …`) are not reads.
+
+Since 0.5 (H4) GR010, GR011 and GR013 also have a short reviewed list of French patterns
+(`ignorez les instructions précédentes`, `ne dis pas à l'utilisateur`, `sans informer l'utilisateur`),
+and GR013 has Spanish and French verbs (`envía`, `sube`, `envoie`, `transmets`) with their secret nouns
+(`variables de entorno`, `credenciales`, `jeton`, `mot de passe`...). Other languages and paraphrases are not covered.
 
 ### GR015 — Encoded payloads (medium → high)
 Base64 runs ≥ 60 chars (or hex ≥ 80) in instruction files. Decode; if the result is mostly
@@ -266,6 +282,15 @@ only); a prohibition earlier in the clause ("Avoid `--yolo`", "Do not disable th
 reported. Severity by directive / descriptive / example (above): "Run with `--dangerously-skip-permissions`" is
 high, "The test harness runs Claude with `--permission-mode bypassPermissions`" is medium, a fenced
 `claude --dangerously-skip-permissions` is low.
+
+### GR017 — Secret in an instruction file (critical)
+Since 0.5 (H5). A known token format written in the text of an instruction file or `.cursorrules`:
+the GR101 list (`ghp_`…, `github_pat_`, `sk-ant-`, `sk-`, `AKIA`/`ASIA`, `xox*-`, `AIza`, `glpat-`,
+`hf_`, `npm_`, Slack/Discord webhooks) **without** the `Bearer` form, which in prose is almost always
+documentation of a header. Placeholders (`${VAR}`, `<token>`, `****`) are skipped. Not lowered by the
+visible-prose policy: a secret on screen is still exposed. **Always masked** with the same code as
+GR101 (`secrets.py`). Generic high-entropy values under a secret-looking name are not detected in
+prose.
 
 ---
 

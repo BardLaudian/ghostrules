@@ -1,0 +1,144 @@
+exit=0
+wrote lock: 2 file(s) in the contexts of 4 agent(s)
+
+=====
+{
+  "agents": {
+    "claude-code": [
+      {
+        "conditions": [],
+        "lines": null,
+        "load": "blocked",
+        "path": "AGENTS.md",
+        "raw_sha256": null,
+        "seen_sha256": null,
+        "via": []
+      },
+      {
+        "conditions": [],
+        "lines": "b850f283e1ac837f e3b0c44298fc1c14 8f711967fb4c27a1 ed3d2dcd0c556744",
+        "load": "always",
+        "path": "CLAUDE.md",
+        "raw_sha256": "4053a12db909064e66d8191364e78b2183267a4945d74897766d1944623fb97e",
+        "seen_sha256": "699177f8f31dc4a162612acdb41ae4228483f2a935511dff5658fbc26f90a206",
+        "via": []
+      }
+    ],
+    "copilot-cli": [
+      {
+        "conditions": [],
+        "lines": "1fcab0188063dfb7 e3b0c44298fc1c14 0ecddf15e1aff85f 87e19a08e098b552 cef926a08fa3a0c2 e3b0c44298fc1c14 b66542635d2ad70d a7ce1e3aae4919bb 273301704d21cdc2 1abe3d51385492d8 339cf32e277b5afc",
+        "load": "always",
+        "path": "AGENTS.md",
+        "raw_sha256": "0884ef40877b4f26da259b2988fb58512d986ec4b56abc7e0fe87f70bba90407",
+        "seen_sha256": "0884ef40877b4f26da259b2988fb58512d986ec4b56abc7e0fe87f70bba90407",
+        "via": []
+      },
+      {
+        "conditions": [],
+        "lines": "b850f283e1ac837f e3b0c44298fc1c14 8f711967fb4c27a1 5ac8a8a7c58f59c6 ed3d2dcd0c556744",
+        "load": "always",
+        "path": "CLAUDE.md",
+        "raw_sha256": "4053a12db909064e66d8191364e78b2183267a4945d74897766d1944623fb97e",
+        "seen_sha256": "4053a12db909064e66d8191364e78b2183267a4945d74897766d1944623fb97e",
+        "via": []
+      }
+    ],
+    "cursor": [
+      {
+        "conditions": [],
+        "lines": "1fcab0188063dfb7 e3b0c44298fc1c14 0ecddf15e1aff85f 87e19a08e098b552 cef926a08fa3a0c2 e3b0c44298fc1c14 b66542635d2ad70d a7ce1e3aae4919bb 273301704d21cdc2 1abe3d51385492d8 339cf32e277b5afc",
+        "load": "always",
+        "path": "AGENTS.md",
+        "raw_sha256": "0884ef40877b4f26da259b2988fb58512d986ec4b56abc7e0fe87f70bba90407",
+        "seen_sha256": "0884ef40877b4f26da259b2988fb58512d986ec4b56abc7e0fe87f70bba90407",
+        "via": []
+      }
+    ],
+    "generic": [
+      {
+        "conditions": [],
+        "lines": "1fcab0188063dfb7 e3b0c44298fc1c14 0ecddf15e1aff85f 87e19a08e098b552 cef926a08fa3a0c2 e3b0c44298fc1c14 b66542635d2ad70d a7ce1e3aae4919bb 273301704d21cdc2 1abe3d51385492d8 339cf32e277b5afc",
+        "load": "always",
+        "path": "AGENTS.md",
+        "raw_sha256": "0884ef40877b4f26da259b2988fb58512d986ec4b56abc7e0fe87f70bba90407",
+        "seen_sha256": "0884ef40877b4f26da259b2988fb58512d986ec4b56abc7e0fe87f70bba90407",
+        "via": []
+      }
+    ]
+  },
+  "configs": [
+    {
+      "lines": "021fb596db81e6d0 c999475ead1e4c92 81ac78bef27c77dc ebf91edc03a4ff41 0913891caba82bcc bd83185d5ac8e064 ff8cb698396e13fe f4ddc3fd6393280d ee6a077bf52e923f 9556700e74a6bb3a 737db166c79ae98e d10b36aa74a59bcf",
+      "path": ".claude/settings.json",
+      "sha256": "ca025b8de51a71c9853f3e78b906643b77ead79cfe5b100af2b22cbd2b3444d0"
+    },
+    {
+      "lines": "021fb596db81e6d0 65c9242292a2c65b 579b86af05cd401b 9b56eb359aec3152 4df131190e475bc8 c30cf5d360802500 30b97fd3276aa82a f0af6bd36fad33ef 282b777ffb7c5ca5 54999b59be243aff f61f5bbc379fd349 58636dd916833390 cf0ac6a53fa767fc 9b56eb359aec3152 4df131190e475bc8 c30cf5d360802500 3cf4826446e8d056 9fafe0f5fea4ba7c 29822f05cc29320a 58636dd916833390 4a55ff0e98db5040 4be0c26fa90e5dc3 28d86778615f6af4 737db166c79ae98e d10b36aa74a59bcf",
+      "path": ".mcp.json",
+      "sha256": "dd0d43b1120e9b3f0b86c767920bf393950afbbd17e5b637010111941329cfaf"
+    }
+  ],
+  "generator": "ghostrules 0.4.1",
+  "lock_version": 1
+}
+
+=====
+exit=0
+✔ lock is up to date (2 files in the contexts)
+
+=====
+exit=0
+✅ **`lock` is up to date** (2 files in the contexts).
+
+=====
+exit=0
+{
+  "lockfile": "lock",
+  "up_to_date": true,
+  "changes": [],
+  "not_visible_to_the_agent": [],
+  "configs": [],
+  "notes": []
+}
+
+=====
+exit=1
+ghostrules lock --check  lock
+
+✎ changed  AGENTS.md
+  seen by copilot-cli, cursor, generic                                                                                  
+    − 11 lines removed (was lines 1-11 of the locked text)                                                              
+    +   1 │ changed                                                                                                     
+
+1 change to what your agents read. If they are intended, record them with ghostrules lock --update.
+
+=====
+exit=1
+{
+  "lockfile": "lock",
+  "up_to_date": false,
+  "changes": [
+    {
+      "kind": "changed",
+      "path": "AGENTS.md",
+      "via": [],
+      "agents": [
+        "copilot-cli",
+        "cursor",
+        "generic"
+      ],
+      "details": [],
+      "added_lines": [
+        {
+          "line": 1,
+          "text": "changed"
+        }
+      ],
+      "removed_lines": 11
+    }
+  ],
+  "not_visible_to_the_agent": [],
+  "configs": [],
+  "notes": []
+}

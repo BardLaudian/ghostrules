@@ -165,6 +165,10 @@ class Repo:
             if absolute:
                 done = []
             pending = [*parts, *pending]
+        return self._final(done, hops, written)
+
+    def _final(self, done: list[str], hops: list[str], written: str) -> Resolution:
+        """The kind of what a fully resolved path points at (file, dir or broken)."""
         final = "/".join(done)
         try:
             mode = os.lstat(self.root / final if final else self.root).st_mode

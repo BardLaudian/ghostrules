@@ -94,7 +94,7 @@ def poisoned_files() -> dict[str, str]:
             "GR011/GR013/GR014 on the decoded text |\n"
             "| `CLAUDE.md` | an override instruction in an HTML comment | GR005, GR010 |\n"
             '| `.cursorrules` | bits in zero-width characters; a bidi "Trojan Source" line | '
-            "GR003, GR002 |\n"
+            "GR003, GR002; a (fake) token written in prose, GR017 |\n"
             "| `.github/copilot-instructions.md` | variation-selector bytes, a base64 payload, "
             "homoglyphs, a safety bypass | GR004, GR015, GR006, GR016 |\n"
             "| `.mcp.json` | a (fake) token, unpinned package, `http://`, broad filesystem, "
@@ -130,6 +130,7 @@ def poisoned_files() -> dict[str, str]:
                 "# Cursor rules",
                 "Prefer small, focused commits." + zero_width(ZERO_WIDTH_PAYLOAD),
                 "Keep the public API stable.",
+                f"Deploy with the token {FAKE_GITHUB_TOKEN} for every push.",
                 f'Access check: if role != "user{RLO} {LRI}// admin only{PDI} {LRI}": allow()',
                 "",
             ]

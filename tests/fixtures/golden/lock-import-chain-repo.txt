@@ -1,0 +1,282 @@
+exit=0
+wrote lock: 9 file(s) in the contexts of 4 agent(s)
+
+=====
+{
+  "agents": {
+    "claude-code": [
+      {
+        "conditions": [
+          "src/api/**"
+        ],
+        "lines": "eec0c827665f565e e3b0c44298fc1c14 da63c7336c244326",
+        "load": "conditional",
+        "path": ".claude/rules/api.md",
+        "raw_sha256": "1ad71d3c3357b210b1ccd92d3c2b44dfb53af8ac32e7f8c27b55330cb3996c6f",
+        "seen_sha256": "9f02ea9ef7b748035bb763eea60c352a2a42a943947c3d8f9bea11b707468c02",
+        "via": []
+      },
+      {
+        "conditions": [],
+        "lines": null,
+        "load": "always",
+        "path": ".env",
+        "raw_sha256": null,
+        "seen_sha256": null,
+        "via": [
+          "CLAUDE.md",
+          "docs/setup.md"
+        ]
+      },
+      {
+        "conditions": [],
+        "lines": null,
+        "load": "always",
+        "path": "/opt/acme/tooling.md",
+        "raw_sha256": null,
+        "seen_sha256": null,
+        "via": [
+          "CLAUDE.md",
+          "docs/setup.md"
+        ]
+      },
+      {
+        "conditions": [],
+        "lines": null,
+        "load": "blocked",
+        "path": "AGENTS.md",
+        "raw_sha256": null,
+        "seen_sha256": null,
+        "via": []
+      },
+      {
+        "conditions": [],
+        "lines": "c8fbe06a29f72f70 e3b0c44298fc1c14 41a59155d7e928c3 e3b0c44298fc1c14 4a5b230b3edd92c3 619778d6803924d8 24ec837d61b594ec",
+        "load": "always",
+        "path": "CLAUDE.md",
+        "raw_sha256": "76d45b548d97d4ae76b6b02a67c58d775ab2e3986d205e301ff6b0c524f22eeb",
+        "seen_sha256": "76d45b548d97d4ae76b6b02a67c58d775ab2e3986d205e301ff6b0c524f22eeb",
+        "via": []
+      },
+      {
+        "conditions": [],
+        "lines": "339ce8d68001a637 e3b0c44298fc1c14 2c448a1d35d09c82 db94c4d1ae569a39",
+        "load": "always",
+        "path": "docs/setup.md",
+        "raw_sha256": "efb8bb3bb90b2d663af924236b15ce74812dbec7b625caacc869ddc965e19f99",
+        "seen_sha256": "efb8bb3bb90b2d663af924236b15ce74812dbec7b625caacc869ddc965e19f99",
+        "via": [
+          "CLAUDE.md"
+        ]
+      },
+      {
+        "conditions": [],
+        "lines": "7295def03b2c2c72 e3b0c44298fc1c14 f55d9b123df58477 876f4ae8561f4db9",
+        "load": "always",
+        "path": "docs/style.md",
+        "raw_sha256": "470628dd47b31a1fa14a0b7966a06833f909aae98614650977b98e0f2fc7b00b",
+        "seen_sha256": "470628dd47b31a1fa14a0b7966a06833f909aae98614650977b98e0f2fc7b00b",
+        "via": [
+          "CLAUDE.md"
+        ]
+      },
+      {
+        "conditions": [],
+        "lines": "a4e6fa1bcfb0576b e3b0c44298fc1c14 a9b9694d4b6e81b4 180c0ab8ccbb4d15",
+        "load": "always",
+        "path": "shared/team-rules.md",
+        "raw_sha256": "ec1e67795c38045cb301ed74db1884dfd69603f13358f4262cf09cf44a3ee91d",
+        "seen_sha256": "ec1e67795c38045cb301ed74db1884dfd69603f13358f4262cf09cf44a3ee91d",
+        "via": [
+          "CLAUDE.md",
+          "docs/style.md"
+        ]
+      },
+      {
+        "conditions": [
+          "src/legacy/"
+        ],
+        "lines": "2acf947a2d10f46b e3b0c44298fc1c14 339a4ddf3a3cab48",
+        "load": "on_demand",
+        "path": "src/legacy/CLAUDE.md",
+        "raw_sha256": "fc027dcda6e297d600ca2b1cdadf51d6683bd25e17bd88ce5ffa35a5eb66882d",
+        "seen_sha256": "fc027dcda6e297d600ca2b1cdadf51d6683bd25e17bd88ce5ffa35a5eb66882d",
+        "via": []
+      }
+    ],
+    "copilot-cli": [
+      {
+        "conditions": [],
+        "lines": null,
+        "load": "always",
+        "path": ".env",
+        "raw_sha256": null,
+        "seen_sha256": null,
+        "via": [
+          "CLAUDE.md",
+          "docs/setup.md"
+        ]
+      },
+      {
+        "conditions": [],
+        "lines": null,
+        "load": "blocked",
+        "path": "/opt/acme/tooling.md",
+        "raw_sha256": null,
+        "seen_sha256": null,
+        "via": [
+          "CLAUDE.md",
+          "docs/setup.md"
+        ]
+      },
+      {
+        "conditions": [],
+        "lines": "cbaf20e23005cfcc e3b0c44298fc1c14 de70bc16edc11285",
+        "load": "always",
+        "path": "AGENTS.md",
+        "raw_sha256": "574b7c47f0a029b7b5c5d31cafefa125abd1d2a7b79f102349de85b42a7c3109",
+        "seen_sha256": "574b7c47f0a029b7b5c5d31cafefa125abd1d2a7b79f102349de85b42a7c3109",
+        "via": []
+      },
+      {
+        "conditions": [],
+        "lines": "c8fbe06a29f72f70 e3b0c44298fc1c14 41a59155d7e928c3 e3b0c44298fc1c14 4a5b230b3edd92c3 619778d6803924d8 24ec837d61b594ec",
+        "load": "always",
+        "path": "CLAUDE.md",
+        "raw_sha256": "76d45b548d97d4ae76b6b02a67c58d775ab2e3986d205e301ff6b0c524f22eeb",
+        "seen_sha256": "76d45b548d97d4ae76b6b02a67c58d775ab2e3986d205e301ff6b0c524f22eeb",
+        "via": []
+      },
+      {
+        "conditions": [],
+        "lines": "339ce8d68001a637 e3b0c44298fc1c14 2c448a1d35d09c82 db94c4d1ae569a39",
+        "load": "always",
+        "path": "docs/setup.md",
+        "raw_sha256": "efb8bb3bb90b2d663af924236b15ce74812dbec7b625caacc869ddc965e19f99",
+        "seen_sha256": "efb8bb3bb90b2d663af924236b15ce74812dbec7b625caacc869ddc965e19f99",
+        "via": [
+          "CLAUDE.md"
+        ]
+      },
+      {
+        "conditions": [],
+        "lines": "7295def03b2c2c72 e3b0c44298fc1c14 f55d9b123df58477 876f4ae8561f4db9",
+        "load": "always",
+        "path": "docs/style.md",
+        "raw_sha256": "470628dd47b31a1fa14a0b7966a06833f909aae98614650977b98e0f2fc7b00b",
+        "seen_sha256": "470628dd47b31a1fa14a0b7966a06833f909aae98614650977b98e0f2fc7b00b",
+        "via": [
+          "CLAUDE.md"
+        ]
+      },
+      {
+        "conditions": [],
+        "lines": "a4e6fa1bcfb0576b e3b0c44298fc1c14 a9b9694d4b6e81b4 180c0ab8ccbb4d15",
+        "load": "always",
+        "path": "shared/team-rules.md",
+        "raw_sha256": "ec1e67795c38045cb301ed74db1884dfd69603f13358f4262cf09cf44a3ee91d",
+        "seen_sha256": "ec1e67795c38045cb301ed74db1884dfd69603f13358f4262cf09cf44a3ee91d",
+        "via": [
+          "CLAUDE.md",
+          "docs/style.md"
+        ]
+      },
+      {
+        "conditions": [
+          "src/legacy/"
+        ],
+        "lines": "2acf947a2d10f46b e3b0c44298fc1c14 339a4ddf3a3cab48",
+        "load": "on_demand",
+        "path": "src/legacy/CLAUDE.md",
+        "raw_sha256": "fc027dcda6e297d600ca2b1cdadf51d6683bd25e17bd88ce5ffa35a5eb66882d",
+        "seen_sha256": "fc027dcda6e297d600ca2b1cdadf51d6683bd25e17bd88ce5ffa35a5eb66882d",
+        "via": []
+      }
+    ],
+    "cursor": [
+      {
+        "conditions": [],
+        "lines": "cbaf20e23005cfcc e3b0c44298fc1c14 de70bc16edc11285",
+        "load": "always",
+        "path": "AGENTS.md",
+        "raw_sha256": "574b7c47f0a029b7b5c5d31cafefa125abd1d2a7b79f102349de85b42a7c3109",
+        "seen_sha256": "574b7c47f0a029b7b5c5d31cafefa125abd1d2a7b79f102349de85b42a7c3109",
+        "via": []
+      }
+    ],
+    "generic": [
+      {
+        "conditions": [],
+        "lines": "cbaf20e23005cfcc e3b0c44298fc1c14 de70bc16edc11285",
+        "load": "always",
+        "path": "AGENTS.md",
+        "raw_sha256": "574b7c47f0a029b7b5c5d31cafefa125abd1d2a7b79f102349de85b42a7c3109",
+        "seen_sha256": "574b7c47f0a029b7b5c5d31cafefa125abd1d2a7b79f102349de85b42a7c3109",
+        "via": []
+      }
+    ]
+  },
+  "configs": [],
+  "generator": "ghostrules 0.4.1",
+  "lock_version": 1
+}
+
+=====
+exit=0
+✔ lock is up to date (9 files in the contexts)
+
+=====
+exit=0
+✅ **`lock` is up to date** (9 files in the contexts).
+
+=====
+exit=0
+{
+  "lockfile": "lock",
+  "up_to_date": true,
+  "changes": [],
+  "not_visible_to_the_agent": [],
+  "configs": [],
+  "notes": []
+}
+
+=====
+exit=1
+ghostrules lock --check  lock
+
+✎ changed  AGENTS.md
+  seen by copilot-cli, cursor, generic                                                                                  
+    − 3 lines removed (was lines 1-3 of the locked text)                                                                
+    +   1 │ changed                                                                                                     
+
+1 change to what your agents read. If they are intended, record them with ghostrules lock --update.
+
+=====
+exit=1
+{
+  "lockfile": "lock",
+  "up_to_date": false,
+  "changes": [
+    {
+      "kind": "changed",
+      "path": "AGENTS.md",
+      "via": [],
+      "agents": [
+        "copilot-cli",
+        "cursor",
+        "generic"
+      ],
+      "details": [],
+      "added_lines": [
+        {
+          "line": 1,
+          "text": "changed"
+        }
+      ],
+      "removed_lines": 3
+    }
+  ],
+  "not_visible_to_the_agent": [],
+  "configs": [],
+  "notes": []
+}

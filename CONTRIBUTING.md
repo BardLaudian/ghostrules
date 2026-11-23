@@ -115,6 +115,22 @@ model is one module, one section of `docs/AGENT_MODELS.md` and its tests:
 - Type hints everywhere, small functions, docstrings on public functions, English README.
 - Conventional commits (`feat:`, `fix:`, `test:`, `docs:`...).
 
+## How this project is built (AI assistance)
+
+ghostrules is maintained by one person who works with an AI coding assistant for code, tests and
+documentation. The maintainer reads and decides what is merged; the assistant does not publish,
+push or release.
+
+- **Commits carry no AI trailer from now on.** Use of an assistant is declared here, for the whole
+  project, instead of commit by commit. The 80 commits made before this decision (up to
+  2026-11-23) keep their `Co-Authored-By` trailer: history is not rewritten, because that would
+  change every commit hash and break the release tags and their attestations.
+- **A commit without a trailer does not mean no AI was involved.** Read it with this section.
+- **Anything no person has reviewed is labelled as such**: the benchmark's labels (assistant or
+  human, reported separately in `bench/RESULTS.md`), generated tables and README numbers.
+- **Contributors** may use an assistant too. You remain responsible for what you submit: tests
+  pass, fixtures are defanged, and nothing you add runs, downloads or evaluates scanned content.
+
 ## Pull request checklist
 
 - [ ] `pytest -q`, `ruff check .`, `ruff format --check .` and `mypy src` pass
