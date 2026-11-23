@@ -228,7 +228,8 @@ def scan(
 ) -> None:
     """Scan agent instruction and configuration files for hidden or dangerous content.
 
-    Exit codes: 0 clean (or below --fail-on), 1 findings at or above --fail-on, 2 error.
+    Exit codes: 0 clean (or below --fail-on), 1 findings at or above --fail-on, 2 usage or
+    configuration error, 3 internal failure.
     """
     _utf8_streams()
     targets = paths or [Path(".")]
