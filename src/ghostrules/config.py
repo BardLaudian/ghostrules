@@ -10,6 +10,7 @@ from ghostrules._compat import tomllib
 from ghostrules.models import Severity
 
 CONFIG_FILENAME = ".ghostrules.toml"
+DEFAULT_MAX_FILE_SIZE = 1024 * 1024  # bytes; 0 means no limit
 _LIST_KEYS = ("disable", "exclude", "extra_targets", "allow_domains")
 _KNOWN_KEYS = {
     *_LIST_KEYS,
@@ -20,6 +21,7 @@ _KNOWN_KEYS = {
     "agents",
     "lockfile",
     "profile",
+    "max_file_size",
 }
 # Every modelled agent, and the ones used when the config does not say. A new model is opt-in:
 # adding it to the default would change every existing lockfile.
@@ -46,6 +48,7 @@ class Config:
     agents: tuple[str, ...] = DEFAULT_AGENTS
     lockfile: str = ".ghostrules.lock"
     profile: str = "default"
+    max_file_size: int = DEFAULT_MAX_FILE_SIZE
     first_party: tuple[Any, ...] = ()  # set by the CLI from the repository, not from TOML
     source: str | None = None
 
@@ -90,8 +93,11 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
     if not isinstance(lockfile, str) or not lockfile.strip():
         raise ConfigError("'lockfile' must be a non-empty string")
     profile = table.get("profile", "default")
-    if profile not in ("default", "strict"):
-        raise ConfigError('\'profile\' must be "default" or "strict"')
+    if profile not in ("default", "strict", "lenient"):
+        raise ConfigError('\'profile\' must be "default", "strict" or "lenient"')
+    max_size = table.get("max_file_size", DEFAULT_MAX_FILE_SIZE)
+    if isinstance(max_size, bool) or not isinstance(max_size, int) or max_size < 0:
+        raise ConfigError("'max_file_size' must be a number of bytes (0 for no limit)")
     return Config(
         disable=frozenset(rule.strip().upper() for rule in _string_list(table, "disable")),
         fail_on=fail_on,
@@ -104,6 +110,7 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
         agents=agents,
         lockfile=lockfile.strip(),
         profile=profile,
+        max_file_size=max_size,
         source=source,
     )
 
@@ -111,7 +118,8 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
 def _read_toml(path: Path) -> dict[str, Any]:
     try:
         with path.open("rb") as handle:
-            return tomllib.load(handle)
+            data: dict[str, Any] = tomllib.load(handle)
+            return data
     except OSError as exc:
         raise ConfigError(f"cannot read {path}: {exc.strerror or exc}") from None
     except tomllib.TOMLDecodeError as exc:

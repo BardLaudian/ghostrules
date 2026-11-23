@@ -123,8 +123,8 @@ runs:
           *) fail "inline-suppressions must be base, off or all (got '$INPUT_INLINE_SUPPRESSIONS')" ;;
         esac
         case "$INPUT_PROFILE" in
-          default | strict) ;;
-          *) fail "profile must be default or strict (got '$INPUT_PROFILE')" ;;
+          default | strict | lenient) ;;
+          *) fail "profile must be default, strict or lenient (got '$INPUT_PROFILE')" ;;
         esac
         is_pr=false
         case "$EVENT_NAME" in pull_request | pull_request_target) is_pr=true ;; esac
@@ -180,6 +180,7 @@ runs:
         # after the report has been uploaded and summarised.
         args=("$INPUT_PATH" --fail-on "$INPUT_FAIL_ON")
         if [ "$INPUT_PROFILE" = "strict" ]; then args+=(--strict); fi
+        if [ "$INPUT_PROFILE" = "lenient" ]; then args+=(--lenient); fi
         trusted="${RUNNER_TEMP:-/tmp}/ghostrules-trusted.args"
         # bash 3.2 (macOS) does not stop on a failed redirect: check the file, or nothing is
         # known about the settings and the scan must not run with the repository's own.

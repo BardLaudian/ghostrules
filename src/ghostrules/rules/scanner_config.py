@@ -44,7 +44,7 @@ def _table(text: str | None, *, tool: bool) -> dict[str, Any] | None:
     if text is None:
         return {}
     try:
-        data = tomllib.loads(text)
+        data: dict[str, Any] = tomllib.loads(text)
     except tomllib.TOMLDecodeError:
         return None
     if tool:

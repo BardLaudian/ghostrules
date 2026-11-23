@@ -197,6 +197,9 @@ def classify(target: ScanTarget, span: tuple[int, int]) -> TextKind:
     return "descriptive"
 
 
+OBFUSCATION_NOTE = " (text obfuscated with invisible or look-alike characters)"
+
+
 def severity_for(kind: TextKind, normal: Severity) -> Severity:
     """``normal`` for a directive, at most medium for a description, at most low for an example."""
     if kind == "directive":

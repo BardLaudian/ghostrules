@@ -6,7 +6,7 @@ Two measurements, both reported with their misses and without tuning on them (W6
 
 ## Recall: the attack set (`attacks/`)
 
-<!-- bench:cases:start -->101 cases (28 by the author, 4 from the independent review, 69 from public sources), each a technique written from a public description<!-- bench:cases:end --> (sources in `attacks/sources.toml`:
+<!-- bench:cases:start -->110 cases (37 by the author, 4 from the independent review, 69 from public sources), each a technique written from a public description<!-- bench:cases:end --> (sources in `attacks/sources.toml`:
 Rehberger and Butler on Unicode smuggling, Trojan Source, Pillar's Rules File Backdoor, Invariant
 Labs on MCP tool poisoning, Check Point's Claude Code CVEs, OWASP's malicious-skills entry), with
 the rule that should catch it and whether it does today (`status = "detected"` or `"known-miss"`).
@@ -37,7 +37,13 @@ right pattern in a harmless place is still something someone has to read.
 
 - **The labels are provisional.** They were given by the assistant that ran the benchmark, from the
   finding and the lines around it, and no human has reviewed them. Borderline calls are noted in
-  [RESULTS.md](RESULTS.md).
+  [RESULTS.md](RESULTS.md). Each label records who gave it (`labeler` in `heldout-labels.toml`).
+  `python bench/run.py review-sheet` writes `labels-review.csv` (repository, rule, `file:line`,
+  three lines of context, an empty `human_label`; the assistant's label is left out so the review
+  is blind). A person fills `human_label` with `tp`, `benign-context` or `fp`; those labels win over
+  the assistant's and the report then gives the human-reviewed and the assistant-only figures
+  separately, never as one number. **Pending `[HUMANO]`: the column is empty today.**
+- **Every percentage carries its sample size and a 95 % Wilson interval** (`lib.share`).
 - **The set is small.** <!-- bench:heldout:start -->100 repositories gave 21 findings<!-- bench:heldout:end -->: a per-rule percentage on 1 to 6 findings
   is an anecdote, not an estimate.
 - **Never tune on it.** A rule changed after reading these findings would no longer be measured by

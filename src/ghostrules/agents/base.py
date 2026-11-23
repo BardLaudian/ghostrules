@@ -354,27 +354,9 @@ class Builder:
         label = repo.label(rel)
         if label in self._by_path:
             return self._by_path[label], "duplicate"
-        kind = repo.kind(rel)
-        if kind is None:
-            return None, "missing"
-        if kind == "dir":
-            return None, "directory"
-        alias_of = ""
-        real = rel
-        if kind == "symlink":
-            res = repo.resolve(rel)
-            if res.status == "dir":
-                return None, "directory"
-            if res.status != "file":
-                return self._blocked_link(repo, rel, res, reason, via), "symlink"
-            real = alias_of = res.target
-            earlier = self._by_real.get(repo.label(real))
-            if earlier is not None:  # the file is already in the context under another name
-                return self._by_path[earlier], "duplicate"
-        elif kind == "other":
-            return self.add_blocked(repo, rel, reason, "not a regular file: skipped", via=via), (
-                "symlink"
-            )
+        real, alias_of, early = self._locate(repo, rel, reason, via)
+        if early is not None:
+            return early
         size_limit = self.policy.max_bytes
         if size_limit is not None and repo.size(real) > size_limit:
             entry = self.add_blocked(
@@ -391,7 +373,69 @@ class Builder:
             return entry, "blocked"
         raw_text = data.decode("utf-8", errors="surrogateescape").replace("\r\n", "\n")
         rendered = render(raw_text)
-        notes = [n for n in (note, rendered.note) if n]
+        entry = self._append(
+            self._build_entry(
+                label,
+                load,
+                reason,
+                rendered,
+                data,
+                alias_of,
+                via,
+                condition,
+                matches,
+                [n for n in (note, rendered.note) if n],
+                unverified,
+            )  # fmt: skip
+        )
+        self._by_real.setdefault(repo.label(real), label)
+        if follow and (via or self.policy.imports_from(rel)):
+            self._expand(repo, entry, raw_text)
+        return entry, "loaded"
+
+    def _locate(
+        self, repo: Repo, rel: str, reason: str, via: tuple[str, ...]
+    ) -> tuple[str, str, tuple[ContextEntry | None, ImportStatus] | None]:
+        """Where the bytes of ``rel`` live: ``(real path, alias_of, early result)``.
+
+        The early result is set when the file cannot be added (missing, a directory, a blocked or
+        duplicate link, not a regular file); ``alias_of`` is set for a symlink to a file.
+        """
+        kind = repo.kind(rel)
+        if kind is None:
+            return rel, "", (None, "missing")
+        if kind == "dir":
+            return rel, "", (None, "directory")
+        if kind == "other":
+            entry = self.add_blocked(repo, rel, reason, "not a regular file: skipped", via=via)
+            return rel, "", (entry, "symlink")
+        if kind != "symlink":
+            return rel, "", None
+        res = repo.resolve(rel)
+        if res.status == "dir":
+            return rel, "", (None, "directory")
+        if res.status != "file":
+            return rel, "", (self._blocked_link(repo, rel, res, reason, via), "symlink")
+        earlier = self._by_real.get(repo.label(res.target))
+        if earlier is not None:  # the file is already in the context under another name
+            return res.target, res.target, (self._by_path[earlier], "duplicate")
+        return res.target, res.target, None
+
+    def _build_entry(
+        self,
+        label: str,
+        load: Load,
+        reason: str,
+        rendered: Rendered,
+        data: bytes,
+        alias_of: str,
+        via: tuple[str, ...],
+        condition: str,
+        matches: bool | None,
+        notes: list[str],
+        unverified: bool,
+    ) -> ContextEntry:
+        """The context entry for a file that was read and rendered."""
         if (
             self.policy.large_chars
             and load in ("on_demand", "conditional")
@@ -401,33 +445,27 @@ class Builder:
                 f"{len(rendered.text)} characters: may be truncated when loaded on demand "
                 f"(limit {self.policy.large_chars} on a 200K window)"
             )
-        entry = self._append(
-            ContextEntry(
-                label,
-                load,
-                reason,
-                self.agent,
-                via=via,
-                transforms=rendered.transforms,
-                text=rendered.text,
-                raw_sha256=_sha(data.replace(b"\r\n", b"\n")),
-                seen_sha256=_sha(rendered.text.encode("utf-8", errors="surrogateescape")),
-                note="; ".join(notes),
-                unverified=(
-                    unverified or rendered.unverified or (self.policy.all_unverified and bool(via))
-                ),
-                condition=condition,
-                matches=matches,
-                line_map=rendered.line_map,
-                removed=rendered.removed,
-                symlink_target=alias_of,
-                alias_of=alias_of,
-            )
+        return ContextEntry(
+            label,
+            load,
+            reason,
+            self.agent,
+            via=via,
+            transforms=rendered.transforms,
+            text=rendered.text,
+            raw_sha256=_sha(data.replace(b"\r\n", b"\n")),
+            seen_sha256=_sha(rendered.text.encode("utf-8", errors="surrogateescape")),
+            note="; ".join(notes),
+            unverified=(
+                unverified or rendered.unverified or (self.policy.all_unverified and bool(via))
+            ),
+            condition=condition,
+            matches=matches,
+            line_map=rendered.line_map,
+            removed=rendered.removed,
+            symlink_target=alias_of,
+            alias_of=alias_of,
         )
-        self._by_real.setdefault(repo.label(real), label)
-        if follow and (via or self.policy.imports_from(rel)):
-            self._expand(repo, entry, raw_text)
-        return entry, "loaded"
 
     def _blocked_link(
         self, repo: Repo, rel: str, res: Resolution, reason: str, via: tuple[str, ...]
@@ -539,18 +577,8 @@ class Builder:
         if is_sensitive_path(rel) and repo.kind(rel) is not None:
             self._sensitive(parent, imp, label, via, slot)
             return
-        notes: list[str] = []
         uncertain = hop in self.policy.uncertain_hops
-        if uncertain:
-            notes.append(
-                f"hop {hop}: loaded only if the {self.policy.max_hops}-hop limit counts from 0"
-            )
-        if imp.in_comment:
-            notes.append("import inside an HTML comment: unverified whether it is expanded")
-        if not imp.certain:
-            notes.append("loose '@' (after punctuation): unverified whether it is an import")
-        if self._is_external(repo, rel):
-            notes.append("external import: requires approval (outside the working directory)")
+        notes = self._import_notes(repo, rel, imp, hop)
         entry, status = self.add_file(
             repo,
             rel,
@@ -575,6 +603,21 @@ class Builder:
             hint=hint,
             intended=self._intended(repo, parent_rel, imp),
         )
+
+    def _import_notes(self, repo: Repo, rel: str, imp: Import, hop: int) -> list[str]:
+        """Why an import is only partly trusted (depth limit, comment, loose ``@``, external)."""
+        notes: list[str] = []
+        if hop in self.policy.uncertain_hops:
+            notes.append(
+                f"hop {hop}: loaded only if the {self.policy.max_hops}-hop limit counts from 0"
+            )
+        if imp.in_comment:
+            notes.append("import inside an HTML comment: unverified whether it is expanded")
+        if not imp.certain:
+            notes.append("loose '@' (after punctuation): unverified whether it is an import")
+        if self._is_external(repo, rel):
+            notes.append("external import: requires approval (outside the working directory)")
+        return notes
 
     def _sensitive(
         self, parent: ContextEntry, imp: Import, label: str, via: tuple[str, ...], slot: int

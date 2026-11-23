@@ -14,6 +14,7 @@ anything it finds, never makes network requests, and never phones home.
 - `docs/design/SPEC.md` — features, CLI, file targets, output formats, config. **The contract.**
 - `docs/RULES.md` — every detection rule: ID, severity, logic, true/false positive examples.
 - `docs/design/PLAN.md` — build order, phase by phase, with acceptance criteria.
+- `docs/improvement/PLAN.md` — improvement plan (v0.4.1 → v1.0): working rules, findings H1–H14, phase report format.
 
 If something in the code disagrees with these docs, the docs win unless the user says otherwise.
 If a doc is ambiguous, pick the simplest reasonable option and note it in `docs/DECISIONS.md`.

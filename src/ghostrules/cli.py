@@ -7,7 +7,7 @@ import io
 import sys
 from dataclasses import replace
 from pathlib import Path
-from typing import Annotated, Any, NoReturn, Optional
+from typing import Annotated, Any, NamedTuple, NoReturn, Optional
 
 import typer
 from rich.console import Console, Group
@@ -189,6 +189,13 @@ def scan(
             help="Report plain visible prose at the rule's own severity (the 0.3 behaviour).",
         ),
     ] = False,
+    lenient: Annotated[
+        bool,
+        typer.Option(
+            "--lenient",
+            help="Report all plain visible prose at low, including a curl | sh instruction (0.4).",
+        ),
+    ] = False,
     baseline_file: Annotated[
         Optional[Path],  # noqa: UP045
         typer.Option(
@@ -207,6 +214,15 @@ def scan(
             help="Read the baseline from this git ref, not the working tree.",
         ),
     ] = None,
+    max_file_size: Annotated[
+        Optional[int],  # noqa: UP045
+        typer.Option(
+            "--max-file-size",
+            min=0,
+            help="Skip files larger than this many bytes, with a warning (0 = no limit; "
+            "default 1048576).",
+        ),
+    ] = None,
     no_color: Annotated[bool, typer.Option("--no-color", help="Plain output, no colours.")] = False,
 ) -> None:
     """Scan agent instruction and configuration files for hidden or dangerous content.
@@ -216,69 +232,106 @@ def scan(
     _utf8_streams()
     targets = paths or [Path(".")]
     base = targets[0] if targets[0].is_dir() else targets[0].parent
-    chosen = [n for n, v in (("--config", config), ("--trusted-config", trusted_config),
-                             ("--config-from-ref", config_from_ref)) if v is not None]  # fmt: skip
-    if len(chosen) > 1:
-        _fail(f"{' and '.join(chosen)} cannot be used together: they all say where the config is")
-    config_reader = suppression_reader = baseline_reader = None
-    if any(ref is not None for ref in (config_from_ref, suppressions_from_ref, baseline_from_ref)):
-        if len(targets) != 1:
-            _fail("the options that read a git ref take exactly one path to scan")
-        try:
-            if config_from_ref is not None:
-                config_reader = RefReader(base, config_from_ref)
-            if suppressions_from_ref is not None:
-                suppression_reader = RefReader(base, suppressions_from_ref)
-            if baseline_from_ref is not None:
-                baseline_reader = RefReader(base, baseline_from_ref)
-        except GitRefError as exc:
-            _fail(str(exc))
-    try:
-        if config_reader is not None:
-            cfg = config_at_ref(config_reader)
-        elif trusted_config is not None:
-            cfg = replace(load_config(base, trusted_config), source=f"trusted: {trusted_config}")
-        else:
-            cfg = load_config(base, config)
-    except (ConfigError, GitRefError) as exc:
-        _fail(str(exc))
+    readers = _ref_readers(
+        base, targets, config, trusted_config, config_from_ref, suppressions_from_ref,
+        baseline_from_ref,
+    )  # fmt: skip
+    cfg = _scan_config(base, readers, config, trusted_config)
     cfg = _apply_overrides(cfg, fail_on, min_severity, disable)
     if follow_imports is not None:
         cfg = replace(cfg, follow_imports=follow_imports)
+    if max_file_size is not None:
+        cfg = replace(cfg, max_file_size=max_file_size)
     if strict:
         cfg = replace(cfg, profile="strict")
-
-    cfg = replace(
-        cfg, first_party=_first_party(base, config_reader or suppression_reader or baseline_reader)
-    )
-
-    policy = None
-    if no_inline_suppressions:
-        policy = SuppressionPolicy("off")
-    elif suppression_reader is not None:
-        policy = SuppressionPolicy("base", reviewed_lookup(suppression_reader))
-
-    # GR030 compares with whichever ref was given; with two refs each part uses its own.
-    anchor = config_reader or suppression_reader or baseline_reader
-    change_base = None
-    if anchor is not None:
-        ignores = suppression_reader or anchor
-        change_base = ChangeBase(anchor.read, ignores.read, anchor.ref, ignores.ref)
-
+    elif lenient:
+        cfg = replace(cfg, profile="lenient")
+    anchor = readers.config or readers.suppressions or readers.baseline
+    cfg = replace(cfg, first_party=_first_party(base, anchor))
     result = scan_paths(
         targets,
         cfg,
         all_files=all_files,
         include_home=home,
-        suppressions=policy,
-        change_base=change_base,
+        suppressions=_suppression_policy(readers, no_inline_suppressions),
+        change_base=_change_base(readers),
     )
-    known = _known_findings(base, baseline_file, baseline_reader, no_baseline)
+    known = _known_findings(base, baseline_file, readers.baseline, no_baseline)
     if known is not None:
         result.findings, result.baselined = baseline_mod.apply(result.findings, known)
-    label = ", ".join(str(p) for p in targets)
-    _emit(result, format_, output, no_color, label)
+    _emit(result, format_, output, no_color, ", ".join(str(p) for p in targets))
+    _exit_for(result, cfg)
 
+
+class _RefReaders(NamedTuple):
+    """Readers of the git refs that say where the config, suppressions and baseline come from."""
+
+    config: RefReader | None
+    suppressions: RefReader | None
+    baseline: RefReader | None
+
+
+def _ref_readers(
+    base: Path,
+    targets: list[Path],
+    config: Path | None,
+    trusted_config: Path | None,
+    config_from_ref: str | None,
+    suppressions_from_ref: str | None,
+    baseline_from_ref: str | None,
+) -> _RefReaders:
+    """Validate the config-source options and open a reader for each git ref given."""
+    chosen = [n for n, v in (("--config", config), ("--trusted-config", trusted_config),
+                             ("--config-from-ref", config_from_ref)) if v is not None]  # fmt: skip
+    if len(chosen) > 1:
+        _fail(f"{' and '.join(chosen)} cannot be used together: they all say where the config is")
+    refs = (config_from_ref, suppressions_from_ref, baseline_from_ref)
+    if all(ref is None for ref in refs):
+        return _RefReaders(None, None, None)
+    if len(targets) != 1:
+        _fail("the options that read a git ref take exactly one path to scan")
+    try:
+        config_reader, suppression_reader, baseline_reader = (
+            RefReader(base, ref) if ref is not None else None for ref in refs
+        )
+    except GitRefError as exc:
+        _fail(str(exc))
+    return _RefReaders(config_reader, suppression_reader, baseline_reader)
+
+
+def _scan_config(
+    base: Path, readers: _RefReaders, config: Path | None, trusted_config: Path | None
+) -> Config:
+    """The configuration the scan starts from, before command-line overrides."""
+    try:
+        if readers.config is not None:
+            return config_at_ref(readers.config)
+        if trusted_config is not None:
+            return replace(load_config(base, trusted_config), source=f"trusted: {trusted_config}")
+        return load_config(base, config)
+    except (ConfigError, GitRefError) as exc:
+        _fail(str(exc))
+
+
+def _suppression_policy(readers: _RefReaders, no_inline: bool) -> SuppressionPolicy | None:
+    if no_inline:
+        return SuppressionPolicy("off")
+    if readers.suppressions is not None:
+        return SuppressionPolicy("base", reviewed_lookup(readers.suppressions))
+    return None
+
+
+def _change_base(readers: _RefReaders) -> ChangeBase | None:
+    """GR030 compares with whichever ref was given; with two refs each part uses its own."""
+    anchor = readers.config or readers.suppressions or readers.baseline
+    if anchor is None:
+        return None
+    ignores = readers.suppressions or anchor
+    return ChangeBase(anchor.read, ignores.read, anchor.ref, ignores.ref)
+
+
+def _exit_for(result: ScanResult, cfg: Config) -> None:
+    """Exit 2 when a rule crashed, 1 when a finding reaches ``--fail-on``."""
     if result.errors:
         raise typer.Exit(EXIT_ERROR)
     if cfg.fail_on is not None and any(f.severity >= cfg.fail_on for f in result.findings):
@@ -616,15 +669,7 @@ def lock(
         _fail("--base only works with --check")
     if base is not None and config is not None:
         _fail("--base and --config cannot be used together: --base reads the config at the ref")
-    reader = None
-    try:
-        if base is not None:
-            reader = RefReader(repo_root, base)
-            cfg = config_at_ref(reader)
-        else:
-            cfg = load_config(repo_root, config)
-    except (ConfigError, GitRefError) as exc:
-        _fail(str(exc))
+    cfg, reader = _lock_config(repo_root, base, config)
     if claude_instructions_mode not in CLAUDE_MODES:
         raise typer.BadParameter(
             f"expected one of: {', '.join(CLAUDE_MODES)}", param_hint="--claude-instructions-mode"
@@ -635,24 +680,56 @@ def lock(
     name = lockfile.as_posix() if lockfile is not None else cfg.lockfile
     snapshot = lock_mod.build_snapshot(repo_root, cfg, instructions_mode=claude_instructions_mode)
     if check:
-        try:
-            if reader is not None:
-                recorded = reader.read(name)
-                if recorded is None:
-                    raise lock_mod.LockError(
-                        f"{reader.ref} has no {name}: there is nothing to compare with. Commit a "
-                        "lock to the base first (create it with: ghostrules lock)"
-                    )
-                pinned = lock_mod.parse_lock(recorded)
-            else:
-                pinned = lock_mod.read_lock(lock_path)
-            diff = lock_mod.diff_lock(pinned, snapshot)
-        except lock_mod.LockError as exc:
-            _fail(str(exc))
-        _emit_lock(diff, name, format_, output, no_color)
-        if not diff.empty:
-            raise typer.Exit(EXIT_FINDINGS)
-        return
+        _lock_check(snapshot, reader, name, lock_path, format_, output, no_color)
+    else:
+        _lock_write(snapshot, lock_path, name)
+
+
+def _lock_config(
+    repo_root: Path, base: str | None, config: Path | None
+) -> tuple[Config, RefReader | None]:
+    """The configuration for ``lock`` (read at ``base`` when given) and the ref reader, if any."""
+    reader = None
+    try:
+        if base is not None:
+            reader = RefReader(repo_root, base)
+            return config_at_ref(reader), reader
+        return load_config(repo_root, config), reader
+    except (ConfigError, GitRefError) as exc:
+        _fail(str(exc))
+
+
+def _lock_check(
+    snapshot: lock_mod.Snapshot,
+    reader: RefReader | None,
+    name: str,
+    lock_path: Path,
+    format_: LockFormat,
+    output: Path | None,
+    no_color: bool,
+) -> None:
+    """``lock --check``: report what changed against the lock; exit 1 when something did."""
+    try:
+        if reader is not None:
+            recorded = reader.read(name)
+            if recorded is None:
+                raise lock_mod.LockError(
+                    f"{reader.ref} has no {name}: there is nothing to compare with. Commit a "
+                    "lock to the base first (create it with: ghostrules lock)"
+                )
+            pinned = lock_mod.parse_lock(recorded)
+        else:
+            pinned = lock_mod.read_lock(lock_path)
+        diff = lock_mod.diff_lock(pinned, snapshot)
+    except lock_mod.LockError as exc:
+        _fail(str(exc))
+    _emit_lock(diff, name, format_, output, no_color)
+    if not diff.empty:
+        raise typer.Exit(EXIT_FINDINGS)
+
+
+def _lock_write(snapshot: lock_mod.Snapshot, lock_path: Path, name: str) -> None:
+    """``lock`` / ``lock --update``: rewrite the lock and say what changed since the last one."""
     summary = ""
     if lock_path.exists():
         try:

@@ -22,7 +22,7 @@ def _clean(value: Any) -> Any:
 
 def to_dict(result: ScanResult) -> dict[str, Any]:
     """The report as plain data."""
-    return _clean(
+    cleaned: dict[str, Any] = _clean(
         {
             "version": __version__,
             "scanned_files": result.scanned_files,
@@ -39,6 +39,7 @@ def to_dict(result: ScanResult) -> dict[str, Any]:
             "errors": result.errors,
         }
     )
+    return cleaned
 
 
 def render(result: ScanResult, **_options: Any) -> str:

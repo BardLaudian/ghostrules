@@ -13,7 +13,7 @@ What is planted, and where:
 |---|---|---|
 | `AGENTS.md` | an instruction in invisible Unicode tag characters | GR001, then GR011/GR013/GR014 on the decoded text |
 | `CLAUDE.md` | an override instruction in an HTML comment | GR005, GR010 |
-| `.cursorrules` | bits in zero-width characters; a bidi "Trojan Source" line | GR003, GR002 |
+| `.cursorrules` | bits in zero-width characters; a bidi "Trojan Source" line | GR003, GR002; a (fake) token written in prose, GR017 |
 | `.github/copilot-instructions.md` | variation-selector bytes, a base64 payload, homoglyphs, a safety bypass | GR004, GR015, GR006, GR016 |
 | `.mcp.json` | a (fake) token, unpinned package, `http://`, broad filesystem, shell wrapper, privileged Docker | GR101-GR106 |
 | `.claude/settings.json` | permission bypass, auto-enabled project servers | GR107, GR108 |

@@ -218,3 +218,27 @@ def precision_table(
     for row in rows.values():
         row["precision"] = precision_for_a_user(row["tp"], row["benign-context"], row["fp"])
     return sorted(rows.values(), key=lambda r: r["rule"]), unlabelled
+
+
+# --- confidence intervals ----------------------------------------------------------------------
+
+
+def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float] | None:
+    """Wilson score interval for ``k`` successes in ``n`` trials (95 % by default); None if n=0."""
+    if n <= 0:
+        return None
+    p = k / n
+    denom = 1 + z * z / n
+    centre = (p + z * z / (2 * n)) / denom
+    half = z * ((p * (1 - p) / n + z * z / (4 * n * n)) ** 0.5) / denom
+    return max(0.0, centre - half), min(1.0, centre + half)
+
+
+def share(k: int, n: int, noun: str = "") -> str:
+    """``k of n (pct %, 95 % CI lo–hi %)``: the sample size always travels with the percentage."""
+    ci = wilson(k, n)
+    head = f"{k} of {n}" + (f" {noun}" if noun else "")
+    if ci is None:
+        return f"{head} (n/a)"
+    lo, hi = ci
+    return f"{head} ({k / n * 100:.0f} %, 95 % CI {lo * 100:.0f}–{hi * 100:.0f} %)"

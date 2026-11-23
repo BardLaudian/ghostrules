@@ -296,7 +296,7 @@ def test_gr016_prose_documenting_a_harness_is_medium_and_a_directive_stays_high(
 
 
 def test_the_poisoned_demo_keeps_its_findings() -> None:
-    """The demo is frozen at 7 files / 28 findings; F3 must not move one of them."""
+    """The demo is frozen at 7 files / 29 findings (GR017 in phase 3); F3 must not move any."""
     from collections import Counter
     from pathlib import Path
 
@@ -306,7 +306,7 @@ def test_the_poisoned_demo_keeps_its_findings() -> None:
     demo = Path(__file__).resolve().parent.parent / "examples" / "poisoned-repo"
     result = scan_paths([demo], Config(profile="strict"))
     counts = Counter(f.severity.label for f in result.findings)
-    assert dict(counts) == {"critical": 9, "high": 15, "medium": 3, "low": 1}
+    assert dict(counts) == {"critical": 10, "high": 15, "medium": 3, "low": 1}
 
 
 # --- n8n testmax l.649, as found in the corpus run --------------------------------------------
