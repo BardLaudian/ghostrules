@@ -444,7 +444,7 @@ def write_review_sheet() -> Path:
             shutil.rmtree(work, ignore_errors=True)
     rows.sort(key=lambda r: (r["rule_id"], r["repo"], r["location"]))
     with REVIEW_SHEET.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=SHEET_COLUMNS)
+        writer = csv.DictWriter(handle, fieldnames=SHEET_COLUMNS, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     return REVIEW_SHEET
