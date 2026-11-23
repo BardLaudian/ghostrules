@@ -37,7 +37,8 @@ from ghostrules.rules import all_rules
 from ghostrules.rules.known_installers import KNOWN_INSTALLERS
 from ghostrules.scanner import SuppressionPolicy, scan_paths
 
-EXIT_OK, EXIT_FINDINGS, EXIT_ERROR = 0, 1, 2
+# Stable exit codes (docs/USAGE.md "Exit codes"): a CI job can tell "findings" from "broken".
+EXIT_OK, EXIT_FINDINGS, EXIT_ERROR, EXIT_INTERNAL = 0, 1, 2, 3
 
 
 class DefaultScanGroup(TyperGroup):
@@ -258,7 +259,13 @@ def scan(
     )
     known = _known_findings(base, baseline_file, readers.baseline, no_baseline)
     if known is not None:
-        result.findings, result.baselined = baseline_mod.apply(result.findings, known)
+        # Staleness is only meaningful when the whole directory was scanned: a scan of one file
+        # or one folder would call every other entry stale.
+        if len(targets) == 1 and targets[0].is_dir() and not result.errors:
+            result.baseline_stale = baseline_mod.stale(known, result.findings)
+            if result.baseline_stale:
+                result.warnings.append(baseline_mod.stale_warning(known, result.baseline_stale))
+        result.findings, result.baselined = baseline_mod.apply(result.findings, known.fingerprints)
     _emit(result, format_, output, no_color, ", ".join(str(p) for p in targets))
     _exit_for(result, cfg)
 
@@ -359,18 +366,22 @@ def _first_party(base: Path, reader: RefReader | None) -> tuple[Any, ...]:
 
 def _known_findings(
     base: Path, explicit: Path | None, reader: RefReader | None, disabled: bool
-) -> frozenset[str] | None:
-    """The fingerprints of the baseline in use, or ``None`` when there is none."""
+) -> baseline_mod.BaselineInfo | None:
+    """The baseline in use, or ``None`` when there is none."""
     if disabled:
         return None
     try:
         if reader is not None:
             text = reader.read(baseline_mod.BASELINE_FILENAME)
-            return baseline_mod.parse(text) if text is not None else frozenset()
+            return (
+                baseline_mod.load(text)
+                if text is not None
+                else baseline_mod.BaselineInfo(frozenset())
+            )
         path = explicit if explicit is not None else base / baseline_mod.BASELINE_FILENAME
         if explicit is None and not path.is_file():
             return None
-        return baseline_mod.parse(path.read_text(encoding="utf-8"))
+        return baseline_mod.load(path.read_text(encoding="utf-8"))
     except OSError as exc:
         _fail(f"cannot read the baseline {explicit or baseline_mod.BASELINE_FILENAME}: {exc}")
     except baseline_mod.BaselineError as exc:
@@ -427,7 +438,10 @@ def baseline(
     except OSError as exc:
         _fail(f"cannot write {path}: {exc.strerror or exc}")
     count = len(document["findings"])
-    typer.echo(f"wrote {path}: {count} finding(s) recorded")
+    typer.echo(
+        f"wrote {path}: {count} finding(s) recorded on {document['created']} "
+        f"by ghostrules {__version__}"
+    )
 
 
 def _apply_overrides(
@@ -917,3 +931,23 @@ def rules(
 def version() -> None:
     """Print the ghostrules version."""
     typer.echo(f"ghostrules {__version__}")
+
+
+def main() -> None:
+    """Console entry point: run the app; an unexpected exception exits ``3``, never ``1``.
+
+    Python's own exit status for an uncaught exception is 1, which a CI job would read as
+    "findings". A crash must not look like a finding, and must not look like a clean scan.
+    """
+    try:
+        app()
+    except (KeyboardInterrupt, SystemExit):
+        raise
+    except Exception as exc:  # noqa: BLE001 - the last line of defence
+        typer.echo(
+            f"internal error: {type(exc).__name__}: {safe(str(exc))}\n"
+            "This is a bug in ghostrules, not a finding. Please report it with the command "
+            "you ran: https://github.com/BardLaudian/ghostrules/issues",
+            err=True,
+        )
+        sys.exit(EXIT_INTERNAL)
