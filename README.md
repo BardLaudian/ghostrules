@@ -128,7 +128,7 @@ A workflow scheduled weekly scans 300 popular public repositories (`corpus/`; th
 
 ## How this was built
 
-One person maintains `ghostrules` and works with AI coding assistants for code, tests and documentation. The author decides what is merged, reads the diffs, and is responsible for the result; the assistants do not publish, push or release. Labels and figures that no person has reviewed are marked as such, and the benchmark's headline counts only cases the rule author did not write. Commits made before 2026-11-23 carry an AI trailer, later ones do not, and the use is declared here instead ([details](https://github.com/BardLaudian/ghostrules/blob/main/CONTRIBUTING.md#how-this-project-is-built-ai-assistance)).
+One person maintains `ghostrules` and works with AI coding assistants for code, tests and documentation. The author decides what is merged, reads the diffs, and is responsible for the result; the assistants push, open pull requests or release only when the author asks for it at that moment. Labels and figures that no person has reviewed are marked as such, and the benchmark's headline counts only cases the rule author did not write. Most commits made before 2026-11-23 (80 of 88) carry an AI trailer, later ones do not, and the use is declared here instead ([details](https://github.com/BardLaudian/ghostrules/blob/main/CONTRIBUTING.md#how-this-project-is-built-ai-assistance)).
 
 ## Alternatives
 
