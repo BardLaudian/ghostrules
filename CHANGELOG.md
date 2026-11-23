@@ -5,6 +5,24 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **A bad configuration says where.** An invalid `.ghostrules.toml` or `[tool.ghostrules]` table
+  fails with `file:line: 'key' ...` (exit 2); an unknown key also lists the known ones.
+- **Exit code 3** for an internal failure (an unexpected exception). It used to leave as `1`, which a
+  CI job reads as "findings". The four codes are documented in the usage guide and fixed by a test.
+  The console script is now `ghostrules.cli:main`; `ghostrules.cli:app` still works.
+- **`schema_version` in the JSON report**, a JSON Schema for it (`schemas/scan.schema.json`) and a
+  written compatibility promise: fields are only added within a schema version.
+  `summary.baseline_stale` is new.
+- **Baselines record `created`, `generator` and `count`, and go stale visibly.** A whole-directory
+  scan warns when entries match no finding any more (it never changes the exit code). How a baseline
+  expires is documented.
+- **`bench/perf.py`**: a reproducible speed benchmark (3,000 files, 30 CLAUDE.md, a 20,000-file repo,
+  a 1 MiB file) with a loose time budget checked in CI (job `perf`); figures in `docs/PERFORMANCE.md`.
+- **Tests** for CRLF, a UTF-8 BOM, mixed-case names, path separators and platforms without symlinks,
+  and a test that `scan --help` and the option table of the usage guide list the same options.
+
 ### Changed
 
 - **Benchmark honesty (H6).** Every recall and precision figure the benchmark prints now carries
