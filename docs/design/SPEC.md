@@ -73,7 +73,7 @@ ghostrules version
 | `--config FILE` | auto | explicit config path |
 | `--no-color` | off | plain output |
 
-Exit codes: `0` ok, `1` findings at/above `--fail-on`, `2` usage/runtime error.
+Exit codes: `0` ok, `1` findings at/above `--fail-on`, `2` usage/config/runtime error, `3` internal failure (an unexpected exception; see docs/USAGE.md).
 
 ### Table output (default)
 Rich output grouped by file. For each finding: severity badge, rule ID, title, `path:line:col`,
