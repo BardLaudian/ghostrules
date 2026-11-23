@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Callable, Iterable, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Literal
 
@@ -470,28 +470,26 @@ def _oversize(candidate: Candidate, limit: int) -> int | None:
     return size if size > limit else None
 
 
-def scan_paths(
-    paths: Iterable[Path],
+@dataclass
+class _ScanState:
+    """What one ``scan_paths`` run accumulates across files."""
+
+    findings: list[Finding] = field(default_factory=list)
+    by_label: dict[str, ScanTarget] = field(default_factory=dict)
+    import_only_labels: set[str] = field(default_factory=set)
+    unhonoured: int = 0
+    unhonoured_imported: int = 0
+
+
+def _discover_candidates(
+    roots: list[Path],
     config: Config,
-    *,
-    all_files: bool = False,
-    include_home: bool = False,
-    rules: Iterable[Rule] | None = None,
-    home_dir: Path | None = None,
-    suppressions: SuppressionPolicy | None = None,
-    change_base: ChangeBase | None = None,
-) -> ScanResult:
-    """Scan one or more files/directories (plus user-level configs with ``include_home``).
-
-    With a single root, reported paths are relative to it; with several, each path is prefixed
-    by the root as given so entries stay unambiguous. Unless ``config.follow_imports`` is off, the
-    files agents reach through ``@`` imports are scanned too, with the chain that reaches them.
-    """
-    rule_list = list(all_rules() if rules is None else rules)
-    roots = list(paths)
-    result = ScanResult(config_source=config.source)
-    follow = config.follow_imports and "GR024" not in config.disable
-
+    all_files: bool,
+    include_home: bool,
+    home_dir: Path | None,
+    result: ScanResult,
+) -> tuple[list[tuple[Candidate, str]], list[RootContext]]:
+    """Files to scan under each root (plus user-level ones) and the import context of each root."""
     candidates: list[tuple[Candidate, str]] = []
     contexts: list[RootContext] = []
     home_repo = Repo(home_dir or Path.home(), "~/") if include_home else None
@@ -518,9 +516,13 @@ def scan_paths(
             result.errors.append(f"cannot resolve imports under {root}: {exc.strerror or exc}")
     if include_home:
         candidates.extend((cand, cand.rel) for cand in home_targets(home_dir))
+    return candidates, contexts
 
-    meta = collect_meta(contexts, config)
-    standalone = {label for cand, label in candidates if _is_agent_file(cand)}
+
+def _merge_imported(
+    candidates: list[tuple[Candidate, str]], meta: dict[str, FileMeta], follow: bool
+) -> None:
+    """Add the files agents reach through imports; promote an ``other`` file that is one."""
     known = {label: i for i, (_, label) in enumerate(candidates)}
     for label, item in meta.items():
         if item.via and not follow:
@@ -533,103 +535,156 @@ def scan_paths(
         known[label] = len(candidates)
         candidates.append((cand, label))
 
+
+def _scan_candidate(
+    cand: Candidate,
+    label: str,
+    meta: dict[str, FileMeta],
+    standalone: set[str],
+    config: Config,
+    rule_list: list[Rule],
+    suppressions: SuppressionPolicy | None,
+    result: ScanResult,
+    state: _ScanState,
+) -> None:
+    """Load one file, run the file rules on it and record findings, warnings and counters."""
+    too_big = _oversize(cand, config.max_file_size)
+    if too_big is not None:
+        result.warnings.append(
+            f"skipped {label}: {too_big} bytes exceeds max_file_size "
+            f"({config.max_file_size}); raise it with --max-file-size to scan this file"
+        )
+        result.skipped_files += 1
+        return
+    try:
+        target = load_target(
+            cand,
+            label,
+            config.allow_domains,
+            config.trust_known_installers,
+            config.first_party,
+        )
+    except OSError as exc:
+        result.warnings.append(f"cannot read {label}: {exc.strerror or exc}")
+        return
+    info = meta.get(label)
+    if info is not None:
+        target.agent_views = tuple(info.views)
+    state.by_label[label] = target
+    result.scanned_files += 1
+    if target.parse_error:
+        result.warnings.append(mask_secrets(f"cannot parse {label}: {target.parse_error}"))
+    is_standalone = label in standalone or bool(info and info.rooted)
+    # A file an agent reaches only through an import is not reviewed with the file that imports
+    # it, so an ignore inside it is not an approval: no inline ignore counts there.
+    import_only = bool(info and info.via and not is_standalone)
+    policy = _NO_IGNORES if import_only else suppressions
+    if import_only:
+        state.import_only_labels.add(label)
+    kept, suppressed, errors = scan_target(target, config, rule_list, policy)
+    skipped = unhonoured_markers(target, policy)
+    if import_only:
+        state.unhonoured_imported += skipped
+    else:
+        state.unhonoured += skipped
+    if config.profile != "strict":
+        kept = _apply_visibility(kept, target, config, import_only)
+    state.findings.extend(_annotate(f, info, is_standalone) for f in kept)
+    result.suppressed += suppressed
+    result.errors.extend(errors)
+
+
+def _apply_visibility(
+    kept: list[Finding], target: ScanTarget, config: Config, import_only: bool
+) -> list[Finding]:
+    """Lower the severity of prose a reviewer can read, except attacks (see ``visibility``)."""
+    attacks = attack_findings(kept, target, config.allow_domains)
+    lenient = config.profile == "lenient"
+    return [
+        f if i in attacks else by_visibility(f, target, import_only=import_only, lenient=lenient)
+        for i, f in enumerate(kept)
+    ]
+
+
+def _warn_unhonoured(result: ScanResult, state: _ScanState) -> None:
+    """Say how many ignore comments were not honoured, and why."""
+    if state.unhonoured_imported:
+        noun = "comment" if state.unhonoured_imported == 1 else "comments"
+        result.warnings.append(
+            f"{state.unhonoured_imported} ghostrules-ignore {noun} in files reached only through "
+            "an import not honoured: nobody reviews them together with the file that imports them"
+        )
+    if state.unhonoured:
+        noun = "comment" if state.unhonoured == 1 else "comments"
+        result.warnings.append(
+            f"{state.unhonoured} ghostrules-ignore {noun} not honoured: only ignores that were "
+            "already reviewed are trusted in this mode"
+        )
+
+
+def scan_paths(
+    paths: Iterable[Path],
+    config: Config,
+    *,
+    all_files: bool = False,
+    include_home: bool = False,
+    rules: Iterable[Rule] | None = None,
+    home_dir: Path | None = None,
+    suppressions: SuppressionPolicy | None = None,
+    change_base: ChangeBase | None = None,
+) -> ScanResult:
+    """Scan one or more files/directories (plus user-level configs with ``include_home``).
+
+    With a single root, reported paths are relative to it; with several, each path is prefixed
+    by the root as given so entries stay unambiguous. Unless ``config.follow_imports`` is off, the
+    files agents reach through ``@`` imports are scanned too, with the chain that reaches them.
+    """
+    rule_list = list(all_rules() if rules is None else rules)
+    roots = list(paths)
+    result = ScanResult(config_source=config.source)
+    candidates, contexts = _discover_candidates(
+        roots, config, all_files, include_home, home_dir, result
+    )
+    meta = collect_meta(contexts, config)
+    standalone = {label for cand, label in candidates if _is_agent_file(cand)}
+    _merge_imported(candidates, meta, config.follow_imports and "GR024" not in config.disable)
+
+    state = _ScanState()
     seen: set[Path] = set()
-    unhonoured = unhonoured_imported = 0
-    import_only_labels: set[str] = set()
-    findings: list[Finding] = []
-    by_label: dict[str, ScanTarget] = {}
     for cand, label in candidates:
         resolved = cand.abs_path.resolve()
         if resolved in seen:
             continue
         seen.add(resolved)
-        too_big = _oversize(cand, config.max_file_size)
-        if too_big is not None:
-            result.warnings.append(
-                f"skipped {label}: {too_big} bytes exceeds max_file_size "
-                f"({config.max_file_size}); raise it with --max-file-size to scan this file"
-            )
-            result.skipped_files += 1
-            continue
-        try:
-            target = load_target(
-                cand,
-                label,
-                config.allow_domains,
-                config.trust_known_installers,
-                config.first_party,
-            )
-        except OSError as exc:
-            result.warnings.append(f"cannot read {label}: {exc.strerror or exc}")
-            continue
-        info = meta.get(label)
-        if info is not None:
-            target.agent_views = tuple(info.views)
-        by_label[label] = target
-        result.scanned_files += 1
-        if target.parse_error:
-            result.warnings.append(mask_secrets(f"cannot parse {label}: {target.parse_error}"))
-        is_standalone = label in standalone or bool(info and info.rooted)
-        # A file an agent reaches only through an import is not reviewed with the file that imports
-        # it, so an ignore inside it is not an approval: no inline ignore counts there.
-        import_only = bool(info and info.via and not is_standalone)
-        policy = _NO_IGNORES if import_only else suppressions
-        if import_only:
-            import_only_labels.add(label)
-        kept, suppressed, errors = scan_target(target, config, rule_list, policy)
-        skipped = unhonoured_markers(target, policy)
-        if import_only:
-            unhonoured_imported += skipped
-        else:
-            unhonoured += skipped
-        if config.profile != "strict":
-            attacks = attack_findings(kept, target, config.allow_domains)
-            lenient = config.profile == "lenient"
-            kept = [
-                f
-                if i in attacks
-                else by_visibility(f, target, import_only=import_only, lenient=lenient)
-                for i, f in enumerate(kept)
-            ]
-        findings.extend(_annotate(f, info, is_standalone) for f in kept)
-        result.suppressed += suppressed
-        result.errors.extend(errors)
+        _scan_candidate(
+            cand, label, meta, standalone, config, rule_list, suppressions, result, state
+        )
+    findings = state.findings
 
     if len(roots) == 1 and roots[0].is_dir():
-        findings.extend(_scan_reached_scripts(roots[0], by_label, config, rule_list, result))
+        findings.extend(_scan_reached_scripts(roots[0], state.by_label, config, rule_list, result))
     findings.extend(
         _run_graph_rules(
             contexts,
-            by_label,
+            state.by_label,
             config,
             rule_list,
             result,
             suppressions,
-            frozenset(import_only_labels),
+            frozenset(state.import_only_labels),
         )
     )
     if change_base is not None and len(roots) == 1:
         root = roots[0] if roots[0].is_dir() else roots[0].parent
         findings.extend(
             _run_change_rules(
-                ChangeContext(root, config.lockfile, change_base, by_label),
+                ChangeContext(root, config.lockfile, change_base, state.by_label),
                 config,
                 rule_list,
                 result,
             )
         )
-    if unhonoured_imported:
-        noun = "comment" if unhonoured_imported == 1 else "comments"
-        result.warnings.append(
-            f"{unhonoured_imported} ghostrules-ignore {noun} in files reached only through an "
-            "import not honoured: nobody reviews them together with the file that imports them"
-        )
-    if unhonoured:
-        noun = "comment" if unhonoured == 1 else "comments"
-        result.warnings.append(
-            f"{unhonoured} ghostrules-ignore {noun} not honoured: only ignores that were already "
-            "reviewed are trusted in this mode"
-        )
+    _warn_unhonoured(result, state)
     visible = [f for f in _dedupe(findings) if f.severity >= config.min_severity]
     result.findings = sort_findings(visible)
     return result
