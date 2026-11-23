@@ -84,13 +84,14 @@ def test_recall_headline_has_interval_and_sample_size() -> None:
 # --- the review sheet --------------------------------------------------------------------------
 
 
-def test_review_sheet_rows_cover_every_finding_with_an_empty_human_label(tmp_path) -> None:
+def test_review_sheet_rows_cover_every_finding_and_labels_are_valid_or_empty() -> None:
     data = json.loads((ROOT / "bench" / "heldout-results.json").read_text(encoding="utf-8"))
     sheet = ROOT / "bench" / "labels-review.csv"
     rows = list(csv.DictReader(sheet.open(encoding="utf-8")))
     assert {r["fingerprint"] for r in rows} == {f["fingerprint"] for f in data["findings"]}
     assert len(rows) == len(data["findings"])
-    assert all(r["human_label"] == "" for r in rows)  # the agent never fills it
+    # filled only by a person: empty (undecided) or one of the three labels
+    assert {r["human_label"] for r in rows} <= {"", *lib.LABELS}
     assert {"repo", "rule_id", "location", "context", "human_label"} <= set(rows[0])
     assert "assistant_label" not in rows[0]  # blind review: no anchor
 
