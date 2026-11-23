@@ -3,14 +3,20 @@
 These are configured in the GitHub UI (or with `gh api`) by someone with admin rights. They are
 not applied by this repository and are **pending** until a maintainer does them.
 
-| Setting | Where | Why |
+Status as of 2026-11-23, checked with read-only `gh api` calls where the API allows it.
+
+| Setting | Where | Status |
 |---|---|---|
-| Branch protection on `main`: require a pull request, require the `CI` checks (test, typecheck, audit, self-scan) to pass, block force pushes and deletion | Settings → Branches | Nothing reaches `main` without CI |
-| Require at least one approving review (and code-owner review if a `CODEOWNERS` file is added) | same | A second pair of eyes on every change |
-| Require signed commits (optional) | same | Verifiable authorship |
-| Two-factor authentication on every maintainer account, and on PyPI | GitHub and PyPI account settings | Account takeover is the main route to a poisoned release |
-| Environment `pypi` with required reviewers | Settings → Environments | A release cannot publish without an explicit approval |
-| Restrict who can push `v*` tags (tag ruleset) | Settings → Rules | The release workflow runs on a tag |
-| Dependabot alerts and security updates; code scanning (receives the Scorecard SARIF) | Settings → Code security | Alerts for dependencies and findings |
-| Workflow permissions default to read-only | Settings → Actions → General | Matches the per-workflow `permissions:` blocks |
-| Add the Scorecard badge to the README | README | Only after the first Scorecard run has published a result |
+| Ruleset `protect-main`: pull request required, checks `test`, `typecheck`, `audit` and `self-scan` required, branch up to date, no force push, no deletion, no bypass | Settings → Rules | **Done** |
+| Required approving review | same | **Not applicable**: a single maintainer cannot approve their own pull request (0 approvals required) |
+| Signed commits | same | **Skipped on purpose** (optional): needs a signing key set up first |
+| Two-factor authentication on GitHub and PyPI | Account settings | **Done** (reported by the maintainer; not verifiable from the repository) |
+| Environment `pypi` with a required reviewer | Settings → Environments | **Done** |
+| Ruleset `protect-release-tags`: `v*` tags cannot be moved, deleted or created except by an admin | Settings → Rules | **Done** |
+| Dependabot alerts and security updates | Settings → Code security | **Done** |
+| Code scanning | Settings → Code security | **Done** (CodeQL alerts open; see the Security tab) |
+| Workflow permissions default to read-only | Settings → Actions → General | **Done** |
+| Scorecard badge in the README | README | **Pending**: needs the first published Scorecard result |
+
+Check on the first pull request that the required check `test` is satisfied: it is a matrix, and
+if it stays "Expected" the ruleset must name the matrix jobs instead.
