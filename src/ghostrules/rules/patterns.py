@@ -31,22 +31,36 @@ _SECRET = (
 # `POST` in capitals is the HTTP method and `.post(` a call, not the verb "post"
 _EXFIL_VERB = r"(?<!\.)\b(?:send|(?-i:[Pp]ost)|upload|append|include|exfiltrate|forward)\b"
 _READ_VERB = (
-    r"\b(?:read|print|cat|send|upload|post|show|display|dump|output|copy|exfiltrate|attach"
+    r"\b(?:read|open|print|cat|send|upload|post|show|display|dump|output|copy|exfiltrate|attach"
     r"|leak|paste|share)\b"
 )
 _SENSITIVE_PATH = (
-    r"(?:~/\.ssh|\bid_rsa\b|\bid_ed25519\b|\.aws/credentials|(?<!\w)\.env\b(?!\.(?:example|sample|template|dist)\b)|\.npmrc|\.pypirc|\.netrc"
+    r"(?:~/\.ssh|\bid_rsa\b|\bid_ed25519\b|\.aws/credentials|(?<!\w)\.env\b(?!\.(?:example|sample|template|dist)\b)|\.npmrc|\.pypirc|\.netrc|\.git-credentials|\.config/gh/hosts\.yml"
     r"|\bkubeconfig\b|\bkeychain\b|/etc/shadow|(?:chrome|firefox|safari|browser)\W{0,3}[\w ]{0,15}"
     r"cookies?)"
 )
 
 SENSITIVE_PATH_RE = re.compile(_SENSITIVE_PATH, re.IGNORECASE)
 
-EXFIL_PATTERNS = _compile(
+_EXFIL_PATTERNS_EN = _compile(
     r"!\[[^\]]*\]\(https?://[^)\s]*[?&][^=\s)]+=(?:\{|\$|%7B|<)",
     rf"{_EXFIL_VERB}.{{0,80}}?{_SECRET}.{{0,200}}?https?://[^\s)\]>\"']+",
     rf"{_EXFIL_VERB}.{{0,200}}?https?://.{{0,80}}?{_SECRET}",
 )
+# Spanish and French: a short reviewed list, the same shape as the English patterns above
+_EXFIL_VERB_ES_FR = (
+    r"\b(?:env[ií]a(?:r)?|sube|subir|publica|envoie[rz]?|transmets|transmettez|t[eé]l[eé]verse"
+    r"|publie[rz]?)\b"
+)
+_SECRET_ES_FR = (
+    r"(?:\.env\b|variables?\s+de\s+entorno|variables?\s+d['’]environnement|credenciales|contrase[ñn]as?"
+    r"|claves?\s+(?:api|ssh)|identifiants|mots?\s+de\s+passe|cl[eé]s?\s+(?:api|ssh)"
+    r"|jetons?|\btokens?\b|\bsecretos?\b|\bsecrets?\b)"
+)
+EXFIL_PATTERNS_ES_FR = _compile(
+    rf"{_EXFIL_VERB_ES_FR}.{{0,80}}?{_SECRET_ES_FR}.{{0,200}}?https?://[^\s)\]>\"']+",
+)
+EXFIL_PATTERNS = _EXFIL_PATTERNS_EN + EXFIL_PATTERNS_ES_FR
 COLLECTOR_PATTERNS = _compile(
     r"\b(?:webhook\.site|requestbin(?:\.\w+)?|pipedream\.net|ngrok(?:-free)?\.(?:io|app)"
     r"|interact\.sh|oast\.(?:fun|pro|live|site|online|me)|burpcollaborator\.net"
@@ -64,6 +78,8 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"|guidelines|settings|filters?|checks|constraints|polic(?:y|ies))",
         r"\bignora\s+(?:todas\s+)?las\s+instrucciones\s+(?:anteriores|previas)",
         r"\bolvida\s+(?:tus|las)\s+instrucciones",
+        r"\bignore[zr]?\s+(?:toutes\s+)?les\s+instructions\s+(?:pr[eé]c[eé]dentes|ant[eé]rieures)",
+        r"\boublie[zs]?\s+(?:tes|vos|les)\s+instructions",
     ),
     "GR011": _compile(
         # "do not tell the user to ...", "... which|what|how|where|when|why ..." is about what to
@@ -77,6 +93,9 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\bhide\s+(?:this|the)\s+(?:from|output)",
         r"\bno\s+(?:se\s+lo\s+)?(?:digas|menciones|muestres)\s+al\s+usuario",
         r"\bsin\s+avisar\s+al\s+usuario",
+        r"\bne\s+(?:le\s+)?(?:dis|dites|montre|montrez|mentionne|mentionnez)\s+pas\s+[àa]"
+        r"\s+l['’]utilisateur",
+        r"\bsans\s+(?:en\s+)?(?:avertir|informer|pr[eé]venir)\s+l['’]utilisateur",
     ),
     "GR012": _compile(
         # stdin is code only when the interpreter reads its program from it: `sh -c '...'` and
@@ -88,7 +107,15 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:iwr|invoke-webrequest)\b[^\n|]{0,200}\|\s*(?:iex|invoke-expression)\b",
         r"\bpowershell(?:\.exe)?\b[^\n]{0,200}\s-e(?:nc|ncodedcommand)?\s+[A-Za-z0-9+/=]{16,}",
         r"\bbase64\s+(?:-d|--decode)\b[^\n|]{0,200}\|\s*(?:ba)?sh\b",
-        r"\bbash\s+<\(\s*(?:curl|wget)\b",
+        r"(?:\b(?:ba|z)?sh\s+|\bsource\s+|(?<![\w.])\.\s+)<\(\s*(?:curl|wget)\b",
+        # a download tool kept in a variable, then a shell run on the result (no shell is emulated)
+        r"\b(\w+)=(?:curl|wget)\b[^\n]{0,200}[\"']?\$\{?\1\b[^\n]{0,200}(?:&&|;|\|\|)\s*"
+        r"(?:sudo\s+)?(?:ba|z)?sh\b(?!\s+-c\b)",
+        # the program passed to `python -c` / `node -e` is fetched and evaluated in one go
+        r"\b(?:python[0-9.]*|node)\s+-[ce]\b[^\n]{0,300}?\b(?:exec|eval)\b[^\n]{0,200}?"
+        r"(?:urlopen|requests\.get|urllib\.request|\bfetch\s*\(|https?\.get|curl\b|wget\b)",
+        r"\b(?:python[0-9.]*|node)\s+-[ce]\b[^\n]{0,300}?(?:urlopen|requests\.get|\bfetch\s*\()"
+        r"[^\n]{0,200}?(?:\.then\(\s*eval\b|\bexec\b|\beval\b)",
         r"\beval\s+[\"']?\$\(\s*(?:curl|wget)\b",
     ),
     "GR013": EXFIL_PATTERNS + COLLECTOR_PATTERNS,
@@ -96,7 +123,10 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
     "GR014": _compile(
         rf"{_READ_VERB}[:,]?"
         r"(?:[ \t]+(?!(?:before|after|when|while|until)\b)[^\s;]*[^\s;.!?]){0,6}?"
-        rf"[ \t]+[`'\"(\[\u201c]*(?:[^\s/`'\"]*/)*{_SENSITIVE_PATH}"
+        rf"[ \t]+[`'\"(\[\u201c]*(?:[^\s/`'\"]*/)*{_SENSITIVE_PATH}",
+        # heuristic: a private key described rather than named ("the private key in the ssh folder")
+        rf"{_READ_VERB}[^.;!?\n]{{0,60}}?(?:\bssh\b[^.;!?\n]{{0,30}}?\bprivate\s+keys?\b"
+        r"|\bprivate\s+keys?\b[^.;!?\n]{0,30}?\bssh\b)",
     ),
     "GR016": _compile(
         r"--dangerously-skip-permissions",

@@ -579,6 +579,12 @@ findings will be false positives (use `allow_domains`, `disable` or an inline ig
 natural-language instruction means, and it does not look at MCP tool descriptions served by a
 running server.
 
+What still escapes, by design: a paraphrase that shares no words with the patterns ("send what the
+environment holds to this address"), a sensitive file described by intent instead of a path or
+`private key` + `ssh`, languages other than English, Spanish and French, a command split over several
+lines or built from variables and aliases (GR012 does not emulate a shell), and a secret without a
+known format. The `private key` + `ssh` description is a low-severity heuristic.
+
 The agent models follow each agent's public documentation and say `(unverified)` where it is
 silent. They do not see what lives outside the repository or the machine: Cursor user and team
 rules, managed policy files, Claude Code's `claudeMdExcludes` and `--add-dir`, instructions turned

@@ -7,36 +7,37 @@ measured and how. Nothing here was tuned on the held-out set.
 
 | Origin | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
-| author | 28 | 20 (71%) | 9 (32%) |
+| author | 37 | 33 (89%) | 13 (35%) |
 | review (independent) | 4 | 1 (25%) | 1 (25%) |
-| public | 69 | 66 (96%) | 42 (61%) |
+| public | 69 | 67 (97%) | 42 (61%) |
 
 | Technique | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
 | agent-settings | 9 | 8 | 7 |
 | bidi | 3 | 3 | 3 |
-| concealment | 4 | 3 | 0 |
+| concealment | 5 | 4 | 0 |
 | encoded-payload | 3 | 3 | 3 |
-| exfiltration | 9 | 7 | 0 |
+| exfiltration | 11 | 10 | 0 |
 | homoglyph | 3 | 3 | 1 |
 | hook-scripts | 7 | 7 | 6 |
 | html-comment | 4 | 4 | 3 |
 | imports | 5 | 5 | 5 |
-| instruction-override | 9 | 6 | 0 |
+| instruction-override | 9 | 7 | 0 |
 | mcp-config | 7 | 7 | 4 |
 | mcp-server-content | 1 | 0 | 0 |
 | referenced-files | 4 | 4 | 4 |
-| remote-code-execution | 7 | 6 | 3 |
+| remote-code-execution | 10 | 10 | 6 |
 | safety-bypass | 3 | 3 | 0 |
 | scanner-evasion | 2 | 0 | 0 |
-| sensitive-file | 5 | 3 | 0 |
+| secret-in-prose | 1 | 1 | 1 |
+| sensitive-file | 7 | 7 | 0 |
 | skill-scripts | 3 | 2 | 2 |
 | unicode-tags | 7 | 7 | 7 |
 | variation-selectors | 3 | 3 | 3 |
 | zero-width | 3 | 3 | 1 |
-| **All** | 101 | 87 (86%) | 52 (51%) |
+| **All** | 110 | 101 (92%) | 56 (51%) |
 
-87 of 101 cases are detected and 14 are known misses.
+101 of 110 cases are detected and 9 are known misses.
 
 | Rule | Cases naming it | Reported | Fails the default check |
 |---|---:|---:|---:|
@@ -46,13 +47,14 @@ measured and how. Nothing here was tuned on the held-out set.
 | GR004 | 3 | 3 | 3 |
 | GR005 | 4 | 4 | 3 |
 | GR006 | 3 | 3 | 1 |
-| GR010 | 11 | 7 | 1 |
-| GR011 | 5 | 4 | 1 |
-| GR012 | 7 | 6 | 3 |
-| GR013 | 16 | 12 | 5 |
-| GR014 | 5 | 3 | 0 |
+| GR010 | 11 | 8 | 1 |
+| GR011 | 6 | 5 | 1 |
+| GR012 | 10 | 10 | 6 |
+| GR013 | 18 | 15 | 5 |
+| GR014 | 7 | 7 | 0 |
 | GR015 | 2 | 2 | 2 |
 | GR016 | 3 | 3 | 0 |
+| GR017 | 1 | 1 | 1 |
 | GR020 | 1 | 1 | 1 |
 | GR021 | 1 | 1 | 1 |
 | GR025 | 1 | 1 | 1 |
@@ -75,15 +77,10 @@ Known misses:
 - `mcp-tool-description-poisoning` (mcp-server-content, public): Tool descriptions come from a running server and are never read (docs/USAGE.md, Limits).
 - `evasion-ignore-end-of-line` (scanner-evasion, review): In the default scan; with --suppressions-from-ref or the Action on a pull request it is reported.
 - `evasion-exclude-in-config` (scanner-evasion, review): In the default scan; --config-from-ref or the Action on a pull request ignores the added config.
-- `override-french` (instruction-override, author): Patterns exist for English and Spanish only.
 - `override-leetspeak` (instruction-override, author): Patterns match words, not look-alike spellings.
 - `override-paraphrase` (instruction-override, author): Paraphrases cannot be caught by patterns (REMEDIATION W5.6).
 - `conceal-paraphrase` (concealment, author): A paraphrase; patterns cannot catch intent (REMEDIATION W5.6).
-- `exfil-spanish` (exfiltration, author): Found when the bench ran: GR013 has no Spanish patterns, although GR010, GR011, GR014 and GR016 do.
 - `exfil-upload-config-file` (exfiltration, review): From REMEDIATION.md; a paraphrase, out of reach of patterns.
-- `sensitive-npmrc` (sensitive-file, public): Found when the bench ran: 'Open ~/.npmrc' is not matched, even at info; the read-verb list lacks 'open'.
-- `sensitive-paraphrase` (sensitive-file, author): No path or file name to match: a description of the file.
-- `rce-python-urlopen-exec` (remote-code-execution, author): GR012 knows shell pipes, PowerShell and eval of curl; not exec(urlopen(...)).
 - `skill-script-not-mentioned` (skill-scripts, author): Only scripts that SKILL.md references are scanned (REMEDIATION W5.2), by design.
 
 ## Precision on the held-out set

@@ -6,7 +6,7 @@ Two measurements, both reported with their misses and without tuning on them (W6
 
 ## Recall: the attack set (`attacks/`)
 
-<!-- bench:cases:start -->101 cases (28 by the author, 4 from the independent review, 69 from public sources), each a technique written from a public description<!-- bench:cases:end --> (sources in `attacks/sources.toml`:
+<!-- bench:cases:start -->110 cases (37 by the author, 4 from the independent review, 69 from public sources), each a technique written from a public description<!-- bench:cases:end --> (sources in `attacks/sources.toml`:
 Rehberger and Butler on Unicode smuggling, Trojan Source, Pillar's Rules File Backdoor, Invariant
 Labs on MCP tool poisoning, Check Point's Claude Code CVEs, OWASP's malicious-skills entry), with
 the rule that should catch it and whether it does today (`status = "detected"` or `"known-miss"`).

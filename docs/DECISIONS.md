@@ -1165,3 +1165,19 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   `--lenient` / `profile = "lenient"`. `--strict` is unchanged.
 - **Open.** The held-out result is inferred from cached findings, not a fresh scan; a prose
   `curl | bash` in a repository that documents it for humans would now fail the check.
+
+## Improvement plan, phase 3 — detection gaps (H3, H4, H5)
+
+- **GR012 indirection:** two small patterns (variable holding `curl`/`wget` then a shell on the same
+  line; `exec`/`eval` over `urlopen`, `requests.get` or `fetch` in `python -c` / `node -e`) instead
+  of a shell emulator. Limit documented in RULES.md: multi-line indirection is not followed.
+- **GR014 private key description:** `private key` + `ssh` in one sentence after a read verb is
+  reported at `low` (heuristic), so it cannot fail the default check by itself.
+- **French and Spanish:** short lists written by hand for GR010, GR011 and GR013 (Spanish for GR013
+  was missing). No machine translation; other languages are a documented limit.
+- **GR017 (new rule, next free instruction ID):** reuses `secrets.KNOWN_SECRET_PATTERNS` and the
+  existing masking. `Bearer` is excluded in prose (documentation of headers). Critical and not
+  lowered by the visible-prose policy.
+- **Evidence:** the ten new bench cases are `author` cases written after the fix, so the recall
+  gain is not independent evidence. Four older known misses flipped to detected as a side effect.
+- **Not done:** paraphrase detection (H4 paraphrase xfail stays), generic secrets in prose.

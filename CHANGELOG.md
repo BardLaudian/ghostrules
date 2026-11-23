@@ -14,6 +14,19 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   **Migration:** if the new exit code breaks a pipeline, pass `--lenient` or set
   `profile = "lenient"` to get the 0.4 behaviour; review the finding rather than silencing it.
 
+### Added
+
+- **GR017, a known-format secret written in an instruction file (H5).** `ghp_`, `github_pat_`,
+  `sk-ant-`, `sk-`, `AKIA`, `xox*`, `AIza`, `glpat-`, `hf_`, `npm_` and webhook URLs in `AGENTS.md`,
+  `CLAUDE.md`, `.cursorrules` and the other instruction files are `critical` and always masked.
+- **GR012 (H3):** a download tool kept in a variable then a shell (`c=curl; $c … && sh`),
+  `python -c` / `node -e` that `exec`/`eval` what `urlopen`, `requests.get` or `fetch` returns, and
+  `sh|zsh|source <(curl …)`.
+- **GR014 (H4):** the verb `open`, `.git-credentials`, `~/.config/gh/hosts.yml`, and a low-severity
+  heuristic for `private key` + `ssh` in one sentence.
+- **French patterns (H4)** for GR010, GR011 and GR013, and Spanish for GR013.
+- Nine bench cases (origin `author`) for the above; four former known misses are now detected.
+
 ### Fixed
 
 - **Unicode evasion of the injection patterns (H1).** GR010-GR016 now also match a de-obfuscated
