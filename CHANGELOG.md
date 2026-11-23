@@ -5,6 +5,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **An imperative remote-code command in prose now fails the default check (H2).** GR012 on a line
+  such as `Run: curl URL | bash` in plain prose of an agent file keeps its own severity instead of
+  being lowered to `low`. Code blocks, code spans, quotations and descriptions are unchanged, and
+  the other visible-prose rules (GR010, GR011, GR013, GR014, GR016) keep the 0.4 policy.
+  **Migration:** if the new exit code breaks a pipeline, pass `--lenient` or set
+  `profile = "lenient"` to get the 0.4 behaviour; review the finding rather than silencing it.
+
 ### Fixed
 
 - **Unicode evasion of the injection patterns (H1).** GR010-GR016 now also match a de-obfuscated

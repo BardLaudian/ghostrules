@@ -565,8 +565,11 @@ def scan_paths(
             unhonoured += skipped
         if config.profile != "strict":
             attacks = attack_findings(kept, target, config.allow_domains)
+            lenient = config.profile == "lenient"
             kept = [
-                f if i in attacks else by_visibility(f, target, import_only=import_only)
+                f
+                if i in attacks
+                else by_visibility(f, target, import_only=import_only, lenient=lenient)
                 for i, f in enumerate(kept)
             ]
         findings.extend(_annotate(f, info, is_standalone) for f in kept)
