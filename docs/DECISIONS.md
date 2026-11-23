@@ -1275,7 +1275,9 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   The action is pinned by SHA (`lycheeverse/lychee-action` v2.9.0, read with `gh api`).
 - **Thresholds in GOVERNANCE.md** (3 independent reports, or precision under 50 % on at least 10
   labelled findings) and the deprecation period (two minor releases) are proposals by the author of
-  this phase; the maintainer may change them.
+  this phase. The maintainer reviewed them on 2026-11-24 and kept them as written. On the same date
+  the maintainer approved the README sections "Limits" and "How this was built" and decided to keep
+  the history as it is (80 of 88 earlier commits keep their AI trailer).
 - **Code of Conduct contact** uses GitHub's private reporting only. Decided by the maintainer on 2026-11-24: no email is published.
 - **Changelog:** Unreleased sections were merged into the Keep a Changelog categories and internal
   tracking labels (H1…H14) removed. Older "Known limits" sections are kept as written.
