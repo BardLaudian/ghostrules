@@ -7,6 +7,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Type checking is strict and runs in CI (H7).** `mypy src` passes with `strict = true`
+  and is a CI step. The long functions behind `scan`, `lock`, `scan_paths`, the context builder
+  and the symlink resolver are split into steps with one job each, with no change in output
+  (pinned by golden tests of `scan`, `context` and `lock` on `examples/*`). Ruff now fails the build
+  on a function over 15 branches or 60 statements (H10).
+### Changed
+
 - **An imperative remote-code command in prose now fails the default check (H2).** GR012 on a line
   such as `Run: curl URL | bash` in plain prose of an agent file keeps its own severity instead of
   being lowered to `low`. Code blocks, code spans, quotations and descriptions are unchanged, and
