@@ -1,4 +1,6 @@
-"""JSON report: ``{"version", "scanned_files", "findings", "summary", ...}``."""
+"""JSON report: ``{"schema_version", "version", "scanned_files", "findings", "summary", ...}``.
+
+The shape is described by ``schemas/scan.schema.json`` and is stable within ``schema_version``."""
 
 from __future__ import annotations
 
@@ -8,6 +10,8 @@ from typing import Any
 from ghostrules import __version__
 from ghostrules.models import ScanResult
 from ghostrules.reporters.common import safe, severity_counts
+
+SCHEMA_VERSION = 1  # bump only when a field is removed, renamed or retyped
 
 
 def _clean(value: Any) -> Any:
@@ -24,6 +28,7 @@ def to_dict(result: ScanResult) -> dict[str, Any]:
     """The report as plain data."""
     cleaned: dict[str, Any] = _clean(
         {
+            "schema_version": SCHEMA_VERSION,
             "version": __version__,
             "scanned_files": result.scanned_files,
             "findings": [f.to_dict() for f in result.findings],
@@ -33,6 +38,7 @@ def to_dict(result: ScanResult) -> dict[str, Any]:
                 "files_with_findings": len({f.path for f in result.findings}),
                 "suppressed": result.suppressed,
                 "baselined": result.baselined,
+                "baseline_stale": result.baseline_stale,
                 "config_source": result.config_source,
             },
             "warnings": result.warnings,

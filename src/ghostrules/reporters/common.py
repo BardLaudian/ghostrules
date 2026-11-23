@@ -99,4 +99,7 @@ def config_notes(result: ScanResult) -> list[str]:
     if result.baselined:
         noun = "finding" if result.baselined == 1 else "findings"
         notes.append(f"{result.baselined} known {noun} left out by the baseline")
+    if result.baseline_stale:
+        noun = "entry" if result.baseline_stale == 1 else "entries"
+        notes.append(f"{result.baseline_stale} stale baseline {noun} (they match no finding)")
     return notes
