@@ -1,5 +1,6 @@
 exit=1
 {
+  "schema_version": 1,
   "version": "0.4.1",
   "scanned_files": 7,
   "findings": [
@@ -392,6 +393,7 @@ exit=1
     "files_with_findings": 7,
     "suppressed": 0,
     "baselined": 0,
+    "baseline_stale": 0,
     "config_source": null
   },
   "warnings": [],
