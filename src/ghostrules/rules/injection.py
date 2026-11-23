@@ -1,4 +1,4 @@
-"""Malicious-instruction rules GR010-GR016 (natural language, English + Spanish).
+"""Malicious-instruction rules GR010-GR017 (natural language, English, Spanish and French).
 
 Every rule matches the raw text and also a whitespace-normalised copy of the whole file, so a
 phrase broken across lines still matches, then drops overlapping duplicates. All of them run on
@@ -27,6 +27,7 @@ from ghostrules.rules.patterns import (
     find_encoded_runs,
 )
 from ghostrules.rules.registry import rule
+from ghostrules.secrets import KNOWN_SECRET_PATTERNS, is_placeholder, mask_value
 from ghostrules.sensitive import is_template_path
 
 INSTRUCTIONS: tuple[Kind, ...] = ("instructions",)
@@ -502,10 +503,13 @@ def gr014_sensitive_files(target: ScanTarget) -> Iterator[Finding]:
         if _names_a_template(target.text, span) or _copies_dotenv(target.text[span[0] : span[1]]):
             continue
         kind = classify(target, span)
+        # a private key described without naming a path is a heuristic: low, never a failure
+        described = SENSITIVE_PATH_RE.search(target.text, span[0], span[1]) is None
+        severity = Severity.LOW if described else severity_for(kind, Severity.HIGH)
         yield _finding(
             target,
             "GR014",
-            severity_for(kind, Severity.HIGH),
+            severity,
             "Sensitive file access",
             "Tells the agent to access a credentials or secrets file" + downgrade_note(kind),
             span,
@@ -634,3 +638,42 @@ def gr016_safety_bypass(target: ScanTarget) -> Iterator[Finding]:
             span,
             fix_hint="Remove it; keep the agent's permission prompts and sandbox enabled.",
         )
+
+
+# --- GR017 ---------------------------------------------------------------------------------
+
+# a Bearer token in prose is nearly always documentation of a header, not a leaked credential
+_PROSE_SECRET_PATTERNS = tuple((n, p) for n, p in KNOWN_SECRET_PATTERNS if n != "Bearer token")
+
+
+@rule(
+    "GR017",
+    Severity.CRITICAL,
+    "Secret in an instruction file",
+    "A token or API key of a known format (ghp_, sk-ant-, AKIA, xox...) written in a file the"
+    " agent reads; always masked.",
+    INSTRUCTIONS,
+)
+def gr017_secret_in_prose(target: ScanTarget) -> Iterator[Finding]:
+    """Known token formats written in an instruction file are exposed to the agent and to everyone
+    with access to the repository. Placeholders are skipped; the value is always masked."""
+    seen: set[tuple[int, int]] = set()
+    for label, pattern in _PROSE_SECRET_PATTERNS:
+        group = "s" if "s" in pattern.groupindex else 0
+        for m in pattern.finditer(target.text):
+            span, value = m.span(group), m.group(group)
+            if span in seen or is_placeholder(value):
+                continue
+            seen.add(span)
+            yield build_finding(
+                target=target,
+                rule_id="GR017",
+                severity=Severity.CRITICAL,
+                title="Secret in an instruction file",
+                message=f"{label} written in the file: {mask_value(value)}",
+                start=span[0],
+                end=span[1],
+                fix_hint="Remove it, reference an environment variable instead, and rotate the"
+                " secret: it is exposed to everyone with access to the repository.",
+                secrets=(value,),
+            )

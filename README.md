@@ -112,13 +112,13 @@ measured and the misses are listed ([bench/](https://github.com/BardLaudian/ghos
 [full results](https://github.com/BardLaudian/ghostrules/blob/main/bench/RESULTS.md)). Nothing below was tuned on the data it is measured on.
 
 <!-- bench:recall:start -->
-**Recall on independent cases: 1 of 4 reported (25%); 1 fail the default `--fail-on high` check.** They are 4 of the 18 cases an independent review wrote; the other 14 are not in the repository yet, so this is a small sample. The 97 cases written by the author or taken from public sources are shown separately because the author knew what the rules match: of all 101 cases 87 are reported (86%). Visible prose is `low` by default, so the check fails less often than the rules report (hidden text and configuration are not lowered). The misses include paraphrases, other languages, scripts and files that nothing points the scanner to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed in the results.
+**Recall on independent cases: 1 of 4 reported (25%); 1 fail the default `--fail-on high` check.** They are 4 of the 18 cases an independent review wrote; the other 14 are not in the repository yet, so this is a small sample. The 106 cases written by the author or taken from public sources are shown separately because the author knew what the rules match: of all 110 cases 101 are reported (92%). Visible prose is `low` by default, so the check fails less often than the rules report (hidden text and configuration are not lowered). The misses include paraphrases, other languages, scripts and files that nothing points the scanner to, tool descriptions served by a running MCP server, two scanner evasions that only the pull-request mode closes, and gaps of ours; each is listed in the results.
 
 | Origin | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
-| author | 28 | 20 (71%) | 9 (32%) |
+| author | 37 | 33 (89%) | 13 (35%) |
 | review (independent) | 4 | 1 (25%) | 1 (25%) |
-| public | 69 | 66 (96%) | 42 (61%) |
+| public | 69 | 67 (97%) | 42 (61%) |
 
 All origins, by technique:
 
@@ -126,21 +126,22 @@ All origins, by technique:
 |---|---:|---:|---:|
 | agent-settings | 9 | 8 | 7 |
 | bidi | 3 | 3 | 3 |
-| concealment | 4 | 3 | 0 |
+| concealment | 5 | 4 | 0 |
 | encoded-payload | 3 | 3 | 3 |
-| exfiltration | 9 | 7 | 0 |
+| exfiltration | 11 | 10 | 0 |
 | homoglyph | 3 | 3 | 1 |
 | hook-scripts | 7 | 7 | 6 |
 | html-comment | 4 | 4 | 3 |
 | imports | 5 | 5 | 5 |
-| instruction-override | 9 | 6 | 0 |
+| instruction-override | 9 | 7 | 0 |
 | mcp-config | 7 | 7 | 4 |
 | mcp-server-content | 1 | 0 | 0 |
 | referenced-files | 4 | 4 | 4 |
-| remote-code-execution | 7 | 6 | 3 |
+| remote-code-execution | 10 | 10 | 6 |
 | safety-bypass | 3 | 3 | 0 |
 | scanner-evasion | 2 | 0 | 0 |
-| sensitive-file | 5 | 3 | 0 |
+| secret-in-prose | 1 | 1 | 1 |
+| sensitive-file | 7 | 7 | 0 |
 | skill-scripts | 3 | 2 | 2 |
 | unicode-tags | 7 | 7 | 7 |
 | variation-selectors | 3 | 3 | 3 |
