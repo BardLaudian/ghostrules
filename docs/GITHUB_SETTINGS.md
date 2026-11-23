@@ -16,7 +16,7 @@ Status as of 2026-11-23, checked with read-only `gh api` calls where the API all
 | Dependabot alerts and security updates | Settings → Code security | **Done** |
 | Code scanning | Settings → Code security | **Done** (CodeQL alerts open; see the Security tab) |
 | Workflow permissions default to read-only | Settings → Actions → General | **Done** |
-| Scorecard badge in the README | README | **Pending**: needs the first published Scorecard result |
+| Scorecard badge in the README | README | **Done** (first result 6.2/10 on 2026-11-23; the badge shows the live score) |
 
 `test` is a matrix, so no check is named plain `test`. `ci.yml` has a `ci-ok` job that fails unless
 `test`, `typecheck`, `audit` and `self-scan` all succeeded: the `protect-main` ruleset should require
