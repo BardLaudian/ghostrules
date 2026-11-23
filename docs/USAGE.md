@@ -74,6 +74,14 @@ ghostrules scan . --format sarif -o ghostrules.sarif   # GitHub code scanning
 ghostrules scan . --format markdown >> "$GITHUB_STEP_SUMMARY"
 ```
 
+**Compatibility of the JSON report.** `--format json` starts with `"schema_version": 1`, the version
+of the report's *shape* (distinct from `"version"`, the ghostrules release). The shape is described by
+[`src/ghostrules/schemas/scan.schema.json`](https://github.com/BardLaudian/ghostrules/blob/main/src/ghostrules/schemas/scan.schema.json) and the
+tests validate every example against it. Within a `schema_version`, fields are only **added**: none
+is removed, renamed or given another type, so a consumer that ignores unknown keys keeps working.
+Removing or retyping a field raises `schema_version`. SARIF output follows the SARIF 2.1.0 schema
+(also checked in the tests); `context --format json` has its own schema (`context.schema.json`).
+
 | `scan` option | Default | Meaning |
 |---|---|---|
 | `PATH ...` | `.` | Files or directories to scan |
@@ -98,10 +106,18 @@ ghostrules scan . --format markdown >> "$GITHUB_STEP_SUMMARY"
 | `--strict` | off | Report plain visible prose at the rules' own severity (the 0.3 behaviour; see below) |
 | `--no-color` | off | Plain output |
 
-Exit codes: `0` nothing at or above `--fail-on`, `1` findings at or above it, `2` usage or runtime
-error (including a path that does not exist or a rule that crashed, so a broken scan can never look
-clean). For `json`, `sarif` and `markdown`, stdout carries only the report; diagnostics go to
-stderr.
+#### Exit codes
+
+These are a stable contract (fixed by `tests/test_exit_codes.py`); a change is a breaking change.
+
+| Code | Meaning |
+|------|---------|
+| `0` | Clean: nothing at or above `--fail-on` |
+| `1` | Findings at or above `--fail-on` (also `lock --check` drift) |
+| `2` | Usage or configuration error: unknown option, a path that does not exist, an invalid `.ghostrules.toml` (reported as `file:line: message`), or a rule that crashed, so a broken scan can never look clean |
+| `3` | Internal failure: an unexpected exception in ghostrules itself. It is a bug, never a finding; the message asks for a report |
+
+For `json`, `sarif` and `markdown`, stdout carries only the report; diagnostics go to stderr.
 
 ### Severity by visibility (default since 0.4)
 
@@ -137,6 +153,18 @@ baseline is a statement that someone read the finding, and nobody can read those
 
 In a pull request the baseline is read from the base ref (`--baseline-from-ref`, which the Action
 passes), so the change cannot baseline its own findings; editing the baseline is reported by GR030.
+
+The file says when and by what it was written: `created` (UTC date), `generator` (the ghostrules
+version) and `count` (the number of entries). `ghostrules baseline` prints the same.
+
+**How a baseline expires.** There is no clock: an entry never lapses because it is old. An entry
+stops applying when its finding changes (the text is part of the fingerprint) or the file goes away.
+When a whole-directory scan finds entries that match no current finding it adds the warning
+`baseline is stale: N of M entries no longer match any finding`, counts them in
+`summary.baseline_stale` and in the table footer, and leaves the exit code alone. A stale entry
+hides nothing today but would hide the finding if it came back, so review the change and regenerate
+(`ghostrules baseline`). A scan of a single file or folder does not check this, because it would
+call every other entry stale.
 
 ### Scanning a pull request: settings the change cannot rewrite
 

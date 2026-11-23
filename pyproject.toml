@@ -50,7 +50,7 @@ Issues = "https://github.com/BardLaudian/ghostrules/issues"
 Changelog = "https://github.com/BardLaudian/ghostrules/blob/main/CHANGELOG.md"
 
 [project.scripts]
-ghostrules = "ghostrules.cli:app"
+ghostrules = "ghostrules.cli:main"
 
 [tool.hatch.version]
 path = "src/ghostrules/__init__.py"
