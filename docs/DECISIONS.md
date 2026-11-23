@@ -1276,6 +1276,6 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 - **Thresholds in GOVERNANCE.md** (3 independent reports, or precision under 50 % on at least 10
   labelled findings) and the deprecation period (two minor releases) are proposals by the author of
   this phase; the maintainer may change them.
-- **Code of Conduct contact** uses GitHub's private reporting; a dedicated email is `[HUMANO]`.
+- **Code of Conduct contact** uses GitHub's private reporting only. Decided by the maintainer on 2026-11-24: no email is published.
 - **Changelog:** Unreleased sections were merged into the Keep a Changelog categories and internal
   tracking labels (H1…H14) removed. Older "Known limits" sections are kept as written.
