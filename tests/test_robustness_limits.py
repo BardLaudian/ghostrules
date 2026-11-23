@@ -44,7 +44,9 @@ def test_every_report_shows_the_skipped_file(tmp_path: Path, render) -> None:
 
 
 def test_a_file_at_or_under_the_limit_is_scanned(tmp_path: Path) -> None:
-    size = (tmp_path / "CLAUDE.md").write_text(ATTACK, encoding="utf-8")
+    data = ATTACK.encode("utf-8")  # bytes: write_text would turn \n into \r\n on Windows
+    (tmp_path / "CLAUDE.md").write_bytes(data)
+    size = len(data)
     result = scan_paths([tmp_path], Config(max_file_size=size))
     assert any(f.rule_id == "GR010" for f in result.findings)
     assert result.warnings == [] and result.skipped_files == 0
