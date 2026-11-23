@@ -18,5 +18,6 @@ Status as of 2026-11-23, checked with read-only `gh api` calls where the API all
 | Workflow permissions default to read-only | Settings → Actions → General | **Done** |
 | Scorecard badge in the README | README | **Pending**: needs the first published Scorecard result |
 
-Check on the first pull request that the required check `test` is satisfied: it is a matrix, and
-if it stays "Expected" the ruleset must name the matrix jobs instead.
+`test` is a matrix, so no check is named plain `test`. `ci.yml` has a `ci-ok` job that fails unless
+`test`, `typecheck`, `audit` and `self-scan` all succeeded: the `protect-main` ruleset should require
+`ci-ok` (plus the individual jobs if wanted), not `test`.

@@ -973,3 +973,13 @@ def test_documented_uses_lines_are_pinned_to_a_full_sha(doc: str) -> None:
     text = (ROOT / doc).read_text(encoding="utf-8")
     for ref in re.findall(r"uses: (\S+@\S+)", text):
         assert re.fullmatch(r".+@[0-9a-f]{40}", ref), f"{doc}: {ref} is not a full SHA"
+
+
+def test_ci_ok_aggregates_every_job_for_the_branch_ruleset() -> None:
+    """``test`` is a matrix, so no check is named ``test``: the ruleset requires ``ci-ok``."""
+    ci = yaml.safe_load((ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8"))
+    job = ci["jobs"]["ci-ok"]
+    assert set(job["needs"]) == set(ci["jobs"]) - {"ci-ok"}
+    assert job["if"] == "always()"  # a skipped or failed need must not skip the gate
+    script = "".join(step.get("run", "") for step in job["steps"])
+    assert '"success"' in script and "exit 1" in script

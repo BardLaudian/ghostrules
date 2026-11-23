@@ -79,3 +79,19 @@ jobs:
           ghostrules scan . --no-color
           ghostrules scan . --all-files --no-color
           ghostrules lock --check --no-color
+
+  # One stable name for the branch ruleset: "test" is a matrix, so its checks are named per
+  # combination and no check is called plain "test". This job fails unless every job succeeded.
+  ci-ok:
+    if: always()
+    needs: [test, typecheck, audit, self-scan]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Every required job succeeded
+        env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "results: $RESULTS"
+          for r in $RESULTS; do
+            [ "$r" = "success" ] || { echo "a required job did not succeed: $r"; exit 1; }
+          done
