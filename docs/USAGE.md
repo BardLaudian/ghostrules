@@ -367,8 +367,8 @@ jobs:
   scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: BardLaudian/ghostrules@v0.4.1
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: BardLaudian/ghostrules@8d65b35e5576d85cf2a3bc0e05fa6525d15912c5 # v0.4.1
         with:
           fail-on: high          # critical | high | medium | low | info | none
           all-files: "false"     # also check every text file for hidden Unicode
@@ -393,9 +393,11 @@ jobs:
 | `trust-repo-config` | `false` | On pull requests, read the pull request's own `.ghostrules.toml` (the 0.3 behaviour) |
 | `inline-suppressions` | `base` | `base`: on pull requests, only ignore comments that already existed at the base commit. `off`: none. `all`: every comment (0.3) |
 
-**Pinning the Action.** `BardLaudian/ghostrules@v0` follows the latest stable `0.x.y` release (the
-release workflow moves that tag), an exact tag such as `@v0.4.1` stays put, and a full commit SHA is
-the strictest choice. Inside, the Action's own dependencies and build backend are installed from a
+**Pinning the Action.** The examples use a full commit SHA with the version in a comment: a tag
+can be moved after you reviewed it, a commit cannot, and Dependabot updates both together. As
+alternatives, `BardLaudian/ghostrules@v0` follows the latest stable `0.x.y` release (the release
+workflow moves that tag) and an exact tag such as `@v0.4.1` stays put, but both depend on the tag
+not being moved. Inside, the Action's own dependencies and build backend are installed from a
 file with a hash for each (`--require-hashes`), and every action it uses is pinned to a commit.
 
 **Pull requests are scanned with the base commit's settings (since 0.4, a breaking change).** On

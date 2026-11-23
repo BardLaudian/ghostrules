@@ -88,8 +88,8 @@ ghostrules lock --check  .ghostrules.lock
 ## GitHub Action and pre-commit
 
 ```yaml
-- uses: actions/checkout@v4
-- uses: BardLaudian/ghostrules@v0.4.1
+- uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+- uses: BardLaudian/ghostrules@8d65b35e5576d85cf2a3bc0e05fa6525d15912c5 # v0.4.1
   with:
     fail-on: high        # critical | high | medium | low | info | none
     lock-check: "true"   # fail if what the agents read changed
@@ -103,7 +103,7 @@ repos:
       - id: ghostrules
 ```
 
-On pull requests the Action reads the config and the `ghostrules-ignore` comments from the base commit, so a change cannot switch the scanner off for its own payload. Use `@v0` to follow the latest stable 0.x release, or a full commit SHA to pin it. Findings go to the job summary and, with `upload-sarif` (the default), to **Security → Code scanning**. All inputs, permissions and the full workflow are in the [usage guide](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#github-action).
+On pull requests the Action reads the config and the `ghostrules-ignore` comments from the base commit, so a change cannot switch the scanner off for its own payload. Pin the Action to a full commit SHA, as in the example (a tag can be moved, a commit cannot, and Dependabot keeps the SHA and its version comment current); `@v0` follows the latest stable 0.x release and is the alternative if you accept a moving tag. Findings go to the job summary and, with `upload-sarif` (the default), to **Security → Code scanning**. All inputs, permissions and the full workflow are in the [usage guide](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#github-action).
 
 ## How we test precision
 
