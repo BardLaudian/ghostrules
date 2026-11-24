@@ -684,3 +684,114 @@ label = "tp"
 rule = "GR102"
 severity = "medium"
 reason = "unpinned package execution, detected as intended"
+
+[[label]]
+fingerprint = "bc0f7fb3eb960cae"
+label = "benign-context"
+rule = "GR014"
+severity = "high"
+repo = "NousResearch/hermes-agent"
+reason = "documents where an API key variable is also read from; does not instruct reading or sending it"
+
+[[label]]
+fingerprint = "1848164f693b5c81"
+label = "benign-context"
+rule = "GR110"
+severity = "high"
+repo = "JuliusBrussee/caveman"
+reason = "sends its own configured API key to the endpoint the user chose; that is the tool's purpose"
+
+[[label]]
+fingerprint = "634029d300a4b892"
+label = "benign-context"
+rule = "GR110"
+severity = "high"
+repo = "JuliusBrussee/caveman"
+reason = "copy of the same script inside the plugin directory"
+
+[[label]]
+fingerprint = "3964282cac8f7c83"
+label = "benign-context"
+rule = "GR110"
+severity = "high"
+repo = "bytedance/deer-flow"
+reason = "test login to its own base URL; the password goes through stdin"
+
+[[label]]
+fingerprint = "8b0aa194ae9a1b0b"
+label = "benign-context"
+rule = "GR110"
+severity = "high"
+repo = "datawhalechina/hello-agents"
+reason = "its own service key sent to its own API"
+
+[[label]]
+fingerprint = "dce8e68babb500d9"
+label = "benign-context"
+rule = "GR110"
+severity = "high"
+repo = "datawhalechina/hello-agents"
+reason = "its own service key sent to its own API"
+
+[[label]]
+fingerprint = "232192180d15d095"
+label = "benign-context"
+rule = "GR110"
+severity = "high"
+repo = "koala73/worldmonitor"
+reason = "no secret is sent: a public API call; the environment variables only set theme and viewport. The rule matches a network call and an environment read in the same file"
+
+[[label]]
+fingerprint = "34978dadf296e0ce"
+label = "benign-context"
+rule = "GR110"
+severity = "high"
+repo = "microsoft/vscode"
+reason = "an Azure token from the az CLI sent to the Azure DevOps download URL of the same flow"
+
+[[label]]
+fingerprint = "a71900a6ef74d5a0"
+label = "benign-context"
+rule = "GR110"
+severity = "high"
+repo = "nexu-io/open-design"
+reason = "the provider key sent to the provider it belongs to"
+
+[[label]]
+fingerprint = "8da3d6f4991179e7"
+label = "benign-context"
+rule = "GR110"
+severity = "high"
+repo = "ossrs/srs"
+reason = "the flagged line is a websocket handshake without a secret; the password goes to OBS on 127.0.0.1 by default"
+
+[[label]]
+fingerprint = "7577ec7dd4d29a54"
+label = "benign-context"
+rule = "GR110"
+severity = "high"
+repo = "paperclipai/paperclip"
+reason = "the platform key sent to the platform API the script is configured for"
+
+[[label]]
+fingerprint = "a4999c87c4167b12"
+label = "benign-context"
+rule = "GR110"
+severity = "high"
+repo = "paperclipai/paperclip"
+reason = "the platform key sent to the platform API the script is configured for"
+
+[[label]]
+fingerprint = "7fe17889172cd68b"
+label = "benign-context"
+rule = "GR110"
+severity = "high"
+repo = "paperclipai/paperclip"
+reason = "the platform key sent to the platform API the script is configured for"
+
+[[label]]
+fingerprint = "03307c07dbf644d8"
+label = "tp"
+rule = "GR110"
+severity = "high"
+reason = "sends the user's GitHub token to a third-party host to exchange it for another token"
