@@ -97,7 +97,7 @@ wrote lock: 4 file(s) in the contexts of 4 agent(s)
       "sha256": "d9557f00b81d094422249401d397c3e6625bed6a1c82c4c20f0b5a056b0ffa1a"
     }
   ],
-  "generator": "ghostrules 0.5.0",
+  "generator": "ghostrules 0.5.1",
   "lock_version": 1
 }
 

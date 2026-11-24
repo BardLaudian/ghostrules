@@ -1,5 +1,5 @@
 exit=0
-◆ ghostrules v0.5.0  scanning examples/clean-repo
+◆ ghostrules v0.5.1  scanning examples/clean-repo
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
 ✔ No findings  (scanned 2 files)
