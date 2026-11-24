@@ -1226,7 +1226,9 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 
 - **The 14 missing independent cases were not added.** Their text is not in the repository
   (`REMEDIATION.md` only describes 4 of the 18) and inventing them would defeat the point of an
-  independent sample. Pending `[HUMANO]`: provide the review's cases; add them as `origin = "review"`.
+  independent sample. On 2026-11-24 the maintainer confirmed the original text is lost, so this is a
+  permanent limit, not a pending task: the independent sample stays at 4 cases. The way to grow it
+  is new cases written by someone who has not seen the rules, added as `origin = "review"`.
 - **Wilson interval, 95 %**, because the samples are tiny (4 and 21) and the normal approximation is
   wrong there. A percentage is never printed without `k of n`.
 - **Assistant and human labels are separate figures.** A human label in `labels-review.csv` overrides
@@ -1275,7 +1277,11 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   The action is pinned by SHA (`lycheeverse/lychee-action` v2.9.0, read with `gh api`).
 - **Thresholds in GOVERNANCE.md** (3 independent reports, or precision under 50 % on at least 10
   labelled findings) and the deprecation period (two minor releases) are proposals by the author of
-  this phase; the maintainer may change them.
-- **Code of Conduct contact** uses GitHub's private reporting; a dedicated email is `[HUMANO]`.
+  this phase. The maintainer reviewed them on 2026-11-24 and kept them as written. On the same date
+  the maintainer approved the README sections "Limits" and "How this was built" and decided to keep
+  the history as it is (80 of 88 earlier commits keep their AI trailer).
+- **`links.yml` stays out of `ci-ok`** (maintainer, 2026-11-24): the link check depends on the network and
+  on files that are not on `main` yet, so it informs but does not block merges.
+- **Code of Conduct contact** uses GitHub's private reporting only. Decided by the maintainer on 2026-11-24: no email is published.
 - **Changelog:** Unreleased sections were merged into the Keep a Changelog categories and internal
   tracking labels (H1…H14) removed. Older "Known limits" sections are kept as written.

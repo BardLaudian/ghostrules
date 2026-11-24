@@ -23,8 +23,8 @@ the rule that should catch it and whether it does today (`status = "detected"` o
 - **Provenance.** `origin` is `public` (a public technique), `review` (a case from the independent
   review) or `author` (written by the maintainer, who knew what the rules match: not independent). <!-- bench:provenance:start -->Only **4 of the review's 18 cases**<!-- bench:provenance:end --> are included:
   the ones `REMEDIATION.md` describes. The other 14 are not in the repository and are not
-  invented here; add them as `origin = "review"` cases when the list is available. Ideally someone
-  who has not seen the rules writes another 20.
+  invented here. The original text of the review is lost (maintainer, 2026-11-24), so they cannot be
+  recovered. Ideally someone who has not seen the rules writes another 20, as new cases.
 
 ## Precision: the held-out set (`heldout.toml`)
 
