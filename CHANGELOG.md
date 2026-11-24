@@ -5,6 +5,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **GR017 no longer reports the example access key that AWS publishes in its documentation**
+  (`AKIAIOSFODNN7EXAMPLE`) as a critical secret. Only that value and the matching secret key are
+  skipped; any other value, including one that merely ends in `EXAMPLE`, is still reported. Found by
+  the weekly corpus run on a skill that explains what an obvious docs example looks like.
+
 ## [0.5.0] - 2026-11-24
 
 ### Added
