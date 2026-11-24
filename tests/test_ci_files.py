@@ -844,7 +844,9 @@ def test_the_changelog_has_release_notes_for_the_packaged_version() -> None:
 
     section = load_script("changelog_section").section
     body = section((ROOT / "CHANGELOG.md").read_text(encoding="utf-8"), f"v{__version__}")
-    assert body and "### Added" in body
+    # any Keep a Changelog category: a patch release may have only "Fixed"
+    categories = r"^### (Added|Changed|Deprecated|Removed|Fixed|Security)$"
+    assert body and re.search(categories, body, re.MULTILINE)
     assert "## [Unreleased]" in (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
 
 
