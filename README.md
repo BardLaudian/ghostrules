@@ -90,7 +90,7 @@ ghostrules lock --check  .ghostrules.lock
 
 ```yaml
 - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-- uses: BardLaudian/ghostrules@3a5f7120fc4e1dc1c9b58fad760567f8116b0b35 # v0.5.0
+- uses: BardLaudian/ghostrules@a959634d50f378e2e0ff9bf8bf65e832106df70c # v0.5.1
   with:
     fail-on: high        # critical | high | medium | low | info | none
     lock-check: "true"   # fail if what the agents read changed
@@ -99,7 +99,7 @@ ghostrules lock --check  .ghostrules.lock
 ```yaml
 repos:
   - repo: https://github.com/BardLaudian/ghostrules
-    rev: v0.5.0
+    rev: v0.5.1
     hooks:
       - id: ghostrules
 ```
