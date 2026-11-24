@@ -1,5 +1,8 @@
 # Link check for the Markdown files (see .github/workflows/links.yml).
-max_retries = 2
+max_retries = 3
+# 503 from github.com is throttling: fewer parallel requests, and wait before a retry
+max_concurrency = 8
+retry_wait_time = 5
 timeout = 20
 # 429: rate limited, not dead. 403: some sites refuse automated clients.
 accept = ["200..=299", "403", "429"]
