@@ -12,7 +12,7 @@ Status as of 2026-11-23, checked with read-only `gh api` calls where the API all
 | Signed commits | same | **Skipped on purpose** (optional): needs a signing key set up first |
 | Two-factor authentication on GitHub and PyPI | Account settings | **Done** (reported by the maintainer; not verifiable from the repository) |
 | Environment `pypi` with a required reviewer | Settings → Environments | **Done** |
-| Ruleset `protect-release-tags`: `v*` tags cannot be moved, deleted or created except by an admin | Settings → Rules | **Done** |
+| Ruleset `protect-release-tags`: `v*` tags cannot be moved, deleted or created except by an admin; `v0` is excluded so the release workflow can move it | Settings → Rules | **Done** |
 | Dependabot alerts and security updates | Settings → Code security | **Done** |
 | Code scanning | Settings → Code security | **Done** (CodeQL alerts open; see the Security tab) |
 | Workflow permissions default to read-only | Settings → Actions → General | **Done** |

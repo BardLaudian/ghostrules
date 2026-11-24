@@ -1280,6 +1280,9 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   this phase. The maintainer reviewed them on 2026-11-24 and kept them as written. On the same date
   the maintainer approved the README sections "Limits" and "How this was built" and decided to keep
   the history as it is (80 of 88 earlier commits keep their AI trailer).
+- **`v0` is excluded from the `protect-release-tags` ruleset** (maintainer, 2026-11-24). The release job
+  `move-major-tag` force-pushes `v0` with the workflow token, which is not an admin, so the rule would
+  block it. `v0.x.y` tags stay protected. The 0.5.0 release moved `v0` successfully.
 - **`links.yml` stays out of `ci-ok`** (maintainer, 2026-11-24): the link check depends on the network and
   on files that are not on `main` yet, so it informs but does not block merges.
 - **Code of Conduct contact** uses GitHub's private reporting only. Decided by the maintainer on 2026-11-24: no email is published.
