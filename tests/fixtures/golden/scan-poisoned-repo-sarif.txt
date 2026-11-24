@@ -7,8 +7,8 @@ exit=1
       "tool": {
         "driver": {
           "name": "ghostrules",
-          "version": "0.5.0",
-          "semanticVersion": "0.5.0",
+          "version": "0.5.1",
+          "semanticVersion": "0.5.1",
           "informationUri": "https://github.com/BardLaudian/ghostrules",
           "rules": [
             {
