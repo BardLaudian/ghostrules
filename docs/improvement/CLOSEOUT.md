@@ -69,8 +69,8 @@ Criterios de `PLAN.md` ("Definición de profesional") y de `docs/VERSIONING.md`.
    (el texto original de los 14 se perdió: límite permanente anotado en `DECISIONS.md`).
 4. ~~Decisión sobre el historial~~: se mantiene tal cual (decidido el 2026-11-24).
 5. Validación externa: revisión independiente o uso en repos ajenos.
-6. Protección de rama: decidir si `links.yml` entra en `ci-ok`; comprobar que el entorno `pypi`
-   solo admite tags `v*`.
+6. ~~Protección de rama~~: `links.yml` no entra en `ci-ok` (decidido el 2026-11-24); el entorno
+   `pypi` solo admite tags `v*` (comprobado con `gh api`).
 7. Tras publicar 0.5.0: verificar atestaciones y SBOM; actualizar el SHA y `v0.4.1` del README,
    `docs/USAGE.md` y `docs/PERFORMANCE.md` con el SHA real del tag (no se inventa antes).
 8. Revisar el primer PR de Dependabot `pip` y cerrar o rebasar ramas viejas de Dependabot.

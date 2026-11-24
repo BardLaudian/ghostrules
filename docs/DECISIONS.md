@@ -1280,6 +1280,8 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
   this phase. The maintainer reviewed them on 2026-11-24 and kept them as written. On the same date
   the maintainer approved the README sections "Limits" and "How this was built" and decided to keep
   the history as it is (80 of 88 earlier commits keep their AI trailer).
+- **`links.yml` stays out of `ci-ok`** (maintainer, 2026-11-24): the link check depends on the network and
+  on files that are not on `main` yet, so it informs but does not block merges.
 - **Code of Conduct contact** uses GitHub's private reporting only. Decided by the maintainer on 2026-11-24: no email is published.
 - **Changelog:** Unreleased sections were merged into the Keep a Changelog categories and internal
   tracking labels (H1…H14) removed. Older "Known limits" sections are kept as written.
