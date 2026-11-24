@@ -795,3 +795,11 @@ label = "tp"
 rule = "GR110"
 severity = "high"
 reason = "sends the user's GitHub token to a third-party host to exchange it for another token"
+
+[[label]]
+fingerprint = "bf58a02e46c3967e"
+label = "benign-context"
+rule = "GR110"
+severity = "high"
+repo = "career-ops-hq/career-ops"
+reason = "a test file: the flagged line builds an in-memory map, and the environment goes to local child processes. The rule matches a network call and an environment read in the same file"

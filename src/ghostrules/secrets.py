@@ -77,6 +77,14 @@ _PLACEHOLDER_WORDS_RE = re.compile(
 )
 
 
+# The two values AWS prints in its own documentation as examples. They are public constants, so
+# writing one is documentation, not a leak. Deliberately an exact list, not an "ends in EXAMPLE"
+# rule: a look-alike is still reported.
+_PUBLISHED_EXAMPLES = frozenset(
+    {"AKIAIOSFODNN7EXAMPLE", "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"}
+)
+
+
 class Replacement(NamedTuple):
     """Replace ``text[start:end]`` by ``text``."""
 
@@ -101,7 +109,7 @@ def mask_value(value: str) -> str:
 
 
 def is_placeholder(value: str) -> bool:
-    """True for variable references (``${VAR}``, ``<token>``) and dummy values."""
+    """True for variable references (``${VAR}``), dummy values and the examples AWS publishes."""
     s = value.strip()
     return (
         not s
@@ -110,6 +118,7 @@ def is_placeholder(value: str) -> bool:
         or s.startswith(("$", "<"))
         or (s.startswith("%") and s.endswith("%"))
         or len(set(s)) == 1
+        or s in _PUBLISHED_EXAMPLES
         or "****" in s
         or _PLACEHOLDER_WORDS_RE.fullmatch(s) is not None
     )

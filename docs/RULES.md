@@ -287,7 +287,8 @@ high, "The test harness runs Claude with `--permission-mode bypassPermissions`" 
 Since 0.5 (H5). A known token format written in the text of an instruction file or `.cursorrules`:
 the GR101 list (`ghp_`…, `github_pat_`, `sk-ant-`, `sk-`, `AKIA`/`ASIA`, `xox*-`, `AIza`, `glpat-`,
 `hf_`, `npm_`, Slack/Discord webhooks) **without** the `Bearer` form, which in prose is almost always
-documentation of a header. Placeholders (`${VAR}`, `<token>`, `****`) are skipped. Not lowered by the
+documentation of a header. Placeholders (`${VAR}`, `<token>`, `****`) and the two example values AWS publishes in its documentation
+(`AKIAIOSFODNN7EXAMPLE` and its secret key) are skipped; a look-alike is not. Not lowered by the
 visible-prose policy: a secret on screen is still exposed. **Always masked** with the same code as
 GR101 (`secrets.py`). Generic high-entropy values under a secret-looking name are not detected in
 prose.

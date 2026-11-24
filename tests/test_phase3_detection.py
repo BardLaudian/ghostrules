@@ -162,3 +162,30 @@ def test_gr017_reports_and_masks_a_secret_in_prose(tmp_path: Path, name: str, se
 )
 def test_gr017_ignores_placeholders_and_prose_mentions(tmp_path: Path, text: str) -> None:
     assert "GR017" not in ids(scan(tmp_path, "CLAUDE.md", text))
+
+
+# The two values AWS publishes in its documentation as examples. They are public constants, so
+# writing them is documentation. Any other value that merely ends in EXAMPLE is still reported:
+# the fake tokens of the tests above are exactly that.
+AWS_DOCUMENTED_EXAMPLE_ID = "AKIA" + "IOSFODNN7EXAMPLE"
+
+
+@pytest.mark.parametrize("name", ["CLAUDE.md", "AGENTS.md", ".cursorrules"])
+def test_gr017_ignores_the_access_key_id_aws_documents(tmp_path: Path, name: str) -> None:
+    text = f"Obvious docs examples such as `{AWS_DOCUMENTED_EXAMPLE_ID}` are fine.\n"
+    assert "GR017" not in ids(scan(tmp_path, name, text))
+
+
+def test_gr017_still_reports_a_look_alike_of_the_documented_example(tmp_path: Path) -> None:
+    for value in (
+        "AKIA" + "IOSFODNN7EXAMPLF",
+        "AKIA" + "IOSFODNN8EXAMPLE",
+        "AKIA" + "XXXXXXXXXXEXAMPLE"[:16],
+    ):
+        assert "GR017" in ids(scan(tmp_path, "CLAUDE.md", f"Use {value} for the API.\n")), value
+
+
+def test_gr017_reports_the_documented_example_next_to_a_real_looking_key(tmp_path: Path) -> None:
+    text = f"Example: {AWS_DOCUMENTED_EXAMPLE_ID}. Production: {SECRETS['aws']}.\n"
+    hits = [f for f in scan(tmp_path, "CLAUDE.md", text) if f.rule_id == "GR017"]
+    assert len(hits) == 1
