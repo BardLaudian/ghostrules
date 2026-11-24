@@ -1226,7 +1226,9 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 
 - **The 14 missing independent cases were not added.** Their text is not in the repository
   (`REMEDIATION.md` only describes 4 of the 18) and inventing them would defeat the point of an
-  independent sample. Pending `[HUMANO]`: provide the review's cases; add them as `origin = "review"`.
+  independent sample. On 2026-11-24 the maintainer confirmed the original text is lost, so this is a
+  permanent limit, not a pending task: the independent sample stays at 4 cases. The way to grow it
+  is new cases written by someone who has not seen the rules, added as `origin = "review"`.
 - **Wilson interval, 95 %**, because the samples are tiny (4 and 21) and the normal approximation is
   wrong there. A percentage is never printed without `k of n`.
 - **Assistant and human labels are separate figures.** A human label in `labels-review.csv` overrides
