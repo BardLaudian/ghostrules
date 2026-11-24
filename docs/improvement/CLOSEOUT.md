@@ -16,7 +16,7 @@ Estados: **cerrado** (arreglado con test), **mitigado** (reducido, queda un lím
 | H5 | cerrado | GR017 detecta secretos en prosa, enmascarados | `0c4834d`; `docs/RULES.md` |
 | H6 | humano | Intervalos de Wilson, etiquetas humanas 21/21, hoja de revisión ciega, afirmaciones del README respaldadas por `CLAIMS.md`. **Faltan 14 de los 18 casos independientes** (no están en el repo; no se inventan). Una sola persona etiquetó | `54dc915`, `75d0c95`, `3612eb8`, `eee4d47`; `bench/README.md` |
 | H7 | cerrado | `mypy src` en modo estricto, pasa y corre en CI | `32dd31c`; `.github/workflows/ci.yml` |
-| H8 | cerrado | `permissions:` mínimos en los 7 workflows, `ci-ok`, pip-audit y autoescaneo en CI, atestaciones y SBOM en release, Scorecard | `a1056dc`, `25a2518`, `f126ca0`. Las atestaciones **no se han ejecutado todavía** (se verifican en esta release) |
+| H8 | cerrado | `permissions:` mínimos en los 7 workflows, `ci-ok`, pip-audit y autoescaneo en CI, atestaciones y SBOM en release, Scorecard | `a1056dc`, `25a2518`, `f126ca0`. Release 0.5.0 (2026-11-24): atestación de procedencia en GitHub y en PyPI, SBOM CycloneDX 1.6 adjunto |
 | H9 | cerrado | README y USAGE muestran el Action fijado por SHA; `@v0` explicado como tag móvil | `87530fb` |
 | H10 | cerrado | `scan`, `scan_paths`, `lock`, `add_file` divididas tras tests de caracterización; umbrales de ruff (complejidad 15, ramas 15) en CI | `9a8d34f`…`5094dfa`, `5331d86` |
 | H11 | cerrado | Tope de tamaño con aviso visible (`--max-file-size`, 1 MiB), coste lineal con muchos hallazgos, caracteres de control, tests de propiedades (hypothesis) y de presupuesto de tiempo (`-m slow`, 6 pasan) | `e52040f`; `tests/test_robustness_limits.py` |
@@ -53,7 +53,7 @@ Criterios de `PLAN.md` ("Definición de profesional") y de `docs/VERSIONING.md`.
 | Evasiones H1–H5 con test y cerradas o documentadas | casi | CI | H4: una paráfrasis sigue en `xfail`; está documentada como límite |
 | Recall/precisión con casos independientes y etiquetas humanas, con intervalo | parcial | **humano** | 14 casos independientes; segunda persona que etiquete |
 | mypy, ruff, pytest, pip-audit y autoescaneo en CI; permisos mínimos | cumplido | CI | — |
-| Releases con atestaciones verificables y SBOM; Scorecard publicado | pendiente de comprobar | **humano** | Verificar con `gh attestation verify` tras publicar 0.5.0; Scorecard ya se publica |
+| Releases con atestaciones verificables y SBOM; Scorecard publicado | cumplido en 0.5.0 | **humano** | Existen en GitHub y PyPI (comprobado por API); falta la verificación criptográfica con `gh attestation verify` (requiere un `gh` más nuevo). Scorecard ya se publica |
 | Fuzz/propiedades y tope de tamaño con aviso | cumplido | CI | — |
 | Funciones ≤ ~80 líneas / ~15 ramas en rutas críticas | cumplido | CI (umbrales ruff) | — |
 | THREAT_MODEL, versionado, gobernanza | cumplido | **humano** | Aprobar umbrales de GOVERNANCE (son propuesta); contacto del CoC |
@@ -71,8 +71,9 @@ Criterios de `PLAN.md` ("Definición de profesional") y de `docs/VERSIONING.md`.
 5. Validación externa: revisión independiente o uso en repos ajenos.
 6. ~~Protección de rama~~: `links.yml` no entra en `ci-ok` (decidido el 2026-11-24); el entorno
    `pypi` solo admite tags `v*` (comprobado con `gh api`).
-7. Tras publicar 0.5.0: verificar atestaciones y SBOM; actualizar el SHA y `v0.4.1` del README,
-   `docs/USAGE.md` y `docs/PERFORMANCE.md` con el SHA real del tag (no se inventa antes).
+7. ~~Tras publicar 0.5.0~~: publicada el 2026-11-24 (`3a5f712`); SHA actualizado en README y USAGE.
+   Queda la verificación criptográfica de las atestaciones. `docs/PERFORMANCE.md` conserva 0.4.1
+   porque esas cifras se midieron con esa versión.
 8. Revisar el primer PR de Dependabot `pip` y cerrar o rebasar ramas viejas de Dependabot.
 9. Borrar las ramas remotas ya fusionadas (`fase-*`).
 
