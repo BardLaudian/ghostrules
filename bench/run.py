@@ -293,7 +293,7 @@ def readme_block(outcomes: list[lib.Outcome]) -> str:
         f"**Recall on independent cases: {lib.share(reported, len(mine), 'reported')}; "
         f"{lib.share(fails, len(mine))} fail the default `--fail-on high` check.** They "
         f"are {len(mine)} of the {lib.REVIEW_TOTAL} cases an independent review wrote; the other "
-        f"{lib.REVIEW_TOTAL - len(mine)} are not in the repository yet, so this is a small sample. "
+        f"{lib.REVIEW_TOTAL - len(mine)} are not in the repository (the original text is lost), so this is a small sample. "
         f"The {total - len(mine)} cases written by the author or taken from public sources are "
         f"shown separately because the author knew what the rules match; across all cases "
         f"{lib.share(all_reported, total)} are reported. Visible prose is `low` by "
