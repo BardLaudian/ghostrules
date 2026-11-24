@@ -21,3 +21,6 @@ jobs:
         with:
           args: --config lychee.toml --no-progress "**/*.md"
           fail: true
+        env:
+          # an authenticated client gets a far higher GitHub rate limit than an anonymous one
+          GITHUB_TOKEN: ${{ github.token }}
