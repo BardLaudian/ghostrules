@@ -9,24 +9,26 @@
     "GR013": 4,
     "GR014": 10,
     "GR016": 29,
+    "GR017": 1,
     "GR022": 2,
     "GR025": 5,
     "GR102": 10,
     "GR107": 4,
     "GR108": 1,
-    "GR110": 13
+    "GR110": 14
   },
   "by_severity": {
-    "high": 19,
+    "critical": 1,
+    "high": 20,
     "info": 92,
     "low": 97,
     "medium": 24
   },
-  "date": "2026-11-23",
-  "findings": 232,
+  "date": "2026-11-24",
+  "findings": 234,
   "gate": "fail",
-  "ghostrules_version": "0.4.1",
+  "ghostrules_version": "0.5.0",
   "repos": 300,
   "tier": "regression",
-  "unlabelled_critical_high": 14
+  "unlabelled_critical_high": 2
 }
