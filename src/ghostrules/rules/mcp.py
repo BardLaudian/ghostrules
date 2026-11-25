@@ -7,12 +7,19 @@ import re
 from collections.abc import Iterator
 from urllib.parse import parse_qsl, urlsplit
 
+from ghostrules.jsonloc import JNode, parse_located
 from ghostrules.mcp_config import ServerDef, Span, settings_env_entries
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
 from ghostrules.rules.helpers import build_finding
 from ghostrules.rules.patterns import INJECTION_PATTERNS
-from ghostrules.rules.registry import rule
-from ghostrules.secrets import is_secret_key_name, known_secret, looks_like_secret_value, mask_value
+from ghostrules.rules.registry import all_rules, rule
+from ghostrules.secrets import (
+    is_placeholder,
+    is_secret_key_name,
+    known_secret,
+    looks_like_secret_value,
+    mask_value,
+)
 
 CONFIG: tuple[Kind, ...] = ("config",)
 
@@ -64,8 +71,17 @@ def _candidate_values(server: ServerDef) -> Iterator[tuple[str, str, str | None,
         if parts.password:
             yield "url", "URL password", "password", parts.password
         for name, value in parse_qsl(parts.query, keep_blank_values=True):
-            yield "url", f"URL parameter {name}", name, value
+            yield "url", f"URL parameter {name}", _QUERY_KEY + name, value
         yield "url", "URL", None, server.url
+
+
+# A URL query parameter is keyed with this prefix: its name must be a credential name in full
+# (``sort_key`` is not a key), and a value that is not a placeholder is enough to report.
+_QUERY_KEY = "?"
+_CREDENTIAL_PARAM = re.compile(
+    r"api[_-]?key|apikey|(?:access|auth|client)[_-]?(?:token|secret)|token|secret|password|key",
+    re.IGNORECASE,
+)
 
 
 def _detect_secret(key: str | None, value: str) -> tuple[str, str] | None:
@@ -73,9 +89,23 @@ def _detect_secret(key: str | None, value: str) -> tuple[str, str] | None:
     found = known_secret(value)
     if found:
         return found
+    if key and key.startswith(_QUERY_KEY):
+        if _CREDENTIAL_PARAM.fullmatch(key[len(_QUERY_KEY) :]) and _credential_value(value):
+            return "Credential in URL", value
+        return None
     if key and is_secret_key_name(key) and looks_like_secret_value(value):
         return "Secret value", value
     return None
+
+
+def _credential_value(value: str) -> bool:
+    """A value that can be a credential: long, no spaces, not a placeholder or a path."""
+    return (
+        len(value) >= 16
+        and not any(c.isspace() for c in value)
+        and not is_placeholder(value)
+        and not value.startswith(("/", "~", "./", "../"))
+    )
 
 
 def _secret_findings(
@@ -444,3 +474,55 @@ def gr106_dangerous_docker(target: ScanTarget) -> Iterator[Finding]:
                 server.span(f"args.{index}"),
                 "Remove the option and mount only the specific directories the server needs.",
             )
+
+
+# --- GR109 ---------------------------------------------------------------------------------
+
+_PROSE_KEYS = frozenset({"description", "instructions"})  # text the model reads from the config
+_PROSE_RULES = frozenset({"GR010", "GR011", "GR012", "GR013", "GR014", "GR016"})
+
+
+def _prose_nodes(node: JNode | None) -> Iterator[JNode]:
+    """String values under a ``description`` or ``instructions`` key, at any depth."""
+    if node is None:
+        return
+    for key, (_start, child) in (node.members or {}).items():
+        if key in _PROSE_KEYS and isinstance(child.value, str):
+            yield child
+        else:
+            yield from _prose_nodes(child)
+    for child in node.elements or ():
+        yield from _prose_nodes(child)
+
+
+@rule(
+    "GR109",
+    Severity.HIGH,
+    "Instructions in MCP server descriptions",
+    "The description and instructions of an MCP server or tool are read by the model. The "
+    "instruction rules (GR010-GR014, GR016) run on them.",
+    CONFIG,
+)
+def gr109_mcp_prose(target: ScanTarget) -> Iterator[Finding]:
+    """Instruction text in MCP ``description``/``instructions`` values, reported at the value.
+
+    The value is checked as an instruction file would be; the severity is the rule's own, since
+    the reviewer reads the config as data and the model reads these strings as instructions.
+    """
+    if not target.path.lower().endswith(".json"):
+        return
+    checks = [r for r in all_rules() if r.id in _PROSE_RULES]
+    for node in _prose_nodes(parse_located(target.text)):
+        prose = ScanTarget(target.path, "instructions", node.value)
+        for check in checks:
+            for hit in check.check(prose):
+                yield _finding(
+                    target,
+                    "GR109",
+                    hit.severity,
+                    "Instructions in MCP server descriptions",
+                    f"{hit.message} (in an MCP server or tool description, read by the model)",
+                    node.string_span(),
+                    "Remove the instruction from the description, or make the server's "
+                    "behaviour explicit in the config instead.",
+                )

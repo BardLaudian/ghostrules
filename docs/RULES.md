@@ -51,6 +51,7 @@ the URLs in any file.
 | <a id="gr106"></a>`GR106` | high | config | **Dangerous Docker options.** Docker-based MCP servers started with options that break container isolation. |
 | <a id="gr107"></a>`GR107` | high | config | **Over-permissive agent settings.** Agent settings that skip permission prompts, allow unrestricted tools, or run risky hooks. |
 | <a id="gr108"></a>`GR108` | medium | config | **Auto-enabled project MCP servers.** Settings that start MCP servers from a cloned repository without review. |
+| <a id="gr109"></a>`GR109` | high | config | **Instructions in MCP server descriptions.** The description and instructions of an MCP server or tool are read by the model. The instruction rules (GR010-GR014, GR016) run on them. |
 | <a id="gr110"></a>`GR110` | high |  | **Script sends the environment or a secret.** A script that a hook or a skill runs posts the environment, a token or a credentials file to a remote host. |
 | <a id="gr111"></a>`GR111` | medium |  | **Script reads credential files.** A script that a hook or a skill runs reads credentials (~/.ssh, ~/.aws, .npmrc, the keychain). |
 | <a id="gr112"></a>`GR112` | high |  | **Script downloads and runs code.** A script that a hook or a skill runs downloads code and executes it (curl \| sh, eval of a download, exec of urlopen). |
@@ -113,6 +114,10 @@ letters or leet digits (`5k1p wr1t1ng` for "skip writing") is high when its plai
 look-alikes folded, leet applied to words that carry a digit when most words do) is addressed to the
 agent. The message does not echo the folded text.
 
+Since round 004 the look-alike table also folds Unicode small capitals (`ᴀ` `ʙ` `ᴄ` … `ᴢ`, the
+Phonetic Extensions letters NFKC leaves alone). A line that reads as an instruction once they are
+folded is reported at **high** by the disguised-reading check, the same as fullwidth letters.
+
 ---
 
 ## Malicious instructions (natural language, English, Spanish and French)
@@ -165,6 +170,12 @@ Not concealment, and not reported: "do not tell the user **to** …", "… **whi
 …" and "… **that** …" unless it is "that you …": these say what to tell the user. "Do not tell the
 user about this", "Do not tell the user." and "Do not tell the user that you did it" are.
 Since 0.4 "do not tell the user **they|he|she** …" is wording advice ("…they are wrong"), not concealment.
+
+Since round 004 the forms are: `keep quiet about`, `keep silent about`; `omit|leave out|skip any
+mention of edits|changes|modifications|updates` (the summary is told to hide the changes); and a
+false report of work, `say (that) they|it … already covered|tested|verified|reviewed`. Each is
+high in an instruction and high when hidden (a comment, a hidden element, a buried line), low when
+it is visible prose.
 
 ### GR012 — Remote code execution patterns (context-aware in instructions, high elsewhere)
 Since round 003: `sh -c "$(curl …)"` (and backticks) is a download run by a shell, and a *standing*
@@ -279,6 +290,11 @@ Since 0.5 (H4) GR010, GR011 and GR013 also have a short reviewed list of French 
 and GR013 has Spanish and French verbs (`envía`, `sube`, `envoie`, `transmets`) with their secret nouns
 (`variables de entorno`, `credenciales`, `jeton`, `mot de passe`...). Other languages and paraphrases are not covered.
 
+Since round 004 it also reports asking the user to paste, send, share or provide a credential
+(`ask the user to paste their API key into the chat`, `tell the user to send their token`): the
+agent then reads the secret from the chat. A solicitation names no path, so it is not treated as the
+described-private-key heuristic (which stays low).
+
 ### GR015 — Encoded payloads (medium → high)
 Base64 runs ≥ 60 chars (or hex ≥ 80) in instruction files. Decode; if the result is mostly
 printable text → high and put it in `decoded` (and scan it with GR010–GR014). Skip data URIs of
@@ -299,6 +315,11 @@ reported high. A decoded directive is high only when it is addressed to the agen
 `always`, `never`), matches an injection pattern, or sends or runs something at an external URL; a
 project note such as `Run the unit tests before tagging a release` is medium.
 
+Since round 004 a base64 run inside a URL fragment (`https://host/page#<base64>`) is decoded like
+any other run (a query value or path is still skipped, since those are often tokens and assets). A
+percent-encoded sentence in a URL query or fragment (four or more `%XX` escapes that decode to text
+matching an injection pattern) is a payload too, reported at **high** through the decoded rescan.
+
 ### GR016 — Agent safety bypass (high)
 `--dangerously-skip-permissions`, `bypassPermissions`, `--yolo`, `yolo mode`, `auto[- ]?approve (all|every)`,
 `always (allow|approve|accept) (all )?(commands|tools|edits)`, `disable (the )?(sandbox|safety|guardrails)`,
@@ -314,6 +335,10 @@ Since round 002 also: TLS certificate checks switched off (`NODE_TLS_REJECT_UNAU
 `strict-ssl false`). Visible prose is low by the visibility policy; a hidden comment, or a file in a
 skill folder other than its SKILL.md (reached only through it), keeps high.
 
+Since round 004: `run|execute the commands|tools … without asking|confirmation|approval|permission`
+(the agent is told to run what a tool returns without the user's approval). `run the tests without
+asking` is not matched: it names no commands or tools.
+
 ### GR017 — Secret in an instruction file (critical)
 Since 0.5 (H5). A known token format written in the text of an instruction file or `.cursorrules`:
 the GR101 list (`ghp_`…, `github_pat_`, `sk-ant-`, `sk-`, `AKIA`/`ASIA`, `xox*-`, `AIza`, `glpat-`,
@@ -327,6 +352,12 @@ a secret too, and a token cut into the pieces of adjacent inline code spans (`` 
 `` `…` ``, joined by whitespace) is reported as one secret. A token shorter than the format (the
 `ghp_` form needs 36 characters) is not a token for this rule.
 
+Since round 004 a base64 run of 24 characters or more is decoded, and a known token format in the
+result is reported as critical and masked (a 40-character token is 56 characters once encoded, below
+the GR015 threshold). A value under a credential label on the same line (`token`, `secret`,
+`password`, `api key`, `credential`) that decodes to one long token-shaped string with no spaces is
+reported too, as a credential.
+
 ---
 
 ## MCP / agent configuration (JSON/TOML parsed; report line numbers by locating the key in text)
@@ -339,6 +370,10 @@ known formats — `ghp_|gho_|ghu_|ghs_|ghr_` + 36, `github_pat_\w{22,}`, `sk-ant
 `Bearer <long token>`; plus generic: key name matches `(?i)(token|secret|key|password|passwd|auth)`
 and value has length ≥ 16 and Shannon entropy ≥ 3.5 and is not `${VAR}` / `$VAR` / `<placeholder>`
 / `your-...-here` / all-same-char. **Always mask** (`first 4 + **** + last 4`).
+
+Since round 004 a URL query parameter whose name is a credential name in full (`api_key`, `apikey`,
+`token`, `access_token`, `secret`, `password`, `key`, …; not `sort_key`) and whose value is at least
+16 characters, not a placeholder and not a path is a hardcoded credential, without the entropy test.
 
 ### GR102 — Unpinned package execution (medium)
 `command` in (`npx`, `bunx`, `pnpm dlx`, `yarn dlx`, `uvx`, `pipx run`) where the package arg has no
@@ -377,6 +412,15 @@ Since 0.4: Codex `.codex/config.toml` with `sandbox_mode = "danger-full-access"`
 and Gemini `.gemini/settings.json` with a bare `run_shell_command` in `tools.allowed` or
 `security.enablePermanentToolApproval: true` (high). MCP servers in `[mcp_servers.*]` of a Codex
 config get GR101-GR106, and `mcpServers.<name>.trust` GR108.
+
+### GR109 — Instructions in MCP server descriptions (high)
+The `description` and `instructions` strings of a JSON MCP config (servers and tools, at any depth)
+are read by the model. The instruction rules GR010, GR011, GR012, GR013, GR014 and GR016 run on
+them, and a hit is reported at the string, with the rule's own severity. A tool description that
+tells the agent to read `~/.aws/credentials` (GR014), or an `instructions` field that says to run
+the commands a server returns without asking (GR016), is high. A plain description of what the tool
+does is not. Config files are not visibility-lowered: the reviewer reads these as data, the model as
+instructions.
 
 ### GR108 — Auto-enable project MCP servers (medium)
 `enableAllProjectMcpServers: true` in settings, or equivalent auto-trust flags. Explains that any

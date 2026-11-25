@@ -12,6 +12,7 @@ import base64
 import binascii
 import re
 from typing import NamedTuple
+from urllib.parse import unquote_plus
 
 from ghostrules.rules.directive import is_instruction
 from ghostrules.secrets import shannon_entropy
@@ -68,6 +69,14 @@ COLLECTOR_PATTERNS = _compile(
     r"|beeceptor\.com|hookbin\.com|canarytokens(?:\.\w+)?)",
 )
 
+# asking the user to paste or send a credential into the chat, where the agent reads it
+_CREDENTIAL_ASK = (
+    r"\b(?:ask|tell|have|make|prompt|request)\s+(?:the\s+)?user\s+to\s+(?:paste|send|share"
+    r"|provide|type|enter|post|give)\s+(?:us\s+)?(?:their|the|your|his|her)\s+(?:[\w-]+\s+){0,2}?"
+    r"(?:api\s*keys?|tokens?|passwords?|secrets?|credentials|(?:ssh\s+)?private\s+keys?)\b"
+)
+CREDENTIAL_ASK_RE = re.compile(_CREDENTIAL_ASK, re.IGNORECASE)
+
 INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
     "GR010": _compile(
         r"\bignore\s+(?:all\s+)?(?:previous|prior|above|earlier)\s+(?:instructions|rules|prompts)",
@@ -92,6 +101,11 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:silently|secretly|quietly)\s+(?:run|execute|add|send|install|modify)\b",
         r"\bdon'?t\s+mention\s+(?:this|these)",
         r"\bhide\s+(?:this|the)\s+(?:from|output)",
+        r"\bkeep\s+(?:quiet|silent)\s+(?:about|on|regarding)\b",
+        r"\b(?:omit|leave\s+out|skip|drop|exclude)\s+(?:any\s+|all\s+|every\s+)?mentions?\s+of"
+        r"\s+(?:any\s+|all\s+|the\s+)?(?:edits?|changes?|modifications?|updates?)\b",
+        r"\bsay\s+(?:that\s+)?(?:they|it|this|these|those|everything)\s+(?:was|were|is|are"
+        r"|has\s+been|have\s+been)\s+already\s+(?:covered|tested|verified|reviewed)\b",
         r"\bno\s+(?:se\s+lo\s+)?(?:digas|menciones|muestres)\s+al\s+usuario",
         r"\bsin\s+avisar\s+al\s+usuario",
         r"\bne\s+(?:le\s+)?(?:dis|dites|montre|montrez|mentionne|mentionnez)\s+pas\s+[àa]"
@@ -130,6 +144,7 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         # heuristic: a private key described rather than named ("the private key in the ssh folder")
         rf"{_READ_VERB}[^.;!?\n]{{0,60}}?(?:\bssh\b[^.;!?\n]{{0,30}}?\bprivate\s+keys?\b"
         r"|\bprivate\s+keys?\b[^.;!?\n]{0,30}?\bssh\b)",
+        _CREDENTIAL_ASK,
     ),
     "GR016": _compile(
         r"--dangerously-skip-permissions",
@@ -140,6 +155,8 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\balways\s+(?:allow|approve|accept)\s+(?:all\s+)?(?:commands|tools|edits)",
         r"\bdisable\s+(?:the\s+)?(?:sandbox|safety|guardrails)",
         r"\bnever\s+ask\s+(?:for\s+)?(?:permission|confirmation)",
+        r"\b(?:run|execute)\s+(?:the\s+|any\s+|all\s+|every\s+|each\s+)?(?:commands?|tools?)\b"
+        r"[^.\n]{0,80}?\bwithout\s+(?:asking|confirmation|approval|permission)\b",
         r"\bsin\s+pedir\s+(?:permiso|confirmaci[oó]n)",
         # TLS certificate checks switched off (the agent's network safety)
         r"\bNODE_TLS_REJECT_UNAUTHORIZED\s*=\s*['\"]?0\b",
@@ -150,6 +167,7 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\bstrict-ssl\s+false\b",
     ),
 }
+
 
 _CUE_RE = re.compile(r"\b(?:you\s+must|always|never)\b", re.IGNORECASE)
 _IMPERATIVE_RE = re.compile(r"\b(?:you\s+must|always|never|assistant|agent|model)\b", re.IGNORECASE)
@@ -199,6 +217,29 @@ def _in_url(text: str, offset: int) -> bool:
     return "://" in text[start:offset]
 
 
+_URL_TOKEN = re.compile(r"https?://[^\s<>\"'`)\]]+", re.IGNORECASE)
+_PERCENT_RUN = re.compile(
+    r"(?:%[0-9A-Fa-f]{2}|[\w./~+-])*%[0-9A-Fa-f]{2}(?:%[0-9A-Fa-f]{2}|[\w./~+-])*"
+)
+_MIN_ESCAPES = 4  # a few %20 in a link are ordinary; a sentence encoded in one is not
+
+
+def find_percent_payloads(text: str) -> list[EncodedRun]:
+    """Percent-encoded runs of four or more escapes inside URLs (query or fragment) that decode to
+    text matching an injection pattern: a sentence sent past the reviewer in a link."""
+    found: list[EncodedRun] = []
+    for url in _URL_TOKEN.finditer(text):
+        for run in _PERCENT_RUN.finditer(url.group()):
+            if run.group().count("%") < _MIN_ESCAPES:
+                continue
+            decoded = unquote_plus(run.group())
+            if match_injection(decoded):
+                found.append(
+                    EncodedRun(url.start() + run.start(), url.start() + run.end(), decoded)
+                )
+    return found
+
+
 def find_encoded_runs(text: str) -> list[EncodedRun]:
     """Find base64 (>= 60 chars) and hex (>= 80 chars) runs worth reporting.
 
@@ -210,7 +251,8 @@ def find_encoded_runs(text: str) -> list[EncodedRun]:
     found: list[EncodedRun] = []
     for match in _BASE64_RE.finditer(text):
         before = text[: match.start()]
-        if _SRI_PREFIX.search(before) or _in_url(text, match.start()):
+        fragment = before.endswith("#")  # a fragment is client-side data, not a path
+        if _SRI_PREFIX.search(before) or (_in_url(text, match.start()) and not fragment):
             continue
         run = match.group()
         padded = run + "=" * (-len(run) % 4) if "=" not in run else run
@@ -232,6 +274,7 @@ def find_encoded_runs(text: str) -> list[EncodedRun]:
         decoded = _decode_text(bytes.fromhex(match.group()))
         if decoded is not None or len(match.group()) not in _DIGEST_HEX_LENGTHS:
             found.append(EncodedRun(match.start(), match.end(), decoded))
+    found.extend(find_percent_payloads(text))
     return sorted(found)
 
 
