@@ -1333,8 +1333,8 @@ scanned by ghostrules itself (a coverage gap to decide separately).
 **Measured.** Round 007 (C5, 60 cases, seed 7, one attacker turn). Before GR114: 0/26 dev and 1/34
 test cases detected at high or critical. After GR114 (deterministic signal scorer, six languages):
 22/26 dev, 1/34 test. The dev figure is optimistic (the defender read those cases while building the
-lexicons). The held-out figure did not move. The test half has no judge verdict and no human review
-yet; origin is `ai-redteam`, one model family.
+lexicons). The held-out figure did not move. The test half has no judge verdict; a human reviewer (one person) found 34/34 valid, so
+the held-out figure is on 34 valid cases; origin is `ai-redteam`, one model family.
 
 **Reading.** On cases the scorer was built against it works; on 34 unseen paraphrases from the same
 attacker it adds nothing at high. Two things are not separated by this single round: lexicon coverage
@@ -1356,5 +1356,4 @@ lexicons anticipate and not unseen paraphrase.
   makes network requests". It must be opt-in, name the endpoint, send only the flagged paragraphs,
   mask secrets before sending, and never run on a repository the user did not choose. A local model
   keeps the promise and is the only variant compatible with the current SPEC.
-- Before any of this: measure the held-out gain of a second round with signal-class guidance, with
-  the test half reviewed by a human.
+- Before any of this: measure the held-out gain of a second round with signal-class guidance.

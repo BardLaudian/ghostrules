@@ -55,7 +55,7 @@ the intent is read correctly. The similarity threshold is not a valid filter for
 - Test half (34 cases, measured by the person outside Claude Code, totals only): evasion 33/34 before
   and 33/34 after. GR114 turned no held-out case into a high finding. The same harness moves the dev
   half from 0/26 to 22/26 detected (checked with worktrees of both branches), so the harness is
-  valid and the dev result did not generalise. Validity of the test half is not reviewed yet.
-- The test half has no judge verdict; its validity is a human review.
+  valid and the dev result did not generalise. Human review of the test half (one reviewer, no judge verdict): 34/34 valid, so the figure is on 34 valid cases.
+- The test half has no judge verdict; its validity is a human review (34/34 valid).
 - Languages beyond EN/ES/FR/DE/PT/IT and intent with no listed stem are not covered.
 - FP measure on a real corpus is phase 16.
