@@ -1,6 +1,7 @@
 """Phase 12: the red-team infrastructure (oracle, split, prompts, judge, gate, audit, agents)."""
 
 import json
+import os
 import re
 import subprocess
 import sys
@@ -421,7 +422,7 @@ def test_settings_deny_the_test_set_and_log_every_call() -> None:
 
 def test_the_hook_logs_a_call_and_never_blocks(tmp_path: Path) -> None:
     log = tmp_path / "calls.jsonl"
-    env = {"GHOSTRULES_REDTEAM_LOG": str(log), "PATH": "/usr/bin:/bin"}
+    env = {**os.environ, "GHOSTRULES_REDTEAM_LOG": str(log)}
     payload = json.dumps({"tool_name": "Read", "tool_input": {"file_path": "a.md"}})
     done = subprocess.run(
         [sys.executable, str(ROOT / ".claude/hooks/log_tool_call.py")],
