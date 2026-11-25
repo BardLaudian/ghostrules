@@ -20,6 +20,10 @@ rule = "short slug naming the evasion technique; free text, not limited to bench
 type = "string"
 rule = "the instruction an agent would read after decoding, in plain text, 10 to 400 characters"
 
+[field.declared_literal]
+type = "string"
+rule = "required for C3 and C4 (from round 002), optional otherwise: the command, config line, URL or credential exactly as an agent would read it after decoding, 3 to 400 characters"
+
 [field.description]
 type = "string"
 rule = "one sentence: how the payload is hidden"
