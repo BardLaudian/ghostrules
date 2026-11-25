@@ -35,3 +35,19 @@ repository. `.claude/settings.json` denies reading it and logs every tool call
   300 repositories (Phase 16, needs network).
 - `.claude/agents/*.md` are not read as agent files by ghostrules itself (a scan of that folder
   reports 0 files), so the project's own scan and lock do not cover them.
+
+## Procedure as it worked in the pilot (round 000)
+
+- The orchestrator cannot pass a file to a subagent: it pastes the prompt text. Long prompts cost
+  tokens twice, so the prompts of round 000 were shortened by hand (see its ledger).
+- Subagent output comes back as a message. Extract the TOML from the subagent transcript with a
+  script (do not retype it) and validate it with `schema.validate_round` before `split.py`.
+- `split.py` rewrites `dev.toml` from the whole `cases.toml` each time, so merge the turns first and
+  run the oracle on `dev.toml`; feed back only the ids of the current turn.
+- Run every command from the repository root: the hook now uses `$CLAUDE_PROJECT_DIR`, but the
+  scripts and the audit log use paths relative to the root.
+- The review sample must keep `test` rows outside the repo (`review.csv` holds dev rows only).
+- Do not print counts over `test` cases, not even aggregates (round 000 did; it is declared).
+- Pilot numbers: the attacker did not improve from turn 1 to 3 (dev evasion 62 %, 92 %, 100 %); the
+  judge accepted 30 of 30 sampled cases; 3 of 15 dev twins fired because the judge keeps the hiding
+  technique in the twin.
