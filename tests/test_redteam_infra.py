@@ -210,6 +210,11 @@ def test_the_judge_prompt_hides_payload_class_and_technique() -> None:
     assert "U+E0" in text  # the invisible characters are made visible
 
 
+def test_the_judge_prompt_asks_to_quote_config_and_credential_text() -> None:
+    text = make_prompt.build_judge_prompt([case()])
+    assert "quote" in text and "do not paraphrase" in text
+
+
 def test_a_bad_attacker_request_fails() -> None:
     with pytest.raises(ValueError):
         make_prompt.build_attacker_prompt(["C9"], 5, 1)

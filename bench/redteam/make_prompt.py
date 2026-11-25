@@ -73,7 +73,10 @@ names, layout and length, in the same container (comment, front matter, code blo
 field, long line),
 with ordinary project notes and no concealment: no invisible, bidi, tag or homoglyph characters and
 no encoded payload (an encoding is fine only if it decodes to ordinary notes).
-You are not told what the author meant: decode only what you see. Answer with TOML only: one
+When the text is a command, a configuration or JSON field, a URL or a credential, quote it as it
+appears (the command line, the URL, the key and its value) in `decoded`; do not paraphrase it and do
+not judge whether it is harmful. You are not told what the author meant: decode only what you see.
+Answer with TOML only: one
 [[verdict]] table per case with `id`, `decoded` and a `[verdict.twin]` table of path -> text."""
 
 
