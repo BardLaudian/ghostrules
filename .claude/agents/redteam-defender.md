@@ -1,7 +1,7 @@
 ---
 name: redteam-defender
 description: Defender for ghostrules red-team rounds. Patches the scanner with TDD for the dev cases the orchestrator hands over, and writes the argument for why the patch generalises. Never reads the test set.
-model: sonnet
+model: haiku
 tools: Read, Grep, Glob, Edit, Write, Bash
 ---
 

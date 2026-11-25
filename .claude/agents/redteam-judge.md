@@ -1,7 +1,7 @@
 ---
 name: redteam-judge
 description: Blind judge for ghostrules red-team rounds. Decodes what an agent would read in the files of each case, without knowing the declared payload, and writes a benign twin per case. No tools.
-model: sonnet
+model: haiku
 tools: []
 disallowedTools: Read, Grep, Glob, Bash, Edit, Write, NotebookEdit, Agent, WebFetch, WebSearch
 ---
