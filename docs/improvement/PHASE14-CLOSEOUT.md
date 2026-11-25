@@ -33,7 +33,7 @@ judge). Round 001 has no patch. Totals only.
 | 003 | 26 | 26 | 10/26 | 10/26 |
 | 004 | 33 | 33 | 18/33 | 18/33 |
 | 005 (excluded, process incident) | 29 | 29 | 13/29 | 13/29 |
-| 006 | 31 | not reviewed | 11/31 (unfiltered) | 11/31 (unfiltered) |
+| 006 | 31 | 31 | 11/31 | 11/31 |
 
 **Reading:** no patch changed the verdict of a single held-out case, while the same measurement on
 the dev half does move (round 006: 14/24 → 10/24 evasion, checked with the same harness). The
