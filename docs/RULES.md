@@ -97,6 +97,11 @@ before and after it on the same line). A maintainer note in a comment block stay
 Since round 003: a comment that tells the agent to send, copy, upload, run, fetch or install
 something at a non-local URL (`copy .env.example to a gist at https://…`, `Run ./sync.sh --remote
 https://…`) is high. A read-only mention (`check the changelog at https://…`) is not.
+Since round 005: a link-reference comment (`[//]: # (…)`, `[comment]: <> (…)`) is read like an HTML
+comment. Short comments (under 40 chars) that follow each other, with at most two lines between
+them, are joined and read as one sentence; a verdict of medium or more on the joined text is high,
+since splitting the sentence is the hiding. Comments inside fenced code blocks and inline code are
+still ignored (documentation about comments).
 
 Agent-aware (since 0.2): the finding lists which modelled agents see the comment. Claude Code strips
 block-level comments from `CLAUDE.md`, `CLAUDE.local.md` and `.claude/CLAUDE.md` before the model
@@ -240,6 +245,8 @@ GR105 and GR107 reuse the GR012 patterns for MCP server commands and hooks and a
 in configuration files a piped installer stays high/critical.
 
 ### GR013 — Data exfiltration (critical)
+Since round 005: a standing step (`after each tool call …`, `before every task …`) that sends,
+forwards or uploads to a URL is an exfiltration instruction with the same severity policy.
 - Markdown image/link whose URL contains a template or variable in the query:
   `!\[[^\]]*\]\(https?://[^)]*[?&][^=]+=(\{|\$|%7B|<)` → classic markdown-image exfil.
 - Instructions to send/post/upload/append secrets: verbs (`send|post|upload|append|include|exfiltrate|forward`)
@@ -306,7 +313,7 @@ verb, see `directive.is_instruction`) or that sits next to "decode … and apply
 other readable text is medium. Non-shell code blocks are still skipped, except for an instruction
 payload. Reversed lines (a file that says "right-to-left", "backwards" or "reversed") and lines of
 two or more `\uXXXX` / `\xHH` escapes on a line that asks to decode or interpret them are decoded
-and reported high when the result is an instruction. Morse code is not decoded.
+and reported high when the result is an instruction.
 Since round 003: a `data:…;base64,` URI is decoded and kept only when its payload reads as an
 instruction (images and fonts are not). Four or more decimal or hex character references in a row
 (`&#82;&#117;…`) decode like an escape, with no cue needed. Fragments that a line asks the reader to
@@ -320,10 +327,17 @@ any other run (a query value or path is still skipped, since those are often tok
 percent-encoded sentence in a URL query or fragment (four or more `%XX` escapes that decode to text
 matching an injection pattern) is a payload too, reported at **high** through the decoded rescan.
 
+Since round 005: ciphers an agent can read are decoded and reported high only when the instruction
+is there: a rot13 line (it must name rot13), a run of eight or more ASCII codes (32–126), or a morse
+run of at least three letters. The cue must be on the same line (`decode and follow`, `convert and
+execute`, `decode … as an instruction`), or the decoded text is a directive. A percent-encoded run
+in a URL is high when its own line carries that cue. A cue elsewhere in the file does not count.
+
 ### GR016 — Agent safety bypass (high)
 `--dangerously-skip-permissions`, `bypassPermissions`, `--yolo`, `yolo mode`, `auto[- ]?approve (all|every)`,
 `always (allow|approve|accept) (all )?(commands|tools|edits)`, `disable (the )?(sandbox|safety|guardrails)`,
 `never ask (for )?(permission|confirmation)`, ES: `sin pedir (permiso|confirmación)`.
+Since round 005: `run|execute (it|them|scripts|commands|tools) … without (asking|confirmation|approval)`.
 A Markdown table row (`| --yolo | disables all prompts |`) and a list item that opens with the flag
 (`- **`--yolo` (alias …):** every tool is allowed`) document it and are at most medium (0.3, GR016
 only); a prohibition earlier in the clause ("Avoid `--yolo`", "Do not disable the sandbox") is not
@@ -419,7 +433,8 @@ are read by the model. The instruction rules GR010, GR011, GR012, GR013, GR014 a
 them, and a hit is reported at the string, with the rule's own severity. A tool description that
 tells the agent to read `~/.aws/credentials` (GR014), or an `instructions` field that says to run
 the commands a server returns without asking (GR016), is high. A plain description of what the tool
-does is not. Config files are not visibility-lowered: the reviewer reads these as data, the model as
+does is not. Since round 005 the same applies to values of keys ending in `instructions`,
+`instruction`, `prompt` or `description` at any depth (`SERVER_INSTRUCTIONS` in an `env` block). Config files are not visibility-lowered: the reviewer reads these as data, the model as
 instructions.
 
 ### GR108 — Auto-enable project MCP servers (medium)
@@ -514,6 +529,9 @@ chain that reaches it (`via`, tag `reached-via-hook` / `reached-via-skill`). Scr
 paths that leave the repository and inline `bash -c` code are not read. Agent-reachable code, not a SAST.
 
 ### GR110 — Script sends the environment or a secret (high)
+Since round 005: a script that pipes local output into a POST or upload to a non-local URL
+(`git diff | curl -d @- https://…`) is high even when no secret is named. A hook runs it on every
+prompt or tool call.
  a network send together with the environment, a token or a credentials file (Python: same data flow).
 
 ### GR111 — Script reads credential files (medium)
