@@ -52,8 +52,10 @@ the intent is read correctly. The similarity threshold is not a valid filter for
 ## Declared limits
 
 - The defender read the 26 dev cases while designing the lexicons, so 22/26 on dev is optimistic.
-  The only figure that counts is the evasion of the fixed test half, before and after: not measured
-  here (it needs the person to run it outside Claude Code, see the closeout).
+- Test half (34 cases, measured by the person outside Claude Code, totals only): evasion 33/34 before
+  and 33/34 after. GR114 turned no held-out case into a high finding. The same harness moves the dev
+  half from 0/26 to 22/26 detected (checked with worktrees of both branches), so the harness is
+  valid and the dev result did not generalise. Validity of the test half is not reviewed yet.
 - The test half has no judge verdict; its validity is a human review.
 - Languages beyond EN/ES/FR/DE/PT/IT and intent with no listed stem are not covered.
 - FP measure on a real corpus is phase 16.
