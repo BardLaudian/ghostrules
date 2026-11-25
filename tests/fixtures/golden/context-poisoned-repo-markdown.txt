@@ -45,7 +45,7 @@ exit=1
 | low | `GR016` | `.github/copilot-instructions.md:6` | Tells the agent to bypass its permission or safety checks: “--dangerously-skip-permissions” Reported at low because the text is visible in the file itself; hidden or indirect text keeps the rule's severity (--strict restores it). |
 | low | `GR016` | `.github/copilot-instructions.md:6` | Tells the agent to bypass its permission or safety checks: “never ask for permission” Reported at low because the text is visible in the file itself; hidden or indirect text keeps the rule's severity (--strict restores it). |
 
-_11 finding(s) in files these agents do not load._
+_12 finding(s) in files these agents do not load._
 
 > **Note:** directories above the repository root, managed policy files, claudeMdExcludes and --add-dir are not examined
 > **Note:** COPILOT_CUSTOM_INSTRUCTIONS_DIRS and instructions disabled with /instructions are not examined

@@ -77,7 +77,7 @@ dispatch display do don't dont download dump echo edit ejecuta elimina enable en
 envia envía escribe eval evita exec execute exfiltrate export expose fetch fill find forget
 forward gather get give grant grep guarda haz head hide ignora ignore import imprime include
 incluye inform instala install invoke keep launch leak lee leer list load log look make
-make_sure manda mention merge modifica modify move muestra no note olvida omite open output
+make_sure manda mention merge mirror modifica modify move muestra no note olvida omite open output
 override pass paste permit pide pipe post print provide publish pull push put read record
 remember remove rename replace reply respond reveal run save say scan search send set share
 show skip source start stop store sube submit switch tail take tell test transmit treat

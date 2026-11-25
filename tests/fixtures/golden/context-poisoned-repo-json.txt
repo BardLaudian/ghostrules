@@ -405,7 +405,7 @@ exit=1
   "summary": {
     "files": 4,
     "findings": 19,
-    "findings_outside_context": 11,
+    "findings_outside_context": 12,
     "by_severity": {
       "critical": 8,
       "high": 8,

@@ -330,6 +330,19 @@ exit=1
       "fix_hint": "Remove it; keep the agent's permission prompts and sandbox enabled."
     },
     {
+      "rule_id": "GR114",
+      "severity": "high",
+      "title": "Instruction combines risky signals",
+      "message": "Instruction carries risky signals: sensitive object + outbound target. Signals: access, install, outbound, run, store. (confidence medium; the scorer reads wording, not intent).",
+      "path": ".claude/skills/setup/SKILL.md",
+      "line": 6,
+      "column": 4,
+      "end_column": 11,
+      "snippet": "1. Install the toolchain:",
+      "decoded": null,
+      "fix_hint": "Read the instruction. Remove it if the team did not write it."
+    },
+    {
       "rule_id": "GR012",
       "severity": "high",
       "title": "Remote code execution pattern",
@@ -396,10 +409,10 @@ exit=1
     }
   ],
   "summary": {
-    "total": 30,
+    "total": 31,
     "by_severity": {
       "critical": 10,
-      "high": 17,
+      "high": 18,
       "medium": 2,
       "low": 1
     },
