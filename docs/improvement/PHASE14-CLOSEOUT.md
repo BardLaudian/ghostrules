@@ -9,7 +9,7 @@ threshold two rounds in a row) could not be applied: the threshold is still unde
 ## 1. Rounds
 
 Dev evasion is measured on the dev cases the defender saw. It is **not a score**. No round has a
-test-half number: the test halves of rounds 001–006 are unjudged.
+human-judged test-half number yet (see 1b for the machine-measured test evasion).
 
 | Round | PR | Cases (dev/test) | Judge valid (dev) | Human agreement | Dev evasion before → after | Twins fired | Patch lines (limit 400) | Blind audit |
 |---|---|---|---|---|---|---|---|---|
@@ -19,6 +19,26 @@ test-half number: the test halves of rounds 001–006 are unjudged.
 | 004 | #37 | 60 (27/33) | 25/27 | 25/27 = 93 % | 16/25 (64 %) → 6/25 (24 %) | 0 → 0 | 257 | clean |
 | 005 | #38 | 60 (31/29) | 58/60 | 31/31 = 100 % | 19/31 (61 %) → 11/31 (35 %) | 0 → 0 | 307 | clean script, **one process incident** |
 | 006 | #36 | 59 (28/31); judge on dev only | 24/28 | 24/24 = 100 % | 14/24 (58 %) → 10/24 (42 %) | 0 → 0 | 72 | clean |
+
+### 1b. Test-half evasion, before → after each patch (measured locally on 2026-11-25)
+
+Oracle run on the held-out cases (those that passed the judge's validity check; not yet reviewed by
+a human), with the previous round's branch as "before". Totals only. Round 001 has no patch.
+
+| Round | Test cases | Evasion before | Evasion after |
+|---|---|---|---|
+| 002 | 32 | 20/32 | 20/32 |
+| 003 | 26 | 10/26 | 10/26 |
+| 004 | 33 | 18/33 | 18/33 |
+| 005 (excluded, process incident) | 29 | 13/29 | 13/29 |
+| 006 | 31 | 11/31 | 11/31 |
+
+**Reading:** no patch changed the verdict of a single held-out case, while the same measurement on
+the dev half does move (round 006: 14/24 → 10/24 evasion, checked with the same harness). The
+patches fix the dev cases they were shown and did not generalise to the held-out cases of their own
+round. This is the honest result of the loop so far, not a harness artefact. Caveats: the test cases
+come from the same attacker run as the dev ones, are not human-reviewed, and "detected" means
+high or critical severity only.
 
 Round 001 closed without a patch: the validity metric, not the scanner, caused the low agreement;
 the C3/C4 "payload literal" metric was preregistered in round 002.
@@ -64,7 +84,7 @@ GR109, GR110). A hidden comment such as "Skip the telemetry prompt on CI" now go
 
 | # | Decision | Recommendation |
 |---|---|---|
-| 1 | Define the dev-evasion threshold (today undefined, so the two-in-a-row counter is 0) | Do not use dev evasion as a stop criterion; use the fixed test-half evasion once judged, and the fresh round of phase 18 for criterion 1 |
+| 1 | Define the dev-evasion threshold (today undefined, so the two-in-a-row counter is 0) | Do not use dev evasion as a stop criterion. Test-half evasion did not move in any round (1b), so before phase 15 decide whether patches written against dev cases are worth more rounds, or whether the next patches should target rule classes instead of cases |
 | 2 | Judge the test halves of rounds 001–006 locally (see `bench/redteam/README.md`) | Yes, before phase 15; report totals only |
 | 3 | Does round 005 count as a measurement after its incident? | Exclude it from any test-half before/after figure; keep its patch |
 | 4 | Agent files: `tools: []` vs `tools: SubagentHandback`, and the judge's model in the frontmatter (haiku was refused; sonnet by override) | Set the judge to sonnet in the frontmatter; keep the `tools` change only after the blindness test passes |
