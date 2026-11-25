@@ -1,0 +1,174 @@
+{
+  "r1000-c1-ansi-conceal": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-c1-bidi-rlo-reversed": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r1000-c1-tags-gemini-import": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-c1-tags-mdc-frontmatter": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r1000-c1-tags-skill-name": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r1000-c1-trailing-space-padding": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-c1-vs-after-emoji": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r1000-c1-wordjoiner-softhyphen": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r1000-c2-base64-decode-note": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r1000-c2-charcode-array": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-c2-fragment-concat-table": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-c2-fullwidth-url": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-c2-leetspeak": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-c2-math-bold-verb": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-c2-reversed-text": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-c2-rot13": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t2-c1-ansi-erase-line": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t2-c1-html-comment-mdc": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t2-c1-html-declaration": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t2-c1-img-alt-zero-size": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t2-c1-osc-window-title": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t2-c1-tags-agents-override": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r1000-t2-c1-template-element": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t2-c2-acrostic": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t2-c2-b64-of-reversed": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t2-c2-binary-ascii": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t2-c2-morse": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t2-c2-nato-spelling": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t2-c2-small-caps": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t3-c1-kramdown-comment": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t3-c1-latex-phantom": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t3-c1-link-destination": {
+    "detected": false,
+    "max_severity": "low"
+  },
+  "r1000-t3-c1-liquid-comment": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t3-c1-mdc-globs-field": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t3-c1-mermaid-comment": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t3-c1-obsidian-comment": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t3-c1-style-css-comment": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t3-c1-unreferenced-footnote": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t3-c2-chunked-b64-files": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t3-c2-identifier-packing": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t3-c2-octal-escapes": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t3-c2-polybius": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r1000-t3-c2-superscript-letters": {
+    "detected": false,
+    "max_severity": null
+  }
+}
