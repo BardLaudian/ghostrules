@@ -22,23 +22,24 @@ human-judged test-half number yet (see 1b for the machine-measured test evasion)
 
 ### 1b. Test-half evasion, before → after each patch (measured locally on 2026-11-25)
 
-Oracle run on all held-out cases, with the previous round's branch as "before". The judge ran on
-the dev half only in rounds 002–004 and 006, so those test halves are **not filtered for validity**
-(neither by the judge nor yet by a human); only round 005's test half went through the judge. Totals only. Round 001 has no patch.
+Oracle run on the held-out cases with the previous round's branch as "before". The judge ran on the
+dev half only in rounds 002–004 and 006, so validity of the test halves was decided by a human
+review (one reviewer, the judge's verdict absent; only round 005's test half also went through the
+judge). Round 001 has no patch. Totals only.
 
-| Round | Test cases | Evasion before | Evasion after |
-|---|---|---|---|
-| 002 | 32 | 20/32 | 20/32 |
-| 003 | 26 | 10/26 | 10/26 |
-| 004 | 33 | 18/33 | 18/33 |
-| 005 (excluded, process incident) | 29 | 13/29 | 13/29 |
-| 006 | 31 | 11/31 | 11/31 |
+| Round | Test cases | Human-valid | Evasion before (valid only) | Evasion after (valid only) |
+|---|---|---|---|---|
+| 002 | 32 | 31 | 19/31 | 19/31 |
+| 003 | 26 | 26 | 10/26 | 10/26 |
+| 004 | 33 | 33 | 18/33 | 18/33 |
+| 005 (excluded, process incident) | 29 | 29 | 13/29 | 13/29 |
+| 006 | 31 | not reviewed | 11/31 (unfiltered) | 11/31 (unfiltered) |
 
 **Reading:** no patch changed the verdict of a single held-out case, while the same measurement on
 the dev half does move (round 006: 14/24 → 10/24 evasion, checked with the same harness). The
 patches fix the dev cases they were shown and did not generalise to the held-out cases of their own
 round. This is the honest result of the loop so far, not a harness artefact. Caveats: the test cases
-come from the same attacker run as the dev ones, are not human-reviewed, and "detected" means
+come from the same attacker run as the dev ones, were reviewed by one person, and "detected" means
 high or critical severity only.
 
 Round 001 closed without a patch: the validity metric, not the scanner, caused the low agreement;
