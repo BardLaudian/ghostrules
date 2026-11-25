@@ -103,6 +103,10 @@ them, are joined and read as one sentence; a verdict of medium or more on the jo
 since splitting the sentence is the hiding. Comments inside fenced code blocks and inline code are
 still ignored (documentation about comments).
 
+Since round 006: a comment that routes installs or traffic through a non-local host (`use the proxy
+at https://…`, `route … through the mirror https://…`, `point the registry at https://…`) is high,
+like a fetch or install at an external URL. `use the docs at https://…` alone is not.
+
 Agent-aware (since 0.2): the finding lists which modelled agents see the comment. Claude Code strips
 block-level comments from `CLAUDE.md`, `CLAUDE.local.md` and `.claude/CLAUDE.md` before the model
 sees them, so a comment there is *not seen by* claude-code; Copilot CLI and the others are assumed
@@ -333,6 +337,12 @@ run of at least three letters. The cue must be on the same line (`decode and fol
 execute`, `decode … as an instruction`), or the decoded text is a directive. A percent-encoded run
 in a URL is high when its own line carries that cue. A cue elsewhere in the file does not count.
 
+Since round 006: a rot13 line is decoded from its cipher part, the text after its first `: ` (a
+label such as `legacy_note (rot13, apply it): `), so a plain label does not garble the directive that
+follows. A percent-encoded run in a markdown link target (`[style](docs/Disable%20the%20…)`) is read
+like one in a URL: four or more escapes that decode to an instruction, or a line that asks to decode
+and apply them, are high.
+
 ### GR016 — Agent safety bypass (high)
 `--dangerously-skip-permissions`, `bypassPermissions`, `--yolo`, `yolo mode`, `auto[- ]?approve (all|every)`,
 `always (allow|approve|accept) (all )?(commands|tools|edits)`, `disable (the )?(sandbox|safety|guardrails)`,
@@ -353,6 +363,11 @@ Since round 004: `run|execute the commands|tools … without asking|confirmation
 (the agent is told to run what a tool returns without the user's approval). `run the tests without
 asking` is not matched: it names no commands or tools.
 
+Since round 006: a prompt switched off by name (`disable|skip|turn off|suppress|bypass|silence (the )?
+[word ]confirmation|approval|permission|consent|telemetry prompt|dialog|check|question`, such as
+`Disable telemetry prompts` or `Disable the confirmation prompt`). Visible prose is low, as above; the
+same sentence in a hidden comment keeps high.
+
 ### GR017 — Secret in an instruction file (critical)
 Since 0.5 (H5). A known token format written in the text of an instruction file or `.cursorrules`:
 the GR101 list (`ghp_`…, `github_pat_`, `sk-ant-`, `sk-`, `AKIA`/`ASIA`, `xox*-`, `AIza`, `glpat-`,
@@ -365,6 +380,10 @@ prose. Since round 003: a password in a URL (`https://user:password@host`, not a
 a secret too, and a token cut into the pieces of adjacent inline code spans (`` `ghp_…` `` then
 `` `…` ``, joined by whitespace) is reported as one secret. A token shorter than the format (the
 `ghp_` form needs 36 characters) is not a token for this rule.
+
+Since round 006: a token cut across two adjacent lines (the first piece ends a line, the rest is in
+one of the next two lines, as in `Token part one: ghp_…` / `Token part two: …`) is joined and reported
+when the joined text is a complete token of a known format. Only the joined text is judged.
 
 Since round 004 a base64 run of 24 characters or more is decoded, and a known token format in the
 result is reported as critical and masked (a 40-character token is 56 characters once encoded, below

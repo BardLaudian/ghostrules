@@ -1,0 +1,198 @@
+[
+ {
+  "id": "c1-tags-skill-footer",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c1-tags-copilot-heading",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c1-zw-binary-agents",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c1-html-comment-list",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c1-html-comment-copilot-inline",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c2-base64-checksum-claude",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c2-rot13-agents",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c2-percent-encoded",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c2-json-escape-mdc",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c2-acrostic-bullets",
+  "valid": true,
+  "score": 0.831,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c2-leet-cursor",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c3-gemini-import",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c3-referenced-file",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c3-scanner-ignore-comment",
+  "valid": false,
+  "score": 0.211,
+  "why": "below threshold",
+  "twin": true
+ },
+ {
+  "id": "c3-exclude-docs",
+  "valid": false,
+  "score": 0.28,
+  "why": "below threshold",
+  "twin": true
+ },
+ {
+  "id": "c3-disable-rule",
+  "valid": false,
+  "score": 0.174,
+  "why": "below threshold",
+  "twin": true
+ },
+ {
+  "id": "c3-claude-rules-conditional",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c3-gemini-filename",
+  "valid": false,
+  "score": 0.208,
+  "why": "below threshold",
+  "twin": true
+ },
+ {
+  "id": "c3-symlink-alias",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c3-import-deep-hop",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c3-skill-nested-md",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c4-allow-bash-star",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c4-base-url-override",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c4-api-key-helper",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c4-mcp-npx-unpinned",
+  "valid": true,
+  "score": 0.629,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c4-mcp-plain-http",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c4-mcp-header-token",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "c4-secret-split-prose",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ }
+]
