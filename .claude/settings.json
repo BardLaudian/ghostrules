@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(~/.cache/ghostrules-redteam-test/**)",
+      "Read(**/bench/redteam/rounds/*/test/**)",
+      "Read(**/round-*-test.toml)",
+      "Bash(cat ~/.cache/ghostrules-redteam-test/*)",
+      "Bash(ls ~/.cache/ghostrules-redteam-test*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [{ "type": "command", "command": "python3 .claude/hooks/log_tool_call.py" }]
+      }
+    ]
+  }
+}
