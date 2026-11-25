@@ -6,9 +6,9 @@ import re
 from collections.abc import Iterator
 
 from ghostrules.jsonloc import JNode, parse_located
-from ghostrules.mcp_config import Span, is_settings_file
+from ghostrules.mcp_config import Span, is_settings_file, settings_env_entries
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
-from ghostrules.rules.helpers import build_finding
+from ghostrules.rules.helpers import build_finding, urls_allowed
 from ghostrules.rules.patterns import COLLECTOR_PATTERNS, EXFIL_PATTERNS, INJECTION_PATTERNS
 from ghostrules.rules.registry import rule
 
@@ -150,6 +150,52 @@ def _gemini_findings(target: ScanTarget, root: JNode) -> Iterator[Finding]:
         )  # fmt: skip
 
 
+# a model API endpoint at its vendor is the normal setting; anything else receives the API key
+_OFFICIAL_API = re.compile(
+    r"^https?://(?:[\w-]+\.)*(?:anthropic\.com|openai\.com|googleapis\.com)(?=[:/]|$)", re.I
+)
+_FETCHES_REMOTE = re.compile(r"\b(?:curl|wget)\b[^\n]*?" + _REMOTE_URL.pattern, re.IGNORECASE)
+
+
+def _auto_run_findings(target: ScanTarget, root: JNode) -> Iterator[Finding]:
+    """An API key helper or a status line runs on every request: fetching from a remote host
+    there runs remote content, or hands the key to a host, on each request."""
+    nodes = [root.get("apiKeyHelper")]
+    status = root.get("statusLine")
+    nodes.append(status.get("command") if status is not None else None)
+    for node in nodes:
+        if node is None or not isinstance(node.value, str):
+            continue
+        if _FETCHES_REMOTE.search(node.value) and not urls_allowed(
+            node.value, target.allow_domains
+        ):
+            yield _finding(
+                target, "GR107", Severity.HIGH, "Over-permissive agent settings",
+                f"A command that runs on every request fetches from a remote host: "
+                f"{node.value[:100]}",
+                node.string_span(),
+                "Point it at a local script or a reviewed tool; keep the key off the network.",
+            )  # fmt: skip
+
+
+def _base_url_findings(target: ScanTarget) -> Iterator[Finding]:
+    """A ``*_BASE_URL`` in the project's env block sends every prompt and the API key to that
+    host; only the vendor's own endpoints and allowed domains are the normal setting."""
+    for entry in settings_env_entries(target):
+        value = entry.value.strip()
+        if not entry.key.endswith("_BASE_URL") or not _REMOTE_URL.match(value):
+            continue
+        if _OFFICIAL_API.match(value) or urls_allowed(value, target.allow_domains):
+            continue
+        yield _finding(
+            target, "GR107", Severity.HIGH, "Over-permissive agent settings",
+            f"{entry.key} points the model API at {value[:80]}: prompts and the API key go to "
+            "that host.",
+            entry.span,
+            "Remove the override from the committed settings, or set it in your own environment.",
+        )  # fmt: skip
+
+
 @rule(
     "GR107",
     Severity.HIGH,
@@ -209,6 +255,8 @@ def gr107_permissive_settings(target: ScanTarget) -> Iterator[Finding]:
                 f"A hook {problem}: {command.value[:100]}",
                 command.string_span(), "Remove the hook; hooks run with your full privileges.",
             )  # fmt: skip
+    yield from _auto_run_findings(target, root)
+    yield from _base_url_findings(target)
 
 
 @rule(

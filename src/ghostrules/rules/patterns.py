@@ -118,6 +118,8 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:python[0-9.]*|node)\s+-[ce]\b[^\n]{0,300}?(?:urlopen|requests\.get|\bfetch\s*\()"
         r"[^\n]{0,200}?(?:\.then\(\s*eval\b|\bexec\b|\beval\b)",
         r"\beval\s+[\"']?\$\(\s*(?:curl|wget)\b",
+        # a download substituted into a shell's command string: `sh -c "$(curl URL)"`
+        r"\b(?:ba|z)?sh\s+-c\s+[\"']?(?:\$\(|`)\s*(?:curl|wget)\b",
     ),
     "GR013": EXFIL_PATTERNS + COLLECTOR_PATTERNS,
     # the verb governs the path: same clause (no `;` or sentence end), at most six words apart
@@ -202,19 +204,23 @@ def find_encoded_runs(text: str) -> list[EncodedRun]:
 
     Runs decoding to printable text are always returned. Runs that do not decode to text are
     returned (``decoded=None``) only when they look like random encoded bytes: high-entropy base64
-    not embedded in a path/URL, or hex that is not a standard digest length. ``data:...;base64,``
-    URIs are skipped.
+    not embedded in a path/URL, or hex that is not a standard digest length. A ``data:...;base64,``
+    URI is an image or a font unless its payload reads as an instruction: only then it is kept.
     """
     found: list[EncodedRun] = []
     for match in _BASE64_RE.finditer(text):
         before = text[: match.start()]
-        if before.endswith("base64,") or _SRI_PREFIX.search(before) or _in_url(text, match.start()):
+        if _SRI_PREFIX.search(before) or _in_url(text, match.start()):
             continue
         run = match.group()
         padded = run + "=" * (-len(run) % 4) if "=" not in run else run
         try:
             decoded = _decode_text(base64.b64decode(padded, validate=True))
         except (binascii.Error, ValueError):
+            continue
+        if before.endswith("base64,"):
+            if decoded is not None and reads_as_agent_directive(decoded):
+                found.append(EncodedRun(match.start(), match.end(), decoded))
             continue
         if decoded is not None:
             found.append(EncodedRun(match.start(), match.end(), decoded))
@@ -246,12 +252,24 @@ def _unescape(match: re.Match[str]) -> str:
     return chr(int(match.group(1) or match.group(2), 16))
 
 
+# decimal or hex character references (&#82; &#x52;), four or more in a row
+_CHAR_REFS = re.compile(r"(?:&#x?[0-9a-fA-F]{1,6};){4,}")
+_CHAR_REF_ONE = re.compile(r"&#(x?)([0-9a-fA-F]{1,6});")
+
+
+def _char_ref(match: re.Match[str]) -> str:
+    code = int(match.group(2), 16 if match.group(1) else 10)
+    return chr(code) if code <= 0x10FFFF else "�"
+
+
 def find_disguised_runs(text: str) -> list[EncodedRun]:
-    """Lines that read as an instruction once reversed or unescaped, decoded.
+    """Lines that read as an instruction once reversed, unescaped or character-referenced.
 
     A line is reversed only in a file that says its text runs right to left or backwards; escapes
     (two or more ``\\uXXXX`` / ``\\xHH`` in a row) are decoded only on a line that also asks to
-    decode or interpret them. Without that cue, reversed words and escaped JSON are ordinary text.
+    decode or interpret them. Character references need no cue: four or more in a row that
+    decode to an instruction are the hiding itself. Without a cue, reversed words and escaped JSON
+    are ordinary text.
     """
     found: list[EncodedRun] = []
     reverse_cue = _REVERSE_CUE.search(text) is not None
@@ -265,11 +283,105 @@ def find_disguised_runs(text: str) -> list[EncodedRun]:
             options.append((body.strip()[::-1], False))
         if _ESCAPES.search(body) and _ESCAPE_CUE.search(body):
             options.append((_ESCAPE_ONE.sub(_unescape, body), True))
+        if _CHAR_REFS.search(body):
+            decoded = _CHAR_REF_ONE.sub(_char_ref, body)
+            if reads_as_agent_directive(decoded):  # prose with &#8220; quotes is not a directive
+                found.append(EncodedRun(start, end, decoded))
         for decoded, anywhere in options:
             if is_instruction(decoded, anywhere=anywhere):
                 found.append(EncodedRun(start, end, decoded))
                 break
     return found
+
+
+_JOIN_AND_RUN = re.compile(
+    r"\b(?:join|concatenate|combine|assemble|stitch)\b[^\n]{0,120}?"
+    r"\b(?:and\s+)?(?:run|execute|follow|obey|apply)\b",
+    re.IGNORECASE,
+)
+_LIST_ITEM = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+(.+?)\s*$")
+
+
+def find_joined_fragments(text: str) -> list[EncodedRun]:
+    """A line that asks the reader to join fragments and run the result, then the list of
+    fragments (code spans or plain items). The joined text is the hidden instruction."""
+    lines = text.splitlines(keepends=True)
+    found: list[EncodedRun] = []
+    offset = 0
+    for index, line in enumerate(lines):
+        start = offset
+        offset += len(line)
+        if not _JOIN_AND_RUN.search(line):
+            continue
+        pieces: list[str] = []
+        end = offset
+        for item in lines[index + 1 :]:
+            match = _LIST_ITEM.match(item)
+            if match is None:
+                break
+            pieces.append(match.group(1).strip("`").strip())
+            end += len(item)
+        if len(pieces) >= 2:
+            found.append(EncodedRun(start, end, "".join(pieces)))
+    return found
+
+
+# a URL whose host is not the agent's own machine (localhost, 127.x, ::1)
+_EXTERNAL_URL = r"https?://(?!(?:localhost|127\.\d+\.\d+\.\d+|\[::1\])(?![\w.-]))"
+_EXTERNAL_RE = re.compile(_EXTERNAL_URL, re.IGNORECASE)
+# verbs that move data to a host or fetch and run something from it; reading verbs (check,
+# read, see) do not count, so a changelog link in a hidden note stays quiet
+_ACT_ON_URL = re.compile(
+    r"\b(?:send|upload|post|paste|share|forward|push|copy|sync|exfiltrate|transmit|run|execute"
+    r"|invoke|fetch|download|install)\b[^\n]{0,120}?" + _EXTERNAL_URL,
+    re.IGNORECASE,
+)
+
+
+def acts_on_external_url(text: str) -> bool:
+    """True if a line tells the agent to send, run or fetch something at an external URL."""
+    return _ACT_ON_URL.search(text) is not None
+
+
+# a directive addressed to the agent, or one that sets a standing rule
+_ADDRESSES_AGENT = re.compile(
+    r"\b(?:you|your|agents?|assistant|model|always|never)\b", re.IGNORECASE
+)
+
+
+def reads_as_agent_directive(text: str) -> bool:
+    """Whether hidden or decoded text tells the agent what to do: an imperative that is addressed
+    to the agent or sets a standing rule, matches a known injection pattern, or sends, runs or
+    fetches from an external URL. A plain imperative project note ("Run the unit tests before
+    tagging a release") is not one."""
+    return is_instruction(text) and (
+        _ADDRESSES_AGENT.search(text) is not None
+        or bool(match_injection(text))
+        or acts_on_external_url(text)
+    )
+
+
+_STANDING = re.compile(
+    r"\b(?:before|after|at|on)\s+(?:each|every|task\s+start|session\s+start|startup)\b"
+    r"|\b(?:every|each)\s+time\b",
+    re.IGNORECASE,
+)
+_RUN_VERB = re.compile(r"\b(?:run|execute|invoke|launch)\b", re.IGNORECASE)
+# a sentence: text up to a line break, ';', '!' or '?', or a full stop that ends a sentence
+# (a dot inside a host name is followed by a letter, not by a space)
+_SENTENCE = re.compile(r"(?:[^\n;!?]|\.(?!\s|$))+")
+
+
+def find_standing_remote_runs(text: str) -> list[tuple[int, int]]:
+    """Sentences that make the agent run something on every task or session, and name an
+    external URL in the same sentence: a standing step that contacts a remote host each time."""
+    return [
+        m.span()
+        for m in _SENTENCE.finditer(text)
+        if _STANDING.search(m.group())
+        and _RUN_VERB.search(m.group())
+        and _EXTERNAL_RE.search(m.group())
+    ]
 
 
 def has_instruction_cue(text: str) -> bool:

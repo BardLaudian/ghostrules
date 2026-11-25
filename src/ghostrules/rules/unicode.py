@@ -10,8 +10,9 @@ from typing import NamedTuple
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
 from ghostrules.rules.directive import is_instruction
-from ghostrules.rules.helpers import build_finding, clean_hint, group_by_line
+from ghostrules.rules.helpers import build_finding, clean_hint, group_by_line, urls_allowed
 from ghostrules.rules.patterns import (
+    acts_on_external_url,
     has_agent_directed_language,
     has_instruction_cue,
     match_injection,
@@ -374,6 +375,9 @@ def gr005_html_comments(target: ScanTarget) -> Iterator[Finding]:
         if matched:
             severity = Severity.HIGH
             reason = f"matches {', '.join(matched)} patterns"
+        elif acts_on_external_url(body) and not urls_allowed(body, target.allow_domains):
+            severity = Severity.HIGH
+            reason = "tells the AI agent to send, run or fetch from an external URL"
         elif has_instruction_cue(body):
             severity = Severity.MEDIUM
             reason = "addresses the AI agent"

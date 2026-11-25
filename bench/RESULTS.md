@@ -9,11 +9,11 @@ measured and how. Nothing here was tuned on the held-out set.
 |---|---:|---:|---:|
 | author | 37 | 33 (89%) | 15 (41%) |
 | review (independent) | 4 | 1 (25%) | 1 (25%) |
-| public | 69 | 67 (97%) | 42 (61%) |
+| public | 69 | 68 (99%) | 44 (64%) |
 
 | Technique | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
-| agent-settings | 9 | 8 | 7 |
+| agent-settings | 9 | 9 | 8 |
 | bidi | 3 | 3 | 3 |
 | concealment | 5 | 4 | 0 |
 | encoded-payload | 3 | 3 | 3 |
@@ -23,7 +23,7 @@ measured and how. Nothing here was tuned on the held-out set.
 | html-comment | 4 | 4 | 3 |
 | imports | 5 | 5 | 5 |
 | instruction-override | 9 | 7 | 0 |
-| mcp-config | 7 | 7 | 4 |
+| mcp-config | 7 | 7 | 5 |
 | mcp-server-content | 1 | 0 | 0 |
 | referenced-files | 4 | 4 | 4 |
 | remote-code-execution | 10 | 10 | 6 |
@@ -35,9 +35,9 @@ measured and how. Nothing here was tuned on the held-out set.
 | unicode-tags | 7 | 7 | 7 |
 | variation-selectors | 3 | 3 | 3 |
 | zero-width | 3 | 3 | 1 |
-| **All** | 110 | 101 (92%) | 58 (53%) |
+| **All** | 110 | 102 (93%) | 60 (55%) |
 
-101 of 110 cases are detected and 9 are known misses.
+102 of 110 cases are detected and 8 are known misses.
 
 | Rule | Cases naming it | Reported | Fails the default check |
 |---|---:|---:|---:|
@@ -61,10 +61,10 @@ measured and how. Nothing here was tuned on the held-out set.
 | GR101 | 1 | 1 | 1 |
 | GR102 | 2 | 2 | 0 |
 | GR103 | 1 | 1 | 1 |
-| GR104 | 1 | 1 | 0 |
+| GR104 | 1 | 1 | 1 |
 | GR105 | 1 | 1 | 1 |
 | GR106 | 1 | 1 | 1 |
-| GR107 | 7 | 6 | 6 |
+| GR107 | 7 | 7 | 7 |
 | GR108 | 1 | 1 | 0 |
 | GR110 | 8 | 7 | 7 |
 | GR111 | 1 | 1 | 0 |
@@ -73,7 +73,6 @@ measured and how. Nothing here was tuned on the held-out set.
 
 Known misses:
 
-- `settings-base-url-override` (agent-settings, public): CVE-2026-21852 shape; no rule looks at endpoint overrides in settings.
 - `mcp-tool-description-poisoning` (mcp-server-content, public): Tool descriptions come from a running server and are never read (docs/USAGE.md, Limits).
 - `evasion-ignore-end-of-line` (scanner-evasion, review): In the default scan; with --suppressions-from-ref or the Action on a pull request it is reported.
 - `evasion-exclude-in-config` (scanner-evasion, review): In the default scan; --config-from-ref or the Action on a pull request ignores the added config.

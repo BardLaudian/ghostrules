@@ -303,9 +303,10 @@ def _is_broad_path(arg: str) -> bool:
 
 @rule(
     "GR104",
-    Severity.MEDIUM,
+    Severity.HIGH,
     "Overly broad filesystem scope",
-    "Filesystem MCP servers given the whole disk or the whole home directory.",
+    "Filesystem MCP servers given the whole disk or the whole home directory (credentials live"
+    " there: ~/.ssh, ~/.aws).",
     CONFIG,
 )
 def gr104_broad_filesystem(target: ScanTarget) -> Iterator[Finding]:
@@ -321,7 +322,7 @@ def gr104_broad_filesystem(target: ScanTarget) -> Iterator[Finding]:
             yield _finding(
                 target,
                 "GR104",
-                Severity.MEDIUM,
+                Severity.HIGH,
                 "Overly broad filesystem scope",
                 f"Filesystem server '{server.name}' can access '{arg}': the whole disk or home.",
                 server.span(f"args.{i}"),

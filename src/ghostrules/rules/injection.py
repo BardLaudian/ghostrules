@@ -17,7 +17,6 @@ from ghostrules.rules.directive import (
     OBFUSCATION_NOTE,
     classify,
     downgrade_note,
-    is_instruction,
     severity_for,
 )
 from ghostrules.rules.helpers import build_finding, host_allowed, urls_allowed
@@ -33,6 +32,9 @@ from ghostrules.rules.patterns import (
     EncodedRun,
     find_disguised_runs,
     find_encoded_runs,
+    find_joined_fragments,
+    find_standing_remote_runs,
+    reads_as_agent_directive,
 )
 from ghostrules.rules.registry import rule
 from ghostrules.secrets import KNOWN_SECRET_PATTERNS, is_placeholder, mask_value
@@ -206,6 +208,19 @@ def gr012_remote_code_execution(target: ScanTarget) -> Iterator[Finding]:
             fix_hint=_GR012_HINT_SOFT
             if installers
             else "Remove it, or download, review and pin the script instead of piping it.",
+            limit=_LONG_SNIPPET,
+        )
+    for start, end in find_standing_remote_runs(target.text):
+        if _in_code(target, start) or urls_allowed(target.text[start:end], target.allow_domains):
+            continue
+        yield _finding(
+            target,
+            "GR012",
+            Severity.HIGH,
+            "Remote code execution pattern",
+            "A standing step runs a command against an external URL on every task or session",
+            (start, end),
+            fix_hint="Remove the step, or point it at a local, reviewed tool.",
             limit=_LONG_SNIPPET,
         )
 
@@ -625,9 +640,21 @@ def gr015_encoded_payloads(target: ScanTarget) -> Iterator[Finding]:
             "GR015",
             Severity.HIGH,
             "Encoded payload",
-            "Instruction hidden in reversed or escaped text that the file asks to decode",
+            "Instruction hidden in reversed, escaped or character-referenced text",
             (run.start, run.end),
             fix_hint="Replace the text with its plain form, or remove it.",
+            decoded=run.decoded,
+            limit=40,
+        )
+    for run in find_joined_fragments(target.text):
+        yield _finding(
+            target,
+            "GR015",
+            Severity.HIGH,
+            "Encoded payload",
+            "Instruction split into fragments that the file asks to join and run",
+            (run.start, run.end),
+            fix_hint="Write the instruction out in full, or remove it.",
             decoded=run.decoded,
             limit=40,
         )
@@ -639,10 +666,13 @@ _DECODE_AND_ACT = re.compile(
 
 
 def _reads_as_instruction(text: str, run: EncodedRun) -> bool:
-    """The decoded text is addressed to the agent, or the text next to the run asks to decode it
-    and act on it ("decode and apply as an instruction")."""
+    """The text next to the run asks to decode it and act on it ("decode and apply as an
+    instruction"), or the decoded text is a directive to the agent (``reads_as_agent_directive``).
+    """
     window = text[max(0, run.start - 200) : run.end + 200]
-    return is_instruction(run.decoded or "") or _DECODE_AND_ACT.search(window) is not None
+    if _DECODE_AND_ACT.search(window) is not None:
+        return True
+    return reads_as_agent_directive(run.decoded or "")
 
 
 # --- GR016 ---------------------------------------------------------------------------------
@@ -687,7 +717,18 @@ def gr016_safety_bypass(target: ScanTarget) -> Iterator[Finding]:
 # --- GR017 ---------------------------------------------------------------------------------
 
 # a Bearer token in prose is nearly always documentation of a header, not a leaked credential
-_PROSE_SECRET_PATTERNS = tuple((n, p) for n, p in KNOWN_SECRET_PATTERNS if n != "Bearer token")
+# user:password@host; a template ($VAR, <name>) in either part is not a credential
+_URL_PASSWORD = re.compile(
+    r"(?<![\w+.-])[a-z][a-z0-9+.-]*://[^\s:/@'\"`<>$]+:(?P<s>[^\s/@'\"`<>$]{8,})@[^\s/'\"`<>]+",
+    re.I,
+)
+_PROSE_SECRET_PATTERNS = (
+    *((n, p) for n, p in KNOWN_SECRET_PATTERNS if n != "Bearer token"),
+    ("Password in a URL", _URL_PASSWORD),
+)
+# inline code spans separated only by whitespace: a value cut into pieces to be joined by hand
+_CODE_SPAN_RUN = re.compile(r"`[^`\n]+`(?:\s+`[^`\n]+`)+")
+_CODE_SPAN = re.compile(r"`([^`\n]+)`")
 
 
 @rule(
@@ -721,3 +762,29 @@ def gr017_secret_in_prose(target: ScanTarget) -> Iterator[Finding]:
                 " secret: it is exposed to everyone with access to the repository.",
                 secrets=(value,),
             )
+    yield from _split_secrets(target)
+
+
+def _split_secrets(target: ScanTarget) -> Iterator[Finding]:
+    """Known token formats written as pieces of adjacent code spans (the reader joins them)."""
+    for run in _CODE_SPAN_RUN.finditer(target.text):
+        pieces = [p.strip() for p in _CODE_SPAN.findall(run.group())]
+        joined = "".join(pieces)
+        for label, pattern in _PROSE_SECRET_PATTERNS:
+            group = "s" if "s" in pattern.groupindex else 0
+            for m in pattern.finditer(joined):
+                value = m.group(group)
+                if is_placeholder(value) or any(value in piece for piece in pieces):
+                    continue  # a single span is reported by the whole-file pass above
+                yield build_finding(
+                    target=target,
+                    rule_id="GR017",
+                    severity=Severity.CRITICAL,
+                    title="Secret in an instruction file",
+                    message=f"{label} split across code spans: {mask_value(value)}",
+                    start=run.start(),
+                    end=run.end(),
+                    fix_hint="Remove it, reference an environment variable instead, and rotate the"
+                    " secret: it is exposed to everyone with access to the repository.",
+                    secrets=(value,),
+                )

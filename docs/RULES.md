@@ -46,7 +46,7 @@ the URLs in any file.
 | <a id="gr101"></a>`GR101` | critical | config | **Hardcoded secret in agent config.** API keys and tokens written into MCP server env/args/headers/URLs or agent settings env. |
 | <a id="gr102"></a>`GR102` | medium | config | **Unpinned package execution.** MCP servers launched with npx/uvx/etc. without an exact version run whatever is latest. |
 | <a id="gr103"></a>`GR103` | high | config | **Insecure remote MCP transport.** Remote MCP servers reached over plain http:// expose traffic and credentials. |
-| <a id="gr104"></a>`GR104` | medium | config | **Overly broad filesystem scope.** Filesystem MCP servers given the whole disk or the whole home directory. |
+| <a id="gr104"></a>`GR104` | high | config | **Overly broad filesystem scope.** Filesystem MCP servers given the whole disk or the whole home directory (credentials live there: ~/.ssh, ~/.aws). |
 | <a id="gr105"></a>`GR105` | high | config | **Shell wrapper in server command.** MCP servers started through a shell command string can run arbitrary commands. |
 | <a id="gr106"></a>`GR106` | high | config | **Dangerous Docker options.** Docker-based MCP servers started with options that break container isolation. |
 | <a id="gr107"></a>`GR107` | high | config | **Over-permissive agent settings.** Agent settings that skip permission prompts, allow unrestricted tools, or run risky hooks. |
@@ -93,6 +93,9 @@ Plain short comments (TODOs, lint directives) are ignored.
 Since round 002: a comment that reads as an instruction to "you" (`Use the label … on every issue
 you open`, `Whenever you create a file …`) is medium, and high when it sits inside a sentence (text
 before and after it on the same line). A maintainer note in a comment block stays medium.
+Since round 003: a comment that tells the agent to send, copy, upload, run, fetch or install
+something at a non-local URL (`copy .env.example to a gist at https://…`, `Run ./sync.sh --remote
+https://…`) is high. A read-only mention (`check the changelog at https://…`) is not.
 
 Agent-aware (since 0.2): the finding lists which modelled agents see the comment. Claude Code strips
 block-level comments from `CLAUDE.md`, `CLAUDE.local.md` and `.claude/CLAUDE.md` before the model
@@ -164,6 +167,10 @@ user about this", "Do not tell the user." and "Do not tell the user that you did
 Since 0.4 "do not tell the user **they|he|she** …" is wording advice ("…they are wrong"), not concealment.
 
 ### GR012 — Remote code execution patterns (context-aware in instructions, high elsewhere)
+Since round 003: `sh -c "$(curl …)"` (and backticks) is a download run by a shell, and a *standing*
+step (`Before each task`, `at session start`, `every time`) that runs a command with an external URL
+in the same sentence is high (outside code blocks and allowed domains). The same pattern in a script
+under a hook is GR112.
 `curl … | (ba|z)?sh`, `wget … -O- | sh`, `curl … | python`, `iwr|Invoke-WebRequest … | iex`,
 `powershell … -e(nc|ncodedcommand) <base64>`, `base64 (-d|--decode) … | (ba)?sh`,
 `bash <(curl …)` (also `sh`, `zsh`, `source <(…)`), `eval "$(curl …)"`. Snippet must show the full command.
@@ -284,6 +291,13 @@ other readable text is medium. Non-shell code blocks are still skipped, except f
 payload. Reversed lines (a file that says "right-to-left", "backwards" or "reversed") and lines of
 two or more `\uXXXX` / `\xHH` escapes on a line that asks to decode or interpret them are decoded
 and reported high when the result is an instruction. Morse code is not decoded.
+Since round 003: a `data:…;base64,` URI is decoded and kept only when its payload reads as an
+instruction (images and fonts are not). Four or more decimal or hex character references in a row
+(`&#82;&#117;…`) decode like an escape, with no cue needed. Fragments that a line asks the reader to
+join and run (`Join the fragments in order and run the result:` then a list) are joined and
+reported high. A decoded directive is high only when it is addressed to the agent (`you`, `agent`,
+`always`, `never`), matches an injection pattern, or sends or runs something at an external URL; a
+project note such as `Run the unit tests before tagging a release` is medium.
 
 ### GR016 — Agent safety bypass (high)
 `--dangerously-skip-permissions`, `bypassPermissions`, `--yolo`, `yolo mode`, `auto[- ]?approve (all|every)`,
@@ -308,7 +322,10 @@ documentation of a header. Placeholders (`${VAR}`, `<token>`, `****`) and the tw
 (`AKIAIOSFODNN7EXAMPLE` and its secret key) are skipped; a look-alike is not. Not lowered by the
 visible-prose policy: a secret on screen is still exposed. **Always masked** with the same code as
 GR101 (`secrets.py`). Generic high-entropy values under a secret-looking name are not detected in
-prose.
+prose. Since round 003: a password in a URL (`https://user:password@host`, not a `$VAR` template) is
+a secret too, and a token cut into the pieces of adjacent inline code spans (`` `ghp_…` `` then
+`` `…` ``, joined by whitespace) is reported as one secret. A token shorter than the format (the
+`ghp_` form needs 36 characters) is not a token for this rule.
 
 ---
 
@@ -331,7 +348,7 @@ Fix hint: pin an exact version.
 ### GR103 — Insecure remote MCP transport (high)
 `url` / `serverUrl` with `http://` to a non-loopback host (`localhost`, `127.0.0.0/8`, `::1` are OK).
 
-### GR104 — Overly broad filesystem scope (medium)
+### GR104 — Overly broad filesystem scope (high since round 003)
 Filesystem-like servers (name/package contains `filesystem`, `fs`, `files`) whose args include
 `/`, `~`, `$HOME`, `%USERPROFILE%`, `C:\\`, `/Users`, `/home` exactly (root of home or disk).
 
@@ -349,7 +366,11 @@ containing `Bash`, `Bash(*)`, `Bash(curl:*)`, `Bash(sudo:*)`, `Bash(rm:*)`, or `
 `hooks` whose command matches GR012/GR013 (→ critical). Since round 002: a hook whose command posts
 data (`curl -d`, `--data-binary`, `-F`, `-T`, `-X POST`) to a non-loopback URL (→ critical), and an
 `allow` rule whose argument names a secret file (`Read(./.env)`, `Read(~/.ssh/**)`; `.env.example`
-is not secret) (→ high).
+is not secret) (→ high). Since round 003: `apiKeyHelper` and `statusLine.command` (they run on
+every request) that fetch from a non-local URL with `curl`/`wget` (→ high); an `env` entry
+`*_BASE_URL` that points the model API at a host other than the vendor's own endpoints
+(`anthropic.com`, `openai.com`, `googleapis.com`) or an allowed domain (→ high), because prompts and
+the API key would go to that host.
 Other agents: Gemini `"yolo": true` (kept although the reference lists no such key).
 Since 0.4: Codex `.codex/config.toml` with `sandbox_mode = "danger-full-access"` or
 `approval_policy = "never"` (high; a commented-out line is not reported, the safe values are not),

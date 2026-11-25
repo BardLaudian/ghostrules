@@ -120,6 +120,11 @@ AGENTS.md  4 findings ───────────────────�
   Server 'analytics' connects to 'analytics.example' over plain http://.                                                
   fix  Use https:// so traffic and credentials are encrypted.                                                           
 
+   HIGH    GR104 Overly broad filesystem scope                                                           .mcp.json:21:10
+    21 │         "/"                                                                                                    
+  Filesystem server 'files' can access '/': the whole disk or home.                                                     
+  fix  Restrict the server to the project directory, for example ${workspaceFolder}.                                    
+
    HIGH    GR106 Dangerous Docker options                                                                .mcp.json:37:10
     37 │         "--privileged",                                                                                        
   Server 'sandbox' runs with --privileged: the container can take over the host.                                        
@@ -130,11 +135,6 @@ AGENTS.md  4 findings ───────────────────�
   Server 'github' runs 'some-mcp-server@latest' without an exact version: whatever is published latest will execute with
   your agent's access.                                                                                                  
   fix  Pin an exact version, for example some-mcp-server@1.2.3.                                                         
-
-  MEDIUM   GR104 Overly broad filesystem scope                                                           .mcp.json:21:10
-    21 │         "/"                                                                                                    
-  Filesystem server 'files' can access '/': the whole disk or home.                                                     
-  fix  Restrict the server to the project directory, for example ${workspaceFolder}.                                    
 
 CLAUDE.md  2 findings ──────────────────────────────────────────────────────────────────────────────────────────────────
    HIGH    GR005 Hidden HTML comment with instructions                                                     CLAUDE.md:4:1
@@ -178,4 +178,4 @@ CLAUDE.md  2 findings ───────────────────�
   fix  Remove it, or download, review and pin the script instead of piping it.                                          
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-10 critical · 13 high · 3 medium · 4 low in 7 files (scanned 7)
+10 critical · 14 high · 2 medium · 4 low in 7 files (scanned 7)
