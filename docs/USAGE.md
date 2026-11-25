@@ -93,7 +93,7 @@ Removing or retyping a field raises `schema_version`. SARIF output follows the S
 | `--home` | off | Also scan user-level agent configs |
 | `--disable GR010,GR012` | | Disable rules |
 | `--follow-imports`, `--no-follow-imports` | on | Scan the files that `@path` imports in instruction files reach |
-| `--max-file-size BYTES` | `1048576` | Skip files larger than this, with a warning that names each one (`0` = no limit) |
+| `--max-file-size BYTES` | `1048576` | Size of one scan window. A larger instruction file is scanned in overlapping windows, with a warning; a larger config or script file fails the scan (exit 2); a larger file no agent reads is skipped with a warning (`0` = no limit). Above 16 MiB nothing is scanned and the run fails |
 | `--config FILE` | auto | Config file (default: `.ghostrules.toml` in the scan root) |
 | `--trusted-config FILE` | | Use this config file and never the scanned repository's own config |
 | `--config-from-ref REF` | | Read `.ghostrules.toml` (or `[tool.ghostrules]`) from this git ref, never the working tree |
@@ -114,7 +114,7 @@ These are a stable contract (fixed by `tests/test_exit_codes.py`); a change is a
 |------|---------|
 | `0` | Clean: nothing at or above `--fail-on` |
 | `1` | Findings at or above `--fail-on` (also `lock --check` drift) |
-| `2` | Usage or configuration error: unknown option, a path that does not exist, an invalid `.ghostrules.toml` (reported as `file:line: message`), or a rule that crashed, so a broken scan can never look clean |
+| `2` | Usage or configuration error: unknown option, a path that does not exist, an invalid `.ghostrules.toml` (reported as `file:line: message`), a rule that crashed, or a file an agent reads that could not be scanned (over the 16 MiB hard limit, or a config or script file over `--max-file-size`), so a broken scan can never look clean |
 | `3` | Internal failure: an unexpected exception in ghostrules itself. It is a bug, never a finding; the message asks for a report |
 
 For `json`, `sarif` and `markdown`, stdout carries only the report; diagnostics go to stderr.
@@ -527,7 +527,7 @@ extra_targets = ["docs/ai/*.md"]    # extra files, treated as instructions
 allow_domains = ["mycompany.com"]   # never flagged by the URL and exfiltration rules (GR012, GR013)
 trust_known_installers = true       # GR012: lower the severity of well-known installers (uv, rustup...)
 follow_imports = true               # scan files reached through @path imports
-max_file_size = 1048576             # bytes; a bigger file is skipped with a warning (0 = no limit)
+max_file_size = 1048576             # bytes per scan window; bigger instruction files are scanned in windows (0 = no limit)
 lockfile = ".ghostrules.lock"       # where `ghostrules lock` writes the pinned context
 agents = ["claude-code", "copilot-cli", "cursor", "generic"]  # agents whose loading is modelled
 profile = "default"                 # "strict": visible prose at the rules' own severity (0.3); "lenient": 0.4 cap
