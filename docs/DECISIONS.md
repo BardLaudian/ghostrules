@@ -1310,3 +1310,20 @@ window. 64 KiB is far longer than any instruction a rule matches.
 
 **Rejected.** Raising the cap (moves the bypass); failing every file over the cap (would turn a
 long but legitimate `CLAUDE.md` into an error).
+
+## 2026-11-25 — Red-team loop: blind by tools, audited by log (Phase 12)
+
+**Decision.** Attacker and judge are subagents with no tools; the defender has repo tools but
+receives only dev cases. The test set lives outside the repo (`GHOSTRULES_REDTEAM_TEST_DIR`), is
+denied in `.claude/settings.json`, and every tool call is logged by a hook and audited. The gate is
+a script with versioned thresholds; the oracle returns `detected` (high or critical) and the
+maximum severity, never rule ids.
+
+**Choices.** Split 50/50 by hash of the id. Judge similarity threshold 0.6 (`difflib` on normalised
+text), picked before any data, reviewed by a person on a sample each round. Rule ids are removed
+from `AGENT_MODELS.md` before it reaches the attacker.
+
+**Open.** Whether `tools: []` really removes every tool is verified in Phase 13, not assumed. The
+log cannot tell which agent made a call, so one access voids the round. `.claude/agents/` is not
+scanned by ghostrules itself (a coverage gap to decide separately).
+
