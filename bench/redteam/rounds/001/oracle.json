@@ -1,0 +1,179 @@
+{
+  "r2000-c1-html-gemini-padded": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c1-html-inline-copilot": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c1-tags-claude": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r2000-c1-tags-gemini": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r2000-c1-vs-claude": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r2000-c1-vs-cursor": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r2000-c2-entity-claude": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c2-hex-agents": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c2-homoglyph-claude": {
+    "detected": false,
+    "max_severity": "low"
+  },
+  "r2000-c2-homoglyph-greek": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r2000-c2-reversed-claude": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c2-rot13-cursor": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c2-split-b64-agents": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c3-evasion-allowlist": {
+    "detected": false,
+    "invalid_config": true,
+    "max_severity": null
+  },
+  "r2000-c3-evasion-inline": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c3-hook-prompt-inject": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c3-hook-python": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c3-import-deep": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c3-import-encoded-name": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c3-import-symlink": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c3-mcp-resource": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c3-ref-agents": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c3-ref-rules": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c3-skill-ref-md": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c4-mcp-npx": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "r2000-c4-mcp-shell": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r2000-c4-mcp-ws-cmd": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c4-secret-cursor-b64": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c4-secret-pem": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2000-c4-secret-split": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r2000-c4-secret-zw-claude": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "r2000-c4-settings-bypass": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r2000-c4-settings-enable-mcp": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "r2001-c1-bidi-lri-file": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r2001-c1-linkref-title": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2001-c3-evasion-disable-allowdomain": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2001-c3-evasion-exclude-glob": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2001-c3-evasion-oversize": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2001-c3-import-claude-local": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2001-c3-import-in-gemini-chain": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2001-c3-skill-script-js": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r2001-c4-mcp-bunx-unpinned": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "r2001-c4-secret-pem-fenced-b64": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r2001-c4-settings-apikeyhelper": {
+    "detected": false,
+    "max_severity": null
+  }
+}
