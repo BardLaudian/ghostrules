@@ -51,3 +51,5 @@ repository. `.claude/settings.json` denies reading it and logs every tool call
 - Pilot numbers: the attacker did not improve from turn 1 to 3 (dev evasion 62 %, 92 %, 100 %); the
   judge accepted 30 of 30 sampled cases; 3 of 15 dev twins fired because the judge keeps the hiding
   technique in the twin.
+- Saturation: the scanner had so many gaps that evasion was ≥ 80 % from turn 2, so extra turns add
+  nothing; the round stops at that point (see `redteam-round.md`).
