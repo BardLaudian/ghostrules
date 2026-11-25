@@ -310,18 +310,43 @@ def gr004_variation_selectors(target: ScanTarget) -> Iterator[Finding]:
 # --- GR005 ---------------------------------------------------------------------------------
 
 _HTML_COMMENT_RE = re.compile(r"<!--(.*?)(?:-->|\Z)", re.DOTALL)
+# a link-reference comment, "[//]: # (text)" or "[comment]: <> (text)": no renderer shows it
+_LINK_COMMENT_RE = re.compile(
+    r"^[ \t]*\[(?://|comment)\]:[ \t]*(?:#|<>)[ \t]*\((.*)\)[ \t]*$", re.MULTILINE
+)
 _COMMENT_MIN_CHARS = 40
+_FRAGMENT_GAP_LINES = 2  # short comments this close may be pieces of one sentence
 _MARKDOWN_SUFFIXES = (".md", ".mdc", ".markdown", ".mdx")
 _SECOND_PERSON = re.compile(r"\byou\b", re.IGNORECASE)
 
 
-def _inside_prose(text: str, match: re.Match[str]) -> bool:
+class _Comment(NamedTuple):
+    start: int
+    end: int
+    body: str
+    closed: bool  # False for an unterminated ``<!--``, which hides the rest of the file
+
+
+def _comments(text: str) -> list[_Comment]:
+    """HTML comments and link-reference comments, in document order."""
+    found = [
+        _Comment(m.start(), m.end(), m.group(1).strip(), m.group().endswith("-->"))
+        for m in _HTML_COMMENT_RE.finditer(text)
+    ]
+    found += [
+        _Comment(m.start(), m.end(), m.group(1).strip(), True)
+        for m in _LINK_COMMENT_RE.finditer(text)
+    ]
+    return sorted(found)
+
+
+def _inside_prose(text: str, comment: _Comment) -> bool:
     """Whether the comment has text before and after it on its line (it sits mid-sentence)."""
-    line_start = text.rfind("\n", 0, match.start()) + 1
-    line_end = text.find("\n", match.end())
+    line_start = text.rfind("\n", 0, comment.start) + 1
+    line_end = text.find("\n", comment.end)
     line_end = len(text) if line_end < 0 else line_end
-    return bool(text[line_start : match.start()].strip()) and bool(
-        text[match.end() : line_end].strip()
+    return bool(text[line_start : comment.start].strip()) and bool(
+        text[comment.end : line_end].strip()
     )
 
 
@@ -350,6 +375,77 @@ def _agent_view_of_comment(
     return severity, note
 
 
+def _classify_comment(target: ScanTarget, comment: _Comment) -> tuple[Severity, str] | None:
+    """The severity and the reason for a comment that reads as an instruction, else ``None``."""
+    body = comment.body
+    matched = match_injection(body)
+    if matched:
+        return Severity.HIGH, f"matches {', '.join(matched)} patterns"
+    if acts_on_external_url(body) and not urls_allowed(body, target.allow_domains):
+        return Severity.HIGH, "tells the AI agent to send, run or fetch from an external URL"
+    if has_instruction_cue(body):
+        return Severity.MEDIUM, "addresses the AI agent"
+    if is_instruction(body) and _SECOND_PERSON.search(body):
+        # high inside a sentence: no maintainer note sits mid-sentence where readers cannot see
+        high = _inside_prose(target.text, comment)
+        return (Severity.HIGH if high else Severity.MEDIUM), "tells the AI agent what to do"
+    if has_agent_directed_language(body):
+        return Severity.LOW, "mentions the AI agent"
+    return None
+
+
+def _comment_finding(
+    target: ScanTarget, comment: _Comment, severity: Severity, reason: str
+) -> Finding:
+    severity, seen_note = _agent_view_of_comment(target, comment.start, severity)
+    return build_finding(
+        target=target,
+        rule_id="GR005",
+        severity=severity,
+        title="Hidden HTML comment with instructions",
+        message=(
+            f"HTML comment ({len(comment.body)} chars) is invisible when rendered but {reason}."
+            + (
+                " The comment is never closed, so it hides the rest of the file."
+                if not comment.closed
+                else ""
+            )
+            + seen_note
+        ),
+        start=comment.start,
+        end=comment.end,
+        fix_hint="Make the text visible or delete the comment.",
+        limit=100,
+    )
+
+
+def _neighbours(text: str, comments: list[_Comment]) -> list[list[_Comment]]:
+    """Runs of comments that follow each other with at most ``_FRAGMENT_GAP_LINES`` between."""
+    runs: list[list[_Comment]] = []
+    for comment in comments:
+        if runs and text[runs[-1][-1].end : comment.start].count("\n") <= _FRAGMENT_GAP_LINES:
+            runs[-1].append(comment)
+        else:
+            runs.append([comment])
+    return runs
+
+
+def _fragment_findings(target: ScanTarget, shown: list[_Comment]) -> Iterator[Finding]:
+    """A sentence cut into short comments: each piece is too short to read alone. Runs of two or
+    more short comments are joined and get the usual verdict; splitting the text is the hiding,
+    so a verdict of medium or more is high."""
+    for run in _neighbours(target.text, shown):
+        pieces = [c for c in run if len(c.body) < _COMMENT_MIN_CHARS]
+        joined = " ".join(c.body for c in run)
+        if len(pieces) < 2 or len(joined) < _COMMENT_MIN_CHARS:
+            continue
+        whole = _Comment(run[0].start, run[-1].end, joined, True)
+        verdict = _classify_comment(target, whole)
+        if verdict is not None and verdict[0] >= Severity.MEDIUM:
+            reason = f"{verdict[1]}, split across {len(run)} comments"
+            yield _comment_finding(target, whole, Severity.HIGH, reason)
+
+
 @rule(
     "GR005",
     Severity.MEDIUM,
@@ -358,60 +454,27 @@ def _agent_view_of_comment(
     ("instructions", "other"),
 )
 def gr005_html_comments(target: ScanTarget) -> Iterator[Finding]:
-    """Long HTML comments that look like instructions (high if they match GR010-GR016).
+    """Comments that look like instructions (high if they match GR010-GR016 or send data out).
 
-    Comments inside fenced code blocks or inline code are visible when rendered, so they are
-    ignored. An unterminated ``<!--`` hides the rest of the document and is treated as a comment
-    to the end.
+    Comments inside fenced code blocks or inline code are shown literally when rendered, so they
+    are ignored. Short comments are read together when they follow each other, since a sentence
+    cut into pieces is a hiding technique. An unterminated ``<!--`` hides the rest of the document
+    and is treated as a comment to the end.
     """
     if target.kind in ("other", "script") and not target.path.lower().endswith(_MARKDOWN_SUFFIXES):
         return
-    for match in _HTML_COMMENT_RE.finditer(target.text):
-        body = match.group(1).strip()
-        if len(body) < _COMMENT_MIN_CHARS or target.code_block_at(match.start()) is not None:
+    shown: list[_Comment] = []
+    for comment in _comments(target.text):
+        # shown literally when rendered, e.g. documentation about `<!-- -->` in a fence or inline
+        if target.in_inline_code(comment.start) or target.code_block_at(comment.start) is not None:
             continue
-        if target.in_inline_code(match.start()):
-            continue  # shown literally when rendered, e.g. documentation about `<!-- -->`
-        matched = match_injection(body)
-        if matched:
-            severity = Severity.HIGH
-            reason = f"matches {', '.join(matched)} patterns"
-        elif acts_on_external_url(body) and not urls_allowed(body, target.allow_domains):
-            severity = Severity.HIGH
-            reason = "tells the AI agent to send, run or fetch from an external URL"
-        elif has_instruction_cue(body):
-            severity = Severity.MEDIUM
-            reason = "addresses the AI agent"
-        elif is_instruction(body) and _SECOND_PERSON.search(body):
-            # high inside a sentence: no maintainer note sits mid-sentence where readers cannot see
-            severity = Severity.HIGH if _inside_prose(target.text, match) else Severity.MEDIUM
-            reason = "tells the AI agent what to do"
-        elif has_agent_directed_language(body):
-            severity = Severity.LOW
-            reason = "mentions the AI agent"
-        else:
+        shown.append(comment)
+        if len(comment.body) < _COMMENT_MIN_CHARS:
             continue
-        unterminated = not match.group().endswith("-->")
-        severity, seen_note = _agent_view_of_comment(target, match.start(), severity)
-        yield build_finding(
-            target=target,
-            rule_id="GR005",
-            severity=severity,
-            title="Hidden HTML comment with instructions",
-            message=(
-                f"HTML comment ({len(body)} chars) is invisible when rendered but {reason}."
-                + (
-                    " The comment is never closed, so it hides the rest of the file."
-                    if unterminated
-                    else ""
-                )
-                + seen_note
-            ),
-            start=match.start(),
-            end=match.end(),
-            fix_hint="Make the text visible or delete the comment.",
-            limit=100,
-        )
+        verdict = _classify_comment(target, comment)
+        if verdict is not None:
+            yield _comment_finding(target, comment, *verdict)
+    yield from _fragment_findings(target, shown)
 
 
 # --- GR006 ---------------------------------------------------------------------------------

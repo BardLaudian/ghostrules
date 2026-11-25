@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import codecs
 import re
 from typing import NamedTuple
 from urllib.parse import unquote_plus
@@ -48,6 +49,11 @@ _EXFIL_PATTERNS_EN = _compile(
     r"!\[[^\]]*\]\(https?://[^)\s]*[?&][^=\s)]+=(?:\{|\$|%7B|<)",
     rf"{_EXFIL_VERB}.{{0,80}}?{_SECRET}.{{0,200}}?https?://[^\s)\]>\"']+",
     rf"{_EXFIL_VERB}.{{0,200}}?https?://.{{0,80}}?{_SECRET}",
+    # a standing step: after each tool call (or before every task) the output goes to a URL
+    rf"\b(?:after|before)\s+(?:each|every)\s+(?:tool\s+call|task|prompt|message|reply|response"
+    rf"|session)\b[^\n;]{{0,120}}?{_EXFIL_VERB}[^\n;]{{0,120}}?https?://[^\s)\]>\"']+",
+    rf"{_EXFIL_VERB}[^\n;]{{0,120}}?https?://[^\s)\]>\"']+[^\n;]{{0,60}}?\b(?:after|before)\s+"
+    rf"(?:each|every)\s+(?:tool\s+call|task|prompt|message|reply|response|session)\b",
 )
 # Spanish and French: a short reviewed list, the same shape as the English patterns above
 _EXFIL_VERB_ES_FR = (
@@ -155,7 +161,8 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\balways\s+(?:allow|approve|accept)\s+(?:all\s+)?(?:commands|tools|edits)",
         r"\bdisable\s+(?:the\s+)?(?:sandbox|safety|guardrails)",
         r"\bnever\s+ask\s+(?:for\s+)?(?:permission|confirmation)",
-        r"\b(?:run|execute)\s+(?:the\s+|any\s+|all\s+|every\s+|each\s+)?(?:commands?|tools?)\b"
+        r"\b(?:run|execute)\s+(?:the\s+|any\s+|all\s+|every\s+|each\s+)?"
+        r"(?:commands?|tools?|scripts?|it|them)\b"
         r"[^.\n]{0,80}?\bwithout\s+(?:asking|confirmation|approval|permission)\b",
         r"\bsin\s+pedir\s+(?:permiso|confirmaci[oó]n)",
         # TLS certificate checks switched off (the agent's network safety)
@@ -217,6 +224,13 @@ def _in_url(text: str, offset: int) -> bool:
     return "://" in text[start:offset]
 
 
+# asks to decode the text next to it and act on it: "decode and follow", "decode ... as an
+# instruction", "convert and execute". The cue, not the decoded text, makes the run an instruction.
+DECODE_AND_ACT = re.compile(
+    r"\b(?:decod\w*|convert\w*)\b[^\n]{0,60}?\b(?:follow|obey|apply|execute|comply"
+    r"|as\s+(?:an?\s+)?instructions?)\b",
+    re.I,
+)
 _URL_TOKEN = re.compile(r"https?://[^\s<>\"'`)\]]+", re.IGNORECASE)
 _PERCENT_RUN = re.compile(
     r"(?:%[0-9A-Fa-f]{2}|[\w./~+-])*%[0-9A-Fa-f]{2}(?:%[0-9A-Fa-f]{2}|[\w./~+-])*"
@@ -233,7 +247,8 @@ def find_percent_payloads(text: str) -> list[EncodedRun]:
             if run.group().count("%") < _MIN_ESCAPES:
                 continue
             decoded = unquote_plus(run.group())
-            if match_injection(decoded):
+            asked = DECODE_AND_ACT.search(line_of(text, url.start(), url.end())) is not None
+            if match_injection(decoded) or asked:
                 found.append(
                     EncodedRun(url.start() + run.start(), url.start() + run.end(), decoded)
                 )
@@ -335,6 +350,77 @@ def find_disguised_runs(text: str) -> list[EncodedRun]:
                 found.append(EncodedRun(start, end, decoded))
                 break
     return found
+
+
+# ciphers an agent can read: morse letters, the ASCII codes of a run of numbers, rot13 lines
+_MORSE_LETTERS = {
+    ".-": "A", "-...": "B", "-.-.": "C", "-..": "D", ".": "E", "..-.": "F", "--.": "G",
+    "....": "H", "..": "I", ".---": "J", "-.-": "K", ".-..": "L", "--": "M", "-.": "N",
+    "---": "O", ".--.": "P", "--.-": "Q", ".-.": "R", "...": "S", "-": "T", "..-": "U",
+    "...-": "V", ".--": "W", "-..-": "X", "-.--": "Y", "--..": "Z",
+}  # fmt: skip
+_CODE_NUMBERS = re.compile(r"(?<!\S)\d{1,3}(?:[ \t]+\d{1,3}){7,}(?!\S)")  # eight or more
+_MORSE_RUN = re.compile(r"(?<!\S)[.\-/]+(?:[ \t]+[.\-/]+)*(?!\S)")
+_MIN_CIPHER_LETTERS = 3  # a lone "-" bullet or "..." ellipsis is not a message
+_CIPHER_LINE_MIN_WORDS = 3
+_ROT13_CUE = re.compile(r"\brot-?\s?13\b", re.IGNORECASE)  # a rot13 line names its cipher
+
+
+def line_of(text: str, start: int, end: int) -> str:
+    """The line of ``text`` that holds the span ``start``..``end``, without its line break."""
+    first = text.rfind("\n", 0, start) + 1
+    last = text.find("\n", end)
+    return text[first : len(text) if last < 0 else last]
+
+
+def _morse_text(run: str) -> str | None:
+    """Letters and words of a morse run (``/`` separates words), or ``None`` if not morse."""
+    words: list[str] = []
+    letters: list[str] = []
+    for token in run.split():
+        if token == "/":
+            words.append("".join(letters))
+            letters = []
+        elif token in _MORSE_LETTERS:
+            letters.append(_MORSE_LETTERS[token])
+        else:
+            return None
+    words.append("".join(letters))
+    if sum(len(w) for w in words) < _MIN_CIPHER_LETTERS:
+        return None
+    return " ".join(w for w in words if w)
+
+
+def _code_text(run: str) -> str | None:
+    """The characters of a run of ASCII codes, or ``None`` if a code is not printable ASCII."""
+    codes = [int(n) for n in run.split()]
+    return "".join(map(chr, codes)) if all(32 <= c <= 126 for c in codes) else None
+
+
+def find_ciphered_runs(text: str) -> list[EncodedRun]:
+    """Morse runs, runs of ASCII codes and rot13 lines that decode to text.
+
+    Only the text is returned: the caller keeps the runs that read as an instruction (a decode
+    cue next to them, or the decoded text is an agent directive). A rot13 line is decoded whole,
+    so the plain words of the line are garbled but the ciphered part reads as text.
+    """
+    found: list[EncodedRun] = []
+    for match in _CODE_NUMBERS.finditer(text):
+        decoded = _code_text(match.group())
+        if decoded is not None:
+            found.append(EncodedRun(match.start(), match.end(), decoded))
+    for match in _MORSE_RUN.finditer(text):
+        decoded = _morse_text(match.group())
+        if decoded is not None:
+            found.append(EncodedRun(match.start(), match.end(), decoded))
+    offset = 0
+    for line in text.splitlines(keepends=True):
+        body = line.rstrip("\r\n")
+        if _ROT13_CUE.search(body) and len(body.split()) >= _CIPHER_LINE_MIN_WORDS:
+            decoded = codecs.decode(body, "rot13")
+            found.append(EncodedRun(offset, offset + len(body), decoded))
+        offset += len(line)
+    return sorted(found)
 
 
 _JOIN_AND_RUN = re.compile(

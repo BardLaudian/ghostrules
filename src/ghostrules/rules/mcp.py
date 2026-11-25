@@ -478,7 +478,9 @@ def gr106_dangerous_docker(target: ScanTarget) -> Iterator[Finding]:
 
 # --- GR109 ---------------------------------------------------------------------------------
 
-_PROSE_KEYS = frozenset({"description", "instructions"})  # text the model reads from the config
+# text the model reads from the config: a description, instructions or a prompt, also as the
+# suffix of an env name (SERVER_INSTRUCTIONS)
+_PROSE_KEY = re.compile(r"(?:description|instructions?|prompt)$", re.IGNORECASE)
 _PROSE_RULES = frozenset({"GR010", "GR011", "GR012", "GR013", "GR014", "GR016"})
 
 
@@ -487,7 +489,7 @@ def _prose_nodes(node: JNode | None) -> Iterator[JNode]:
     if node is None:
         return
     for key, (_start, child) in (node.members or {}).items():
-        if key in _PROSE_KEYS and isinstance(child.value, str):
+        if _PROSE_KEY.search(key) and isinstance(child.value, str):
             yield child
         else:
             yield from _prose_nodes(child)

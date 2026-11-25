@@ -28,15 +28,18 @@ from ghostrules.rules.patterns import (
     _SENSITIVE_PATH,
     COLLECTOR_PATTERNS,
     CREDENTIAL_ASK_RE,
+    DECODE_AND_ACT,
     EXFIL_PATTERNS,
     INJECTION_PATTERNS,
     SENSITIVE_PATH_RE,
     SHELL_LANGS,
     EncodedRun,
+    find_ciphered_runs,
     find_disguised_runs,
     find_encoded_runs,
     find_joined_fragments,
     find_standing_remote_runs,
+    line_of,
     reads_as_agent_directive,
 )
 from ghostrules.rules.registry import rule
@@ -638,6 +641,20 @@ def gr015_encoded_payloads(target: ScanTarget) -> Iterator[Finding]:
             decoded=run.decoded,
             limit=40,
         )
+    for run in find_ciphered_runs(target.text):
+        if _cipher_reads_as_instruction(target.text, run):
+            yield _finding(
+                target,
+                "GR015",
+                Severity.HIGH,
+                "Encoded payload",
+                "Instruction written in a cipher or code (rot13, morse, ASCII codes) that the text"
+                " asks to decode",
+                (run.start, run.end),
+                fix_hint="Replace the text with its plain form, or remove it.",
+                decoded=run.decoded,
+                limit=40,
+            )
     for run in find_disguised_runs(target.text):
         if target.code_block_at(run.start) is not None:
             continue
@@ -666,9 +683,12 @@ def gr015_encoded_payloads(target: ScanTarget) -> Iterator[Finding]:
         )
 
 
-_DECODE_AND_ACT = re.compile(
-    r"\bdecod\w*\b[^\n]{0,60}?\b(?:follow|obey|apply|execute|comply)\b", re.I
-)
+def _cipher_reads_as_instruction(text: str, run: EncodedRun) -> bool:
+    """A cipher run is an instruction when its own line asks to decode and act on it, or the
+    decoded text is a directive to the agent. The cue must share the line: a cue nearby is not
+    the run's own."""
+    line = line_of(text, run.start, run.end)
+    return DECODE_AND_ACT.search(line) is not None or reads_as_agent_directive(run.decoded or "")
 
 
 def _reads_as_instruction(text: str, run: EncodedRun) -> bool:
@@ -676,7 +696,7 @@ def _reads_as_instruction(text: str, run: EncodedRun) -> bool:
     instruction"), or the decoded text is a directive to the agent (``reads_as_agent_directive``).
     """
     window = text[max(0, run.start - 200) : run.end + 200]
-    if _DECODE_AND_ACT.search(window) is not None:
+    if DECODE_AND_ACT.search(window) is not None:
         return True
     return reads_as_agent_directive(run.decoded or "")
 
