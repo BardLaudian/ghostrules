@@ -22,8 +22,9 @@ human-judged test-half number yet (see 1b for the machine-measured test evasion)
 
 ### 1b. Test-half evasion, before → after each patch (measured locally on 2026-11-25)
 
-Oracle run on the held-out cases (those that passed the judge's validity check; not yet reviewed by
-a human), with the previous round's branch as "before". Totals only. Round 001 has no patch.
+Oracle run on all held-out cases, with the previous round's branch as "before". The judge ran on
+the dev half only in rounds 002–004 and 006, so those test halves are **not filtered for validity**
+(neither by the judge nor yet by a human); only round 005's test half went through the judge. Totals only. Round 001 has no patch.
 
 | Round | Test cases | Evasion before | Evasion after |
 |---|---|---|---|
