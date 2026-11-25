@@ -99,6 +99,13 @@ def _imperative_prose_command(finding: Finding, target: ScanTarget) -> bool:
     return classify(target, (offset, offset + 1)) == "directive"
 
 
+def _bundled_skill_document(path: str) -> bool:
+    """A file in a skill folder other than its SKILL.md. The agent reads it only when SKILL.md
+    points at it, so it is reached indirectly, like an import."""
+    parts = path.replace("\\", "/").split("/")
+    return "skills" in parts[:-1] and parts[-1] != "SKILL.md"
+
+
 def by_visibility(
     finding: Finding, target: ScanTarget, *, import_only: bool, lenient: bool = False
 ) -> Finding:
@@ -110,6 +117,7 @@ def by_visibility(
         or finding.decoded  # decoded from hidden characters
         or OBFUSCATION_NOTE in finding.message  # not readable as written
         or import_only
+        or _bundled_skill_document(target.path)
         or target.kind == "config"
         or target.in_html_comment(target.offset(finding.line, finding.column))
     ):

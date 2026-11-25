@@ -33,7 +33,7 @@ the URLs in any file.
 | <a id="gr013"></a>`GR013` | critical | instructions | **Data exfiltration.** Instructions to send secrets to a URL, markdown-image exfiltration, collector domains. |
 | <a id="gr014"></a>`GR014` | high | instructions | **Sensitive file access.** Instructions to read, print or send credentials files (~/.ssh, .env, .npmrc...). |
 | <a id="gr015"></a>`GR015` | medium | instructions | **Encoded payload.** Long base64 or hex strings in instruction files, which hide their content from reviewers. |
-| <a id="gr016"></a>`GR016` | high | instructions | **Agent safety bypass.** Instructions to skip permission prompts, disable sandboxes or auto-approve everything. |
+| <a id="gr016"></a>`GR016` | high | instructions | **Agent safety bypass.** Instructions to skip permission prompts, disable sandboxes, auto-approve everything or turn off TLS certificate checks. |
 | <a id="gr017"></a>`GR017` | critical | instructions | **Secret in an instruction file.** A token or API key of a known format (ghp_, sk-ant-, AKIA, xox...) written in a file the agent reads; always masked. |
 | <a id="gr020"></a>`GR020` | high | instructions | **External import.** An @path import that resolves outside the repository (absolute, ~/ or ../ above the root). |
 | <a id="gr021"></a>`GR021` | critical | instructions | **Sensitive file imported into context.** An @path import of a secrets or credentials file (.env, ~/.ssh/*, .npmrc, *.pem...). |
@@ -90,6 +90,9 @@ Report **only** if the comment body is ≥ 40 chars and either matches any GR010
 (`you must`, `always`, `never`) (→ medium). Since 0.3 a comment that only *names* the agent
 (`assistant`, `AI`, `agent`, `model`: "Guidance for AI agents working in ...") is low.
 Plain short comments (TODOs, lint directives) are ignored.
+Since round 002: a comment that reads as an instruction to "you" (`Use the label … on every issue
+you open`, `Whenever you create a file …`) is medium, and high when it sits inside a sentence (text
+before and after it on the same line). A maintainer note in a comment block stays medium.
 
 Agent-aware (since 0.2): the finding lists which modelled agents see the comment. Claude Code strips
 block-level comments from `CLAUDE.md`, `CLAUDE.local.md` and `.claude/CLAUDE.md` before the model
@@ -102,6 +105,10 @@ model a team that only uses Claude Code.
 ### GR006 — Mixed-script homoglyph words (low)
 A single word mixing Latin with Cyrillic/Greek lookalikes (e.g. `pаypal` with Cyrillic а) inside
 instruction files or URLs. Low severity, but upgrade to high if inside a URL/domain.
+Since round 002 a line of an instruction file that is hidden with fullwidth letters, look-alike
+letters or leet digits (`5k1p wr1t1ng` for "skip writing") is high when its plain reading (NFKC,
+look-alikes folded, leet applied to words that carry a digit when most words do) is addressed to the
+agent. The message does not echo the folded text.
 
 ---
 
@@ -271,6 +278,12 @@ printable text → high and put it in `decoded` (and scan it with GR010–GR014)
 images and things inside fenced code blocks labelled with a language other than shell. Since 0.3 also
 skipped: runs inside a URL (a commit hash in a path), Subresource Integrity digests (`sha384-…`) and
 hex of very low entropy (`AAAA…` padding).
+Since round 002: decoded text that is addressed to the agent (a modal, or a first clause led by a
+verb, see `directive.is_instruction`) or that sits next to "decode … and apply/follow" is high;
+other readable text is medium. Non-shell code blocks are still skipped, except for an instruction
+payload. Reversed lines (a file that says "right-to-left", "backwards" or "reversed") and lines of
+two or more `\uXXXX` / `\xHH` escapes on a line that asks to decode or interpret them are decoded
+and reported high when the result is an instruction. Morse code is not decoded.
 
 ### GR016 — Agent safety bypass (high)
 `--dangerously-skip-permissions`, `bypassPermissions`, `--yolo`, `yolo mode`, `auto[- ]?approve (all|every)`,
@@ -282,6 +295,10 @@ only); a prohibition earlier in the clause ("Avoid `--yolo`", "Do not disable th
 reported. Severity by directive / descriptive / example (above): "Run with `--dangerously-skip-permissions`" is
 high, "The test harness runs Claude with `--permission-mode bypassPermissions`" is medium, a fenced
 `claude --dangerously-skip-permissions` is low.
+Since round 002 also: TLS certificate checks switched off (`NODE_TLS_REJECT_UNAUTHORIZED=0`,
+`curl -k` / `--insecure` / `--no-check-certificate`, `verify=False`, `PYTHONHTTPSVERIFY=0`,
+`strict-ssl false`). Visible prose is low by the visibility policy; a hidden comment, or a file in a
+skill folder other than its SKILL.md (reached only through it), keeps high.
 
 ### GR017 — Secret in an instruction file (critical)
 Since 0.5 (H5). A known token format written in the text of an instruction file or `.cursorrules`:
@@ -329,7 +346,10 @@ critical if the command string also matches GR012.
 ### GR107 — Over-permissive agent settings (high)
 `.claude/settings*.json`: `permissions.defaultMode == "bypassPermissions"`; `permissions.allow`
 containing `Bash`, `Bash(*)`, `Bash(curl:*)`, `Bash(sudo:*)`, `Bash(rm:*)`, or `WebFetch` without domain;
-`hooks` whose command matches GR012/GR013 (→ critical).
+`hooks` whose command matches GR012/GR013 (→ critical). Since round 002: a hook whose command posts
+data (`curl -d`, `--data-binary`, `-F`, `-T`, `-X POST`) to a non-loopback URL (→ critical), and an
+`allow` rule whose argument names a secret file (`Read(./.env)`, `Read(~/.ssh/**)`; `.env.example`
+is not secret) (→ high).
 Other agents: Gemini `"yolo": true` (kept although the reference lists no such key).
 Since 0.4: Codex `.codex/config.toml` with `sandbox_mode = "danger-full-access"` or
 `approval_policy = "never"` (high; a commented-out line is not reported, the safe values are not),

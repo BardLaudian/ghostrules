@@ -270,7 +270,7 @@ exit=0
                 "text": "Agent safety bypass"
               },
               "fullDescription": {
-                "text": "Instructions to skip permission prompts, disable sandboxes or auto-approve everything."
+                "text": "Instructions to skip permission prompts, disable sandboxes, auto-approve everything or turn off TLS certificate checks."
               },
               "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr016",
               "defaultConfiguration": {

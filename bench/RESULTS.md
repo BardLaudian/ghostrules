@@ -7,7 +7,7 @@ measured and how. Nothing here was tuned on the held-out set.
 
 | Origin | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
-| author | 37 | 33 (89%) | 13 (35%) |
+| author | 37 | 33 (89%) | 15 (41%) |
 | review (independent) | 4 | 1 (25%) | 1 (25%) |
 | public | 69 | 67 (97%) | 42 (61%) |
 
@@ -18,7 +18,7 @@ measured and how. Nothing here was tuned on the held-out set.
 | concealment | 5 | 4 | 0 |
 | encoded-payload | 3 | 3 | 3 |
 | exfiltration | 11 | 10 | 0 |
-| homoglyph | 3 | 3 | 1 |
+| homoglyph | 3 | 3 | 3 |
 | hook-scripts | 7 | 7 | 6 |
 | html-comment | 4 | 4 | 3 |
 | imports | 5 | 5 | 5 |
@@ -35,7 +35,7 @@ measured and how. Nothing here was tuned on the held-out set.
 | unicode-tags | 7 | 7 | 7 |
 | variation-selectors | 3 | 3 | 3 |
 | zero-width | 3 | 3 | 1 |
-| **All** | 110 | 101 (92%) | 56 (51%) |
+| **All** | 110 | 101 (92%) | 58 (53%) |
 
 101 of 110 cases are detected and 9 are known misses.
 
@@ -46,7 +46,7 @@ measured and how. Nothing here was tuned on the held-out set.
 | GR003 | 3 | 3 | 1 |
 | GR004 | 3 | 3 | 3 |
 | GR005 | 4 | 4 | 3 |
-| GR006 | 3 | 3 | 1 |
+| GR006 | 3 | 3 | 3 |
 | GR010 | 11 | 8 | 1 |
 | GR011 | 6 | 5 | 1 |
 | GR012 | 10 | 10 | 6 |

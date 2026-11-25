@@ -9,6 +9,7 @@ from collections.abc import Iterator
 from typing import NamedTuple
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
+from ghostrules.rules.directive import is_instruction
 from ghostrules.rules.helpers import build_finding, clean_hint, group_by_line
 from ghostrules.rules.patterns import (
     has_agent_directed_language,
@@ -309,6 +310,17 @@ def gr004_variation_selectors(target: ScanTarget) -> Iterator[Finding]:
 _HTML_COMMENT_RE = re.compile(r"<!--(.*?)(?:-->|\Z)", re.DOTALL)
 _COMMENT_MIN_CHARS = 40
 _MARKDOWN_SUFFIXES = (".md", ".mdc", ".markdown", ".mdx")
+_SECOND_PERSON = re.compile(r"\byou\b", re.IGNORECASE)
+
+
+def _inside_prose(text: str, match: re.Match[str]) -> bool:
+    """Whether the comment has text before and after it on its line (it sits mid-sentence)."""
+    line_start = text.rfind("\n", 0, match.start()) + 1
+    line_end = text.find("\n", match.end())
+    line_end = len(text) if line_end < 0 else line_end
+    return bool(text[line_start : match.start()].strip()) and bool(
+        text[match.end() : line_end].strip()
+    )
 
 
 def _agent_view_of_comment(
@@ -365,6 +377,10 @@ def gr005_html_comments(target: ScanTarget) -> Iterator[Finding]:
         elif has_instruction_cue(body):
             severity = Severity.MEDIUM
             reason = "addresses the AI agent"
+        elif is_instruction(body) and _SECOND_PERSON.search(body):
+            # high inside a sentence: no maintainer note sits mid-sentence where readers cannot see
+            severity = Severity.HIGH if _inside_prose(target.text, match) else Severity.MEDIUM
+            reason = "tells the AI agent what to do"
         elif has_agent_directed_language(body):
             severity = Severity.LOW
             reason = "mentions the AI agent"
@@ -510,6 +526,56 @@ def gr006_homoglyphs(target: ScanTarget) -> Iterator[Finding]:
                 start=word.start(),
                 end=word.end(),
                 fix_hint="Replace lookalike characters with plain ASCII.",
+                limit=120,
+            )
+    yield from _disguised_directives(target)
+
+
+# Leet digits, applied only to words that also carry a digit ("5k1p" reads as "skip").
+_LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "8": "b"})
+
+
+def _disguised_reading(line: str) -> str | None:
+    """The plain reading of a line that hides words with look-alike, fullwidth or leet characters,
+    when that reading is addressed to the agent; None otherwise.
+
+    Fullwidth or look-alike letters count when NFKC maps them to ASCII. Leet applies when most
+    words carry a digit that reads as a letter, so version numbers ("Python3") stay as they are.
+    """
+    hidden = any(
+        c in _CONFUSABLES
+        or (c.isalpha() and not c.isascii() and unicodedata.normalize("NFKC", c).isascii())
+        for c in line
+    )
+    plain = "".join(_CONFUSABLES.get(c, c) for c in unicodedata.normalize("NFKC", line))
+    words = re.findall(r"\w+", plain)
+    leet = {w for w in words if any(c.isdigit() for c in w) and w.translate(_LEET).isalpha()}
+    if len(leet) >= 3 and 2 * len(leet) >= len(words):
+        hidden = True
+        plain = re.sub(
+            r"\w+", lambda m: m.group().translate(_LEET) if m.group() in leet else m.group(), plain
+        )
+    return plain if hidden and is_instruction(plain) else None
+
+
+def _disguised_directives(target: ScanTarget) -> Iterator[Finding]:
+    """Instruction lines whose plain reading is an instruction only once disguised letters are
+    folded (high). The folded text is not echoed: it may contain a secret."""
+    offset = 0
+    for line in target.text.splitlines(keepends=True):
+        body = line.rstrip("\r\n")
+        start, offset = offset, offset + len(line)
+        if body.strip() and _disguised_reading(body) is not None:
+            yield build_finding(
+                target=target,
+                rule_id="GR006",
+                severity=Severity.HIGH,
+                title="Instruction written with disguised characters",
+                message="The line reads as an instruction once look-alike, fullwidth or leet "
+                "characters are folded to plain letters.",
+                start=start,
+                end=start + len(body),
+                fix_hint="Replace the disguised characters with plain ASCII, and review the line.",
                 limit=120,
             )
 

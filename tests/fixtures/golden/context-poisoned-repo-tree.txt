@@ -4,7 +4,7 @@ claude-code · session start (no target file)
 └── ✕ skipped     AGENTS.md  ⚠ 4 critical  a CLAUDE.md exists (default "claude-md-or-agents-md"): AGENTS.md is not read
 
 copilot-cli · session start (no target file)
-├── ● always      .github/copilot-instructions.md  ⚠ 3 critical  ⚠ 3 high  ⚠ 3 low  7 lines
+├── ● always      .github/copilot-instructions.md  ⚠ 3 critical  ⚠ 4 high  ⚠ 3 low  7 lines
 ├── ● always      AGENTS.md  ⚠ 4 critical  6 lines
 └── ● always      CLAUDE.md  ⚠ 2 high  5 lines · (unverified) · unverified whether HTML comments are stripped here: kept
     as seen
@@ -45,6 +45,9 @@ Findings ───────────────────────�
 
    HIGH    GR010  CLAUDE.md:4
           Tries to override the agent's instructions: “Ignore previous instructions”                                    
+
+   HIGH    GR006  .github/copilot-instructions.md:3
+          The line reads as an instruction once look-alike, fullwidth or leet characters are folded to plain letters.   
 
    HIGH    GR006  .github/copilot-instructions.md:4
           Host label 'dоcs' mixes Latin and Cyrillic/Greek letters. The URL may impersonate another domain.             
