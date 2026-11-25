@@ -543,14 +543,14 @@ exit=0
                 "text": "Overly broad filesystem scope"
               },
               "fullDescription": {
-                "text": "Filesystem MCP servers given the whole disk or the whole home directory."
+                "text": "Filesystem MCP servers given the whole disk or the whole home directory (credentials live there: ~/.ssh, ~/.aws)."
               },
               "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr104",
               "defaultConfiguration": {
-                "level": "warning"
+                "level": "error"
               },
               "properties": {
-                "security-severity": "5.5",
+                "security-severity": "8.0",
                 "tags": [
                   "security",
                   "ai-agents"

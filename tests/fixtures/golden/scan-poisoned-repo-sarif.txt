@@ -543,14 +543,14 @@ exit=1
                 "text": "Overly broad filesystem scope"
               },
               "fullDescription": {
-                "text": "Filesystem MCP servers given the whole disk or the whole home directory."
+                "text": "Filesystem MCP servers given the whole disk or the whole home directory (credentials live there: ~/.ssh, ~/.aws)."
               },
               "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr104",
               "defaultConfiguration": {
-                "level": "warning"
+                "level": "error"
               },
               "properties": {
-                "security-severity": "5.5",
+                "security-severity": "8.0",
                 "tags": [
                   "security",
                   "ai-agents"
@@ -1210,6 +1210,37 @@ exit=1
           "ruleIndex": 24
         },
         {
+          "ruleId": "GR104",
+          "level": "error",
+          "message": {
+            "text": "Overly broad filesystem scope: Filesystem server 'files' can access '/': the whole disk or home."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".mcp.json",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 21,
+                  "startColumn": 10,
+                  "endLine": 21,
+                  "endColumn": 11,
+                  "snippet": {
+                    "text": "        \"/\""
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "security-severity": "8.0",
+            "fixHint": "Restrict the server to the project directory, for example ${workspaceFolder}."
+          },
+          "ruleIndex": 25
+        },
+        {
           "ruleId": "GR106",
           "level": "error",
           "message": {
@@ -1487,37 +1518,6 @@ exit=1
             "fixHint": "Pin an exact version, for example some-mcp-server@1.2.3."
           },
           "ruleIndex": 23
-        },
-        {
-          "ruleId": "GR104",
-          "level": "warning",
-          "message": {
-            "text": "Overly broad filesystem scope: Filesystem server 'files' can access '/': the whole disk or home."
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": ".mcp.json",
-                  "uriBaseId": "%SRCROOT%"
-                },
-                "region": {
-                  "startLine": 21,
-                  "startColumn": 10,
-                  "endLine": 21,
-                  "endColumn": 11,
-                  "snippet": {
-                    "text": "        \"/\""
-                  }
-                }
-              }
-            }
-          ],
-          "properties": {
-            "security-severity": "5.5",
-            "fixHint": "Restrict the server to the project directory, for example ${workspaceFolder}."
-          },
-          "ruleIndex": 25
         },
         {
           "ruleId": "GR108",

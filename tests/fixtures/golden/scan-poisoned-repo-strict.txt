@@ -200,6 +200,19 @@ exit=1
       "fix_hint": "Use https:// so traffic and credentials are encrypted."
     },
     {
+      "rule_id": "GR104",
+      "severity": "high",
+      "title": "Overly broad filesystem scope",
+      "message": "Filesystem server 'files' can access '/': the whole disk or home.",
+      "path": ".mcp.json",
+      "line": 21,
+      "column": 10,
+      "end_column": 11,
+      "snippet": "        \"/\"",
+      "decoded": null,
+      "fix_hint": "Restrict the server to the project directory, for example ${workspaceFolder}."
+    },
+    {
       "rule_id": "GR106",
       "severity": "high",
       "title": "Dangerous Docker options",
@@ -356,19 +369,6 @@ exit=1
       "fix_hint": "Pin an exact version, for example some-mcp-server@1.2.3."
     },
     {
-      "rule_id": "GR104",
-      "severity": "medium",
-      "title": "Overly broad filesystem scope",
-      "message": "Filesystem server 'files' can access '/': the whole disk or home.",
-      "path": ".mcp.json",
-      "line": 21,
-      "column": 10,
-      "end_column": 11,
-      "snippet": "        \"/\"",
-      "decoded": null,
-      "fix_hint": "Restrict the server to the project directory, for example ${workspaceFolder}."
-    },
-    {
       "rule_id": "GR108",
       "severity": "medium",
       "title": "Auto-enabled project MCP servers",
@@ -399,8 +399,8 @@ exit=1
     "total": 30,
     "by_severity": {
       "critical": 10,
-      "high": 16,
-      "medium": 3,
+      "high": 17,
+      "medium": 2,
       "low": 1
     },
     "files_with_findings": 7,
