@@ -2,6 +2,7 @@
 exclude = [
   "examples/**",
   "tests/fixtures/**",
+  "bench/redteam/rounds/*/review*.csv",  # review sheets quote the attack cases as the judge saw them
   "dist/**",
   "build/**",
   ".mypy_cache/**",
