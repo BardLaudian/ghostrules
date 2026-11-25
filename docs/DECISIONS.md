@@ -1288,3 +1288,25 @@ Corpus after the change: n8n l.649 is `medium`; the other three remaining findin
 - **Code of Conduct contact** uses GitHub's private reporting only. Decided by the maintainer on 2026-11-24: no email is published.
 - **Changelog:** Unreleased sections were merged into the Keep a Changelog categories and internal
   tracking labels (H1…H14) removed. Older "Known limits" sections are kept as written.
+
+## 2026-11-25 — A big agent file is scanned in windows, never skipped
+
+**Context.** `--max-file-size` skipped any file over 1 MiB with a warning and exit 0. Padding a
+`CLAUDE.md` past the cap hid a payload placed after it (a C3 evasion in the 0.6.0 taxonomy).
+
+**Decision.**
+- Instruction files over the cap are scanned in windows of `max_file_size` bytes with an overlap of
+  64 KiB (a quarter of the window if the cap is smaller). Cuts fall on a newline when one is in the
+  last quarter of the window. Findings are moved back to their real line and column and
+  de-duplicated.
+- A config or script file over the cap is not split (it must parse as a whole) and the scan fails
+  with exit 2. Any file over a hard limit of 16 MiB also fails with exit 2.
+- A file that no agent reads (`other`, only seen with `--all-files`) keeps the old behaviour:
+  skipped with a warning.
+- `--max-file-size 0` still means no limit.
+
+**Known limit.** An instruction longer than the overlap that straddles a cut is not seen whole by any
+window. 64 KiB is far longer than any instruction a rule matches.
+
+**Rejected.** Raising the cap (moves the bypass); failing every file over the cap (would turn a
+long but legitimate `CLAUDE.md` into an error).

@@ -62,8 +62,12 @@ only that:
 - The located-JSON parser does not raise on arbitrary text or on 50,000 levels of nesting.
 - No report format (table, JSON, SARIF, Markdown) prints a known-format secret or an ESC
   character for generated file content; SARIF validates against the 2.1.0 schema.
-- A file over `--max-file-size` (default 1 MiB) is skipped with a warning in every format, never
-  silently. A rule that raises is reported as an error and the exit code is 2.
+- An instruction file over `--max-file-size` (default 1 MiB) is scanned in overlapping windows (64 KiB
+  of overlap), with a warning in every format, so padding it hides nothing. A file an agent reads
+  that cannot be scanned (a config or script file over the limit, or any file over 16 MiB) is an
+  error and the exit code is 2, never a clean result. A file no agent reads is skipped with a
+  warning. A rule that raises is reported as an error and the exit code is 2. Known limit: an
+  instruction that is itself longer than the overlap and straddles a cut is not seen whole.
 - Hostile inputs (3 MB without spaces or on one line, 60,000 repeated sentences, 200,000 brackets
   or quotes) finish within a 60 s budget in `pytest -m slow`. This is a regression guard, not a
   promise about speed, and it runs with the size limit off. A file under the default limit is

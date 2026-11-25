@@ -5,6 +5,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **Padding an instruction file past 1 MiB no longer hides what follows.** Until now a file over
+  `--max-file-size` was skipped with a warning and the exit code stayed 0, so an attacker could put
+  the payload after a megabyte of filler. Instruction files are now scanned in overlapping windows
+  (findings keep their real line numbers). A config or script file over the limit, or any file over
+  16 MiB, fails the scan with exit 2. Files no agent reads are still skipped with a warning.
+
 ## [0.5.1] - 2026-11-24
 
 ### Fixed
