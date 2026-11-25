@@ -450,3 +450,14 @@ def test_the_round_command_and_ledger_template_exist() -> None:
     assert "Never pass anything from the `test` half" in command
     template = (ROOT / "bench" / "redteam" / "rounds" / "ledger.template.md").read_text("utf-8")
     assert "Blind audit" in template and "ai-redteam" in template
+
+
+def test_review_agreement(tmp_path):
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "bench" / "redteam"))
+    from review_agreement import agreement
+
+    f = tmp_path / "r.csv"
+    f.write_text("judge_score,human_valid\n0.9,1\n0.2,0\n0.8,0\n0.7,\n", encoding="utf-8")
+    assert agreement([f]) == (3, 2, 1)

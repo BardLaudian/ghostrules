@@ -17,6 +17,9 @@ cases, not its oracle verdicts, not a summary. Do not push or open a PR without 
 3. Split the turn's cases (`split.py`, as in step 6) and run `oracle.py` on the **dev** half only.
    Send that JSON `{id: {detected, max_severity}}` to the attacker with `SendMessage`; at most 3
    turns in total. Schema errors go back to the attacker as plain text.
+   Stop early when a turn's dev evasion (not detected / valid dev cases) is 80 % or more: more
+   turns would only repeat gaps the defender already has. Evasion of a round is not a score; the
+   measure of progress is the evasion of the fixed `test` half before and after the patch.
 4. Merge the valid cases of all turns into `rounds/NNN/cases.toml`.
 5. `python bench/redteam/make_prompt.py judge rounds/NNN/cases.toml`, launch `redteam-judge`, save
    `rounds/NNN/verdicts.toml`, then `python bench/redteam/judge_check.py cases.toml verdicts.toml`.

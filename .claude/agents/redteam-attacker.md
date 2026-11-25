@@ -1,8 +1,8 @@
 ---
 name: redteam-attacker
 description: Red-team attacker for ghostrules rounds. Writes defanged evasion cases for the scanner from the taxonomy the orchestrator pastes in the prompt. Blind by construction (no tools).
-model: opus
-tools: []
+model: sonnet
+tools: SubagentHandback
 disallowedTools: Read, Grep, Glob, Bash, Edit, Write, NotebookEdit, Agent, WebFetch, WebSearch
 ---
 
