@@ -1327,3 +1327,34 @@ from `AGENT_MODELS.md` before it reaches the attacker.
 log cannot tell which agent made a call, so one access voids the round. `.claude/agents/` is not
 scanned by ghostrules itself (a coverage gap to decide separately).
 
+
+## 2026-11-26 — Semantic layer (C5): ceiling of a signal scorer, optional model mode (Phase 15)
+
+**Measured.** Round 007 (C5, 60 cases, seed 7, one attacker turn). Before GR114: 0/26 dev and 1/34
+test cases detected at high or critical. After GR114 (deterministic signal scorer, six languages):
+22/26 dev, 1/34 test. The dev figure is optimistic (the defender read those cases while building the
+lexicons). The held-out figure did not move. The test half has no judge verdict and no human review
+yet; origin is `ai-redteam`, one model family.
+
+**Reading.** On cases the scorer was built against it works; on 34 unseen paraphrases from the same
+attacker it adds nothing at high. Two things are not separated by this single round: lexicon coverage
+(stems the attacker used and the defender did not list) and the high-confidence policy (a single
+signal, or a secret with no output or outbound target, stays medium on purpose). The objective of
+the plan (recall ≥ 50 % at n ≥ 60, advisory) is **not met** on the held-out half.
+
+**Decision for now.** Keep GR114 as advisory: it reports medium for one signal, high only for
+combinations, with its signals listed, and it never reads anything outside the scanned file. Do not
+claim a C5 recall in the README. Publish the ceiling: a lexical scorer reaches the phrasings its
+lexicons anticipate and not unseen paraphrase.
+
+**Optional model mode (not implemented, for the person to decide).**
+- What it would do: send suspicious paragraphs to a local model (an on-device model run by the user)
+  or to a hosted model and take a yes/no with a reason, only on `--semantic`, off by default.
+- Cost: a dependency or a service call per paragraph; non-deterministic results, so the lock and the
+  golden tests cannot cover it; latency in CI.
+- Privacy: file text would leave the machine with a hosted model. That breaks the promise of "never
+  makes network requests". It must be opt-in, name the endpoint, send only the flagged paragraphs,
+  mask secrets before sending, and never run on a repository the user did not choose. A local model
+  keeps the promise and is the only variant compatible with the current SPEC.
+- Before any of this: measure the held-out gain of a second round with signal-class guidance, with
+  the test half reviewed by a human.
