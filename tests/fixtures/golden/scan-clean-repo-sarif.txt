@@ -745,6 +745,27 @@ exit=0
                   "ai-agents"
                 ]
               }
+            },
+            {
+              "id": "GR114",
+              "name": "Instruction combines risky signals",
+              "shortDescription": {
+                "text": "Instruction combines risky signals"
+              },
+              "fullDescription": {
+                "text": "A paraphrased instruction that combines weak signals: sensitive object + outbound target, download + execute, override + concealment, skipped checks. A single signal is medium."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr114",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
             }
           ]
         }

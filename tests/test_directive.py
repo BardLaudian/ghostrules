@@ -309,7 +309,9 @@ def test_the_poisoned_demo_keeps_its_findings() -> None:
     # +1 high since round 002: copilot-instructions.md line 3 hides a Cyrillic look-alike in an
     # instruction ("reаct"), which GR006 now reads as a disguised instruction. +1 high since
     # round 003: the root-filesystem MCP server is GR104, now high (it was medium)
-    assert dict(counts) == {"critical": 10, "high": 17, "medium": 2, "low": 1}
+    # +1 high since round 007: GR114 reads the setup skill's URL, credential read and paste
+    # together (the demo's hostile skill is one paragraph of numbered steps).
+    assert dict(counts) == {"critical": 10, "high": 18, "medium": 2, "low": 1}
 
 
 # --- n8n testmax l.649, as found in the corpus run --------------------------------------------

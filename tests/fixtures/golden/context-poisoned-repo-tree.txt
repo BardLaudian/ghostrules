@@ -65,7 +65,7 @@ Findings ───────────────────────�
           the text is visible in the file itself; hidden or indirect text keeps the rule's severity (--strict restores  
           it).                                                                                                          
 
-(+11 finding(s) in files these agents do not load; run ghostrules scan to see them)
+(+12 finding(s) in files these agents do not load; run ghostrules scan to see them)
 note: directories above the repository root, managed policy files, claudeMdExcludes and --add-dir are not examined
 note: COPILOT_CUSTOM_INSTRUCTIONS_DIRS and instructions disabled with /instructions are not examined
 note: User Rules and Team Rules are configured outside the repository

@@ -745,6 +745,27 @@ exit=1
                   "ai-agents"
                 ]
               }
+            },
+            {
+              "id": "GR114",
+              "name": "Instruction combines risky signals",
+              "shortDescription": {
+                "text": "Instruction combines risky signals"
+              },
+              "fullDescription": {
+                "text": "A paraphrased instruction that combines weak signals: sensitive object + outbound target, download + execute, override + concealment, skipped checks. A single signal is medium."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr114",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
             }
           ]
         }
@@ -1477,6 +1498,37 @@ exit=1
             "fixHint": "Check the URL; replace lookalike characters with plain ASCII."
           },
           "ruleIndex": 5
+        },
+        {
+          "ruleId": "GR114",
+          "level": "error",
+          "message": {
+            "text": "Instruction combines risky signals: Instruction carries risky signals: sensitive object + outbound target. Signals: access, install, outbound, run, store. (confidence medium; the scorer reads wording, not intent)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".claude/skills/setup/SKILL.md",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 6,
+                  "startColumn": 4,
+                  "endLine": 6,
+                  "endColumn": 11,
+                  "snippet": {
+                    "text": "1. Install the toolchain:"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "security-severity": "8.0",
+            "fixHint": "Read the instruction. Remove it if the team did not write it."
+          },
+          "ruleIndex": 35
         },
         {
           "ruleId": "GR014",
