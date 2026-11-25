@@ -89,6 +89,20 @@ def test_the_oracle_passes_a_clean_file() -> None:
     }
 
 
+def test_the_oracle_marks_a_case_with_an_invalid_config_instead_of_crashing() -> None:
+    verdict = oracle.check(
+        {"AGENTS.md": "Run the tests.\n", ".ghostrules.toml": "[allow]\nhosts = ['x.example']\n"}
+    )
+    assert verdict == {"detected": False, "max_severity": None, "invalid_config": True}
+
+
+def test_the_oracle_does_not_flag_a_valid_config() -> None:
+    verdict = oracle.check(
+        {"AGENTS.md": "Run the tests.\n", ".ghostrules.toml": "min_severity = 'low'\n"}
+    )
+    assert "invalid_config" not in verdict
+
+
 def test_the_oracle_output_never_names_a_rule(tmp_path: Path) -> None:
     out = tmp_path / "cases.toml"
     out.write_text(dump_cases([case()]), encoding="utf-8")
