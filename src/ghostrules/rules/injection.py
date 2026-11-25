@@ -7,6 +7,8 @@ instruction files and on hidden text decoded by other rules (``scans_decoded``).
 
 from __future__ import annotations
 
+import base64
+import binascii
 import ipaddress
 import re
 from collections.abc import Iterable, Iterator
@@ -25,6 +27,7 @@ from ghostrules.rules.patterns import (
     _SECRET,
     _SENSITIVE_PATH,
     COLLECTOR_PATTERNS,
+    CREDENTIAL_ASK_RE,
     EXFIL_PATTERNS,
     INJECTION_PATTERNS,
     SENSITIVE_PATH_RE,
@@ -37,7 +40,7 @@ from ghostrules.rules.patterns import (
     reads_as_agent_directive,
 )
 from ghostrules.rules.registry import rule
-from ghostrules.secrets import KNOWN_SECRET_PATTERNS, is_placeholder, mask_value
+from ghostrules.secrets import KNOWN_SECRET_PATTERNS, is_placeholder, known_secret, mask_value
 from ghostrules.sensitive import is_template_path
 
 INSTRUCTIONS: tuple[Kind, ...] = ("instructions",)
@@ -527,7 +530,10 @@ def gr014_sensitive_files(target: ScanTarget) -> Iterator[Finding]:
             continue
         kind = classify(target, span)
         # a private key described without naming a path is a heuristic: low, never a failure
-        described = SENSITIVE_PATH_RE.search(target.text, span[0], span[1]) is None
+        described = (
+            SENSITIVE_PATH_RE.search(target.text, span[0], span[1]) is None
+            and CREDENTIAL_ASK_RE.search(target.text, span[0], span[1]) is None
+        )
         severity = Severity.LOW if described else severity_for(kind, Severity.HIGH)
         yield _finding(
             target,
@@ -763,6 +769,49 @@ def gr017_secret_in_prose(target: ScanTarget) -> Iterator[Finding]:
                 secrets=(value,),
             )
     yield from _split_secrets(target)
+    yield from _encoded_secrets(target)
+
+
+# base64 of 24 or more characters: a 40-character token is 56 characters once encoded
+_SHORT_BASE64 = re.compile(r"[A-Za-z0-9+/]{24,}={0,2}")
+_CREDENTIAL_LABEL = re.compile(r"token|secret|passw|api[\s_-]?key|credential", re.IGNORECASE)
+
+
+def _credential_shaped(value: str) -> bool:
+    """One long run with no spaces and no placeholder shape: a token, not a sentence."""
+    return len(value) >= 16 and not any(c.isspace() for c in value) and not is_placeholder(value)
+
+
+def _encoded_secrets(target: ScanTarget) -> Iterator[Finding]:
+    """Known token formats written base64-encoded in an instruction file. The text is decoded and
+    the token formats are matched on the result; the value is masked like any other secret."""
+    for m in _SHORT_BASE64.finditer(target.text):
+        run = m.group()
+        padded = run if "=" in run else run + "=" * (-len(run) % 4)
+        try:
+            decoded = base64.b64decode(padded, validate=True).decode("utf-8")
+        except (binascii.Error, ValueError):
+            continue
+        found = known_secret(decoded)
+        line_start = target.text.rfind("\n", 0, m.start()) + 1
+        labelled = _CREDENTIAL_LABEL.search(target.text[line_start : m.start()]) is not None
+        if found is None and labelled and _credential_shaped(decoded):
+            found = ("Credential", decoded)  # a value under a credential label, e.g. "CI token"
+        if found is None:
+            continue
+        label, value = found
+        yield build_finding(
+            target=target,
+            rule_id="GR017",
+            severity=Severity.CRITICAL,
+            title="Secret in an instruction file",
+            message=f"{label} written base64-encoded in the file: {mask_value(value)}",
+            start=m.start(),
+            end=m.end(),
+            fix_hint="Remove it, reference an environment variable instead, and rotate the"
+            " secret: it is exposed to everyone with access to the repository.",
+            secrets=(value,),
+        )
 
 
 def _split_secrets(target: ScanTarget) -> Iterator[Finding]:

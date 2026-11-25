@@ -20,6 +20,7 @@ from ghostrules.rules.patterns import (
 from ghostrules.rules.registry import rule
 from ghostrules.unicode_utils import (
     BIDI,
+    SMALL_CAPITALS,
     TAG,
     VARIATION_SELECTOR,
     ZERO_WIDTH,
@@ -430,7 +431,10 @@ _CONFUSABLE_CODEPOINTS: dict[int, str] = {
     0x0391: "A", 0x0392: "B", 0x0395: "E", 0x0396: "Z", 0x0397: "H", 0x0399: "I", 0x039A: "K",
     0x039C: "M", 0x039D: "N", 0x039F: "O", 0x03A1: "P", 0x03A4: "T", 0x03A5: "Y", 0x03A7: "X",
 }  # fmt: skip
-_CONFUSABLES: dict[str, str] = {chr(cp): latin for cp, latin in _CONFUSABLE_CODEPOINTS.items()}
+_CONFUSABLES: dict[str, str] = {
+    **{chr(cp): latin for cp, latin in _CONFUSABLE_CODEPOINTS.items()},
+    **SMALL_CAPITALS,
+}
 _WORD_RE = re.compile(r"\w+")
 _URL_RE = re.compile(r"https?://[^\s<>\"'`)\]]+", re.IGNORECASE)
 _HOST_RE = re.compile(r"https?://(?:[^/?#\s@]*@)?([^/?#\s:]+)", re.IGNORECASE)

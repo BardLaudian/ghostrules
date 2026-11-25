@@ -1,0 +1,191 @@
+[
+ {
+  "id": "r4-c1-zw-frontmatter-desc",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c1-inline-comment-not-block",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c1-tags-override",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c1-display-none-span",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c1-far-right-whitespace",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c1-blank-lines-skill",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c1-vs-fence-info",
+  "valid": true,
+  "score": 0.993,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c2-fullwidth",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c2-percent-encoding",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c2-reversed",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c2-cyrillic-homoglyph",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c2-split-b64-lines",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c2-small-caps-tags",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c2-base32",
+  "valid": false,
+  "score": 0.196,
+  "why": "below threshold",
+  "twin": true
+ },
+ {
+  "id": "r4-c2-nested-b64-in-comment",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c3-import-chain",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c3-disable-and-lower",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c3-gemini-import",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c3-mcp-tool-description",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c3-import-in-skill",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c3-mcp-resource-uri",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c4-statusline-command",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c4-mcp-env-split-token",
+  "valid": false,
+  "score": 0.383,
+  "why": "below threshold",
+  "twin": true
+ },
+ {
+  "id": "r4-c4-mcp-shell-wrapper",
+  "valid": true,
+  "score": 0.876,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c4-mcp-url-with-key",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c4-secret-b64-prose",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r4-c4-secret-url-userinfo",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ }
+]

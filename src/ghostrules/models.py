@@ -13,6 +13,14 @@ from ghostrules.markdown_utils import FencedBlock, fenced_blocks, inline_code_sp
 from ghostrules.secrets import mask_secrets
 
 _HTML_COMMENT_RE = re.compile(r"<!--.*?(?:-->|\Z)", re.DOTALL)
+# an element a renderer hides: the hidden attribute or an inline style that hides its content
+_HIDDEN_OPEN_RE = re.compile(
+    r"<([a-zA-Z][\w-]*)\b[^>]*?(?:\shidden\b|style\s*=\s*[\"'][^\"']*(?:display\s*:\s*none"
+    r"|visibility\s*:\s*hidden|font-size\s*:\s*0|opacity\s*:\s*0)[^\"']*[\"'])[^>]*>",
+    re.IGNORECASE,
+)
+_BLANK_GAP_RE = re.compile(r"\n[ \t]*\r?\n(?:[ \t]*\r?\n){19,}")  # 20 blank lines in a row
+_PADDED_TEXT_RE = re.compile(r"[ \t]{120,}\S[^\n]*")  # text pushed past 120 columns of spaces
 
 if TYPE_CHECKING:
     from ghostrules.mcp_config import ServerDef
@@ -243,6 +251,31 @@ class ScanTarget:
     def in_html_comment(self, offset: int) -> bool:
         """Whether ``offset`` is inside a hidden HTML comment."""
         return any(start <= offset < end for start, end in self.html_comments)
+
+    @cached_property
+    def hidden_spans(self) -> list[tuple[int, int]]:
+        """Text a reviewer does not read at a glance: HTML comments, elements a renderer hides
+        (``hidden``, ``display:none`` and similar), and text buried under 20 blank lines or 120
+        columns of spaces (up to the next such gap). Empty for config files."""
+        if self.kind == "config":
+            return []
+        spans = list(self.html_comments)
+        for m in _HIDDEN_OPEN_RE.finditer(self.text):
+            close = re.compile(rf"</{re.escape(m.group(1))}\s*>", re.IGNORECASE).search(
+                self.text, m.end()
+            )
+            if close is not None and self.code_block_at(m.start()) is None:
+                spans.append((m.end(), close.start()))
+        gaps = list(_BLANK_GAP_RE.finditer(self.text))
+        for i, gap in enumerate(gaps):
+            stop = gaps[i + 1].start() if i + 1 < len(gaps) else len(self.text)
+            spans.append((gap.end(), stop))
+        spans.extend(m.span() for m in _PADDED_TEXT_RE.finditer(self.text))
+        return sorted(spans)
+
+    def in_hidden_text(self, offset: int) -> bool:
+        """Whether ``offset`` is in text a reviewer does not read at a glance (``hidden_spans``)."""
+        return any(start <= offset < end for start, end in self.hidden_spans)
 
     def offset(self, line: int, column: int) -> int:
         """Character offset of a 1-based ``(line, column)`` (clamped to the text)."""

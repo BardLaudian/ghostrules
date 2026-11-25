@@ -642,6 +642,27 @@ exit=0
               }
             },
             {
+              "id": "GR109",
+              "name": "Instructions in MCP server descriptions",
+              "shortDescription": {
+                "text": "Instructions in MCP server descriptions"
+              },
+              "fullDescription": {
+                "text": "The description and instructions of an MCP server or tool are read by the model. The instruction rules (GR010-GR014, GR016) run on them."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr109",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
               "id": "GR110",
               "name": "Script sends the environment or a secret",
               "shortDescription": {
