@@ -1,7 +1,8 @@
-exit=0
+exit=2
 ◆ ghostrules v0.5.1  scanning examples/clean-repo
 
 ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-✔ No findings  (scanned 2 files)
-warning: skipped .mcp.json: 471 bytes exceeds max_file_size (200); raise it with --max-file-size to scan this file
-warning: skipped AGENTS.md: 324 bytes exceeds max_file_size (200); raise it with --max-file-size to scan this file
+✖ Scan incomplete  (scanned 3 files)
+warning: AGENTS.md: 324 bytes is over max_file_size (200); scanned in 2 overlapping windows
+error: .mcp.json cannot be scanned: 471 bytes is over max_file_size (200) and a config file is not split, and an agent 
+still reads it. Raise --max-file-size (0 = no limit) to scan it whole
