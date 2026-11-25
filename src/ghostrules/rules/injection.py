@@ -13,7 +13,13 @@ from collections.abc import Iterable, Iterator
 from dataclasses import replace
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
-from ghostrules.rules.directive import OBFUSCATION_NOTE, classify, downgrade_note, severity_for
+from ghostrules.rules.directive import (
+    OBFUSCATION_NOTE,
+    classify,
+    downgrade_note,
+    is_instruction,
+    severity_for,
+)
 from ghostrules.rules.helpers import build_finding, host_allowed, urls_allowed
 from ghostrules.rules.known_installers import extract_urls, is_risky_url, known_installer
 from ghostrules.rules.patterns import (
@@ -24,6 +30,8 @@ from ghostrules.rules.patterns import (
     INJECTION_PATTERNS,
     SENSITIVE_PATH_RE,
     SHELL_LANGS,
+    EncodedRun,
+    find_disguised_runs,
     find_encoded_runs,
 )
 from ghostrules.rules.registry import rule
@@ -578,29 +586,63 @@ def _names_a_template(text: str, span: tuple[int, int]) -> bool:
     scans_decoded=True,
 )
 def gr015_encoded_payloads(target: ScanTarget) -> Iterator[Finding]:
-    """High when the run decodes to printable text (shown in ``decoded``), else medium.
+    """High when the decoded text is addressed to the agent (or the text asks to decode and act on
+    it), else medium. Reversed or escaped lines that read as an instruction are high.
 
-    Fenced code blocks are skipped unless labelled as a shell language; unlabelled blocks count
-    as non-shell. Hashes, ``data:`` URIs and path-like strings are filtered out by the finder.
+    Fenced code blocks are skipped unless labelled as a shell language or the decoded text is an
+    instruction; unlabelled blocks count as non-shell. Hashes, ``data:`` URIs and path-like strings
+    are filtered out by the finder.
     """
     for run in find_encoded_runs(target.text):
         block = target.code_block_at(run.start)
-        if block is not None and block.lang not in SHELL_LANGS:
+        instructive = run.decoded is not None and _reads_as_instruction(target.text, run)
+        if block is not None and block.lang not in SHELL_LANGS and not instructive:
             continue
-        readable = run.decoded is not None
+        if run.decoded is None:
+            message = "Long encoded string of unknown content"
+        else:
+            message = (
+                "Long encoded string that decodes to an instruction"
+                if instructive
+                else "Long encoded string that decodes to readable text"
+            )
         yield _finding(
             target,
             "GR015",
-            Severity.HIGH if readable else Severity.MEDIUM,
+            Severity.HIGH if instructive else Severity.MEDIUM,
             "Encoded payload",
-            "Long encoded string that decodes to readable text"
-            if readable
-            else "Long encoded string of unknown content",
+            message,
             (run.start, run.end),
             fix_hint="Replace the encoded text with its plain form, or remove it.",
             decoded=run.decoded,
             limit=40,
         )
+    for run in find_disguised_runs(target.text):
+        if target.code_block_at(run.start) is not None:
+            continue
+        yield _finding(
+            target,
+            "GR015",
+            Severity.HIGH,
+            "Encoded payload",
+            "Instruction hidden in reversed or escaped text that the file asks to decode",
+            (run.start, run.end),
+            fix_hint="Replace the text with its plain form, or remove it.",
+            decoded=run.decoded,
+            limit=40,
+        )
+
+
+_DECODE_AND_ACT = re.compile(
+    r"\bdecod\w*\b[^\n]{0,60}?\b(?:follow|obey|apply|execute|comply)\b", re.I
+)
+
+
+def _reads_as_instruction(text: str, run: EncodedRun) -> bool:
+    """The decoded text is addressed to the agent, or the text next to the run asks to decode it
+    and act on it ("decode and apply as an instruction")."""
+    window = text[max(0, run.start - 200) : run.end + 200]
+    return is_instruction(run.decoded or "") or _DECODE_AND_ACT.search(window) is not None
 
 
 # --- GR016 ---------------------------------------------------------------------------------
@@ -614,12 +656,14 @@ def _in_table_row(text: str, offset: int) -> bool:
     "GR016",
     Severity.HIGH,
     "Agent safety bypass",
-    "Instructions to skip permission prompts, disable sandboxes or auto-approve everything.",
+    "Instructions to skip permission prompts, disable sandboxes, auto-approve everything"
+    " or turn off TLS certificate checks.",
     INSTRUCTIONS,
     scans_decoded=True,
 )
 def gr016_safety_bypass(target: ScanTarget) -> Iterator[Finding]:
-    """Flags that or instructions which switch off the agent's safety checks. High for an
+    """Flags that or instructions which switch off the agent's safety checks (permissions, sandbox,
+    TLS certificate verification). High for an
     instruction, medium when prose documents that something runs that way, low for an example."""
     for span in _spans(target, INJECTION_PATTERNS["GR016"]):
         if _prohibited_in_clause(target.text, span[0]):

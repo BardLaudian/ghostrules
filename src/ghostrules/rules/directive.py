@@ -180,6 +180,21 @@ def _is_directive(sentence: str, span_in_sentence: tuple[int, int]) -> bool:
     return _first_word(clauses[0][1]) not in _SUBJECTS
 
 
+def is_instruction(text: str, *, anywhere: bool = False) -> bool:
+    """Whether a standalone text (decoded or unfolded hidden text) is addressed to the agent.
+
+    True for a modal ("you must") or a first clause that leads with a verb, after "whenever" and
+    "you" ("Whenever you create a file ..." counts). With ``anywhere``, every clause of the text is
+    checked: for a line that mixes an explanation with an instruction. Pure.
+    """
+    end = _END.search(text)
+    head = text[: end.start()] if end else text
+    if _MODAL.search(head):
+        return True
+    clauses = _CLAUSE_BREAK.split(head) if anywhere else [_CLAUSE_BREAK.split(head, 1)[0]]
+    return any(_clause_leads_with_verb(re.sub(r"\byou\b", " ", c, flags=re.I)) for c in clauses)
+
+
 def classify(target: ScanTarget, span: tuple[int, int]) -> TextKind:
     """Classify the match ``span`` (offsets into ``target.text``)."""
     if target.origin is not None:  # decoded hidden text: always a directive

@@ -13,6 +13,7 @@ import binascii
 import re
 from typing import NamedTuple
 
+from ghostrules.rules.directive import is_instruction
 from ghostrules.secrets import shannon_entropy
 from ghostrules.unicode_utils import is_mostly_printable
 
@@ -138,6 +139,13 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\bdisable\s+(?:the\s+)?(?:sandbox|safety|guardrails)",
         r"\bnever\s+ask\s+(?:for\s+)?(?:permission|confirmation)",
         r"\bsin\s+pedir\s+(?:permiso|confirmaci[oó]n)",
+        # TLS certificate checks switched off (the agent's network safety)
+        r"\bNODE_TLS_REJECT_UNAUTHORIZED\s*=\s*['\"]?0\b",
+        r"\b(?:curl|wget)\b[^\n]{0,120}?\s(?:-[a-zA-Z]*k[a-zA-Z]*|--insecure"
+        r"|--no-check-certificate)\b",
+        r"\bverify\s*=\s*False\b",
+        r"\bPYTHONHTTPSVERIFY\s*=\s*['\"]?0\b",
+        r"\bstrict-ssl\s+false\b",
     ),
 }
 
@@ -224,6 +232,44 @@ def find_encoded_runs(text: str) -> list[EncodedRun]:
 def find_encoded_payloads(text: str) -> list[EncodedRun]:
     """The subset of ``find_encoded_runs`` that decodes to printable text."""
     return [run for run in find_encoded_runs(text) if run.decoded is not None]
+
+
+_REVERSE_CUE = re.compile(
+    r"\bright[- ]to[- ]left\b|\bbackwards?\b|\bin\s+reverse\b|\breversed\b", re.I
+)
+_ESCAPES = re.compile(r"(?:\\u[0-9a-fA-F]{4}|\\x[0-9a-fA-F]{2}){2}")
+_ESCAPE_ONE = re.compile(r"\\u([0-9a-fA-F]{4})|\\x([0-9a-fA-F]{2})")
+_ESCAPE_CUE = re.compile(r"\b(?:escapes?|unescape|interpret|decode)\b", re.I)
+
+
+def _unescape(match: re.Match[str]) -> str:
+    return chr(int(match.group(1) or match.group(2), 16))
+
+
+def find_disguised_runs(text: str) -> list[EncodedRun]:
+    """Lines that read as an instruction once reversed or unescaped, decoded.
+
+    A line is reversed only in a file that says its text runs right to left or backwards; escapes
+    (two or more ``\\uXXXX`` / ``\\xHH`` in a row) are decoded only on a line that also asks to
+    decode or interpret them. Without that cue, reversed words and escaped JSON are ordinary text.
+    """
+    found: list[EncodedRun] = []
+    reverse_cue = _REVERSE_CUE.search(text) is not None
+    offset = 0
+    for line in text.splitlines(keepends=True):
+        body = line.rstrip("\r\n")
+        start, end = offset, offset + len(body)
+        offset += len(line)
+        options: list[tuple[str, bool]] = []
+        if reverse_cue and len(body.split()) >= 3:
+            options.append((body.strip()[::-1], False))
+        if _ESCAPES.search(body) and _ESCAPE_CUE.search(body):
+            options.append((_ESCAPE_ONE.sub(_unescape, body), True))
+        for decoded, anywhere in options:
+            if is_instruction(decoded, anywhere=anywhere):
+                found.append(EncodedRun(start, end, decoded))
+                break
+    return found
 
 
 def has_instruction_cue(text: str) -> bool:

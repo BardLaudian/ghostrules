@@ -33,6 +33,17 @@ _BROAD_ALLOW = re.compile(
     r"|WebFetch(?:\(\s*\*?\s*\))?",
     re.IGNORECASE,
 )
+# a sender that posts data it was given: -d, --data-binary, -F, -T, --upload-file, -X POST.
+# Case-sensitive on purpose: -f (fail) and -t are not data flags.
+_POSTS_DATA = re.compile(
+    rf"\b{_SENDER}\b[^\n]*?(?:\s-[a-zA-Z]*[dFT]\b|\s--(?:data|form|upload-file|post-data|json)\b"
+    r"|\s-X\s*(?:POST|PUT)\b)"
+)
+_REMOTE_URL = re.compile(
+    r"https?://(?!(?:localhost|127\.\d+\.\d+\.\d+|\[::1\])[:/])[^\s'\"]+", re.IGNORECASE
+)
+_TOOL_RULE = re.compile(r"(?:Read|Edit|Write|MultiEdit|Bash|Grep|Glob)\((.*)\)", re.DOTALL)
+_SECRET_FILE = re.compile(_SENSITIVE_PATH, re.IGNORECASE)
 
 
 def _finding(
@@ -79,7 +90,15 @@ def _hook_problem(command: str) -> str | None:
         p.search(command) for p in (*EXFIL_PATTERNS, *_HOOK_EXFIL_PATTERNS, *COLLECTOR_PATTERNS)
     ):
         return "sends sensitive data to a remote host"
+    if _POSTS_DATA.search(command) and _REMOTE_URL.search(command):
+        return "posts data to a remote host (a hook runs on every prompt or tool call)"
     return None
+
+
+def _secret_grant(rule: str) -> bool:
+    """A tool permission (``Read(...)``, ``Bash(...)``) whose argument names a secret file."""
+    found = _TOOL_RULE.fullmatch(rule.strip())
+    return found is not None and _SECRET_FILE.search(found.group(1)) is not None
 
 
 _CODEX_SWITCHES = (
@@ -167,6 +186,13 @@ def gr107_permissive_settings(target: ScanTarget) -> Iterator[Finding]:
                 f"Permission rule '{item.value}' allows unrestricted use of a powerful tool.",
                 item.string_span(),
                 "Allow only specific commands or domains, for example Bash(npm run test:*).",
+            )  # fmt: skip
+        elif isinstance(item.value, str) and _secret_grant(item.value):
+            yield _finding(
+                target, "GR107", Severity.HIGH, "Over-permissive agent settings",
+                f"Permission rule '{item.value}' lets the agent use a secret file without asking.",
+                item.string_span(),
+                "Remove the rule; allow only the project files the task needs.",
             )  # fmt: skip
     yolo = root.get("yolo")
     if yolo is not None and yolo.value is True and ".gemini/" in target.path.replace("\\", "/"):
