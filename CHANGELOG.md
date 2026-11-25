@@ -5,6 +5,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **Red-team loop infrastructure** (`bench/redteam/`, `.claude/agents/`, `/redteam-round`): case
+  schema, blind oracle, dev/test split with the test set kept outside the repository, prompt builder
+  with a source allow-list, judge check, deterministic gate and an audit of the tool-call log.
+  Tooling only; the scanner does not change.
+
 ### Fixed
 
 - **Padding an instruction file past 1 MiB no longer hides what follows.** Until now a file over

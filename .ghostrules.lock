@@ -25,7 +25,13 @@
     "cursor": [],
     "generic": []
   },
-  "configs": [],
+  "configs": [
+    {
+      "lines": "021fb596db81e6d0 c999475ead1e4c92 f4ddc3fd6393280d cd79545f78ae51ba 57382ac103635648 814c9925b5c01a8e 72a21ae73f2a3c22 b935720f9eda1899 9556700e74a6bb3a 3288a136ca3e7c85 0b364aca013d49c1 f1911e8a869d4925 9e898918242eb012 cd466cc792f797a6 703f156c507a6f37 f61f5bbc379fd349 9556700e74a6bb3a 737db166c79ae98e d10b36aa74a59bcf",
+      "path": ".claude/settings.json",
+      "sha256": "41007a237ad085749641a1a5aff469b7290667bb78c90e95f994c285c861f11e"
+    }
+  ],
   "generator": "ghostrules 0.5.1",
   "lock_version": 1
 }
