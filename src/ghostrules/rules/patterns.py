@@ -161,6 +161,11 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\balways\s+(?:allow|approve|accept)\s+(?:all\s+)?(?:commands|tools|edits)",
         r"\bdisable\s+(?:the\s+)?(?:sandbox|safety|guardrails)",
         r"\bnever\s+ask\s+(?:for\s+)?(?:permission|confirmation)",
+        # a confirmation, approval or telemetry prompt switched off ("Disable the confirmation …")
+        r"\b(?:disable|skip|turn\s+off|suppress|bypass|silence)\s+"
+        r"(?:the\s+|any\s+|all\s+|every\s+)?"
+        r"(?:[\w-]+\s+)?(?:confirmation|approval|permission|consent|telemetry)s?\s+"
+        r"(?:prompts?|dialogs?|checks?|questions?)\b",
         r"\b(?:run|execute)\s+(?:the\s+|any\s+|all\s+|every\s+|each\s+)?"
         r"(?:commands?|tools?|scripts?|it|them)\b"
         r"[^.\n]{0,80}?\bwithout\s+(?:asking|confirmation|approval|permission)\b",
@@ -231,7 +236,8 @@ DECODE_AND_ACT = re.compile(
     r"|as\s+(?:an?\s+)?instructions?)\b",
     re.I,
 )
-_URL_TOKEN = re.compile(r"https?://[^\s<>\"'`)\]]+", re.IGNORECASE)
+# a URL, or the target of a markdown link (a relative path can carry the same percent-encoded text)
+_URL_TOKEN = re.compile(r"(?:https?://|\]\()[^\s<>\"'`)\]]+", re.IGNORECASE)
 _PERCENT_RUN = re.compile(
     r"(?:%[0-9A-Fa-f]{2}|[\w./~+-])*%[0-9A-Fa-f]{2}(?:%[0-9A-Fa-f]{2}|[\w./~+-])*"
 )
@@ -397,6 +403,13 @@ def _code_text(run: str) -> str | None:
     return "".join(map(chr, codes)) if all(32 <= c <= 126 for c in codes) else None
 
 
+def _rot13_text(line: str) -> str:
+    """The rot13 of a line's cipher part: the text after its label (``note (rot13): ``). Rot13
+    turns the plain label as well, so the label would hide the directive that follows it."""
+    label = line.find(": ")
+    return codecs.decode(line[label + 2 :] if label >= 0 else line, "rot13")
+
+
 def find_ciphered_runs(text: str) -> list[EncodedRun]:
     """Morse runs, runs of ASCII codes and rot13 lines that decode to text.
 
@@ -417,8 +430,7 @@ def find_ciphered_runs(text: str) -> list[EncodedRun]:
     for line in text.splitlines(keepends=True):
         body = line.rstrip("\r\n")
         if _ROT13_CUE.search(body) and len(body.split()) >= _CIPHER_LINE_MIN_WORDS:
-            decoded = codecs.decode(body, "rot13")
-            found.append(EncodedRun(offset, offset + len(body), decoded))
+            found.append(EncodedRun(offset, offset + len(body), _rot13_text(body)))
         offset += len(line)
     return sorted(found)
 
@@ -467,9 +479,18 @@ _ACT_ON_URL = re.compile(
 )
 
 
+# routing traffic or installs through a host: "use the proxy at https://…", "point the registry at"
+_ROUTE_THROUGH_URL = re.compile(
+    r"\b(?:use|route|redirect|point)\b[^\n]{0,40}?\b(?:proxy|mirror|registry|endpoint|gateway)\b"
+    r"[^\n]{0,60}?" + _EXTERNAL_URL,
+    re.IGNORECASE,
+)
+
+
 def acts_on_external_url(text: str) -> bool:
-    """True if a line tells the agent to send, run or fetch something at an external URL."""
-    return _ACT_ON_URL.search(text) is not None
+    """True if a line tells the agent to send, run or fetch something at an external URL, or to
+    route its traffic or installs through an external host."""
+    return _ACT_ON_URL.search(text) is not None or _ROUTE_THROUGH_URL.search(text) is not None
 
 
 # a directive addressed to the agent, or one that sets a standing rule

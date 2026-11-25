@@ -789,6 +789,7 @@ def gr017_secret_in_prose(target: ScanTarget) -> Iterator[Finding]:
                 secrets=(value,),
             )
     yield from _split_secrets(target)
+    yield from _split_prose_secrets(target)
     yield from _encoded_secrets(target)
 
 
@@ -832,6 +833,46 @@ def _encoded_secrets(target: ScanTarget) -> Iterator[Finding]:
             " secret: it is exposed to everyone with access to the repository.",
             secrets=(value,),
         )
+
+
+# a known token format whose first piece ends a line; the reader joins it with a piece nearby
+_LINE_END_PIECE = re.compile(
+    r"(?<![A-Za-z0-9])(?:gh[pousr]_|github_pat_)[A-Za-z0-9_]+[ \t]*$", re.M
+)
+_NEXT_PIECE = re.compile(r"[A-Za-z0-9_]{8,}")
+_PIECE_LINES = 2  # how many lines after the first piece are searched for the rest
+
+
+def _split_prose_secrets(target: ScanTarget) -> Iterator[Finding]:
+    """A token written in two pieces on adjacent lines ("part one: ghp_…" then "part two: …").
+    Only the joined text is judged: it must be a complete token of a known format."""
+    text = target.text
+    for head in _LINE_END_PIECE.finditer(text):
+        end = text.find("\n", head.end())
+        if end < 0:
+            continue
+        window = "\n".join(text[end + 1 :].split("\n", _PIECE_LINES)[:_PIECE_LINES])
+        first = head.group().strip()
+        for label, pattern in _PROSE_SECRET_PATTERNS:
+            if "s" in pattern.groupindex or pattern.fullmatch(first) is not None:
+                continue  # a whole token on the line is the whole-file pass's finding
+            for piece in _NEXT_PIECE.finditer(window):
+                joined = first + piece.group()
+                if pattern.fullmatch(joined) is None or is_placeholder(joined):
+                    continue
+                yield build_finding(
+                    target=target,
+                    rule_id="GR017",
+                    severity=Severity.CRITICAL,
+                    title="Secret in an instruction file",
+                    message=f"{label} split across lines: {mask_value(joined)}",
+                    start=head.start(),
+                    end=head.end(),
+                    fix_hint="Remove it, reference an environment variable instead, and rotate the"
+                    " secret: it is exposed to everyone with access to the repository.",
+                    secrets=(joined,),
+                )
+                break
 
 
 def _split_secrets(target: ScanTarget) -> Iterator[Finding]:
