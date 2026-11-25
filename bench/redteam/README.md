@@ -54,3 +54,4 @@ repository. `.claude/settings.json` denies reading it and logs every tool call
 - Saturation: the scanner had so many gaps that evasion was ≥ 80 % from turn 2, so extra turns add
   nothing; the round stops at that point (see `redteam-round.md`).
 - Judge-human agreement: after filling `human_valid`, run `python bench/redteam/review_agreement.py rounds/000/review.csv ~/.cache/ghostrules-redteam-test/000/review_test.csv` (prints totals only; below 85 % adjust the judge prompt and repeat).
+- Review in a terminal: `python bench/redteam/review_cli.py <review.csv>` shows each row with mechanical decoding hints and saves after every answer. Run it outside Claude Code when the CSV is the test half.
