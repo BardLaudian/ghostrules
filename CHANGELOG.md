@@ -5,6 +5,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-11-26
+
 ### Added
 
 - Property tests (hypothesis) for the size windows (full coverage, progress, valid offsets, a short
@@ -20,6 +22,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   sensitive path, private-key headers as secrets, `additionalDirectories` granting the home folder
   (GR107), and Python `open()` of a credentials file as a secret source (GR110). Tests in
   `tests/test_redteam_round008.py` and `tests/test_redteam_round009.py`.
+
+### Fixed
+
+- **Files with Windows line endings (CRLF) were detected less than the same file with LF**: a
+  link-reference comment (`[//]: # (…)`) and a token split across two lines were missed. Both are
+  found now (`tests/test_crlf_line_endings.py`).
 
 ### Changed
 
@@ -510,7 +518,8 @@ First release.
 - Secrets are never printed: every finding, warning and error passes through one masking step
   (`ghp_****…a1b2`), and a test fails if a secret appears in any report format.
 
-[Unreleased]: https://github.com/BardLaudian/ghostrules/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/BardLaudian/ghostrules/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/BardLaudian/ghostrules/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/BardLaudian/ghostrules/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/BardLaudian/ghostrules/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/BardLaudian/ghostrules/compare/v0.4.0...v0.4.1
