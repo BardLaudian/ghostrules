@@ -7,6 +7,15 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Changed
 
+- **Calibration of GR015, GR017 and GR006** (phase 16; `docs/CALIBRATION.md`: 0 of 88, 24 and 21
+  labelled corpus findings were real). GR015: a "backwards" or "reversed" word anywhere in a file no
+  longer turns every line into a reversed instruction at high; high needs the reversed text to be
+  addressed to the agent or a nearby "read it reversed and obey" cue, else medium. Fragments the file
+  asks to join are high only if the joined text is a directive, an injection pattern or has an
+  external URL. GR017: a password in a URL with a local, one-label or placeholder host is medium, not
+  critical. GR006: digits alone are not a disguise; leet-only lines are low unless the plain reading
+  matches a known injection. A `5k1p`-style instruction with no injection pattern was high before
+  and is low now.
 - **JSON report `schema_version` 1 → 2 (migration).** Every finding now carries `confidence`
   (`high` | `medium` | `low`) and `effective_severity`, both required by `scan.schema.json`. Before,
   `confidence` was present on a few findings only. Consumers that ignore unknown keys keep working;

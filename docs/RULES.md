@@ -128,6 +128,12 @@ Since round 004 the look-alike table also folds Unicode small capitals (`ᴀ` `�
 Phonetic Extensions letters NFKC leaves alone). A line that reads as an instruction once they are
 folded is reported at **high** by the disguised-reading check, the same as fullwidth letters.
 
+Since phase 16 (see [CALIBRATION.md](CALIBRATION.md): 0 of 21 corpus findings were real): digits
+alone are not a disguise. A word counts as leet only if it has a letter of its own, so numbers
+(`5.0`, `100`, `1,4,7`) never do. A line disguised **only** by leet is reported **low** (confidence
+low), and high only if its plain reading matches a known injection pattern. A look-alike or
+fullwidth letter still makes it high.
+
 ---
 
 ## Malicious instructions (natural language, English, Spanish and French)
@@ -327,6 +333,14 @@ reported high. A decoded directive is high only when it is addressed to the agen
 `always`, `never`), matches an injection pattern, or sends or runs something at an external URL; a
 project note such as `Run the unit tests before tagging a release` is medium.
 
+Since phase 16 (see [CALIBRATION.md](CALIBRATION.md): 0 of 88 corpus findings were real): a
+"backwards" or "reversed" cue anywhere in a file no longer makes every line a reversed instruction
+at high. A reversed line is high only if its reversed reading is addressed to the agent (the same
+test as a decoded directive) or one of the two lines before it asks to read it reversed and obey it;
+otherwise it is medium. Joined fragments are high only if the joined text reads as a directive to the
+agent, matches an injection pattern or contains an external URL; otherwise medium. Escapes and
+character references are unchanged.
+
 Since round 004 a base64 run inside a URL fragment (`https://host/page#<base64>`) is decoded like
 any other run (a query value or path is still skipped, since those are often tokens and assets). A
 percent-encoded sentence in a URL query or fragment (four or more `%XX` escapes that decode to text
@@ -381,6 +395,12 @@ prose. Since round 003: a password in a URL (`https://user:password@host`, not a
 a secret too, and a token cut into the pieces of adjacent inline code spans (`` `ghp_…` `` then
 `` `…` ``, joined by whitespace) is reported as one secret. A token shorter than the format (the
 `ghp_` form needs 36 characters) is not a token for this rule.
+
+Since phase 16 (see [CALIBRATION.md](CALIBRATION.md): 0 of 24 corpus findings were real): a password
+in a URL whose host is the agent's own machine (`localhost`, `127.x`, `::1`, `0.0.0.0`), a name with
+no dot (`db`, a compose or cluster service), `*.local`, `*.internal`, or a documentation placeholder
+(`HOST`, `your-host…`, `example.com`) is an example connection string: **medium**, confidence
+medium. A URL with a public host stays critical. Vendor token formats are unchanged.
 
 Since round 006: a token cut across two adjacent lines (the first piece ends a line, the rest is in
 one of the next two lines, as in `Token part one: ghp_…` / `Token part two: …`) is joined and reported
