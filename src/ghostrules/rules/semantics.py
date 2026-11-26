@@ -301,6 +301,11 @@ def _hits(target: ScanTarget) -> Iterator[Hit]:
                 yield start, end, name, kind == "directive"
 
 
+# Advisory only: 1581 of the 1743 high/critical findings on the 300-repo corpus were this rule
+# (phase 16), so it never fails the default check. The confidence carries the distinction.
+ADVISORY_CAP = Severity.MEDIUM
+
+
 def _verdicts(d: set[str], a: set[str]) -> list[tuple[Severity, str]]:
     """Combinations of one paragraph's signals. ``d``: actions addressed to the agent; ``a``: every
     signal, which may only qualify an action (object, exclusivity, session)."""
@@ -359,12 +364,12 @@ def _paragraph_findings(target: ScanTarget, hits: Iterable[Hit]) -> list[Finding
         verdicts = _verdicts(addressed, every)
         if not verdicts:
             continue
-        severity = max(v[0] for v in verdicts)
-        high = severity >= Severity.HIGH
+        combo = max(v[0] for v in verdicts) >= Severity.HIGH
+        severity = ADVISORY_CAP
         labels = "; ".join(label for _, label in verdicts)
         message = (
             f"Instruction carries risky signals: {labels}. Signals: {', '.join(sorted(every))}. "
-            f"(confidence {'medium' if high else 'low'}; the scorer reads wording, not intent)."
+            f"(confidence {'medium' if combo else 'low'}; the scorer reads wording, not intent)."
         )
         start, end, _, _ = min(members)
         findings.append(
@@ -384,12 +389,12 @@ def _paragraph_findings(target: ScanTarget, hits: Iterable[Hit]) -> list[Finding
 
 @rule(
     "GR114",
-    Severity.HIGH,
+    ADVISORY_CAP,
     "Instruction combines risky signals",
     "A paraphrased instruction that combines weak signals: sensitive object + outbound target, "
     "download + execute, override + concealment, skipped checks. A single signal is medium.",
     INSTRUCTIONS,
 )
 def gr114_semantic_signals(target: ScanTarget) -> Iterator[Finding]:
-    """Score each paragraph: combinations are high, a single signal is medium."""
+    """Score each paragraph: combinations are confidence medium, one signal confidence low."""
     yield from _paragraph_findings(target, list(_hits(target)))

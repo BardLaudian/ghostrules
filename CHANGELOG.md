@@ -10,7 +10,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **GR114 scores paraphrased instructions.** A new rule reads weak signals (a credential store or a
   secret, an action on it, an outbound URL or channel, a download, a run, a skipped check, a
   concealment, an override) in English, Spanish, French, German, Portuguese and Italian, per
-  paragraph. Combinations are high (confidence medium), one signal alone is medium (confidence low).
+  paragraph. Always medium (advisory): a combination has confidence medium, one signal alone confidence low.
   Quotations, code blocks, descriptive or negated wording carry no signal, and a URL on an
   `allow_domains` domain is not an outbound target. Wording that GR010, GR012 or GR016 already match
   is left to them. The finding names the signals it used.
