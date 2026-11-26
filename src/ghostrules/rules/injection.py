@@ -7,27 +7,44 @@ instruction files and on hidden text decoded by other rules (``scans_decoded``).
 
 from __future__ import annotations
 
+import base64
+import binascii
 import ipaddress
 import re
 from collections.abc import Iterable, Iterator
 from dataclasses import replace
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
-from ghostrules.rules.directive import OBFUSCATION_NOTE, classify, downgrade_note, severity_for
+from ghostrules.rules.directive import (
+    OBFUSCATION_NOTE,
+    classify,
+    downgrade_note,
+    is_instruction,
+    severity_for,
+)
 from ghostrules.rules.helpers import build_finding, host_allowed, urls_allowed
 from ghostrules.rules.known_installers import extract_urls, is_risky_url, known_installer
 from ghostrules.rules.patterns import (
     _SECRET,
     _SENSITIVE_PATH,
     COLLECTOR_PATTERNS,
+    CREDENTIAL_ASK_RE,
+    DECODE_AND_ACT,
     EXFIL_PATTERNS,
     INJECTION_PATTERNS,
     SENSITIVE_PATH_RE,
     SHELL_LANGS,
+    EncodedRun,
+    find_ciphered_runs,
+    find_disguised_runs,
     find_encoded_runs,
+    find_joined_fragments,
+    find_standing_remote_runs,
+    line_of,
+    reads_as_agent_directive,
 )
 from ghostrules.rules.registry import rule
-from ghostrules.secrets import KNOWN_SECRET_PATTERNS, is_placeholder, mask_value
+from ghostrules.secrets import KNOWN_SECRET_PATTERNS, is_placeholder, known_secret, mask_value
 from ghostrules.sensitive import is_template_path
 
 INSTRUCTIONS: tuple[Kind, ...] = ("instructions",)
@@ -198,6 +215,19 @@ def gr012_remote_code_execution(target: ScanTarget) -> Iterator[Finding]:
             fix_hint=_GR012_HINT_SOFT
             if installers
             else "Remove it, or download, review and pin the script instead of piping it.",
+            limit=_LONG_SNIPPET,
+        )
+    for start, end in find_standing_remote_runs(target.text):
+        if _in_code(target, start) or urls_allowed(target.text[start:end], target.allow_domains):
+            continue
+        yield _finding(
+            target,
+            "GR012",
+            Severity.HIGH,
+            "Remote code execution pattern",
+            "A standing step runs a command against an external URL on every task or session",
+            (start, end),
+            fix_hint="Remove the step, or point it at a local, reviewed tool.",
             limit=_LONG_SNIPPET,
         )
 
@@ -504,7 +534,10 @@ def gr014_sensitive_files(target: ScanTarget) -> Iterator[Finding]:
             continue
         kind = classify(target, span)
         # a private key described without naming a path is a heuristic: low, never a failure
-        described = SENSITIVE_PATH_RE.search(target.text, span[0], span[1]) is None
+        described = (
+            SENSITIVE_PATH_RE.search(target.text, span[0], span[1]) is None
+            and CREDENTIAL_ASK_RE.search(target.text, span[0], span[1]) is None
+        )
         severity = Severity.LOW if described else severity_for(kind, Severity.HIGH)
         yield _finding(
             target,
@@ -578,29 +611,97 @@ def _names_a_template(text: str, span: tuple[int, int]) -> bool:
     scans_decoded=True,
 )
 def gr015_encoded_payloads(target: ScanTarget) -> Iterator[Finding]:
-    """High when the run decodes to printable text (shown in ``decoded``), else medium.
+    """High when the decoded text is addressed to the agent (or the text asks to decode and act on
+    it), else medium. Reversed or escaped lines that read as an instruction are high.
 
-    Fenced code blocks are skipped unless labelled as a shell language; unlabelled blocks count
-    as non-shell. Hashes, ``data:`` URIs and path-like strings are filtered out by the finder.
+    Fenced code blocks are skipped unless labelled as a shell language or the decoded text is an
+    instruction; unlabelled blocks count as non-shell. Hashes, ``data:`` URIs and path-like strings
+    are filtered out by the finder.
     """
     for run in find_encoded_runs(target.text):
         block = target.code_block_at(run.start)
-        if block is not None and block.lang not in SHELL_LANGS:
+        instructive = run.decoded is not None and _reads_as_instruction(target.text, run)
+        if block is not None and block.lang not in SHELL_LANGS and not instructive:
             continue
-        readable = run.decoded is not None
+        if run.decoded is None:
+            message = "Long encoded string of unknown content"
+        else:
+            message = (
+                "Long encoded string that decodes to an instruction"
+                if instructive
+                else "Long encoded string that decodes to readable text"
+            )
         yield _finding(
             target,
             "GR015",
-            Severity.HIGH if readable else Severity.MEDIUM,
+            Severity.HIGH if instructive else Severity.MEDIUM,
             "Encoded payload",
-            "Long encoded string that decodes to readable text"
-            if readable
-            else "Long encoded string of unknown content",
+            message,
             (run.start, run.end),
             fix_hint="Replace the encoded text with its plain form, or remove it.",
             decoded=run.decoded,
             limit=40,
         )
+    for run in find_ciphered_runs(target.text):
+        if _cipher_reads_as_instruction(target.text, run):
+            yield _finding(
+                target,
+                "GR015",
+                Severity.HIGH,
+                "Encoded payload",
+                "Instruction written in a cipher or code (rot13, morse, ASCII codes) that the text"
+                " asks to decode",
+                (run.start, run.end),
+                fix_hint="Replace the text with its plain form, or remove it.",
+                decoded=run.decoded,
+                limit=40,
+            )
+    for run in find_disguised_runs(target.text):
+        if target.code_block_at(run.start) is not None:
+            continue
+        yield _finding(
+            target,
+            "GR015",
+            Severity.HIGH if run.strong else Severity.MEDIUM,
+            "Encoded payload",
+            "Instruction hidden in reversed, escaped or character-referenced text",
+            (run.start, run.end),
+            fix_hint="Replace the text with its plain form, or remove it.",
+            decoded=run.decoded,
+            limit=40,
+        )
+    for run in find_joined_fragments(target.text):
+        yield _finding(
+            target,
+            "GR015",
+            Severity.HIGH if run.strong else Severity.MEDIUM,
+            "Encoded payload",
+            "Instruction split into fragments that the file asks to join and run",
+            (run.start, run.end),
+            fix_hint="Write the instruction out in full, or remove it.",
+            decoded=run.decoded,
+            limit=40,
+        )
+
+
+def _cipher_reads_as_instruction(text: str, run: EncodedRun) -> bool:
+    """A cipher run is an instruction when its own line asks to decode and act on it, or the
+    decoded text is a directive to the agent. The cue must share the line: a cue nearby is not
+    the run's own."""
+    line = line_of(text, run.start, run.end)
+    return DECODE_AND_ACT.search(line) is not None or reads_as_agent_directive(run.decoded or "")
+
+
+def _reads_as_instruction(text: str, run: EncodedRun) -> bool:
+    """The text next to the run asks to decode it and act on it ("decode and apply as an
+    instruction"), or the decoded text is a directive to the agent (``reads_as_agent_directive``).
+    """
+    window = text[max(0, run.start - 200) : run.end + 200]
+    if DECODE_AND_ACT.search(window) is not None:
+        return True
+    if text[max(0, run.start - 7) : run.start] == "base64," and is_instruction(run.decoded or ""):
+        return True  # the payload of a data: URI is text, and it is an instruction
+    return reads_as_agent_directive(run.decoded or "")
 
 
 # --- GR016 ---------------------------------------------------------------------------------
@@ -614,12 +715,14 @@ def _in_table_row(text: str, offset: int) -> bool:
     "GR016",
     Severity.HIGH,
     "Agent safety bypass",
-    "Instructions to skip permission prompts, disable sandboxes or auto-approve everything.",
+    "Instructions to skip permission prompts, disable sandboxes, auto-approve everything"
+    " or turn off TLS certificate checks.",
     INSTRUCTIONS,
     scans_decoded=True,
 )
 def gr016_safety_bypass(target: ScanTarget) -> Iterator[Finding]:
-    """Flags that or instructions which switch off the agent's safety checks. High for an
+    """Flags that or instructions which switch off the agent's safety checks (permissions, sandbox,
+    TLS certificate verification). High for an
     instruction, medium when prose documents that something runs that way, low for an example."""
     for span in _spans(target, INJECTION_PATTERNS["GR016"]):
         if _prohibited_in_clause(target.text, span[0]):
@@ -643,7 +746,41 @@ def gr016_safety_bypass(target: ScanTarget) -> Iterator[Finding]:
 # --- GR017 ---------------------------------------------------------------------------------
 
 # a Bearer token in prose is nearly always documentation of a header, not a leaked credential
-_PROSE_SECRET_PATTERNS = tuple((n, p) for n, p in KNOWN_SECRET_PATTERNS if n != "Bearer token")
+# user:password@host; a template ($VAR, <name>) in either part is not a credential
+_URL_PASSWORD = re.compile(
+    r"(?<![\w+.-])[a-z][a-z0-9+.-]*://[^\s:/@'\"`<>$]+:(?P<s>[^\s/@'\"`<>$]{8,})@[^\s/'\"`<>]+",
+    re.I,
+)
+_PROSE_SECRET_PATTERNS = (
+    *((n, p) for n, p in KNOWN_SECRET_PATTERNS if n != "Bearer token"),
+    ("Password in a URL", _URL_PASSWORD),
+)
+# inline code spans separated only by whitespace: a value cut into pieces to be joined by hand
+_CODE_SPAN_RUN = re.compile(r"`[^`\n]+`(?:\s+`[^`\n]+`)+")
+_CODE_SPAN = re.compile(r"`([^`\n]+)`")
+
+
+_CRED_URL_HOST = re.compile(r"@(?P<host>\[[^\]]*\]|[^\s:/'\"`<>]+)")
+_PLACEHOLDER_HOST = re.compile(
+    r"^(?:host(?:name)?|your[-_.a-z]*|my[-_.a-z]*|example(?:\.\w+)?|server|database|db)$"
+    r"|(?:^|\.)(?:local|localhost|internal|lan)$"
+    r"|(?:^|[-_.])(?:host|hostname|your-?host)(?:[-_.]|$)",
+    re.IGNORECASE,
+)
+
+
+def _local_or_placeholder_host(url: str) -> bool:
+    """The host of a ``user:password@host`` URL is the agent's own machine, a name that only
+    resolves inside a compose or cluster network (one label, no dots), or a documentation
+    placeholder. Such a URL is an example connection string, not a credential for a remote
+    service (phase 16: 0 of 24 corpus findings were real)."""
+    found = _CRED_URL_HOST.search(url)
+    if found is None:
+        return False
+    host = found.group("host").strip("[]").lower()
+    if host in {"::1", "0.0.0.0"} or host.startswith("127."):
+        return True
+    return "." not in host or _PLACEHOLDER_HOST.search(host) is not None
 
 
 @rule(
@@ -665,10 +802,12 @@ def gr017_secret_in_prose(target: ScanTarget) -> Iterator[Finding]:
             if span in seen or is_placeholder(value):
                 continue
             seen.add(span)
+            local = pattern is _URL_PASSWORD and _local_or_placeholder_host(m.group(0))
             yield build_finding(
                 target=target,
                 rule_id="GR017",
-                severity=Severity.CRITICAL,
+                confidence="medium" if local else "high",
+                severity=Severity.MEDIUM if local else Severity.CRITICAL,
                 title="Secret in an instruction file",
                 message=f"{label} written in the file: {mask_value(value)}",
                 start=span[0],
@@ -677,3 +816,116 @@ def gr017_secret_in_prose(target: ScanTarget) -> Iterator[Finding]:
                 " secret: it is exposed to everyone with access to the repository.",
                 secrets=(value,),
             )
+    yield from _split_secrets(target)
+    yield from _split_prose_secrets(target)
+    yield from _encoded_secrets(target)
+
+
+# base64 of 24 or more characters: a 40-character token is 56 characters once encoded
+_SHORT_BASE64 = re.compile(r"[A-Za-z0-9+/]{24,}={0,2}")
+_CREDENTIAL_LABEL = re.compile(r"token|secret|passw|api[\s_-]?key|credential", re.IGNORECASE)
+
+
+def _credential_shaped(value: str) -> bool:
+    """One long run with no spaces and no placeholder shape: a token, not a sentence."""
+    return len(value) >= 16 and not any(c.isspace() for c in value) and not is_placeholder(value)
+
+
+def _encoded_secrets(target: ScanTarget) -> Iterator[Finding]:
+    """Known token formats written base64-encoded in an instruction file. The text is decoded and
+    the token formats are matched on the result; the value is masked like any other secret."""
+    for m in _SHORT_BASE64.finditer(target.text):
+        run = m.group()
+        padded = run if "=" in run else run + "=" * (-len(run) % 4)
+        try:
+            decoded = base64.b64decode(padded, validate=True).decode("utf-8")
+        except (binascii.Error, ValueError):
+            continue
+        found = known_secret(decoded)
+        line_start = target.text.rfind("\n", 0, m.start()) + 1
+        labelled = _CREDENTIAL_LABEL.search(target.text[line_start : m.start()]) is not None
+        if found is None and labelled and _credential_shaped(decoded):
+            found = ("Credential", decoded)  # a value under a credential label, e.g. "CI token"
+        if found is None:
+            continue
+        label, value = found
+        yield build_finding(
+            target=target,
+            rule_id="GR017",
+            confidence="high",
+            severity=Severity.CRITICAL,
+            title="Secret in an instruction file",
+            message=f"{label} written base64-encoded in the file: {mask_value(value)}",
+            start=m.start(),
+            end=m.end(),
+            fix_hint="Remove it, reference an environment variable instead, and rotate the"
+            " secret: it is exposed to everyone with access to the repository.",
+            secrets=(value,),
+        )
+
+
+# a known token format whose first piece ends a line; the reader joins it with a piece nearby
+_LINE_END_PIECE = re.compile(
+    r"(?<![A-Za-z0-9])(?:gh[pousr]_|github_pat_)[A-Za-z0-9_]+[ \t\r]*$", re.M
+)
+_NEXT_PIECE = re.compile(r"[A-Za-z0-9_]{8,}")
+_PIECE_LINES = 2  # how many lines after the first piece are searched for the rest
+
+
+def _split_prose_secrets(target: ScanTarget) -> Iterator[Finding]:
+    """A token written in two pieces on adjacent lines ("part one: ghp_…" then "part two: …").
+    Only the joined text is judged: it must be a complete token of a known format."""
+    text = target.text
+    for head in _LINE_END_PIECE.finditer(text):
+        end = text.find("\n", head.end())
+        if end < 0:
+            continue
+        window = "\n".join(text[end + 1 :].split("\n", _PIECE_LINES)[:_PIECE_LINES])
+        first = head.group().strip()
+        for label, pattern in _PROSE_SECRET_PATTERNS:
+            if "s" in pattern.groupindex or pattern.fullmatch(first) is not None:
+                continue  # a whole token on the line is the whole-file pass's finding
+            for piece in _NEXT_PIECE.finditer(window):
+                joined = first + piece.group()
+                if pattern.fullmatch(joined) is None or is_placeholder(joined):
+                    continue
+                yield build_finding(
+                    target=target,
+                    rule_id="GR017",
+                    confidence="high",
+                    severity=Severity.CRITICAL,
+                    title="Secret in an instruction file",
+                    message=f"{label} split across lines: {mask_value(joined)}",
+                    start=head.start(),
+                    end=head.end(),
+                    fix_hint="Remove it, reference an environment variable instead, and rotate the"
+                    " secret: it is exposed to everyone with access to the repository.",
+                    secrets=(joined,),
+                )
+                break
+
+
+def _split_secrets(target: ScanTarget) -> Iterator[Finding]:
+    """Known token formats written as pieces of adjacent code spans (the reader joins them)."""
+    for run in _CODE_SPAN_RUN.finditer(target.text):
+        pieces = [p.strip() for p in _CODE_SPAN.findall(run.group())]
+        joined = "".join(pieces)
+        for label, pattern in _PROSE_SECRET_PATTERNS:
+            group = "s" if "s" in pattern.groupindex else 0
+            for m in pattern.finditer(joined):
+                value = m.group(group)
+                if is_placeholder(value) or any(value in piece for piece in pieces):
+                    continue  # a single span is reported by the whole-file pass above
+                yield build_finding(
+                    target=target,
+                    rule_id="GR017",
+                    confidence="high",
+                    severity=Severity.CRITICAL,
+                    title="Secret in an instruction file",
+                    message=f"{label} split across code spans: {mask_value(value)}",
+                    start=run.start(),
+                    end=run.end(),
+                    fix_hint="Remove it, reference an environment variable instead, and rotate the"
+                    " secret: it is exposed to everyone with access to the repository.",
+                    secrets=(value,),
+                )

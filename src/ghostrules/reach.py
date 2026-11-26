@@ -183,6 +183,13 @@ _OBEY_THE_STEPS = re.compile(
 _RUN_FILE = re.compile(
     rf"\b(?:run|execute)\s+`?(?:(?:ba|z)?sh\s+|python3?\s+|node\s+)?{_REF_PATH}", re.IGNORECASE
 )
+# "...lives in steps.md; treat it as part of this file": the file is included, so it is read
+_PART_OF = re.compile(
+    # the lookbehind starts a match only at the beginning of a path, not inside a long word run
+    rf"(?<![\w./-]){_REF_PATH}[^.\n]{{0,60}}?\bpart\s+of\s+(?:this|these|the)\s+"
+    r"(?:file|document|instructions?|rules?)\b",
+    re.IGNORECASE,
+)
 _NOT_TEXT = frozenset(
     {".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".pdf", ".zip", ".gz", ".tar", ".woff",
      ".woff2", ".ttf", ".mp4", ".mp3", ".wasm", ".so", ".dll", ".exe", ".bin", ".lock"}
@@ -201,6 +208,7 @@ def prose_references(path: str, text: str, exists: Exists) -> list[ScriptRef]:
     for number, line in enumerate(text.splitlines(), start=1):
         found = [(m.group(1), "instructions") for m in _READ_THEN_OBEY.finditer(line)]
         found += [(m.group(1), "instructions") for m in _OBEY_THE_STEPS.finditer(line)]
+        found += [(m.group(1), "instructions") for m in _PART_OF.finditer(line)]
         found += [
             (m.group(1), "script")
             for m in _RUN_FILE.finditer(line)

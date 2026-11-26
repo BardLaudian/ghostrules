@@ -7,6 +7,7 @@ from ghostrules.rules import (
     mcp,
     scanner_config,
     scripts,
+    semantics,
     unicode,
 )
 from ghostrules.rules.registry import Rule, all_rules, get_rule, register, rule
@@ -23,5 +24,6 @@ __all__ = [
     "rule",
     "scanner_config",
     "scripts",
+    "semantics",
     "unicode",
 ]

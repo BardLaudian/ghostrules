@@ -21,7 +21,7 @@ from typing import Any
 from redteam_common import expand, load_toml
 from schema import validate_round
 
-from ghostrules.config import load_config
+from ghostrules.config import ConfigError, load_config
 from ghostrules.models import Severity
 from ghostrules.scanner import scan_paths
 
@@ -45,7 +45,12 @@ def check(files: Mapping[str, str], symlinks: Mapping[str, str] | None = None) -
         root = Path(tmp)
         subprocess.run(["git", "init", "-q", str(root)], check=True, capture_output=True)
         write_case(root, files, symlinks or {})
-        result = scan_paths([root], load_config(root))
+        try:
+            config = load_config(root)
+        except ConfigError:
+            # A config the scanner rejects is not an evasion; the round excludes the case.
+            return {"detected": False, "max_severity": None, "invalid_config": True}
+        result = scan_paths([root], config)
     top = max((f.severity for f in result.findings), default=None)
     return {
         "detected": top is not None and top >= Severity.HIGH,

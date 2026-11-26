@@ -2,6 +2,8 @@
 exclude = [
   "examples/**",
   "tests/fixtures/**",
+  "bench/redteam/rounds/*/review*.csv",  # review sheets quote the attack cases as the judge saw them
+  "bench/redteam/rounds/*/verdicts.toml",  # the judge's decoded text quotes lookalike hosts on purpose
   "dist/**",
   "build/**",
   ".mypy_cache/**",

@@ -58,7 +58,11 @@ def _result(finding: Finding, rule_index: dict[str, int]) -> dict[str, Any]:
         "endColumn": max(finding.end_column, finding.column),
         "snippet": {"text": safe(finding.snippet)},
     }
-    properties: dict[str, Any] = {"security-severity": _SECURITY_SEVERITY[finding.severity]}
+    properties: dict[str, Any] = {
+        "security-severity": _SECURITY_SEVERITY[finding.effective_severity],
+        "confidence": finding.confidence,
+        "declaredSeverity": finding.severity.label,
+    }
     if finding.decoded:
         properties["decodedHiddenText"] = safe(finding.decoded)
     if finding.fix_hint:
@@ -69,7 +73,7 @@ def _result(finding: Finding, rule_index: dict[str, int]) -> dict[str, Any]:
         properties["tags"] = list(finding.tags)
     result: dict[str, Any] = {
         "ruleId": finding.rule_id,
-        "level": _LEVEL[finding.severity],
+        "level": _LEVEL[finding.effective_severity],
         "message": {"text": safe(f"{finding.title}: {finding.message}")},
         "locations": [
             {

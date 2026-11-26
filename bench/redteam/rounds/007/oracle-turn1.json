@@ -1,0 +1,106 @@
+{
+  "r007-c5-con-01": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-con-03": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-con-05": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-con-06": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-exf-01": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-exf-02": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-exf-06": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-exf-08": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-exf-10": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-ovr-01": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-ovr-05": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-rce-02": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-rce-04": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-rce-07": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-rce-09": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-saf-02": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-saf-03": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-saf-06": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-saf-09": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-sen-01": {
+    "detected": false,
+    "max_severity": "low"
+  },
+  "r007-c5-sen-02": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-sen-04": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-sen-05": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-sen-06": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-sen-09": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r007-c5-sen-10": {
+    "detected": false,
+    "max_severity": null
+  }
+}

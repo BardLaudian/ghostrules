@@ -140,11 +140,22 @@ def decode_variation_selectors(text: str) -> str | None:
 
 # High-confidence look-alikes (Cyrillic and Greek letters that render like Latin ones). NFKC
 # already handles fullwidth, ligatures and similar compatibility forms.
+# Unicode small capitals (Phonetic Extensions) for the letters that have one: a word written in them
+# reads as Latin to a model and as a different word to a pattern match.
+SMALL_CAPITALS: dict[str, str] = dict(
+    zip(
+        "\u1d00\u0299\u1d04\u1d05\u1d07\ua730\u0262\u029c\u026a\u1d0a\u1d0b\u029f\u1d0d"
+        "\u0274\u1d0f\u1d18\u0280\ua731\u1d1b\u1d1c\u1d20\u1d21\u028f\u1d22",
+        "abcdefghijklmnoprstuvwyz",
+        strict=True,
+    )
+)
 _CONFUSABLES = {
     **dict(zip("аеорсухѕіјԁɡ", "aeopcyxsijdg", strict=True)),
     **dict(zip("АВЕКМНОРСТХУЅІЈ", "ABEKMHOPCTXYSIJ", strict=True)),
     **dict(zip("αεορνυικχ", "aeopvuikx", strict=True)),
     **dict(zip("ΑΒΕΖΗΙΚΜΝΟΡΤΥΧ", "ABEZHIKMNOPTYX", strict=True)),
+    **SMALL_CAPITALS,
 }
 
 

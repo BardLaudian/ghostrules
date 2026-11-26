@@ -32,6 +32,6 @@
       "sha256": "e550c23465d54e3fe7b4eaa568897271ebe03befefa19ad51556eeab3a2f77b6"
     }
   ],
-  "generator": "ghostrules 0.5.1",
+  "generator": "ghostrules 0.5.2",
   "lock_version": 1
 }

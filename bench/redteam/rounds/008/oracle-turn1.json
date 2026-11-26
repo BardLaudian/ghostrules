@@ -1,0 +1,118 @@
+{
+  "r008-c1-bidi-isolate-claude": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r008-c1-bidi-reversed-agents": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r008-c1-hangul-filler-padding": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r008-c1-html-hidden-div": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r008-c1-md-link-reference-comment": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r008-c1-tags-instructions-applyto": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r008-c2-fullwidth-keyword": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r008-c2-greek-omicron-command": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r008-c2-html-entities": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r008-c2-nato-spelling": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r008-c2-percent-encoding": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r008-c2-reversed-string": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r008-c2-rot13-claude": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r008-c3-codex-override": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r008-c3-import-two-hops": {
+    "detected": false,
+    "max_severity": "low"
+  },
+  "r008-c3-makefile-reference": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r008-c3-skill-python-env": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r008-c3-skill-shell-script": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r008-c3-symlink-claude-dat": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "r008-c4-apikey-helper": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r008-c4-b64-token-prose": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r008-c4-bypass-mode-local": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r008-c4-cursor-mcp-http": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r008-c4-enable-all-mcp-additional-dirs": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "r008-c4-mcp-unpinned-npx-header": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r008-c4-private-key-agents": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r008-c4-statusline-command": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r008-c4-vscode-mcp-inline-token": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "r008-c4-webfetch-wildcard": {
+    "detected": true,
+    "max_severity": "high"
+  }
+}

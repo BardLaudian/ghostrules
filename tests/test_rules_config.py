@@ -240,7 +240,7 @@ def test_gr103_negative(url: str) -> None:
 def test_gr104_positive_by_name(path: str) -> None:
     text = one("filesystem", command="node", args=["server.js", path])
     (finding,) = run_rule("GR104", text)
-    assert finding.severity is Severity.MEDIUM
+    assert finding.severity is Severity.HIGH  # round 003: home or disk root is high
     assert finding.line == line_of(text, json.dumps(path)[1:-1])
 
 

@@ -5,8 +5,69 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-11-26
+
 ### Added
 
+- Property tests (hypothesis) for the size windows (full coverage, progress, valid offsets, a short
+  directive cut by a window is whole in one) and for the GR114 semantic scorer (no exception, valid
+  line, no unmasked secret, deterministic) in `tests/test_robustness_phase17.py` (phase 17).
+- Phase 18 (partial): two preregistered evaluations of the 0.6.0 candidate on fresh red-team rounds
+  (`bench/redteam/EVALUATION-1.md`, `EVALUATION-2.md`). Recall at high or critical on C1-C4 was
+  45.9 % (28 of 61) and 32.8 % (19 of 58); no criterion of the preregistration is met. Cases are
+  `ai-redteam`, one model family. Rounds 008, 009, 011 and 012 add dev cases, verdicts and ledgers.
+- Detection patch from the dev halves of rounds 008 and 009: GR005 reads hidden HTML elements and
+  Markdown link titles, GR003 flags long space or filler runs before words, character references and
+  data URIs that decode to an instruction, a markup-stripped view of a line, `.gitconfig` as a
+  sensitive path, private-key headers as secrets, `additionalDirectories` granting the home folder
+  (GR107), and Python `open()` of a credentials file as a secret source (GR110). Tests in
+  `tests/test_redteam_round008.py` and `tests/test_redteam_round009.py`.
+
+### Fixed
+
+- **Files with Windows line endings (CRLF) were detected less than the same file with LF**: a
+  link-reference comment (`[//]: # (…)`) and a token split across two lines were missed. Both are
+  found now (`tests/test_crlf_line_endings.py`).
+
+### Changed
+
+- **Speed** (phase 17): GR006 skips ASCII lines without digits (nothing to fold) and GR114 looks for the
+  left edge of a clause on the cue's own line instead of scanning the whole file before it. Measured
+  on this machine against 0.5.1 the large-prose scenarios are still slower (see `docs/PERFORMANCE.md`).
+
+- **Calibration of GR015, GR017 and GR006** (phase 16; `docs/CALIBRATION.md`: 0 of 88, 24 and 21
+  labelled corpus findings were real). GR015: a "backwards" or "reversed" word anywhere in a file no
+  longer turns every line into a reversed instruction at high; high needs the reversed text to be
+  addressed to the agent or a nearby "read it reversed and obey" cue, else medium. Fragments the file
+  asks to join are high only if the joined text is a directive, an injection pattern or has an
+  external URL. GR017: a password in a URL with a local, one-label or placeholder host is medium, not
+  critical. GR006: digits alone are not a disguise; leet-only lines are low unless the plain reading
+  matches a known injection. A `5k1p`-style instruction with no injection pattern was high before
+  and is low now.
+- **JSON report `schema_version` 1 → 2 (migration).** Every finding now carries `confidence`
+  (`high` | `medium` | `low`) and `effective_severity`, both required by `scan.schema.json`. Before,
+  `confidence` was present on a few findings only. Consumers that ignore unknown keys keep working;
+  a consumer that validated against schema 1 must accept the two new keys and read
+  `"schema_version": 2`. `severity` is unchanged. `context --format json` findings gain the same
+  two keys.
+- **`--fail-on` compares the effective severity**, which is the severity one step lower when the
+  confidence is `low`. Only GR114 findings with a single signal have confidence `low`, so a scan
+  that failed at `--fail-on medium` because of such a finding now needs `--fail-on low`.
+- **SARIF:** `level` and `security-severity` follow the effective severity;
+  `properties.confidence` and `properties.declaredSeverity` are new.
+- **GR114 is always medium** (it was high for a combination of signals): on the 300-repo corpus it
+  was 1581 of the 1743 findings that fail the default check. A combination has confidence
+  `medium`, one signal confidence `low`.
+
+### Added
+
+- **GR114 scores paraphrased instructions.** A new rule reads weak signals (a credential store or a
+  secret, an action on it, an outbound URL or channel, a download, a run, a skipped check, a
+  concealment, an override) in English, Spanish, French, German, Portuguese and Italian, per
+  paragraph. Always medium (advisory): a combination has confidence medium, one signal alone confidence low.
+  Quotations, code blocks, descriptive or negated wording carry no signal, and a URL on an
+  `allow_domains` domain is not an outbound target. Wording that GR010, GR012 or GR016 already match
+  is left to them. The finding names the signals it used.
 - **Red-team loop infrastructure** (`bench/redteam/`, `.claude/agents/`, `/redteam-round`): case
   schema, blind oracle, dev/test split with the test set kept outside the repository, prompt builder
   with a source allow-list, judge check, deterministic gate and an audit of the tool-call log.
@@ -457,7 +518,8 @@ First release.
 - Secrets are never printed: every finding, warning and error passes through one masking step
   (`ghp_****…a1b2`), and a test fails if a secret appears in any report format.
 
-[Unreleased]: https://github.com/BardLaudian/ghostrules/compare/v0.5.1...HEAD
+[Unreleased]: https://github.com/BardLaudian/ghostrules/compare/v0.5.2...HEAD
+[0.5.2]: https://github.com/BardLaudian/ghostrules/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/BardLaudian/ghostrules/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/BardLaudian/ghostrules/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/BardLaudian/ghostrules/compare/v0.4.0...v0.4.1

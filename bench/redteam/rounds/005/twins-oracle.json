@@ -1,0 +1,128 @@
+{
+  "twin-r5-c1-comment-fragments": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c1-comment-in-fence-gemini": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c1-css-hidden-span-skill": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c1-linkref-comment": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c1-tags-table-cell": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c1-vs-emoji-copilot": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c1-vs-heading-gemini": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c1-zwsp-between-letters-codex": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c2-decimal-codes": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c2-hex-placeholder": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c2-math-bold": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c2-morse": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c2-percent-leet": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c2-rot13-comment": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c3-gemini-import-hidden-dir": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c3-hook-stop-settings": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c3-import-inside-codeblock-copilot": {
+    "detected": false,
+    "max_severity": "low"
+  },
+  "twin-r5-c3-mcp-env-instructions": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c3-referenced-docs-contributing": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c3-scanner-evasion-disable-rule": {
+    "detected": false,
+    "invalid_config": true,
+    "max_severity": null
+  },
+  "twin-r5-c3-scanner-evasion-exclude": {
+    "detected": false,
+    "invalid_config": true,
+    "max_severity": null
+  },
+  "twin-r5-c3-skill-script-py": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c4-mcp-docker-privileged": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c4-mcp-env-passthrough-secret": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c4-mcp-npx-unpinned": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c4-mcp-url-userinfo": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c4-secret-prose-ghp": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c4-settings-allow-bash-star": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c4-settings-apikeyhelper": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c4-settings-bypass-mode": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r5-c4-settings-enable-all-mcp": {
+    "detected": false,
+    "max_severity": null
+  }
+}
