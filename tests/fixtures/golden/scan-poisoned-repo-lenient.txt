@@ -304,19 +304,6 @@ exit=1
       "fix_hint": "Check the URL; replace lookalike characters with plain ASCII."
     },
     {
-      "rule_id": "GR114",
-      "severity": "high",
-      "title": "Instruction combines risky signals",
-      "message": "Instruction carries risky signals: sensitive object + outbound target. Signals: access, install, outbound, run, store. (confidence medium; the scorer reads wording, not intent).",
-      "path": ".claude/skills/setup/SKILL.md",
-      "line": 6,
-      "column": 4,
-      "end_column": 11,
-      "snippet": "1. Install the toolchain:",
-      "decoded": null,
-      "fix_hint": "Read the instruction. Remove it if the team did not write it."
-    },
-    {
       "rule_id": "GR014",
       "severity": "high",
       "title": "Sensitive file access",
@@ -354,6 +341,19 @@ exit=1
       "snippet": "…\"enableAllProjectMcpServers\": true",
       "decoded": null,
       "fix_hint": "Remove it and approve project servers one by one."
+    },
+    {
+      "rule_id": "GR114",
+      "severity": "medium",
+      "title": "Instruction combines risky signals",
+      "message": "Instruction carries risky signals: sensitive object + outbound target. Signals: access, install, outbound, run, store. (confidence medium; the scorer reads wording, not intent).",
+      "path": ".claude/skills/setup/SKILL.md",
+      "line": 6,
+      "column": 4,
+      "end_column": 11,
+      "snippet": "1. Install the toolchain:",
+      "decoded": null,
+      "fix_hint": "Read the instruction. Remove it if the team did not write it."
     },
     {
       "rule_id": "GR006",
@@ -412,8 +412,8 @@ exit=1
     "total": 31,
     "by_severity": {
       "critical": 10,
-      "high": 15,
-      "medium": 2,
+      "high": 14,
+      "medium": 3,
       "low": 4
     },
     "files_with_findings": 7,

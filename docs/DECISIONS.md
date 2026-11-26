@@ -1357,3 +1357,13 @@ lexicons anticipate and not unseen paraphrase.
   mask secrets before sending, and never run on a repository the user did not choose. A local model
   keeps the promise and is the only variant compatible with the current SPEC.
 - Before any of this: measure the held-out gain of a second round with signal-class guidance.
+
+### 2026-11-26 — GR114 capped at medium (Phase 16)
+
+The first corpus run with GR114 (300 repos, 0.5.1) gave 1743 high/critical findings, 1581 of them
+GR114, in 172 repos. Per the person's decision, GR114 is now always medium (advisory); the
+distinction between a combination of signals and a single one stays in the message
+(`confidence medium` / `confidence low`). Consequence for round 007: its "22/26 dev detected" was
+counted with `high` as the line, so after this cap the oracle detects none of them. The held-out
+result (33/34 evasion before and after) does not change. Precision per rule comes from the human
+labels of `bench/labels-0.6.csv`, not from this cap.

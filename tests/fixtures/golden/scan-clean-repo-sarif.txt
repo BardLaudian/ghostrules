@@ -757,10 +757,10 @@ exit=0
               },
               "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr114",
               "defaultConfiguration": {
-                "level": "error"
+                "level": "warning"
               },
               "properties": {
-                "security-severity": "8.0",
+                "security-severity": "5.5",
                 "tags": [
                   "security",
                   "ai-agents"

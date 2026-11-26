@@ -1,7 +1,7 @@
 exit=1
 ## ghostrules
 
-**10 critical · 15 high · 2 medium · 4 low in 7 files (scanned 7)**
+**10 critical · 14 high · 3 medium · 4 low in 7 files (scanned 7)**
 
 | Severity | Rule | Location | Finding |
 | --- | --- | --- | --- |
@@ -28,10 +28,10 @@ exit=1
 | 🟠 high | `GR107` | `.claude/settings.json:5:8` | **Over-permissive agent settings**<br>Permission rule 'Bash(*)' allows unrestricted use of a powerful tool. |
 | 🟠 high | `GR006` | `.github/copilot-instructions.md:3:1` | **Instruction written with disguised characters**<br>The line reads as an instruction once look-alike, fullwidth or leet characters are folded to plain letters. |
 | 🟠 high | `GR006` | `.github/copilot-instructions.md:4:9` | **Mixed-script homoglyph in URL**<br>Host label 'dоcs' mixes Latin and Cyrillic/Greek letters. The URL may impersonate another domain. |
-| 🟠 high | `GR114` | `.claude/skills/setup/SKILL.md:6:4` | **Instruction combines risky signals**<br>Instruction carries risky signals: sensitive object + outbound target. Signals: access, install, outbound, run, store. (confidence medium; the scorer reads wording, not intent). |
 | 🟠 high | `GR014` | `.claude/skills/setup/SKILL.md:9:4` | **Sensitive file access**<br>Tells the agent to access a credentials or secrets file: “Read ~/.ssh/id_rsa” |
 | 🟡 medium | `GR102` | `.mcp.json:7:10` | **Unpinned package execution**<br>Server 'github' runs 'some-mcp-server@latest' without an exact version: whatever is published latest will execute with your agent's access. |
 | 🟡 medium | `GR108` | `.claude/settings.json:8:33` | **Auto-enabled project MCP servers**<br>enableAllProjectMcpServers is true: any cloned repo's .mcp.json starts its servers without review. |
+| 🟡 medium | `GR114` | `.claude/skills/setup/SKILL.md:6:4` | **Instruction combines risky signals**<br>Instruction carries risky signals: sensitive object + outbound target. Signals: access, install, outbound, run, store. (confidence medium; the scorer reads wording, not intent). |
 | 🔵 low | `GR006` | `.github/copilot-instructions.md:3:9` | **Mixed-script homoglyph word**<br>'reаct' mixes Latin with lookalike letters: U+0430 CYRILLIC SMALL LETTER A (looks like 'a'). |
 | 🔵 low | `GR016` | `.github/copilot-instructions.md:6:27` | **Agent safety bypass**<br>Tells the agent to bypass its permission or safety checks: “--dangerously-skip-permissions” Reported at low because the text is visible in the file itself; hidden or indirect text keeps the rule's severity (--strict restores it). |
 | 🔵 low | `GR016` | `.github/copilot-instructions.md:6:62` | **Agent safety bypass**<br>Tells the agent to bypass its permission or safety checks: “never ask for permission” Reported at low because the text is visible in the file itself; hidden or indirect text keeps the rule's severity (--strict restores it). |

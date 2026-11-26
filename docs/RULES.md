@@ -56,7 +56,7 @@ the URLs in any file.
 | <a id="gr111"></a>`GR111` | medium |  | **Script reads credential files.** A script that a hook or a skill runs reads credentials (~/.ssh, ~/.aws, .npmrc, the keychain). |
 | <a id="gr112"></a>`GR112` | high |  | **Script downloads and runs code.** A script that a hook or a skill runs downloads code and executes it (curl \| sh, eval of a download, exec of urlopen). |
 | <a id="gr113"></a>`GR113` | high |  | **Script hides what it runs.** A script that a hook or a skill runs decodes an encoded string and executes it (eval of base64, exec of a decoded blob). |
-| <a id="gr114"></a>`GR114` | high | instructions | **Instruction combines risky signals.** A paraphrased instruction that combines weak signals: sensitive object + outbound target, download + execute, override + concealment, skipped checks. A single signal is medium. |
+| <a id="gr114"></a>`GR114` | medium | instructions | **Instruction combines risky signals.** A paraphrased instruction that combines weak signals: sensitive object + outbound target, download + execute, override + concealment, skipped checks. A single signal is medium. |
 <!-- rules-table:end -->
 
 ---
@@ -563,7 +563,7 @@ prompt or tool call.
 ### GR113 — Script hides what it runs (high)
  decodes an encoded string and executes it.
 
-### GR114 — Instruction combines risky signals (high, medium for one signal)
+### GR114 — Instruction combines risky signals (medium, advisory)
 Scores weak signals instead of fixed phrases, so a paraphrase (or a language other than English)
 is still read. Signals, each with a lexicon in English, Spanish, French, German, Portuguese and
 Italian: **sensitive object** (a credential store such as `~/.ssh`, `.npmrc`, a keychain, shell

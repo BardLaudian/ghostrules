@@ -330,19 +330,6 @@ exit=1
       "fix_hint": "Remove it; keep the agent's permission prompts and sandbox enabled."
     },
     {
-      "rule_id": "GR114",
-      "severity": "high",
-      "title": "Instruction combines risky signals",
-      "message": "Instruction carries risky signals: sensitive object + outbound target. Signals: access, install, outbound, run, store. (confidence medium; the scorer reads wording, not intent).",
-      "path": ".claude/skills/setup/SKILL.md",
-      "line": 6,
-      "column": 4,
-      "end_column": 11,
-      "snippet": "1. Install the toolchain:",
-      "decoded": null,
-      "fix_hint": "Read the instruction. Remove it if the team did not write it."
-    },
-    {
       "rule_id": "GR012",
       "severity": "high",
       "title": "Remote code execution pattern",
@@ -395,6 +382,19 @@ exit=1
       "fix_hint": "Remove it and approve project servers one by one."
     },
     {
+      "rule_id": "GR114",
+      "severity": "medium",
+      "title": "Instruction combines risky signals",
+      "message": "Instruction carries risky signals: sensitive object + outbound target. Signals: access, install, outbound, run, store. (confidence medium; the scorer reads wording, not intent).",
+      "path": ".claude/skills/setup/SKILL.md",
+      "line": 6,
+      "column": 4,
+      "end_column": 11,
+      "snippet": "1. Install the toolchain:",
+      "decoded": null,
+      "fix_hint": "Read the instruction. Remove it if the team did not write it."
+    },
+    {
       "rule_id": "GR006",
       "severity": "low",
       "title": "Mixed-script homoglyph word",
@@ -412,8 +412,8 @@ exit=1
     "total": 31,
     "by_severity": {
       "critical": 10,
-      "high": 18,
-      "medium": 2,
+      "high": 17,
+      "medium": 3,
       "low": 1
     },
     "files_with_findings": 7,

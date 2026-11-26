@@ -757,10 +757,10 @@ exit=1
               },
               "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr114",
               "defaultConfiguration": {
-                "level": "error"
+                "level": "warning"
               },
               "properties": {
-                "security-severity": "8.0",
+                "security-severity": "5.5",
                 "tags": [
                   "security",
                   "ai-agents"
@@ -1500,37 +1500,6 @@ exit=1
           "ruleIndex": 5
         },
         {
-          "ruleId": "GR114",
-          "level": "error",
-          "message": {
-            "text": "Instruction combines risky signals: Instruction carries risky signals: sensitive object + outbound target. Signals: access, install, outbound, run, store. (confidence medium; the scorer reads wording, not intent)."
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": ".claude/skills/setup/SKILL.md",
-                  "uriBaseId": "%SRCROOT%"
-                },
-                "region": {
-                  "startLine": 6,
-                  "startColumn": 4,
-                  "endLine": 6,
-                  "endColumn": 11,
-                  "snippet": {
-                    "text": "1. Install the toolchain:"
-                  }
-                }
-              }
-            }
-          ],
-          "properties": {
-            "security-severity": "8.0",
-            "fixHint": "Read the instruction. Remove it if the team did not write it."
-          },
-          "ruleIndex": 35
-        },
-        {
           "ruleId": "GR014",
           "level": "error",
           "message": {
@@ -1622,6 +1591,37 @@ exit=1
             "fixHint": "Remove it and approve project servers one by one."
           },
           "ruleIndex": 29
+        },
+        {
+          "ruleId": "GR114",
+          "level": "warning",
+          "message": {
+            "text": "Instruction combines risky signals: Instruction carries risky signals: sensitive object + outbound target. Signals: access, install, outbound, run, store. (confidence medium; the scorer reads wording, not intent)."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": ".claude/skills/setup/SKILL.md",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 6,
+                  "startColumn": 4,
+                  "endLine": 6,
+                  "endColumn": 11,
+                  "snippet": {
+                    "text": "1. Install the toolchain:"
+                  }
+                }
+              }
+            }
+          ],
+          "properties": {
+            "security-severity": "5.5",
+            "fixHint": "Read the instruction. Remove it if the team did not write it."
+          },
+          "ruleIndex": 35
         },
         {
           "ruleId": "GR006",
