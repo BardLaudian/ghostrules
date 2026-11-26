@@ -7,7 +7,8 @@ except GR114, which fires too often for one reviewer: a seeded random sample is 
 of the whole population is written in the ``population`` column, so a per-rule precision can be
 scaled back). ``human_label`` is left EMPTY on purpose: tp | fp | dubious.
 The context (3 lines each side) is fetched with ``gh api`` for display only; for secret rules
-(GR017, GR101, GR021) nothing is fetched, only the already-masked snippet is written.
+(GR017, GR101, GR021) nothing is fetched, only the already-masked snippet is written, and the
+``repo`` column is left empty (the CSV is public; the repositories are not named).
 """
 
 from __future__ import annotations
@@ -98,7 +99,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                 context = fetch(f["repo"], f["sha"], f["path"], int(f.get("line") or 1))
             writer.writerow(
                 {
-                    "repo": f["repo"],
+                    "repo": "" if f["rule_id"] in SECRET_RULES else f["repo"],
                     "rule_id": f["rule_id"],
                     "severity": f["severity"],
                     "location": f"{f['path']}:{f.get('line')}",
