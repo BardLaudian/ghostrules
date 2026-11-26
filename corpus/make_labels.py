@@ -8,7 +8,8 @@ of the whole population is written in the ``population`` column, so a per-rule p
 scaled back). ``human_label`` is left EMPTY on purpose: tp | fp | dubious.
 The context (3 lines each side) is fetched with ``gh api`` for display only; for secret rules
 (GR017, GR101, GR021) nothing is fetched, only the already-masked snippet is written, and the
-``repo`` column is left empty (the CSV is public; the repositories are not named).
+``repo``, ``location`` and ``fingerprint`` columns are left empty (the CSV is public; the
+repositories are not named and the row cannot be traced back to a file).
 """
 
 from __future__ import annotations
@@ -102,11 +103,13 @@ def main(argv: Sequence[str] | None = None) -> int:
                     "repo": "" if f["rule_id"] in SECRET_RULES else f["repo"],
                     "rule_id": f["rule_id"],
                     "severity": f["severity"],
-                    "location": f"{f['path']}:{f.get('line')}",
+                    "location": ""
+                    if f["rule_id"] in SECRET_RULES
+                    else f"{f['path']}:{f.get('line')}",
                     "snippet": safe_text(f["snippet"], 300),
                     "context": context,
                     "population": population[f["rule_id"]],
-                    "fingerprint": f["fingerprint"],
+                    "fingerprint": "" if f["rule_id"] in SECRET_RULES else f["fingerprint"],
                     "human_label": "",
                 }
             )
