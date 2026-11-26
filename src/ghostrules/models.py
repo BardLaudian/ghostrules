@@ -29,6 +29,9 @@ Kind = Literal["instructions", "config", "other", "script"]
 """What a scanned file is: agent instructions, agent/MCP config, or any other text file."""
 
 
+CONFIDENCES = ("high", "medium", "low")
+
+
 class Severity(enum.IntEnum):
     """Finding severity. Ordered: ``CRITICAL > HIGH > MEDIUM > LOW > INFO``."""
 
@@ -75,9 +78,13 @@ class Finding:
     via: tuple[str, ...] = ()
     agents: tuple[str, ...] = ()
     tags: tuple[str, ...] = ()
-    confidence: str = ""
+    confidence: str = "medium"
 
     def __post_init__(self) -> None:
+        if self.confidence not in CONFIDENCES:
+            raise ValueError(
+                f"confidence must be one of {', '.join(CONFIDENCES)}: {self.confidence!r}"
+            )
         # Single choke point: whatever built this finding, no secret survives in its text, so no
         # reporter can print one.
         for name in ("title", "message", "snippet", "decoded", "fix_hint"):
@@ -92,9 +99,16 @@ class Finding:
             value = getattr(self, name)
             if value:
                 data[name] = list(value)
-        if self.confidence:
-            data["confidence"] = self.confidence
+        data["confidence"] = self.confidence
+        data["effective_severity"] = self.effective_severity.label
         return data
+
+    @property
+    def effective_severity(self) -> Severity:
+        """The severity that gates ``--fail-on``: one step lower when the confidence is low."""
+        if self.confidence == "low" and self.severity > Severity.INFO:
+            return Severity(self.severity - 1)
+        return self.severity
 
     def _base_dict(self) -> dict[str, Any]:
         return {

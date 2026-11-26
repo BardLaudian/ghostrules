@@ -74,13 +74,23 @@ ghostrules scan . --format sarif -o ghostrules.sarif   # GitHub code scanning
 ghostrules scan . --format markdown >> "$GITHUB_STEP_SUMMARY"
 ```
 
-**Compatibility of the JSON report.** `--format json` starts with `"schema_version": 1`, the version
+**Compatibility of the JSON report.** `--format json` starts with `"schema_version": 2`, the version
 of the report's *shape* (distinct from `"version"`, the ghostrules release). The shape is described by
 [`src/ghostrules/schemas/scan.schema.json`](https://github.com/BardLaudian/ghostrules/blob/main/src/ghostrules/schemas/scan.schema.json) and the
 tests validate every example against it. Within a `schema_version`, fields are only **added**: none
 is removed, renamed or given another type, so a consumer that ignores unknown keys keeps working.
 Removing or retyping a field raises `schema_version`. SARIF output follows the SARIF 2.1.0 schema
 (also checked in the tests); `context --format json` has its own schema (`context.schema.json`).
+
+**Confidence.** Every finding has `confidence` (`high`, `medium`, `low`) and `effective_severity`.
+`confidence` says how sure the rule is that the text is a hostile or risky instruction and not just
+matching wording: `high` for facts about the text itself (invisible tag or bidi characters, a token
+of a known format), `low` for a lone weak signal (GR114 with one signal), `medium` for the rest.
+`medium` means *not measured yet*: the per-rule precision comes with the human labels of
+[CALIBRATION.md](https://github.com/BardLaudian/ghostrules/blob/main/docs/CALIBRATION.md). `effective_severity` is `severity` lowered one step when the
+confidence is `low` (never below `info`), and it is what `--fail-on` compares. `severity` stays the
+rule's declared level. In SARIF, `level` and `security-severity` follow the effective severity and
+`properties.confidence` and `properties.declaredSeverity` carry the two inputs.
 
 | `scan` option | Default | Meaning |
 |---|---|---|

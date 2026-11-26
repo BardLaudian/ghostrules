@@ -779,6 +779,7 @@ def gr017_secret_in_prose(target: ScanTarget) -> Iterator[Finding]:
             yield build_finding(
                 target=target,
                 rule_id="GR017",
+                confidence="high",
                 severity=Severity.CRITICAL,
                 title="Secret in an instruction file",
                 message=f"{label} written in the file: {mask_value(value)}",
@@ -824,6 +825,7 @@ def _encoded_secrets(target: ScanTarget) -> Iterator[Finding]:
         yield build_finding(
             target=target,
             rule_id="GR017",
+            confidence="high",
             severity=Severity.CRITICAL,
             title="Secret in an instruction file",
             message=f"{label} written base64-encoded in the file: {mask_value(value)}",
@@ -863,6 +865,7 @@ def _split_prose_secrets(target: ScanTarget) -> Iterator[Finding]:
                 yield build_finding(
                     target=target,
                     rule_id="GR017",
+                    confidence="high",
                     severity=Severity.CRITICAL,
                     title="Secret in an instruction file",
                     message=f"{label} split across lines: {mask_value(joined)}",
@@ -889,6 +892,7 @@ def _split_secrets(target: ScanTarget) -> Iterator[Finding]:
                 yield build_finding(
                     target=target,
                     rule_id="GR017",
+                    confidence="high",
                     severity=Severity.CRITICAL,
                     title="Secret in an instruction file",
                     message=f"{label} split across code spans: {mask_value(value)}",

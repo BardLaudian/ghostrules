@@ -59,6 +59,7 @@ def build_finding(
     limit: int = 8,
     with_name: bool = False,
     secrets: Iterable[str] = (),
+    confidence: str = "medium",
 ) -> Finding:
     """Build a ``Finding`` for the text at offsets ``[start, end)`` of the target.
 
@@ -94,6 +95,7 @@ def build_finding(
         snippet=snippet,
         decoded=mask_secrets(decoded, secret_values) if decoded else None,
         fix_hint=fix_hint,
+        confidence=confidence,
     )
 
 
