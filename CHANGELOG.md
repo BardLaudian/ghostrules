@@ -10,6 +10,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - Property tests (hypothesis) for the size windows (full coverage, progress, valid offsets, a short
   directive cut by a window is whole in one) and for the GR114 semantic scorer (no exception, valid
   line, no unmasked secret, deterministic) in `tests/test_robustness_phase17.py` (phase 17).
+- Phase 18 (partial): two preregistered evaluations of the 0.6.0 candidate on fresh red-team rounds
+  (`bench/redteam/EVALUATION-1.md`, `EVALUATION-2.md`). Recall at high or critical on C1-C4 was
+  45.9 % (28 of 61) and 32.8 % (19 of 58); no criterion of the preregistration is met. Cases are
+  `ai-redteam`, one model family. Rounds 008, 009, 011 and 012 add dev cases, verdicts and ledgers.
+- Detection patch from the dev halves of rounds 008 and 009: GR005 reads hidden HTML elements and
+  Markdown link titles, GR003 flags long space or filler runs before words, character references and
+  data URIs that decode to an instruction, a markup-stripped view of a line, `.gitconfig` as a
+  sensitive path, private-key headers as secrets, `additionalDirectories` granting the home folder
+  (GR107), and Python `open()` of a credentials file as a secret source (GR110). Tests in
+  `tests/test_redteam_round008.py` and `tests/test_redteam_round009.py`.
 
 ### Changed
 
