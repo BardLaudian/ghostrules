@@ -617,6 +617,8 @@ def _disguised_reading(line: str) -> tuple[str, bool] | None:
     words carry a digit that reads as a letter and a letter of their own, so numbers ("5.0",
     "100") and version numbers ("Python3") stay as they are.
     """
+    if line.isascii() and not any(c.isdigit() for c in line):
+        return None  # no look-alike, no fullwidth letter and no leet digit: nothing to fold
     hidden = any(
         c in _CONFUSABLES
         or (c.isalpha() and not c.isascii() and unicodedata.normalize("NFKC", c).isascii())
