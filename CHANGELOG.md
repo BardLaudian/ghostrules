@@ -5,7 +5,17 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Property tests (hypothesis) for the size windows (full coverage, progress, valid offsets, a short
+  directive cut by a window is whole in one) and for the GR114 semantic scorer (no exception, valid
+  line, no unmasked secret, deterministic) in `tests/test_robustness_phase17.py` (phase 17).
+
 ### Changed
+
+- **Speed** (phase 17): GR006 skips ASCII lines without digits (nothing to fold) and GR114 looks for the
+  left edge of a clause on the cue's own line instead of scanning the whole file before it. Measured
+  on this machine against 0.5.1 the large-prose scenarios are still slower (see `docs/PERFORMANCE.md`).
 
 - **Calibration of GR015, GR017 and GR006** (phase 16; `docs/CALIBRATION.md`: 0 of 88, 24 and 21
   labelled corpus findings were real). GR015: a "backwards" or "reversed" word anywhere in a file no

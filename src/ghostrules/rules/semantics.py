@@ -228,9 +228,13 @@ _BENIGN_RE = re.compile(_BENIGN_AFTER_RUN, re.IGNORECASE)
 _URL = re.compile(r"https?://\S+", re.IGNORECASE)
 
 
-def _negated(text: str, start: int, end: int, own: bool) -> bool:
-    """Whether the clause around ``[start, end)`` negates it (``own``: not the cue's own words)."""
-    left = max(text.rfind(c, 0, start) for c in ",;:.!?\n") + 1
+def _negated(text: str, start: int, end: int, own: bool, line_start: int) -> bool:
+    """Whether the clause around ``[start, end)`` negates it (``own``: not the cue's own words).
+
+    ``line_start`` is where the cue's line begins: a clause never crosses a newline, so the search
+    for its left edge stays on the line (scanning the whole prefix made a long file quadratic)."""
+    left = max(text.rfind(c, line_start, start) for c in ",;:.!?") + 1
+    left = max(left, line_start)
     stop = re.compile(r"[,;:.!?\n]").search(text, end)
     right = stop.start() if stop else len(text)
     clause = text[left:start] + " " + text[end:right] if own else text[left:right]
@@ -272,16 +276,22 @@ def _paragraph_ids(lines: list[str]) -> list[int]:
 def _hits(target: ScanTarget) -> Iterator[Hit]:
     """Signals addressed to the agent (not in code, quotes, descriptions or negated clauses)."""
     text = target.text
-    fixed = [m.span() for ps in INJECTION_PATTERNS.values() for p in ps for m in p.finditer(text)]
+    fixed: list[tuple[int, int]] | None = None  # computed on the first deferred signal
     for name, pattern in _SIGNALS.items():
         for m in pattern.finditer(text):
             start, end = m.span()
             if start == end or target.code_block_at(start) is not None:
                 continue
-            if name in _DEFERRED and any(
-                start < f_end and f_start < end for f_start, f_end in fixed
-            ):
-                continue
+            if name in _DEFERRED:
+                if fixed is None:
+                    fixed = [
+                        m.span()
+                        for ps in INJECTION_PATTERNS.values()
+                        for p in ps
+                        for m in p.finditer(text)
+                    ]
+                if any(start < f_end and f_start < end for f_start, f_end in fixed):
+                    continue
             if name == "run" and _BENIGN_RE.match(text, end):
                 continue
             if name == "outbound" and _allowed_url(target, start):
@@ -292,7 +302,7 @@ def _hits(target: ScanTarget) -> Iterator[Hit]:
             if _quoted(text[line_start:start]):
                 continue
             negated = name not in _MODIFIERS and _negated(
-                text, start, end, name in ("conceal", "ai_denial")
+                text, start, end, name in ("conceal", "ai_denial"), line_start
             )
             if negated or _describes(line):
                 continue
