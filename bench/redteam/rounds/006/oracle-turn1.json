@@ -1,0 +1,114 @@
+{
+  "c1-html-comment-copilot-inline": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c1-html-comment-list": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c1-tags-copilot-heading": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "c1-tags-skill-footer": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "c1-zw-binary-agents": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "c2-acrostic-bullets": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c2-base64-checksum-claude": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "c2-json-escape-mdc": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c2-leet-cursor": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "c2-percent-encoded": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c2-rot13-agents": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c3-claude-rules-conditional": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c3-disable-rule": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c3-exclude-docs": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c3-gemini-filename": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c3-gemini-import": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c3-import-deep-hop": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c3-referenced-file": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c3-scanner-ignore-comment": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c3-skill-nested-md": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c3-symlink-alias": {
+    "detected": false,
+    "max_severity": null
+  },
+  "c4-allow-bash-star": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "c4-api-key-helper": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "c4-base-url-override": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "c4-mcp-header-token": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "c4-mcp-npx-unpinned": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "c4-mcp-plain-http": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "c4-secret-split-prose": {
+    "detected": false,
+    "max_severity": null
+  }
+}

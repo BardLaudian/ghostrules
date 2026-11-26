@@ -1,0 +1,139 @@
+{
+  "twin-r3-c1-bidi-isolate-claude": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c1-bidi-override-copilot": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c1-html-comment-agents-multi": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c1-html-comment-claude-inline": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c1-tags-gemini-heading": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c1-tags-skill-desc": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c1-vs-gemini": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c1-zw-binary-agents": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c2-b64-cursor-url": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c2-b64-yaml-rules": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c2-entity-claude": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c2-hex-agents": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "twin-r3-c2-split-concat-claude": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c2-unicode-math-claude": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c3-evasion-disable-allow": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c3-evasion-exclude-dir": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c3-evasion-extra-targets": {
+    "detected": false,
+    "invalid_config": true,
+    "max_severity": null
+  },
+  "twin-r3-c3-hook-script-file": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c3-hook-settings-posttool": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c3-import-claude-chain": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c3-mcp-server-content": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c3-referenced-agents": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c3-referenced-claude-code-fence": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c3-skill-py-script": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c4-mcp-cwd-root-mount": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c4-mcp-env-token-header": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c4-mcp-npx-unpinned-cursor": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c4-mcp-shell-wrapper-vscode": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c4-secret-agents-split": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c4-secret-claude-prose": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c4-secret-cursor-url-cred": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c4-settings-apikeyhelper": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c4-settings-env-proxy": {
+    "detected": false,
+    "max_severity": null
+  },
+  "twin-r3-c4-settings-local-curl": {
+    "detected": false,
+    "max_severity": null
+  }
+}

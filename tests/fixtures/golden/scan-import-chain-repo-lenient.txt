@@ -1,7 +1,7 @@
 exit=1
 {
-  "schema_version": 1,
-  "version": "0.5.1",
+  "schema_version": 2,
+  "version": "0.5.2",
   "scanned_files": 7,
   "findings": [
     {
@@ -26,7 +26,9 @@ exit=1
       ],
       "tags": [
         "reached-via-import"
-      ]
+      ],
+      "confidence": "high",
+      "effective_severity": "critical"
     },
     {
       "rule_id": "GR011",
@@ -50,7 +52,9 @@ exit=1
       ],
       "tags": [
         "reached-via-import"
-      ]
+      ],
+      "confidence": "medium",
+      "effective_severity": "critical"
     },
     {
       "rule_id": "GR013",
@@ -74,7 +78,9 @@ exit=1
       ],
       "tags": [
         "reached-via-import"
-      ]
+      ],
+      "confidence": "medium",
+      "effective_severity": "critical"
     },
     {
       "rule_id": "GR014",
@@ -98,7 +104,9 @@ exit=1
       ],
       "tags": [
         "reached-via-import"
-      ]
+      ],
+      "confidence": "medium",
+      "effective_severity": "critical"
     },
     {
       "rule_id": "GR021",
@@ -115,7 +123,9 @@ exit=1
       "agents": [
         "claude-code",
         "copilot-cli"
-      ]
+      ],
+      "confidence": "medium",
+      "effective_severity": "critical"
     },
     {
       "rule_id": "GR020",
@@ -132,7 +142,9 @@ exit=1
       "agents": [
         "claude-code",
         "copilot-cli"
-      ]
+      ],
+      "confidence": "medium",
+      "effective_severity": "high"
     }
   ],
   "summary": {

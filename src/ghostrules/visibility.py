@@ -4,8 +4,10 @@ ghostrules' value is what people cannot review: invisible text, text reached ind
 configuration that executes things. Plain prose in an agent file that the change shows in full is
 read by whoever approves the change, so the prose rules (GR010-GR014, GR016) report it at ``low``
 when it instructs the agent and ``info`` when it only describes or quotes. Text that is hidden (in
-an HTML comment, decoded from invisible characters) or indirect (a file reached only through an
-import) keeps the rule's severity, and so does everything else. ``--strict`` turns this off.
+an HTML comment, in an element a renderer hides, buried under blank lines or padding, decoded from
+invisible characters, or on a line with a word split by one) or indirect (a file reached only
+through an import) keeps the rule's severity, and so does everything else. ``--strict`` turns this
+off.
 """
 
 from __future__ import annotations
@@ -99,6 +101,25 @@ def _imperative_prose_command(finding: Finding, target: ScanTarget) -> bool:
     return classify(target, (offset, offset + 1)) == "directive"
 
 
+# A zero-width character between two letters splits a word for a reader and a pattern alike, so the
+# line is not read as written. ZWNJ is left out: it is a real letter in Persian and Indic text.
+_SPLIT_WORD = re.compile(r"[^\W\d_][\u200b\u200d\u2060\u00ad\ufeff]+[^\W\d_]")
+
+
+def _split_word_line(target: ScanTarget, finding: Finding) -> bool:
+    """Whether the finding's line has a word split by an invisible character."""
+    return 0 < finding.line <= len(target.lines) and (
+        _SPLIT_WORD.search(target.lines[finding.line - 1]) is not None
+    )
+
+
+def _bundled_skill_document(path: str) -> bool:
+    """A file in a skill folder other than its SKILL.md. The agent reads it only when SKILL.md
+    points at it, so it is reached indirectly, like an import."""
+    parts = path.replace("\\", "/").split("/")
+    return "skills" in parts[:-1] and parts[-1] != "SKILL.md"
+
+
 def by_visibility(
     finding: Finding, target: ScanTarget, *, import_only: bool, lenient: bool = False
 ) -> Finding:
@@ -110,8 +131,10 @@ def by_visibility(
         or finding.decoded  # decoded from hidden characters
         or OBFUSCATION_NOTE in finding.message  # not readable as written
         or import_only
+        or _bundled_skill_document(target.path)
         or target.kind == "config"
-        or target.in_html_comment(target.offset(finding.line, finding.column))
+        or target.in_hidden_text(target.offset(finding.line, finding.column))
+        or _split_word_line(target, finding)
     ):
         return finding
     cap = Severity.INFO if "severity lowered" in finding.message else Severity.LOW

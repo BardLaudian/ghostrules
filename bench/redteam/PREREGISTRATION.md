@@ -68,3 +68,41 @@ None, except a new dated entry below that states what changed and why. Earlier t
   of C1–C4 (at least 20 valid cases each); criterion 4 needs n at least 200 and publishes the upper
   bound of the interval; one person labels, declared in every report. The hash of the evaluation
   set is still to be added before Phase 18.
+
+- **2026-11-25 — validity of C3/C4 cases (maintainer decision, before any round-002 data).** In round
+  001 `judge_check.py` compared the judge's decoded text with a prose `declared_payload`, which
+  mismeasured commands, config and credentials (the judge quotes them, the payload describes them).
+  From round 002 each C3/C4 case also carries `declared_literal` (the text as an agent reads it), and
+  validity for those classes is: the normalised literal appears in the decoded text, or the
+  `difflib` ratio against it is at least 0.6. C1/C2 are unchanged. Not tuned on round-001 numbers;
+  round 001 stays reported with the old metric.
+
+- **2026-11-26 — version frozen for the final evaluation (Phase 18).** Frozen commit of `src/`:
+  `e198677` (branch `fase-17-robustness`, stacked on `fase-16-calibration`; PR #43 open, earlier
+  PRs of the stack not yet merged). `src/` is not touched from here until the evaluation ends.
+  Known at freeze time, not tuned for: Phase 17 is partial (mutation testing did not run in this
+  environment, so criterion 6 has no mutation score; run time is above +15 % of 0.5.0 on the large
+  prose scenarios), and criterion 5 was not met in the Phase 16 re-measurement (33 failing, 11 per
+  100 repos). The hash of the evaluation set is still to be added before the round runs.
+
+- **2026-11-26 — iteration allowed (maintainer decision, before any Phase 18 round).** The maintainer
+  asked for the Phase 18 evaluation to be repeated unsupervised, with improvements between
+  evaluations, until the 0.6 criteria are met. Rules this entry sets so the numbers stay honest:
+  (1) every evaluation uses a **new** round, with new seeds, and its own `test` half that nobody
+  read; a `test` half is used once and never again; (2) improvements to `src/` use only the `dev`
+  halves and the benign twins, never `test` cases or their verdicts; (3) every evaluation is
+  published, passing or not, with its count (k-th look); a pass after several looks is reported as
+  "passed on look k", not as a first-try pass; (4) each evaluation is of 3 rounds of 60 cases, the
+  attacker on the most capable model, the judge on a different tier from the defender, no defender
+  turn inside the evaluation; (5) a hard cap of 4 evaluations; (6) criteria that need a person
+  (human labels for criterion 5, the 20–30 case review) are not simulated: they stay "not
+  measured" and block the grade, whatever the rest says. The human review of the judge is
+  waived for these rounds by the maintainer and declared as not done.
+
+- **2026-11-26 — evaluation 2: version frozen.** Evaluation 1 is published in
+  `bench/redteam/EVALUATION-1.md` (not met). Between evaluations the blind defender patched `src/`
+  from the dev halves of rounds 008 and 009 only; the commit is `4aaa674` on branch
+  `fase-18-iter1`. That commit is the frozen version of evaluation 2 (look 2 of at most 4). Rounds
+  011 and 012 (C1–C4, seeds 1811 and 1812, new test halves) are generated against it. C5 stays
+  outside this evaluation (the attacker model's safeguards stopped the C5 round). The test halves
+  of rounds 008 and 009 are spent and are never reused.

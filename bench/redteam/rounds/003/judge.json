@@ -1,0 +1,240 @@
+[
+ {
+  "id": "r3-c1-tags-skill-desc",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c1-zw-binary-agents",
+  "valid": false,
+  "score": 0.0,
+  "why": "decoded text too short",
+  "twin": true
+ },
+ {
+  "id": "r3-c1-bidi-override-copilot",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c1-bidi-isolate-claude",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c1-vs-gemini",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c1-html-comment-claude-inline",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c1-html-comment-agents-multi",
+  "valid": true,
+  "score": 0.744,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c1-tags-gemini-heading",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c2-hex-agents",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c2-split-concat-claude",
+  "valid": true,
+  "score": 0.735,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c2-b64-cursor-url",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c2-entity-claude",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c2-unicode-math-claude",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c2-b64-yaml-rules",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c3-import-claude-chain",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c3-referenced-agents",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c3-referenced-claude-code-fence",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c3-skill-py-script",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c3-hook-settings-posttool",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c3-hook-script-file",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c3-evasion-exclude-dir",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c3-evasion-disable-allow",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c3-evasion-extra-targets",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c3-mcp-server-content",
+  "valid": true,
+  "score": 0.761,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c4-settings-local-curl",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c4-settings-env-proxy",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c4-settings-apikeyhelper",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c4-mcp-npx-unpinned-cursor",
+  "valid": true,
+  "score": 0.675,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c4-mcp-shell-wrapper-vscode",
+  "valid": true,
+  "score": 0.677,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c4-mcp-env-token-header",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c4-mcp-cwd-root-mount",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c4-secret-claude-prose",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c4-secret-agents-split",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ },
+ {
+  "id": "r3-c4-secret-cursor-url-cred",
+  "valid": true,
+  "score": 1.0,
+  "why": "",
+  "twin": true
+ }
+]

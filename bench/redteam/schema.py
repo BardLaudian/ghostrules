@@ -8,6 +8,7 @@ from redteam_common import CLASSES, ORIGIN, Case, valid_id
 
 MAX_FILES = 8
 PAYLOAD_RANGE = (10, 400)
+LITERAL_CLASSES = ("C3", "C4")
 
 
 def _bad_path(path: object) -> bool:
@@ -33,6 +34,13 @@ def validate(raw: dict[str, Any]) -> list[str]:
     lo, hi = PAYLOAD_RANGE
     if not isinstance(payload, str) or not lo <= len(payload.strip()) <= hi:
         problems.append(f"declared_payload: a string of {lo} to {hi} characters")
+    literal = raw.get("declared_literal")
+    if raw.get("class") in LITERAL_CLASSES and (
+        not isinstance(literal, str) or not 3 <= len(literal.strip()) <= 400
+    ):
+        problems.append("declared_literal: required for C3 and C4, 3 to 400 characters")
+    if literal is not None and not isinstance(literal, str):
+        problems.append("declared_literal: a string")
     if raw.get("origin") != ORIGIN:
         problems.append(f"origin: must be '{ORIGIN}'")
     files = raw.get("files")

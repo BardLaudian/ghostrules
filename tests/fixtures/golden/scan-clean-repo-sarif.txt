@@ -7,8 +7,8 @@ exit=0
       "tool": {
         "driver": {
           "name": "ghostrules",
-          "version": "0.5.1",
-          "semanticVersion": "0.5.1",
+          "version": "0.5.2",
+          "semanticVersion": "0.5.2",
           "informationUri": "https://github.com/BardLaudian/ghostrules",
           "rules": [
             {
@@ -270,7 +270,7 @@ exit=0
                 "text": "Agent safety bypass"
               },
               "fullDescription": {
-                "text": "Instructions to skip permission prompts, disable sandboxes or auto-approve everything."
+                "text": "Instructions to skip permission prompts, disable sandboxes, auto-approve everything or turn off TLS certificate checks."
               },
               "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr016",
               "defaultConfiguration": {
@@ -543,14 +543,14 @@ exit=0
                 "text": "Overly broad filesystem scope"
               },
               "fullDescription": {
-                "text": "Filesystem MCP servers given the whole disk or the whole home directory."
+                "text": "Filesystem MCP servers given the whole disk or the whole home directory (credentials live there: ~/.ssh, ~/.aws)."
               },
               "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr104",
               "defaultConfiguration": {
-                "level": "warning"
+                "level": "error"
               },
               "properties": {
-                "security-severity": "5.5",
+                "security-severity": "8.0",
                 "tags": [
                   "security",
                   "ai-agents"
@@ -642,6 +642,27 @@ exit=0
               }
             },
             {
+              "id": "GR109",
+              "name": "Instructions in MCP server descriptions",
+              "shortDescription": {
+                "text": "Instructions in MCP server descriptions"
+              },
+              "fullDescription": {
+                "text": "The description and instructions of an MCP server or tool are read by the model. The instruction rules (GR010-GR014, GR016) run on them."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr109",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
               "id": "GR110",
               "name": "Script sends the environment or a secret",
               "shortDescription": {
@@ -719,6 +740,27 @@ exit=0
               },
               "properties": {
                 "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR114",
+              "name": "Instruction combines risky signals",
+              "shortDescription": {
+                "text": "Instruction combines risky signals"
+              },
+              "fullDescription": {
+                "text": "A paraphrased instruction that combines weak signals: sensitive object + outbound target, download + execute, override + concealment, skipped checks. A single signal is medium."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr114",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "5.5",
                 "tags": [
                   "security",
                   "ai-agents"

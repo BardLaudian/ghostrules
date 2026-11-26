@@ -10,9 +10,12 @@ from __future__ import annotations
 
 import base64
 import binascii
+import codecs
 import re
 from typing import NamedTuple
+from urllib.parse import unquote_plus
 
+from ghostrules.rules.directive import is_instruction
 from ghostrules.secrets import shannon_entropy
 from ghostrules.unicode_utils import is_mostly_printable
 
@@ -35,7 +38,7 @@ _READ_VERB = (
     r"|leak|paste|share)\b"
 )
 _SENSITIVE_PATH = (
-    r"(?:~/\.ssh|\bid_rsa\b|\bid_ed25519\b|\.aws/credentials|(?<!\w)\.env\b(?!\.(?:example|sample|template|dist)\b)|\.npmrc|\.pypirc|\.netrc|\.git-credentials|\.config/gh/hosts\.yml"
+    r"(?:~/\.ssh|\bid_rsa\b|\bid_ed25519\b|\.aws/credentials|(?<!\w)\.env\b(?!\.(?:example|sample|template|dist)\b)|\.npmrc|\.pypirc|\.netrc|\.git-credentials|\.gitconfig\b|\.config/gh/hosts\.yml"
     r"|\bkubeconfig\b|\bkeychain\b|/etc/shadow|(?:chrome|firefox|safari|browser)\W{0,3}[\w ]{0,15}"
     r"cookies?)"
 )
@@ -46,6 +49,11 @@ _EXFIL_PATTERNS_EN = _compile(
     r"!\[[^\]]*\]\(https?://[^)\s]*[?&][^=\s)]+=(?:\{|\$|%7B|<)",
     rf"{_EXFIL_VERB}.{{0,80}}?{_SECRET}.{{0,200}}?https?://[^\s)\]>\"']+",
     rf"{_EXFIL_VERB}.{{0,200}}?https?://.{{0,80}}?{_SECRET}",
+    # a standing step: after each tool call (or before every task) the output goes to a URL
+    rf"\b(?:after|before)\s+(?:each|every)\s+(?:tool\s+call|task|prompt|message|reply|response"
+    rf"|session)\b[^\n;]{{0,120}}?{_EXFIL_VERB}[^\n;]{{0,120}}?https?://[^\s)\]>\"']+",
+    rf"{_EXFIL_VERB}[^\n;]{{0,120}}?https?://[^\s)\]>\"']+[^\n;]{{0,60}}?\b(?:after|before)\s+"
+    rf"(?:each|every)\s+(?:tool\s+call|task|prompt|message|reply|response|session)\b",
 )
 # Spanish and French: a short reviewed list, the same shape as the English patterns above
 _EXFIL_VERB_ES_FR = (
@@ -66,6 +74,14 @@ COLLECTOR_PATTERNS = _compile(
     r"|interact\.sh|oast\.(?:fun|pro|live|site|online|me)|burpcollaborator\.net"
     r"|beeceptor\.com|hookbin\.com|canarytokens(?:\.\w+)?)",
 )
+
+# asking the user to paste or send a credential into the chat, where the agent reads it
+_CREDENTIAL_ASK = (
+    r"\b(?:ask|tell|have|make|prompt|request)\s+(?:the\s+)?user\s+to\s+(?:paste|send|share"
+    r"|provide|type|enter|post|give)\s+(?:us\s+)?(?:their|the|your|his|her)\s+(?:[\w-]+\s+){0,2}?"
+    r"(?:api\s*keys?|tokens?|passwords?|secrets?|credentials|(?:ssh\s+)?private\s+keys?)\b"
+)
+CREDENTIAL_ASK_RE = re.compile(_CREDENTIAL_ASK, re.IGNORECASE)
 
 INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
     "GR010": _compile(
@@ -91,6 +107,11 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:silently|secretly|quietly)\s+(?:run|execute|add|send|install|modify)\b",
         r"\bdon'?t\s+mention\s+(?:this|these)",
         r"\bhide\s+(?:this|the)\s+(?:from|output)",
+        r"\bkeep\s+(?:quiet|silent)\s+(?:about|on|regarding)\b",
+        r"\b(?:omit|leave\s+out|skip|drop|exclude)\s+(?:any\s+|all\s+|every\s+)?mentions?\s+of"
+        r"\s+(?:any\s+|all\s+|the\s+)?(?:edits?|changes?|modifications?|updates?)\b",
+        r"\bsay\s+(?:that\s+)?(?:they|it|this|these|those|everything)\s+(?:was|were|is|are"
+        r"|has\s+been|have\s+been)\s+already\s+(?:covered|tested|verified|reviewed)\b",
         r"\bno\s+(?:se\s+lo\s+)?(?:digas|menciones|muestres)\s+al\s+usuario",
         r"\bsin\s+avisar\s+al\s+usuario",
         r"\bne\s+(?:le\s+)?(?:dis|dites|montre|montrez|mentionne|mentionnez)\s+pas\s+[àa]"
@@ -117,6 +138,8 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:python[0-9.]*|node)\s+-[ce]\b[^\n]{0,300}?(?:urlopen|requests\.get|\bfetch\s*\()"
         r"[^\n]{0,200}?(?:\.then\(\s*eval\b|\bexec\b|\beval\b)",
         r"\beval\s+[\"']?\$\(\s*(?:curl|wget)\b",
+        # a download substituted into a shell's command string: `sh -c "$(curl URL)"`
+        r"\b(?:ba|z)?sh\s+-c\s+[\"']?(?:\$\(|`)\s*(?:curl|wget)\b",
     ),
     "GR013": EXFIL_PATTERNS + COLLECTOR_PATTERNS,
     # the verb governs the path: same clause (no `;` or sentence end), at most six words apart
@@ -127,6 +150,7 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         # heuristic: a private key described rather than named ("the private key in the ssh folder")
         rf"{_READ_VERB}[^.;!?\n]{{0,60}}?(?:\bssh\b[^.;!?\n]{{0,30}}?\bprivate\s+keys?\b"
         r"|\bprivate\s+keys?\b[^.;!?\n]{0,30}?\bssh\b)",
+        _CREDENTIAL_ASK,
     ),
     "GR016": _compile(
         r"--dangerously-skip-permissions",
@@ -137,9 +161,25 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\balways\s+(?:allow|approve|accept)\s+(?:all\s+)?(?:commands|tools|edits)",
         r"\bdisable\s+(?:the\s+)?(?:sandbox|safety|guardrails)",
         r"\bnever\s+ask\s+(?:for\s+)?(?:permission|confirmation)",
+        # a confirmation, approval or telemetry prompt switched off ("Disable the confirmation …")
+        r"\b(?:disable|skip|turn\s+off|suppress|bypass|silence)\s+"
+        r"(?:the\s+|any\s+|all\s+|every\s+)?"
+        r"(?:[\w-]+\s+)?(?:confirmation|approval|permission|consent|telemetry)s?\s+"
+        r"(?:prompts?|dialogs?|checks?|questions?)\b",
+        r"\b(?:run|execute)\s+(?:the\s+|any\s+|all\s+|every\s+|each\s+)?"
+        r"(?:commands?|tools?|scripts?|it|them)\b"
+        r"[^.\n]{0,80}?\bwithout\s+(?:asking|confirmation|approval|permission)\b",
         r"\bsin\s+pedir\s+(?:permiso|confirmaci[oó]n)",
+        # TLS certificate checks switched off (the agent's network safety)
+        r"\bNODE_TLS_REJECT_UNAUTHORIZED\s*=\s*['\"]?0\b",
+        r"\b(?:curl|wget)\b[^\n]{0,120}?\s(?:-[a-zA-Z]*k[a-zA-Z]*|--insecure"
+        r"|--no-check-certificate)\b",
+        r"\bverify\s*=\s*False\b",
+        r"\bPYTHONHTTPSVERIFY\s*=\s*['\"]?0\b",
+        r"\bstrict-ssl\s+false\b",
     ),
 }
+
 
 _CUE_RE = re.compile(r"\b(?:you\s+must|always|never)\b", re.IGNORECASE)
 _IMPERATIVE_RE = re.compile(r"\b(?:you\s+must|always|never|assistant|agent|model)\b", re.IGNORECASE)
@@ -163,6 +203,7 @@ class EncodedRun(NamedTuple):
     start: int
     end: int
     decoded: str | None
+    strong: bool = True  # False: reported, but not enough to fail the default check
 
 
 def _decode_text(data: bytes) -> str | None:
@@ -189,24 +230,67 @@ def _in_url(text: str, offset: int) -> bool:
     return "://" in text[start:offset]
 
 
+# asks to decode the text next to it and act on it: "decode and follow", "decode ... as an
+# instruction", "convert and execute". The cue, not the decoded text, makes the run an instruction.
+DECODE_AND_ACT = re.compile(
+    r"\b(?:decod\w*|convert\w*)\b[^\n]{0,60}?\b(?:follow|obey|apply|execute|comply"
+    r"|as\s+(?:an?\s+)?instructions?)\b"
+    # the act first, then the decoded part: "run the decoded step"
+    r"|\b(?:run|follow|execute|perform)\b[^\n]{0,40}?\bdecoded\b",
+    re.I,
+)
+# a URL, or the target of a markdown link (a relative path can carry the same percent-encoded text)
+_URL_TOKEN = re.compile(r"(?:https?://|\]\()[^\s<>\"'`)\]]+", re.IGNORECASE)
+_PERCENT_RUN = re.compile(
+    r"(?:%[0-9A-Fa-f]{2}|[\w./~+-])*%[0-9A-Fa-f]{2}(?:%[0-9A-Fa-f]{2}|[\w./~+-])*"
+)
+_MIN_ESCAPES = 4  # a few %20 in a link are ordinary; a sentence encoded in one is not
+
+
+def find_percent_payloads(text: str) -> list[EncodedRun]:
+    """Percent-encoded runs of four or more escapes inside URLs (query or fragment) that decode to
+    text matching an injection pattern: a sentence sent past the reviewer in a link."""
+    found: list[EncodedRun] = []
+    for url in _URL_TOKEN.finditer(text):
+        for run in _PERCENT_RUN.finditer(url.group()):
+            if run.group().count("%") < _MIN_ESCAPES:
+                continue
+            decoded = unquote_plus(run.group())
+            asked = DECODE_AND_ACT.search(line_of(text, url.start(), url.end())) is not None
+            if match_injection(decoded) or asked:
+                found.append(
+                    EncodedRun(url.start() + run.start(), url.start() + run.end(), decoded)
+                )
+    return found
+
+
 def find_encoded_runs(text: str) -> list[EncodedRun]:
     """Find base64 (>= 60 chars) and hex (>= 80 chars) runs worth reporting.
 
     Runs decoding to printable text are always returned. Runs that do not decode to text are
     returned (``decoded=None``) only when they look like random encoded bytes: high-entropy base64
-    not embedded in a path/URL, or hex that is not a standard digest length. ``data:...;base64,``
-    URIs are skipped.
+    not embedded in a path/URL, or hex that is not a standard digest length. A ``data:...;base64,``
+    URI is an image or a font unless its payload reads as an instruction: only then it is kept.
     """
     found: list[EncodedRun] = []
     for match in _BASE64_RE.finditer(text):
         before = text[: match.start()]
-        if before.endswith("base64,") or _SRI_PREFIX.search(before) or _in_url(text, match.start()):
+        fragment = before.endswith("#")  # a fragment is client-side data, not a path
+        if _SRI_PREFIX.search(before) or (_in_url(text, match.start()) and not fragment):
             continue
         run = match.group()
         padded = run + "=" * (-len(run) % 4) if "=" not in run else run
         try:
             decoded = _decode_text(base64.b64decode(padded, validate=True))
         except (binascii.Error, ValueError):
+            continue
+        if before.endswith("base64,"):
+            # a data: URI that is not an image is text; text that tells the agent what to do is
+            # an instruction whichever words sit around the link
+            if decoded is not None and (
+                reads_as_agent_directive(decoded) or is_instruction(decoded)
+            ):
+                found.append(EncodedRun(match.start(), match.end(), decoded))
             continue
         if decoded is not None:
             found.append(EncodedRun(match.start(), match.end(), decoded))
@@ -218,12 +302,276 @@ def find_encoded_runs(text: str) -> list[EncodedRun]:
         decoded = _decode_text(bytes.fromhex(match.group()))
         if decoded is not None or len(match.group()) not in _DIGEST_HEX_LENGTHS:
             found.append(EncodedRun(match.start(), match.end(), decoded))
+    found.extend(find_percent_payloads(text))
     return sorted(found)
 
 
 def find_encoded_payloads(text: str) -> list[EncodedRun]:
     """The subset of ``find_encoded_runs`` that decodes to printable text."""
     return [run for run in find_encoded_runs(text) if run.decoded is not None]
+
+
+_REVERSE_CUE = re.compile(
+    r"\bright[- ]to[- ]left\b|\bbackwards?\b|\bin\s+reverse\b|\breversed\b", re.I
+)
+_REVERSE_AND_ACT = re.compile(
+    r"(?:right[- ]to[- ]left|backwards?|in\s+reverse|reversed)\b[^\n]{0,60}?"
+    r"\b(?:follow|obey|apply|execute|comply|run)\b"
+    r"|\b(?:follow|obey|apply|execute|comply|run)\b[^\n]{0,60}?"
+    r"\b(?:right[- ]to[- ]left|backwards?|in\s+reverse|reversed)\b",
+    re.IGNORECASE,
+)
+_CUE_LINES = 2  # lines before a reversed line that may carry its "obey it" cue
+_ESCAPES = re.compile(r"(?:\\u[0-9a-fA-F]{4}|\\x[0-9a-fA-F]{2}){2}")
+_ESCAPE_ONE = re.compile(r"\\u([0-9a-fA-F]{4})|\\x([0-9a-fA-F]{2})")
+_ESCAPE_CUE = re.compile(r"\b(?:escapes?|unescape|interpret|decode)\b", re.I)
+
+
+def _unescape(match: re.Match[str]) -> str:
+    return chr(int(match.group(1) or match.group(2), 16))
+
+
+# decimal or hex character references (&#82; &#x52;), four or more in a row
+_CHAR_REFS = re.compile(r"(?:&#x?[0-9a-fA-F]{1,6};){4,}")
+_CHAR_REF_ONE = re.compile(r"&#(x?)([0-9a-fA-F]{1,6});")
+
+
+_MARKUP_CHARS = re.compile(r"[*_`]+")  # emphasis and code-span delimiters, invisible when rendered
+
+
+def _char_ref(match: re.Match[str]) -> str:
+    code = int(match.group(2), 16 if match.group(1) else 10)
+    return chr(code) if code <= 0x10FFFF else "�"
+
+
+def find_disguised_runs(text: str) -> list[EncodedRun]:
+    """Lines that read as an instruction once reversed, unescaped or character-referenced.
+
+    A line is reversed only in a file that says its text runs right to left or backwards; escapes
+    (two or more ``\\uXXXX`` / ``\\xHH`` in a row) are decoded only on a line that also asks to
+    decode or interpret them. Character references need no cue: four or more in a row that
+    decode to an instruction are the hiding itself. Without a cue, reversed words and escaped JSON
+    are ordinary text.
+    """
+    found: list[EncodedRun] = []
+    reverse_cue = _REVERSE_CUE.search(text) is not None
+    offset = 0
+    recent: list[str] = []  # the lines just before, where an "obey it" cue would be
+    for line in text.splitlines(keepends=True):
+        body = line.rstrip("\r\n")
+        nearby = " ".join([*recent, body])
+        recent = [*recent, body][-_CUE_LINES:]
+        start, end = offset, offset + len(body)
+        offset += len(line)
+        options: list[tuple[str, bool]] = []
+        if reverse_cue and len(body.split()) >= 3:
+            options.append((body.strip()[::-1], False))
+        if _ESCAPES.search(body) and _ESCAPE_CUE.search(body):
+            options.append((_ESCAPE_ONE.sub(_unescape, body), True))
+        if _CHAR_REFS.search(body):
+            decoded = _CHAR_REF_ONE.sub(_char_ref, body)
+            # prose with &#8220; quotes is not a directive; a decoded line that matches a known
+            # injection pattern (a pipe into a shell) is, whatever the words around it say
+            if reads_as_agent_directive(decoded) or match_injection(decoded):
+                found.append(EncodedRun(start, end, decoded))
+        if _MARKUP_CHARS.search(body):
+            # emphasis and code spans cut a sentence into pieces that render as one: "up*load*"
+            stripped = _MARKUP_CHARS.sub("", body)
+            if match_injection(stripped) and not match_injection(body):
+                found.append(EncodedRun(start, end, stripped))
+        for decoded, anywhere in options:
+            if is_instruction(decoded, anywhere=anywhere):
+                # A cue anywhere in the file is not enough for a reversed line (phase 16): it is
+                # high only if the reversed text is addressed to the agent or a line just before
+                # asks to decode it and act on it. Escapes carry their own cue on the line.
+                strong = anywhere or reads_as_agent_directive(decoded)
+                strong = strong or any(c.search(nearby) for c in (DECODE_AND_ACT, _REVERSE_AND_ACT))
+                found.append(EncodedRun(start, end, decoded, strong))
+                break
+    return found
+
+
+# ciphers an agent can read: morse letters, the ASCII codes of a run of numbers, rot13 lines
+_MORSE_LETTERS = {
+    ".-": "A", "-...": "B", "-.-.": "C", "-..": "D", ".": "E", "..-.": "F", "--.": "G",
+    "....": "H", "..": "I", ".---": "J", "-.-": "K", ".-..": "L", "--": "M", "-.": "N",
+    "---": "O", ".--.": "P", "--.-": "Q", ".-.": "R", "...": "S", "-": "T", "..-": "U",
+    "...-": "V", ".--": "W", "-..-": "X", "-.--": "Y", "--..": "Z",
+}  # fmt: skip
+_CODE_NUMBERS = re.compile(r"(?<!\S)\d{1,3}(?:[ \t]+\d{1,3}){7,}(?!\S)")  # eight or more
+_MORSE_RUN = re.compile(r"(?<!\S)[.\-/]+(?:[ \t]+[.\-/]+)*(?!\S)")
+_MIN_CIPHER_LETTERS = 3  # a lone "-" bullet or "..." ellipsis is not a message
+_CIPHER_LINE_MIN_WORDS = 3
+_ROT13_CUE = re.compile(r"\brot-?\s?13\b", re.IGNORECASE)  # a rot13 line names its cipher
+
+
+def line_of(text: str, start: int, end: int) -> str:
+    """The line of ``text`` that holds the span ``start``..``end``, without its line break."""
+    first = text.rfind("\n", 0, start) + 1
+    last = text.find("\n", end)
+    return text[first : len(text) if last < 0 else last]
+
+
+def _morse_text(run: str) -> str | None:
+    """Letters and words of a morse run (``/`` separates words), or ``None`` if not morse."""
+    words: list[str] = []
+    letters: list[str] = []
+    for token in run.split():
+        if token == "/":
+            words.append("".join(letters))
+            letters = []
+        elif token in _MORSE_LETTERS:
+            letters.append(_MORSE_LETTERS[token])
+        else:
+            return None
+    words.append("".join(letters))
+    if sum(len(w) for w in words) < _MIN_CIPHER_LETTERS:
+        return None
+    return " ".join(w for w in words if w)
+
+
+def _code_text(run: str) -> str | None:
+    """The characters of a run of ASCII codes, or ``None`` if a code is not printable ASCII."""
+    codes = [int(n) for n in run.split()]
+    return "".join(map(chr, codes)) if all(32 <= c <= 126 for c in codes) else None
+
+
+def _rot13_text(line: str) -> str:
+    """The rot13 of a line's cipher part: the text after its label (``note (rot13): ``). Rot13
+    turns the plain label as well, so the label would hide the directive that follows it."""
+    label = line.find(": ")
+    return codecs.decode(line[label + 2 :] if label >= 0 else line, "rot13")
+
+
+def find_ciphered_runs(text: str) -> list[EncodedRun]:
+    """Morse runs, runs of ASCII codes and rot13 lines that decode to text.
+
+    Only the text is returned: the caller keeps the runs that read as an instruction (a decode
+    cue next to them, or the decoded text is an agent directive). A rot13 line is decoded whole,
+    so the plain words of the line are garbled but the ciphered part reads as text.
+    """
+    found: list[EncodedRun] = []
+    for match in _CODE_NUMBERS.finditer(text):
+        decoded = _code_text(match.group())
+        if decoded is not None:
+            found.append(EncodedRun(match.start(), match.end(), decoded))
+    for match in _MORSE_RUN.finditer(text):
+        decoded = _morse_text(match.group())
+        if decoded is not None:
+            found.append(EncodedRun(match.start(), match.end(), decoded))
+    offset = 0
+    for line in text.splitlines(keepends=True):
+        body = line.rstrip("\r\n")
+        if _ROT13_CUE.search(body) and len(body.split()) >= _CIPHER_LINE_MIN_WORDS:
+            found.append(EncodedRun(offset, offset + len(body), _rot13_text(body)))
+        offset += len(line)
+    return sorted(found)
+
+
+_JOIN_AND_RUN = re.compile(
+    r"\b(?:join|concatenate|combine|assemble|stitch)\b[^\n]{0,120}?"
+    r"\b(?:and\s+)?(?:run|execute|follow|obey|apply)\b",
+    re.IGNORECASE,
+)
+_LIST_ITEM = re.compile(r"^\s*(?:[-*+]|\d+[.)])\s+(.+?)\s*$")
+
+
+def find_joined_fragments(text: str) -> list[EncodedRun]:
+    """A line that asks the reader to join fragments and run the result, then the list of
+    fragments (code spans or plain items). The joined text is the hidden instruction."""
+    lines = text.splitlines(keepends=True)
+    found: list[EncodedRun] = []
+    offset = 0
+    for index, line in enumerate(lines):
+        start = offset
+        offset += len(line)
+        if not _JOIN_AND_RUN.search(line):
+            continue
+        pieces: list[str] = []
+        end = offset
+        for item in lines[index + 1 :]:
+            match = _LIST_ITEM.match(item)
+            if match is None:
+                break
+            pieces.append(match.group(1).strip("`").strip())
+            end += len(item)
+        if len(pieces) >= 2:
+            joined = "".join(pieces)
+            # The cue line is not enough (phase 16): the joined text must be something to run.
+            strong = (
+                reads_as_agent_directive(joined)
+                or _EXTERNAL_RE.search(joined) is not None
+                or bool(match_injection(joined))
+            )
+            found.append(EncodedRun(start, end, joined, strong))
+    return found
+
+
+# a URL whose host is not the agent's own machine (localhost, 127.x, ::1)
+_EXTERNAL_URL = r"https?://(?!(?:localhost|127\.\d+\.\d+\.\d+|\[::1\])(?![\w.-]))"
+_EXTERNAL_RE = re.compile(_EXTERNAL_URL, re.IGNORECASE)
+# verbs that move data to a host or fetch and run something from it; reading verbs (check,
+# read, see) do not count, so a changelog link in a hidden note stays quiet
+_ACT_ON_URL = re.compile(
+    r"\b(?:send|upload|post|paste|share|forward|push|copy|sync|exfiltrate|transmit|run|execute"
+    r"|invoke|fetch|download|install)\b[^\n]{0,120}?" + _EXTERNAL_URL,
+    re.IGNORECASE,
+)
+
+
+# routing traffic or installs through a host: "use the proxy at https://…", "point the registry at"
+_ROUTE_THROUGH_URL = re.compile(
+    r"\b(?:use|route|redirect|point)\b[^\n]{0,40}?\b(?:proxy|mirror|registry|endpoint|gateway)\b"
+    r"[^\n]{0,60}?" + _EXTERNAL_URL,
+    re.IGNORECASE,
+)
+
+
+def acts_on_external_url(text: str) -> bool:
+    """True if a line tells the agent to send, run or fetch something at an external URL, or to
+    route its traffic or installs through an external host."""
+    return _ACT_ON_URL.search(text) is not None or _ROUTE_THROUGH_URL.search(text) is not None
+
+
+# a directive addressed to the agent, or one that sets a standing rule
+_ADDRESSES_AGENT = re.compile(
+    r"\b(?:you|your|agents?|assistant|model|always|never)\b", re.IGNORECASE
+)
+
+
+def reads_as_agent_directive(text: str) -> bool:
+    """Whether hidden or decoded text tells the agent what to do: an imperative that is addressed
+    to the agent or sets a standing rule, matches a known injection pattern, or sends, runs or
+    fetches from an external URL. A plain imperative project note ("Run the unit tests before
+    tagging a release") is not one."""
+    return is_instruction(text) and (
+        _ADDRESSES_AGENT.search(text) is not None
+        or bool(match_injection(text))
+        or acts_on_external_url(text)
+    )
+
+
+_STANDING = re.compile(
+    r"\b(?:before|after|at|on)\s+(?:each|every|task\s+start|session\s+start|startup)\b"
+    r"|\b(?:every|each)\s+time\b",
+    re.IGNORECASE,
+)
+_RUN_VERB = re.compile(r"\b(?:run|execute|invoke|launch)\b", re.IGNORECASE)
+# a sentence: text up to a line break, ';', '!' or '?', or a full stop that ends a sentence
+# (a dot inside a host name is followed by a letter, not by a space)
+_SENTENCE = re.compile(r"(?:[^\n;!?]|\.(?!\s|$))+")
+
+
+def find_standing_remote_runs(text: str) -> list[tuple[int, int]]:
+    """Sentences that make the agent run something on every task or session, and name an
+    external URL in the same sentence: a standing step that contacts a remote host each time."""
+    return [
+        m.span()
+        for m in _SENTENCE.finditer(text)
+        if _STANDING.search(m.group())
+        and _RUN_VERB.search(m.group())
+        and _EXTERNAL_RE.search(m.group())
+    ]
 
 
 def has_instruction_cue(text: str) -> bool:
