@@ -1,987 +1,987 @@
-repo,rule_id,severity,location,snippet,context,population,fingerprint,human_label
+repo,rule_id,severity,location,snippet,context,population,fingerprint,human_label,label_note
 NousResearch/hermes-agent,GR006,high,optional-skills/mlops/peft/SKILL.md:78,"# Output: trainable params: 13,631,488 || all params: 8,043,307,008 || trainable%: 0.17%","   75  # Apply LoRA
    76  model = get_peft_model(model, lora_config)
    77  model.print_trainable_parameters()
    78  # Output: trainable params: 13,631,488 || all params: 8,043,307,008 || trainable%: 0.17%
    79  
    80  # Prepare dataset
-   81  dataset = load_dataset(""databricks/databricks-dolly-15k"", split=""train"")",21,c89a32e97a929638,
+   81  dataset = load_dataset(""databricks/databricks-dolly-15k"", split=""train"")",21,c89a32e97a929638,fp,group: digits/leet folding on plain text
 affaan-m/ECC,GR006,high,docs/es/skills/python-patterns/SKILL.md:367,print(p1.distance(p2))  # 5.0,"  364  # Uso
   365  p1 = Point(0, 0)
   366  p2 = Point(3, 4)
   367  print(p1.distance(p2))  # 5.0
   368  ```
   369  
-  370  ## Decoradores",21,1553b37acac77438,
+  370  ## Decoradores",21,1553b37acac77438,fp,group: digits/leet folding on plain text
 affaan-m/ECC,GR006,high,docs/ja-JP/skills/cpp-testing/SKILL.md:160,set(GTEST_VERSION v1.17.0) # プロジェクトポリシーに合わせて調整します。,"  157  
   158  include(FetchContent)
   159  # プロジェクトロックされたバージョンを優先します。タグを使用する場合は、プロジェクトポリシーに従って固定されたバージョンを使用します。
   160  set(GTEST_VERSION v1.17.0) # プロジェクトポリシーに合わせて調整します。
   161  FetchContent_Declare(
   162    googletest
-  163    URL Google Test framework (official repository) https://github.com/google/googletest/archive/refs/tags/${GTEST_VERSION}.zip",21,5703c98c59df4fdb,
+  163    URL Google Test framework (official repository) https://github.com/google/googletest/archive/refs/tags/${GTEST_VERSION}.zip",21,5703c98c59df4fdb,fp,group: digits/leet folding on plain text
 affaan-m/ECC,GR006,high,docs/ja-JP/skills/python-patterns/SKILL.md:366,print(p1.distance(p2))  # 5.0,"  363  # Usage
   364  p1 = Point(0, 0)
   365  p2 = Point(3, 4)
   366  print(p1.distance(p2))  # 5.0
   367  ```
   368  
-  369  ## デコレータ",21,e98bee53441947a6,
+  369  ## デコレータ",21,e98bee53441947a6,fp,group: digits/leet folding on plain text
 affaan-m/ECC,GR006,high,docs/tr/skills/python-patterns/SKILL.md:367,print(p1.distance(p2))  # 5.0,"  364  # Kullanım
   365  p1 = Point(0, 0)
   366  p2 = Point(3, 4)
   367  print(p1.distance(p2))  # 5.0
   368  ```
   369  
-  370  ## Decorator'lar",21,c5c552899eaf8e8b,
+  370  ## Decorator'lar",21,c5c552899eaf8e8b,fp,group: digits/leet folding on plain text
 affaan-m/ECC,GR006,high,docs/zh-CN/skills/python-patterns/SKILL.md:367,print(p1.distance(p2))  # 5.0,"  364  # Usage
   365  p1 = Point(0, 0)
   366  p2 = Point(3, 4)
   367  print(p1.distance(p2))  # 5.0
   368  ```
   369  
-  370  ## 装饰器",21,bd1410c214043971,
+  370  ## 装饰器",21,bd1410c214043971,fp,group: digits/leet folding on plain text
 affaan-m/ECC,GR006,high,pi/core/skills/python-patterns/SKILL.md:368,print(p1.distance(p2))  # 5.0,"  365  # Usage
   366  p1 = Point(0, 0)
   367  p2 = Point(3, 4)
   368  print(p1.distance(p2))  # 5.0
   369  ```
   370  
-  371  ## Decorators",21,c478a08761eeca31,
+  371  ## Decorators",21,c478a08761eeca31,fp,group: digits/leet folding on plain text
 affaan-m/ECC,GR006,high,skills/prompt-caching-strategy/SKILL.md:152,"| Output | 20,000 | $15.00 | $0.3000 |","  149  | Ordinary input | 20,000 | $3.00 | $0.0600 |
   150  | Cache write | 10,000 | $3.75 | $0.0375 |
   151  | Cache read | 90,000 | $0.30 | $0.0270 |
   152  | Output | 20,000 | $15.00 | $0.3000 |
   153  | Storage | 0 token-hours | $0.00 | $0.0000 |
   154  
-  155  Baseline: 120,000 input tokens at $3 plus the same output = **$0.6600**.",21,bc54dcae2c30919a,
+  155  Baseline: 120,000 input tokens at $3 plus the same output = **$0.6600**.",21,bc54dcae2c30919a,fp,group: digits/leet folding on plain text
 affaan-m/ECC,GR006,high,skills/python-patterns/SKILL.md:368,print(p1.distance(p2))  # 5.0,"  365  # Usage
   366  p1 = Point(0, 0)
   367  p2 = Point(3, 4)
   368  print(p1.distance(p2))  # 5.0
   369  ```
   370  
-  371  ## Decorators",21,c4759375f4e4199b,
+  371  ## Decorators",21,c4759375f4e4199b,fp,group: digits/leet folding on plain text
 anthropics/skills,GR006,high,skills/doc-coauthoring/SKILL.md:175,"- ""Keep 1,4,7,9""","  172  Ask which points should be kept, removed, or combined. Request brief justifications to help learn priorities for the next sections.
   173  
   174  Provide examples:
   175  - ""Keep 1,4,7,9""
   176  - ""Remove 3 (duplicates 1)""
   177  - ""Remove 6 (audience already knows this)""
-  178  - ""Combine 11 and 12""",21,7ac0587e4685c812,
+  178  - ""Combine 11 and 12""",21,7ac0587e4685c812,fp,group: digits/leet folding on plain text
 midudev/autoskills,GR006,high,packages/autoskills/skills-registry/python-patterns/SKILL.md:368,print(p1.distance(p2))  # 5.0,"  365  # Usage
   366  p1 = Point(0, 0)
   367  p2 = Point(3, 4)
   368  print(p1.distance(p2))  # 5.0
   369  ```
   370  
-  371  ## Decorators",21,a7aaff4aa2afcfd6,
+  371  ## Decorators",21,a7aaff4aa2afcfd6,fp,group: digits/leet folding on plain text
 mui/material-ui,GR006,high,.agents/skills/material-ui-review/SKILL.md:327,"- **Approve** — no 🟣, 🔴, 🟠, 🟡 findings (only ℹ⟦U+FE0F⟧ notes, or nothing).","  324  - **Request changes** — at least one 🟣 or 🔴 finding.
   325  - **Approve after nits** — no 🟣 or 🔴, but one or more 🟠 or 🟡 findings worth
   326    addressing.
   327  - **Approve** — no 🟣, 🔴, 🟠, 🟡 findings (only ℹ️ notes, or nothing).
   328  
   329  Follow verdict with one clause naming deciding factor.
-  330  ",21,136720c8f21d264d,
+  330  ",21,136720c8f21d264d,fp,group: digits/leet folding on plain text
 n8n-io/n8n,GR006,high,.agents/skills/content-design/SKILL.md:170,"- Do: 13:34, 07:52","  167  - Don't: ""2. Apr"", ""02/14/2025""
   168  
   169  **Times.** 24-hour format with leading zero (technical audience).
   170  - Do: 13:34, 07:52
   171  - Don't: 1:34 PM, 7:52
   172  
-  173  **Numbers.** Commas for thousands, period for decimals.",21,bee6a71cc077087d,
+  173  **Numbers.** Commas for thousands, period for decimals.",21,bee6a71cc077087d,fp,group: digits/leet folding on plain text
 n8n-io/n8n,GR006,high,.agents/skills/gh-stack/SKILL.md:322,"> **Note for agents:** `sync` also mirrors the stack on GitHub locally. If PRs were added to the stack on github.com, th…(+451 more)","  319  
   320  > **Note for agents:** In non-interactive environments, the prune prompt is not shown. Use `--prune` explicitly to delete local branches for merged PRs.
   321  
   322  > **Note for agents:** `sync` also mirrors the stack on GitHub locally. If PRs were added to the stack on github.com, their branches are pulled down and appended to the local stack automatically. If t…
   323  
   324  ### Squash-merge recovery
-  325  ",21,00b845341fb010b7,
+  325  ",21,00b845341fb010b7,fp,group: digits/leet folding on plain text
 nextlevelbuilder/ui-ux-pro-max-skill,GR006,high,.claude/skills/brand/references/typography-specifications.md:35,| Display | 3.815rem | 61px | 700 | 1.1 |,"   32  ### Scale Definition
    33  | Element | Size (rem) | Size (px) | Weight | Line Height |
    34  |---------|------------|-----------|--------|-------------|
    35  | Display | 3.815rem | 61px | 700 | 1.1 |
    36  | H1 | 3.052rem | 49px | 700 | 1.2 |
    37  | H2 | 2.441rem | 39px | 600 | 1.25 |
-   38  | H3 | 1.953rem | 31px | 600 | 1.3 |",21,a7501e162adf2b70,
+   38  | H3 | 1.953rem | 31px | 600 | 1.3 |",21,a7501e162adf2b70,fp,group: not reproduced on rescan; benign by context
 nexu-io/open-design,GR006,high,plugins/_official/examples/hps-true-blueprint/SKILL.md:99,  `@import` (weights 300/400/500/700/800 + italic 400).,"   96  
    97  - **One family everywhere.** Every font slot is `'JetBrains Mono', monospace`.
    98    The only allowed remote resource is the JetBrains Mono Google Fonts
    99    `@import` (weights 300/400/500/700/800 + italic 400).
   100  - `.h1`/`.h2` are UPPERCASE, weight 800/700, `clamp()`-fluid
   101    (h1: `clamp(40px,5vw,64px)`).
-  102  - `.kicker` is a `// slash-comment` style label: 13px, 700, `.18em`",21,ac852718d1a3e546,
+  102  - `.kicker` is a `// slash-comment` style label: 13px, 700, `.18em`",21,ac852718d1a3e546,fp,group: digits/leet folding on plain text
 rtk-ai/rtk,GR006,high,.claude/commands/diagnose.md:126,"    echo ""ℹ⟦U+FE0F⟧ Not in RTK repository (skipping quality checks)""","  123          echo ""⚠️ WARNING: cargo clippy not installed""
   124      fi
   125  else
   126      echo ""ℹ️ Not in RTK repository (skipping quality checks)""
   127  fi
   128  ```
-  129  ",21,000bf9cdb68849c5,
+  129  ",21,000bf9cdb68849c5,fp,group: not reproduced on rescan; benign by context
 rtk-ai/rtk,GR006,high,.claude/commands/tech/remove-worktree.md:131,"  echo ""ℹ⟦U+FE0F⟧  No remote branch found""","  128      echo ""⏭️  Skipped remote branch deletion""
   129    fi
   130  else
   131    echo ""ℹ️  No remote branch found""
   132  fi
   133  
-  134  echo """"",21,326f6afda4aa5981,
+  134  echo """"",21,326f6afda4aa5981,fp,group: not reproduced on rescan; benign by context
 ruvnet/RuView,GR006,high,.claude/skills/agentdb-optimization/SKILL.md:490,| Search | 10K | 15ms | 100µs | 150x |,"  487  
   488  | Operation | Vector Count | No Optimization | Optimized | Improvement |
   489  |-----------|-------------|-----------------|-----------|-------------|
   490  | Search | 10K | 15ms | 100µs | 150x |
   491  | Search | 100K | 150ms | 120µs | 1,250x |
   492  | Search | 1M | 100s | 8ms | 12,500x |
-  493  | Batch Insert (100) | - | 1s | 2ms | 500x |",21,cebad274fd1d2e07,
+  493  | Batch Insert (100) | - | 1s | 2ms | 500x |",21,cebad274fd1d2e07,fp,group: digits/leet folding on plain text
 ruvnet/RuView,GR006,high,.claude/skills/agentdb-optimization/SKILL.md:491,"| Search | 100K | 150ms | 120µs | 1,250x |","  488  | Operation | Vector Count | No Optimization | Optimized | Improvement |
   489  |-----------|-------------|-----------------|-----------|-------------|
   490  | Search | 10K | 15ms | 100µs | 150x |
   491  | Search | 100K | 150ms | 120µs | 1,250x |
   492  | Search | 1M | 100s | 8ms | 12,500x |
   493  | Batch Insert (100) | - | 1s | 2ms | 500x |
-  494  | Memory Usage | 1M | 3GB | 96MB | 32x (binary) |",21,256a786c3ee38768,
+  494  | Memory Usage | 1M | 3GB | 96MB | 32x (binary) |",21,256a786c3ee38768,fp,group: digits/leet folding on plain text
 ruvnet/RuView,GR006,high,.claude/skills/agentdb-optimization/SKILL.md:492,"| Search | 1M | 100s | 8ms | 12,500x |","  489  |-----------|-------------|-----------------|-----------|-------------|
   490  | Search | 10K | 15ms | 100µs | 150x |
   491  | Search | 100K | 150ms | 120µs | 1,250x |
   492  | Search | 1M | 100s | 8ms | 12,500x |
   493  | Batch Insert (100) | - | 1s | 2ms | 500x |
   494  | Memory Usage | 1M | 3GB | 96MB | 32x (binary) |
-  495  ",21,5bf53c1f5bbff35d,
+  495  ",21,5bf53c1f5bbff35d,fp,group: digits/leet folding on plain text
 coollabsio/coolify,GR011,high,.claude/skills/laravel-best-practices/rules/eloquent.md:48,"Global scopes silently modify every query on the model, mak…","   45  
    46  ## Apply Global Scopes Sparingly
    47  
    48  Global scopes silently modify every query on the model, making debugging difficult. Prefer local scopes and reserve global scopes for truly universal constraints like soft deletes or multi-tenancy.
    49  
    50  Global scope tradeoff:
-   51  ",3,4fb968f7320176b7,
+   51  ",3,4fb968f7320176b7,fp,group: descriptive or presentation wording
 pbakaus/impeccable,GR011,high,.claude/skills/impeccable/reference/critique.md:240,This is fire-and-forget. Do not show the user the helper's JSON output; onl…,"  237  
   238  6. **Close the run.** Go to Ask the User below and emit the questions, or the `Questions skipped: <reason>` line when the count allows it. The run is not complete until you do. Persistence is bookkeep…
   239  
   240  This is fire-and-forget. Do not show the user the helper's JSON output; only the human-readable trend line, the written path, and the helper's Impeccable line. Failures here should not block the rest …
   241  
   242  ### Ask the User
-  243  ",3,2f14441c01187d7c,
+  243  ",3,2f14441c01187d7c,fp,group: descriptive or presentation wording
 pbakaus/impeccable,GR011,high,.gemini/skills/impeccable/reference/critique.md:240,This is fire-and-forget. Do not show the user the helper's JSON output; onl…,"  237  
   238  6. **Close the run.** Go to Ask the User below and emit the questions, or the `Questions skipped: <reason>` line when the count allows it. The run is not complete until you do. Persistence is bookkeep…
   239  
   240  This is fire-and-forget. Do not show the user the helper's JSON output; only the human-readable trend line, the written path, and the helper's Impeccable line. Failures here should not block the rest …
   241  
   242  ### Ask the User
-  243  ",3,2fbacabb6a317eb8,
+  243  ",3,2fbacabb6a317eb8,fp,group: descriptive or presentation wording
 Significant-Gravitas/AutoGPT,GR012,high,.claude/skills/process-vulnerability-report/SKILL.md:874,"…s head), or its `master` pick; when no pick's sha is known, run stage 1, step 3's tag-contents check on every line the fix adds, since a hand pick can carry part of a fix. For the image row, with its own `patched_versions` as `$IM…(+306 more)","  871  
   872  | Check | Command / rule |
   873  |---|---|
   874  | Fix is in a release | For the `autogpt-platform-beta` row, with its `patched_versions` as `$PATCHED` and its tag as `$TAG` (the lookup below the table): `gh release view ""$TAG""`, and that tag contai…
   875  | Fix is running in production | the production deployment runs a build that contains the fix, as the maintainer who deploys it confirms |
   876  | Range is derived and bounded | the two shas and dates are in the triage note (stage 1, *Derive the affected versions from git history*), and the upper bound is `<= <last affected>`, the release befo…
-  877  | CVSS vector present | the vector query below the table, run after the last CVSS write, prints at least one vector (*Write the metadata block*) |",6,1a34900281ccec5d,
+  877  | CVSS vector present | the vector query below the table, run after the last CVSS write, prints at least one vector (*Write the metadata block*) |",6,1a34900281ccec5d,fp,"group: documentation prose, no download-and-run seen (match span not visible)"
 dotnet/aspnetcore,GR012,high,.github/skills/aspnet-build-triage/SKILL.md:72,Resolve the release branches on each run from the [.NET support policy](https://dotnet.microsoft.com/en-us/platform/support/policy):,"   69  
    70  ## Component Governance remediation
    71  
    72  Resolve the release branches on each run from the [.NET support policy](https://dotnet.microsoft.com/en-us/platform/support/policy):
    73  convert supported .NET versions (Active or Maintenance) to `release/<major>.<minor>`. Do not infer
    74  support from branch names or silently substitute an old list if the policy fetch fails.
-   75  Report results per branch. The same alert ID can affect multiple branches and each needs its",6,0981c8707e0d9f65,
+   75  Report results per branch. The same alert ID can affect multiple branches and each needs its",6,0981c8707e0d9f65,fp,"group: documentation prose, no download-and-run seen (match span not visible)"
 mautic/mautic,GR012,high,.agents/skills/mautic-dev/SKILL.md:72,- **Schema changes on update** are classes in the plugin's `Migrations/` directory extending `Mautic\IntegrationsBundle\Migration\AbstractMigration` (https://devdocs.mautic.org/en/latest/plugins/datab…(+513 more),"   69  
    70  - **Services.** `Config/services.php` needs a `DependencyInjection/<Name>Extension.php` to load it (https://devdocs.mautic.org/en/latest/plugins/autowiring.html). Once a plugin has `services.php`, cor…
    71  - **Schema on install** is generated from the entity metadata by `mautic:plugins:reload`. No migration is needed for it.
    72  - **Schema changes on update** are classes in the plugin's `Migrations/` directory extending `Mautic\IntegrationsBundle\Migration\AbstractMigration` (https://devdocs.mautic.org/en/latest/plugins/datab…
    73  - **Integration settings.** New integrations use `IntegrationsBundle` (https://devdocs.mautic.org/en/latest/plugin_integrations/integrations.html); see `plugins/MauticTagManagerBundle/Integration/`. T…
    74  - **CSRF on AJAX `/s/` routes.** Send `X-Requested-With: XMLHttpRequest` and `X-CSRF-Token` (the `mauticAjaxCsrf` value) with AJAX POSTs. `RequestSubscriber` checks this token only for AJAX POST reque…
-   75  - **Malformed JSON bodies** get a 400 from FOSRest's body listener before the controller runs, so a `try/catch` around `$request->toArray()` never triggers.",6,04ef0d0ee0a9a4d3,
+   75  - **Malformed JSON bodies** get a 400 from FOSRest's body listener before the controller runs, so a `try/catch` around `$request->toArray()` never triggers.",6,04ef0d0ee0a9a4d3,fp,"group: documentation prose, no download-and-run seen (match span not visible)"
 midudev/autoskills,GR012,high,packages/autoskills/skills-registry/bun/SKILL.md:13,"Bun is a unified JavaScript runtime, package manager, bundler, and test runner written in Zig. It replaces Node.js, npm, esbuild, and Jest with a single fast binary. Key files: `bunfig.toml` (configur…(+278 more)","   10  
    11  ## Product Summary
    12  
    13  Bun is a unified JavaScript runtime, package manager, bundler, and test runner written in Zig. It replaces Node.js, npm, esbuild, and Jest with a single fast binary. Key files: `bunfig.toml` (configur…
    14  
    15  ## When to Use
-   16  ",6,e70dcb128f41d74c,
+   16  ",6,e70dcb128f41d74c,fp,"group: documentation prose, no download-and-run seen (match span not visible)"
 openclaw/openclaw,GR012,high,.agents/skills/openclaw-live-updater/SKILL.md:17,- Never use `launchctl submit` or create an ad-hoc KeepAlive job to run updates or Gateway lifecycle commands. A submitted job can relaunch `openclaw gateway restart` after every exit and cause a pers…(+107 more),"   14  - Escalate only irreversible or materially risky security, privacy, auth, destructive migration/data-loss, protocol-version, credential-rotation, dependency patch/override, or product choices.
    15  - Diagnose ordinary update, runtime, app, CI, test, and release-validation failures; fix them through a focused PR; prove exact head; land with `scripts/pr`.
    16  - Never edit, stash, reset, clean, or create a branch in the live mirror.
    17  - Never use `launchctl submit` or create an ad-hoc KeepAlive job to run updates or Gateway lifecycle commands. A submitted job can relaunch `openclaw gateway restart` after every exit and cause a pers…
    18  
    19  ## Fast Update And Maintenance
-   20  ",6,9594bd8e03c69bdf,
+   20  ",6,9594bd8e03c69bdf,fp,"group: documentation prose, no download-and-run seen (match span not visible)"
 oven-sh/bun,GR012,high,.github/workflows/CLAUDE.md:132,"- `mordant` runs the [mordant](https://github.com/scarletindustries/mordant) lint pack as an advisory (`continue-on-error`) job. Mordant ships its own runner, the way clippy does. `cargo mordant` is `…(+1240 more)","  129  - `clippy`, `miri` and `lolhtml` pin `RUSTUP_TOOLCHAIN` at the workflow level (kept in sync with `channel` in `rust-toolchain.toml`) so rustup does not install that file's cross-target list; the actio…
   130  - `lolhtml` exists because the vendored lol-html is a fork (oven-sh/lol-html, `bun` branch) whose own test suite is the only thing guarding the fork's invariants. It used to trigger only on `scripts/b…
   131  - `cargo test` is not here: Buildkite runs it on every pull request (`getCargoTestStep()` in `.buildkite/ci.ts`, `bun run rust:test`, `scripts/rust-test.ts`), for the crates whose tests link without J…
   132  - `mordant` runs the [mordant](https://github.com/scarletindustries/mordant) lint pack as an advisory (`continue-on-error`) job. Mordant ships its own runner, the way clippy does. `cargo mordant` is `…
   133  - Mordant's nightly is the compiler that checks this workspace while the lints run, so it must still be able to compile it. When a `rust-toolchain.toml` bump brings in an API that nightly lacks, the j…
   134  
-  135  ### mordant: pin, baseline, disabled lints",6,a3e1399c8c1452af,
+  135  ### mordant: pin, baseline, disabled lints",6,a3e1399c8c1452af,fp,"group: documentation prose, no download-and-run seen (match span not visible)"
 NousResearch/hermes-agent,GR014,high,optional-skills/security/unbroker/references/methods.md:318,…PI_KEY` is present - now also read from,"  315    ideal. On a residential IP with a real fingerprint it passes managed challenges (Cloudflare
   316    Turnstile, hCaptcha checkbox) and reads anti-bot people-search pages that `web_extract` and the
   317    proxyless agent browser cannot. This is what the skill's `browser_backend` setting governs
   318    (`auto` picks Browserbase when `BROWSERBASE_API_KEY` is present - now also read from
   319    `$HERMES_HOME/.env`, not just the shell env, so `doctor`/`setup --auto` detect the key Hermes
   320    already loads for its own tools).
-  321  - **Phase 2 (execute: opt-out forms, webmail sends, session-bound multi-step gates):** the work must",3,bc0f7fb3eb960cae,
+  321  - **Phase 2 (execute: opt-out forms, webmail sends, session-bound multi-step gates):** the work must",3,bc0f7fb3eb960cae,fp,"group: documents or asks to show config, no exfiltration"
 bitwarden/server,GR014,high,.claude/skills/live-testing-seeder-changes/references/sso-login.md:6,2. Show the developer the `.env` and `authsources.php` edits …,"    3  How to log in through the local IdP. These items are the compose path. If the stack runs under Aspire, stop and ask the developer how to proceed.
     4  
     5  1. Seed `features.local-sso`. The stderr output ends with an ""SSO wiring"" block: the login identifier, the two `IDP_SP_*` lines for `dev/.env`, and the `authsources.php` entry for the owner. Keep a co…
     6  2. Show the developer the `.env` and `authsources.php` edits from that block, with a username and password you choose in place of `<username>:<password>`, and wait for them to say the edit is in place…
     7  3. Restart and check the IdP. Compose `version` and platform warnings are harmless, as is ""Headers already sent"" in the IdP log on metadata requests.
     8  
-    9     ```bash",3,7b81ee05785c8978,
+    9     ```bash",3,7b81ee05785c8978,fp,"group: documents or asks to show config, no exfiltration"
 midudev/autoskills,GR014,high,packages/autoskills/skills-registry/clerk-expo/SKILL.md:72,"1. **Publishable key** — Read from `process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` (`.env` file). Never `NEXT_PUBLIC_`,…","   69  
    70  ## Execution Gates (Do Not Skip)
    71  
    72  1. **Publishable key** — Read from `process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` (`.env` file). Never `NEXT_PUBLIC_`, never hardcoded. If no key exists, ask the developer for one (or run `npx clerk@…
    73  2. **Native API dashboard toggle** — Clerk's Native API must be enabled for the instance: Clerk Dashboard → **Native applications** (`https://dashboard.clerk.com/~/native-applications`). Tell the deve…
    74  3. **Factor availability** — Before implementing a specific strategy (SMS, email code, social provider), confirm it's enabled for the instance. Derive the Frontend API URL from the publishable key (ba…
-   75  4. **Current custom-flows API only** — `useSignIn()` / `useSignUp()` from `@clerk/expo` (v3.4+) return `{ signIn, errors, fetchStatus }` and use method-based flows: `signIn.password()`, `signIn.phoneC…",3,28341c738757bdb3,
+   75  4. **Current custom-flows API only** — `useSignIn()` / `useSignUp()` from `@clerk/expo` (v3.4+) return `{ signIn, errors, fetchStatus }` and use method-based flows: `signIn.password()`, `signIn.phoneC…",3,28341c738757bdb3,fp,"group: documents or asks to show config, no exfiltration"
 JuliusBrussee/caveman,GR015,high,proxy/AGENTS.md:102,"- A thinking-binding 400 retries once, o…(+111 more)","   99  - The ask waits at most 800 ms. The keychain credential is read in `Link.Start`, never on a request goroutine. The answer is cached per turn so a tool loop never switches model or effort mid-turn.
   100  - Session state, effort marks and heals live in in-memory LRUs (1024), never on disk.
   101  - Effort marks (`effort_mode: message`) are replayed at the same anchors on later requests because the agent resends history without them. No OpenAI mark where OpenAI forbids it (`truncation: ""auto""`,…
   102  - A thinking-binding 400 retries once, only on a session the route stage changed: `drop_block`, else strip thinking blocks from the failing message on.
   103  - Cloud errors, 401/403, `allowance` and `billing_limit` keep the asked model and pause asks; state goes to `$CAVEMAN_HOME/route-state.json`.
   104  - A provider 4xx on a routed model replays the original bytes on the asked model (not a 401). Only a replay that differed in the model alone blames it (`provider_rejected_routed_model`). A rate-limit …
-  105  - When the model moved, the agent's copy names the model it asked for (Claude Code drops its thinking otherwise); usage and stats read the provider's bytes.",88,bbe08cd609321a59,
+  105  - When the model moved, the agent's copy names the model it asked for (Claude Code drops its thinking otherwise); usage and stats read the provider's bytes.",88,bbe08cd609321a59,fp,group: reversed/escaped-text detector on plain prose
 Leantime/leantime,GR015,high,CLAUDE.md:560,- **UI/API in Domain** (`app/Domain/Modu…(+305 more),"  557  #### Project Modules (per-project feature switches)
   558  Admins switch features on or off per project (Project settings → Modules). It is a blanket switch, not role-based: off means off for everyone in that project, and no role can grant past it. Content is…
   559  - **Infra in Core** (`app/Core/Modules`): `ModuleRegistry` (the switchable modules), `ProjectModules` (state per project), `Middleware/ProjectModuleGate` (blocks pages + `/hx` fragments of switched-of…
   560  - **UI/API in Domain** (`app/Domain/Modulemanager`): the settings tab, the `getProjectModules`/`saveProjectModules` `@api` methods, the ""not available"" page, and `register.php`, which registers the co…
   561  - **Storage**: `zp_projects.metadata` JSON, `{""modules"": {""wiki"": false}}`, holding only choices that differ from a module's default. Copied by `duplicateProject()`.
   562  - **Plugins**: `$registration->registerModule([...])` in `register.php`. Menu items carry `module` (set automatically by `addMenuItem()`); a menu item whose `module` is off is hidden in project menus.
-  563  - A module's `permissionDomain` stays null when that domain also guards things that must keep working: `files.*` backs ticket attachments and editor uploads (so Files claims only the library route `fi…",88,a85c5ef93321e1c0,
+  563  - A module's `permissionDomain` stays null when that domain also guards things that must keep working: `files.*` backs ticket attachments and editor uploads (so Files claims only the library route `fi…",88,a85c5ef93321e1c0,fp,group: reversed/escaped-text detector on plain prose
 NousResearch/hermes-agent,GR015,high,optional-skills/devops/docker-management/SKILL.md:278,3. **Combine RUN commands** — fewer laye…(+17 more),"  275  
   276  1. **Multi-stage builds** — separate build environment from runtime to reduce final image size
   277  2. **Layer ordering** — put dependencies before source code so changes don't invalidate cached layers
   278  3. **Combine RUN commands** — fewer layers, smaller image
   279  4. **Use .dockerignore** — exclude `node_modules`, `.git`, `__pycache__`, etc.
   280  5. **Pin base image versions** — `node:20-alpine` not `node:latest`
-  281  6. **Run as non-root** — add `USER` instruction for security",88,4b9c19d8d0f63fc8,
+  281  6. **Run as non-root** — add `USER` instruction for security",88,4b9c19d8d0f63fc8,fp,group: split-fragments detector on a plain list
 NousResearch/hermes-agent,GR015,high,optional-skills/finance/lbo-model/SKILL.md:106,* Does the cell already have a formula? …(+40 more),"  103  For each cell that needs a formula, follow this hierarchy:
   104  
   105  ### Step 1: Check the Template
   106  * Does the cell already have a formula? If yes, verify it's correct and move on.
   107  * Is there a comment or note indicating the expected calculation?
   108  * Does the row/column label make the calculation obvious?
-  109  * Do neighboring cells show a pattern you should follow?",88,d8eaa39244c148c2,
+  109  * Do neighboring cells show a pattern you should follow?",88,d8eaa39244c148c2,fp,group: reversed/escaped-text detector on plain prose
 Significant-Gravitas/AutoGPT,GR015,high,.claude/skills/pr-address/SKILL.md:140,- **Actionable feedback**: non-empty bod…(+114 more),"  137  
   138  Two things to extract:
   139  - **Overall state**: look for `CHANGES_REQUESTED` or `APPROVED` reviews.
   140  - **Actionable feedback**: non-empty bodies only. Empty-body reviews are thread-resolution events — they indicate progress but have no feedback to act on.
   141  
   142  **Where each reviewer posts:**
-  143  - `autogpt-pr-reviewer[bot]` — posts detailed structured reviews (""Blockers"", ""Should Fix"", ""Nice to Have"") as **top-level reviews**. Not present on every PR. Address ALL items.",88,1846484f03967e03,
+  143  - `autogpt-pr-reviewer[bot]` — posts detailed structured reviews (""Blockers"", ""Should Fix"", ""Nice to Have"") as **top-level reviews**. Not present on every PR. Address ALL items.",88,1846484f03967e03,fp,group: reversed/escaped-text detector on plain prose
 Significant-Gravitas/AutoGPT,GR015,high,.claude/skills/process-vulnerability-report/SKILL.md:361,"**If the batch is a mix, it is not a dup…(+49 more)","  358  jq -r '[.ghsa_id, .created_at, .severity, .summary] | @tsv' ""$WORK""/GHSA-*.json | sort -k2
   359  ```
   360  
   361  **If the batch is a mix, it is not a duplicate set: close nothing and work each report on
   362  its own.** The two criticals above are RCEs in different modules; a rule that keeps the
   363  earliest would close them both. That stop is about the batch as a whole — a genuine
-  364  duplicate *pair* inside a mixed batch is still a duplicate, and the three criteria govern",88,dbafa5dc625d2a2d,
+  364  duplicate *pair* inside a mixed batch is still a duplicate, and the three criteria govern",88,dbafa5dc625d2a2d,fp,group: reversed/escaped-text detector on plain prose
 Significant-Gravitas/AutoGPT,GR015,high,.claude/skills/process-vulnerability-report/SKILL.md:695,get its fork at creation: `start_private…(+15 more),"  692  
   693  It returns 202; GitHub creates the fork asynchronously and it can take up to five
   694  minutes, so poll for it rather than cloning straight away. (A draft we open ourselves can
   695  get its fork at creation: `start_private_fork: true` on
   696  `POST /repos/$REPO/security-advisories`.)
   697  
-  698  - **Open the fix PR inside that fork**, against the branch the fix was built on (`dev`),",88,74c8c3aed4fae287,
+  698  - **Open the fix PR inside that fork**, against the branch the fix was built on (`dev`),",88,74c8c3aed4fae287,fp,group: reversed/escaped-text detector on plain prose
 Significant-Gravitas/AutoGPT,GR015,high,.claude/skills/process-vulnerability-report/SKILL.md:702,- **The fork runs no CI and refuses PR c…(+39 more),"  699    never against the public repo. Push by the fork's SSH URL with an explicit refspec —
   700    `git push git@github.com:<owner>/<fork>.git HEAD:<branch>` — never through a new
   701    remote, so nothing can land on `origin`.
   702  - **The fork runs no CI and refuses PR comments** (""This action is forbidden on
   703    workspace repositories""). Run locally what CI would: the whole backend suite when
   704    backend code changed, plus the tests of every function the fix changes, found by
-  705    grepping the tests for each name. Say what ran in the PR description; the evidence goes",88,dc3f43ae555893fd,
+  705    grepping the tests for each name. Say what ran in the PR description; the evidence goes",88,dc3f43ae555893fd,fp,group: reversed/escaped-text detector on plain prose
 addyosmani/agent-skills,GR015,high,skills/api-and-interface-design/SKILL.md:30,- **Plan for deprecation at design time.…(+83 more),"   27  
    28  - **Be intentional about what you expose.** Every observable behavior is a potential commitment.
    29  - **Don't leak implementation details.** If users can observe it, they will depend on it.
    30  - **Plan for deprecation at design time.** See `deprecation-and-migration` for how to safely remove things users depend on.
    31  - **Tests are not enough.** Even with perfect contract tests, Hyrum's Law means ""safe"" changes can break real users who depend on undocumented behavior.
    32  
-   33  ### The One-Version Rule",88,27591a3589bc4701,
+   33  ### The One-Version Rule",88,27591a3589bc4701,fp,group: reversed/escaped-text detector on plain prose
 addyosmani/agent-skills,GR015,high,skills/deprecation-and-migration/SKILL.md:19,- Removing dead code that nobody owns bu…(+22 more),"   16  - Replacing an old system, API, or library with a new one
    17  - Sunsetting a feature that's no longer needed
    18  - Consolidating duplicate implementations
    19  - Removing dead code that nobody owns but everybody depends on
    20  - Planning the lifecycle of a new system (deprecation planning starts at design time)
    21  - Deciding whether to maintain a legacy system or invest in migration
-   22  ",88,67945f8440043434,
+   22  ",88,67945f8440043434,fp,group: reversed/escaped-text detector on plain prose
 affaan-m/ECC,GR015,high,pi/core/skills/intent-driven-development/SKILL.md:269,- For a clarification/specification requ…(+52 more),"  266  
   267  ### 6. Present And Continue
   268  
   269  - For a clarification/specification request, present the brief and ask for decisions only on
   270    listed blockers.
   271  - For an implementation request with no blocker, present a compact criteria summary as part of
-  272    the work and continue with implementation.",88,614da2ea6b84aa72,
+  272    the work and continue with implementation.",88,614da2ea6b84aa72,fp,group: reversed/escaped-text detector on plain prose
 affaan-m/ECC,GR015,high,skills/continuous-learning/SKILL.md:98,delivery depends on.,"   95  Delivery requires the JavaScript evaluator
    96  (`scripts/hooks/evaluate-session.js`) registered through the plugin
    97  hooks, which also registers the SessionStart hook that writes the lease
    98  delivery depends on.
    99  
   100  ## Stop Delivery (opt-in)
-  101  ",88,72ed2cad81978440,
+  101  ",88,72ed2cad81978440,fp,group: reversed/escaped-text detector on plain prose
 affaan-m/ECC,GR015,high,skills/intent-driven-development/SKILL.md:269,- For a clarification/specification requ…(+52 more),"  266  
   267  ### 6. Present And Continue
   268  
   269  - For a clarification/specification request, present the brief and ask for decisions only on
   270    listed blockers.
   271  - For an implementation request with no blocker, present a compact criteria summary as part of
-  272    the work and continue with implementation.",88,3d7b646c15482734,
+  272    the work and continue with implementation.",88,3d7b646c15482734,fp,group: reversed/escaped-text detector on plain prose
 affaan-m/ECC,GR015,high,skills/story-lifecycle/SKILL.md:114,use reviewed manual recovery. Do not dis…(+39 more),"  111  transaction still reports `recoveryPending` and suppresses projection; this is
   112  pending work, not a promise that automatic recovery can run on the current storage.
   113  If storage changed while `.txn/` was pending, preserve the journal and files and
   114  use reviewed manual recovery. Do not discard the transaction or retry writes on
   115  unsupported storage. Automatic rollback requires unchanged hardlink-capable storage.
   116  
-  117  | Command | Effect |",88,bc2aac063f5dc768,
+  117  | Command | Effect |",88,bc2aac063f5dc768,fp,group: reversed/escaped-text detector on plain prose
 affaan-m/ECC,GR015,high,skills/story-lifecycle/SKILL.md:133,  create) only for the duration of that …(+46 more),"  130  Guarantees the helper enforces:
   131  
   132  - **Exclusive lock.** Each write command holds `.stories/.lock` (created with exclusive
   133    create) only for the duration of that command. A second writer waits and retries; on
   134    timeout it exits with code `3` and writes nothing. Rerun it later; never delete a lock
   135    held by a live process.
-  136  - **Collision-safe IDs.** `allocate` reserves each ID with an exclusive-create marker in the",88,3217d6274a8d9301,
+  136  - **Collision-safe IDs.** `allocate` reserves each ID with an exclusive-create marker in the",88,3217d6274a8d9301,fp,group: reversed/escaped-text detector on plain prose
 anthropics/skills,GR015,high,skills/claude-api/shared/cost-optimization.md:100,"### 2.1 Prompt caching - first, and it s…(+7 more)","   97  
    98  Pricing multipliers quoted below (cache write rates, batch discount) are current as of writing - confirm against the Pricing URL in `shared/live-sources.md` before computing any ceiling. The cache-rea…
    99  
   100  ### 2.1 Prompt caching - first, and it stays on
   101  
   102  Every turn of an agentic task resends the entire growing conversation - system prompt, tool definitions, every prior turn - so a 40-turn task sends its first turn 40 times and task cost grows with rou…
-  103  ",88,aa118cd7c36986ac,
+  103  ",88,aa118cd7c36986ac,fp,group: plain prose; not reproduced on rescan
 anthropics/skills,GR015,high,skills/claude-api/shared/model-migration.md:327,| Skipping preambles (`Here is the summa…(+154 more),"  324  | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
   325  | Forcing JSON / YAML / schema output                | `output_config.format` with a `json_schema` - see example below                                                                           |
   326  | Forcing a classification label                     | Tool with an enum field containing valid labels, or structured outputs                                                                    |
   327  | Skipping preambles (`Here is the summary:\n`)      | System prompt instruction: *""Respond directly without preamble. Do not start with phrases like 'Here is...' or 'Based on...'.""*           |
   328  | Steering around bad refusals                       | Usually no longer needed - 4.6 refuses far more appropriately. Plain user-turn prompting is sufficient.                                   |
   329  | Continuing an interrupted response                 | Move continuation into the user turn: *""Your previous response was interrupted and ended with `[last text]`. Continue from there.""*     |
-  330  | Injecting reminders / context hydration            | Inject into the user turn instead. For complex agent harnesses, expose context via a tool call or during compaction.                      |",88,4ffd3ec4d45915da,
+  330  | Injecting reminders / context hydration            | Inject into the user turn instead. For complex agent harnesses, expose context via a tool call or during compaction.                      |",88,4ffd3ec4d45915da,fp,group: plain prose; not reproduced on rescan
 anthropics/skills,GR015,high,skills/claude-api/shared/model-migration.md:369,## Beta Headers to Remove on 4.6,"  366  
   367  ---
   368  
   369  ## Beta Headers to Remove on 4.6
   370  
   371  Several beta headers that were required on 4.5 are now GA on 4.6 and should be removed. Leaving them in is harmless but misleading; removing them also lets you move from `client.beta.messages.create(.…
-  372  ",88,7be5438dd9ba563b,
+  372  ",88,7be5438dd9ba563b,fp,group: plain prose; not reproduced on rescan
 anthropics/skills,GR015,high,skills/claude-api/shared/model-migration.md:869,"**Effort is a dimension to test, not a f…(+700 more)","  866  
   867  **Long-horizon agentic execution.** Opus 4.8 is state-of-the-art at long, autonomous agentic work - complex refactors and overnight coding runs that complete without human correction. To get the most …
   868  
   869  **Effort is a dimension to test, not a fixed setting.** On prior models many reached for `xhigh` reflexively to maximize intelligence. Opus 4.8 has a higher intelligence ceiling, so **start at `high` …
   870  
   871  **Writing voice and clarity.** Testers consistently describe 4.8's prose as clearer, warmer, and less hedged than prior models, with fewer measurable AI vocal tics - especially at higher effort, where…
-  872  ",88,e3dcea7354142aa3,
+  872  ",88,e3dcea7354142aa3,fp,group: plain prose; not reproduced on rescan
 anthropics/skills,GR015,high,skills/claude-api/shared/model-migration.md:914,- [ ] **[BLOCKS]** *(only if coming from…(+248 more),"  911  For a caller **already on Opus 4.7**, only the first item is required; everything else is `[TUNE]`. The conditional `[BLOCKS]` item applies only when coming from Opus 4.6 or earlier.
   912  
   913  - [ ] **[BLOCKS]** Update the `model=` string to `claude-opus-4-8`
   914  - [ ] **[BLOCKS]** *(only if coming from Opus 4.6 or earlier)* Apply the **Migrating to Opus 4.7** breaking changes first - `budget_tokens` -> adaptive thinking, strip `temperature`/`top_p`/`top_k`, r…
   915  - [ ] **[TUNE]** Long-horizon / agentic work: put the full task spec in one well-specified first turn and run at `high` or `xhigh` effort (Claude Code: `/goal`; Managed Agents: an Outcome with a grade…
   916  - [ ] **[TUNE]** Effort: sweep `medium` / `high` / `xhigh` on your eval set and pick per route by the intelligence <-> latency <-> cost tradeoff (default `high`, `xhigh` for coding/agentic)
-  917  - [ ] **[TUNE]** Research depth & tool use: add a search-first instruction; add explicit triggering guidance for subagents, file-based memory, and custom tools (4.8 under-reaches for these by default)…",88,c8d58f558733fa67,
+  917  - [ ] **[TUNE]** Research depth & tool use: add a search-first instruction; add explicit triggering guidance for subagents, file-based memory, and custom tools (4.8 under-reaches for these by default)…",88,c8d58f558733fa67,fp,group: plain prose; not reproduced on rescan
 apache/flink,GR015,high,AGENTS.md:200,- **API vs Implementation:** Public API …(+177 more),"  197  
   198  - **Planner vs Runtime:** The table planner generates code and execution plans; the runtime executes them. Changes to planning logic live in `flink-table-planner`; changes to runtime operators live in…
   199  - **Codegen vs hand-written operators:** Per-record expression logic (casts, projections, filters, function calls) is generated at planning time by cast rules in `flink-table-planner/.../functions/cas…
   200  - **API vs Implementation:** Public API surfaces (`flink-core-api`, `flink-datastream-api`, `flink-table-api-java`) are separate from implementation modules. API stability annotations control what use…
   201  - **ArchUnit enforcement:** `flink-architecture-tests/` contains ArchUnit tests that enforce module boundaries. New violations should be avoided; if unavoidable, follow the freeze procedure in `flink-…
   202  
-  203  ## Common Change Patterns",88,8c0d1c34bbbb8415,
+  203  ## Common Change Patterns",88,8c0d1c34bbbb8415,fp,group: reversed/escaped-text detector on plain prose
 apache/flink,GR015,high,AGENTS.md:303,- **API stability annotations:** Every u…(+355 more),"  300  - **Checkstyle:** `tools/maven/checkstyle.xml` (version defined in root `pom.xml` as `checkstyle.version`). Some modules (flink-core, flink-optimizer, flink-runtime) are not covered by checkstyle enfo…
   301  - **No new Scala code.** All Flink Scala APIs are deprecated per FLIP-265. Write all new code in Java.
   302  - **Apache License 2.0 header** required on all new files (enforced by Apache Rat). Use an HTML comment for markdown files.
   303  - **API stability annotations:** Every user-facing API class and method must have a stability annotation. `@Public` (stable across minor releases), `@PublicEvolving` (may change in minor releases), `@…
   304  - **Logging:** Use parameterized log statements (SLF4J `{}` placeholders), never string concatenation.
   305  - **No Java serialization** for new features (except internal RPC message transport).
-  306  - **Use `final`** for variables and fields where applicable.",88,178f3f5ef0506f64,
+  306  - **Use `final`** for variables and fields where applicable.",88,178f3f5ef0506f64,fp,group: reversed/escaped-text detector on plain prose
 astral-sh/uv,GR015,high,AGENTS.md:14,- PREFER putting integration tests in th…(+57 more),"   11    to reduce repetition. Reuse existing `uv-test` helpers for common setup, file reads, filters, and
    12    cleanup
    13  - PREFER integration tests, e.g., at `it/...` over unit tests
    14  - PREFER putting integration tests in the relevant existing test module. Keep fixtures focused on
    15    the behavior under test. Explain a non-obvious regression scenario in a test doc comment
    16  - PREFER running specific tests over running the entire test suite
-   17  - PREFER `insta` snapshots following patterns in nearby tests over substring assertions",88,33fad74d1202e780,
+   17  - PREFER `insta` snapshots following patterns in nearby tests over substring assertions",88,33fad74d1202e780,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/agents/auditor.md:276,   go back and investigate it fully (re-…(+35 more),"  273  
   274  2. **Self-challenge** — re-examine your top 3 assumptions. For each, construct
   275     a concrete scenario that would violate it. If any scenario is plausible,
   276     go back and investigate it fully (re-read the source code, don't rely on
   277     your earlier analysis).
   278  
-  279  ### Phase 3: Evaluator Challenge",88,1f44959523f09ef9,
+  279  ### Phase 3: Evaluator Challenge",88,1f44959523f09ef9,fp,group: plain prose; not reproduced on rescan
 ben-manes/caffeine,GR015,high,.claude/rules/jcache-adapter.md:28,- Access expiry writes the held wrapper'…(+52 more),"   25    as live is skipped too, so under Modified or Touched expiry the next read loads the entry
    26    rather than the late reload reviving it. See
    27    [dispatch and commit](../docs/jsr107-conformance.md#dispatch-and-commit).
    28  - Access expiry writes the held wrapper's timestamp, then updates the native timer **only on
    29    read paths** (`get`, `getAll`, iterator), and writes neither when the millisecond deadline is
    30    unchanged. A vendor `Expiry` owns the native timer, so with one those paths write only the
-   31    wrapper. Keep that order: a core read re-derives the native deadline from the wrapper. Reads",88,91980e4dc396be22,
+   31    wrapper. Keep that order: a core read re-derives the native deadline from the wrapper. Reads",88,91980e4dc396be22,fp,group: plain prose; not reproduced on rescan
 ben-manes/caffeine,GR015,high,.claude/rules/simulator.md:150,  which `ClockProReferenceTest` pins. Ne…(+54 more),"  147    test period has ended, while the paper resets its bit and moves it to the list head;
   148    `cold-hand` selects `replace` (the default for CLOCK-Pro and CLOCK-Pro+) or `reset`.
   149    `replace` brings all 39 bundled LIRS cells into bit-for-bit agreement with `clock-pro.c`,
   150    which `ClockProReferenceTest` pins. Neither rule wins on hit rate: `replace` gains 15.4pp on
   151    backf@500, `reset` gains up to 2.5pp on sprite and 0.3pp on zigzag@2000, and the
   152    `corda_large + 5×loop + corda_large` mix is identical at 512.
-  153  - **Consecutive duplicate handling belongs to each policy.** The LIRS references",88,5fb83aee4cce5c97,
+  153  - **Consecutive duplicate handling belongs to each policy.** The LIRS references",88,5fb83aee4cce5c97,fp,group: plain prose; not reproduced on rescan
 ben-manes/caffeine,GR015,high,.claude/rules/simulator.md:189,  (the CountMin4 family). A fixed count-…(+51 more),"  186    through `currentCursor()` only within the policy-construction `ScopedValue`.
   187    Seed the weighted admitter with `maximum-size = 0` and let retracking allocate at half-fill,
   188    preserving unweighted output. `TinyLfu` permits zero only for `Frequency.isResizable()`
   189    (the CountMin4 family). A fixed count-min-64 zero seed gives `sampleSize = 0` and ages on
   190    every increment, preventing frequency accumulation.
   191  - **The remaining native/product cadence difference is accepted.** `FrequencySketch` uses
-  192    `10 × maximum`; `CountMin4` uses `10 × table.length`. They coincide at power-of-two gate",88,f9f76a776bd47814,
+  192    `10 × maximum`; `CountMin4` uses `10 × table.length`. They coincide at power-of-two gate",88,f9f76a776bd47814,fp,group: plain prose; not reproduced on rescan
 ben-manes/caffeine,GR015,high,.claude/skills/audit-regret/SKILL.md:77,"  the shipped machine, the density tier …(+55 more)","   74    `regret.py --windows 0.12,0.15,0.17` (the extra windows are merged into the cached
    75    `<trace>.anchors.<size>.json`, so the ceiling and the position regret update in place).
    76  - **the reactive arm** (harness variant `reactive`): the complexity anchor. Where it ties or beats
    77    the shipped machine, the density tier and its goal-metric layer are not earning their keep on
    78    that cell. It runs the reactive tier at every size, so it has no trajectory and is compared on
    79    its row alone.
-   80  - **the ghost** (`minisim-leader`, a simulator climber strategy): an online policy that sees the",88,9baf6daaa5948fef,
+   80  - **the ghost** (`minisim-leader`, a simulator climber strategy): an online policy that sees the",88,9baf6daaa5948fef,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/audit-regret/SKILL.md:78,  that cell. It runs the reactive tier a…(+56 more),"   75    `<trace>.anchors.<size>.json`, so the ceiling and the position regret update in place).
    76  - **the reactive arm** (harness variant `reactive`): the complexity anchor. Where it ties or beats
    77    the shipped machine, the density tier and its goal-metric layer are not earning their keep on
    78    that cell. It runs the reactive tier at every size, so it has no trajectory and is compared on
    79    its row alone.
    80  - **the ghost** (`minisim-leader`, a simulator climber strategy): an online policy that sees the
-   81    counterfactual. It simulates the start window and every 5% from 5 to 80% (17 arms, probation",88,51fe616804dc9663,
+   81    counterfactual. It simulates the start window and every 5% from 5 to 80% (17 arms, probation",88,51fe616804dc9663,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/audit-regret/SKILL.md:414,"shown, not by model: a Fable proposal la…(+56 more)","  411  confirmed ""the plant at 70% holds"" without opening the trajectory, where it was one audit park
   412  inside a 64-sample horizon, and let a post-tick misreading of the audit clock stand), and where
   413  round 2's Fable evaluators corrected both writeups materially. The lanes differ by what they are
   414  shown, not by model: a Fable proposal lane spent four consecutive 96,000-token thinking turns on
   415  the open-ended design prompt and was aborted at the output-token cap after two hours with nothing
   416  written, while the Opus lane on the same prompt delivered eight specs in fourteen minutes (round
-  417  2, 2026-08-16; the earlier Fable attempt at this task shape tripped a safety classifier on the",88,c87c675f96ee0b9e,
+  417  2, 2026-08-16; the earlier Fable attempt at this task shape tripped a safety classifier on the",88,c87c675f96ee0b9e,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/audit-regret/SKILL.md:454,neighborhood is what a fix will be judge…(+5 more),"  451  
   452  **6. Neighborhood.** `mutate` the family's knobs one step each way and to a second maximum
   453  (16384 or 32768; 4096/4097 when the tier is implicated), `eval`, and record the surface. The
   454  neighborhood is what a fix will be judged on.
   455  
   456  **7. Challenge.** Spawn one evaluator per finding (the session model, Fable) with the finding's writeup, its
-  457  CSV rows, the anchor sidecars, and the dumps, no source, told to refute it: is it warmup, a basin,",88,7cd31499ac0abbde,
+  457  CSV rows, the anchor sidecars, and the dumps, no source, told to refute it: is it warmup, a basin,",88,7cd31499ac0abbde,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/audit-regret/SKILL.md:503,  family-ized it (the reactive-anchor ph…(+57 more),"  500  - `s_scarburst` and `s_flashpark` are dose notes on recorded classes with open controls (a second
   501    trace seed, a neighborhood) (round 1). ~~Still open after rounds 2–5.~~ Round 6's `parkveil`
   502    supplied the class's independent second construction, period ladder and neighborhood, and
   503    family-ized it (the reactive-anchor phase-chase class); `scarburst`'s own grid caveat stands on
   504    its row. The `pair` instrument was exercised in round 2
   505    (`s_alias_band`/`s_alias_scan`): the pair's premise failed at the deciding field, window hits 30
-  506    against 45 around the bar of 32 at the arming sample, so no class-8 pair has yet survived a screen.",88,937e65f652d4baa0,
+  506    against 45 around the bar of 32 at the arming sample, so no class-8 pair has yet survived a screen.",88,937e65f652d4baa0,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/audit-regret/SKILL.md:595,  (13.8 against ~1.3) if that thread is …(+57 more),"  592    and inside the walk's reach, with the divergence opening during the walk. Class 7 still has no
   593    synthetic witness (`s_recoil`'s post-undo deficit sat inside its scatter at one seed; run it
   594    seeded and longer). `s_floorstraddle` is a sharper calibration-park sentinel than `regimeramp`
   595    (13.8 against ~1.3) if that thread is worked; not rowed. `b_slowfade`'s monotone-ramp attack on
   596    the rail needs an interior peak (size the lean core to leave room) before its `bad_veto`
   597    question can be asked. The dump file name carries no size, so `eval --size N` on a spec
-  598    overwrites the spec's own-size dump (the 8192 `s_floorstraddle` dump was lost to its 32768 run);",88,8509d5787a39ab95,
+  598    overwrites the spec's own-size dump (the 8192 `s_floorstraddle` dump was lost to its 32768 run);",88,8509d5787a39ab95,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/audit-regret/SKILL.md:671,  witness (one decision: identical to th…(+55 more),"  668    and the ten-point grid cannot see the shape, so a screen ranked by coarse gap will miss a narrow
   669    interior peak (the round's finding ranked 10th of 17) and a ~96-sample screen reads a retention
   670    loss as solved (the wide face's discard lands at ~s116). `pricedshift` now has a +5.9 benefit
   671    witness (one decision: identical to the shipped machine in every dumped field through s115 on
   672    every seed checked; +2.8 to +5.9 across the surface) and still no measured cost side on the
   673    families that need the discard to fire (`ghostclaim`, `regimeramp`, the moat rows); price that
-  674    before anything else. The narrow face's rule is four consecutive above-bar samples ending on or",88,aa4a3a75d7ecdbb1,
+  674    before anything else. The narrow face's rule is four consecutive above-bar samples ending on or",88,aa4a3a75d7ecdbb1,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/climber-gate/SKILL.md:106,  default placement against a mean of −2…(+45 more),"  103    through `CAF_EXTRA`, one sweep per salt. The move to the high-bits layout shifted 58 of
   104    the 83 battery cells by under 0.1pp in the mean, but on a near-tie row a placement is a basin draw
   105    that skews an arm's measured effect. Over eight salts, `nofreeze` read −6.9 on `widepin` at the
   106    default placement against a mean of −2.9 (a gain at 2 of 8), and `nostarve` −3.5 on
   107    `slowswap_step` against +0.15 (a gain at 5 of 8); on `phases_d050` the default matched the mean,
   108    but single salts read `nofreeze` anywhere from 0 to −14.9. Those figures and the cell list below
-  109    come from the salt as first wired, XORed after the spread, which relabeled the blocks without",88,b51efb1610c767d0,
+  109    come from the salt as first wired, XORed after the spread, which relabeled the blocks without",88,b51efb1610c767d0,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/climber-gate/SKILL.md:342,  prefixes must not inherit an earlier a…(+57 more),"  339    use the [decision-replay protocol](../../docs/hill-climber.md#decision-attribution-and-later-retention).
   340    They require equivalent baseline prefixes, independently counted misses at predeclared horizons,
   341    and a discriminator that separates helpful from harmful actions using decision-time evidence. The later
   342    prefixes must not inherit an earlier alternative park. A surviving rule then runs end-to-end on
   343    its own evolving states; do not estimate its gain by summing the diagnostic event table.
   344    Preserve this battery, real corpus, floors, repeated and planted controls, and fresh holdout
-  345    requirements. Retention work must price the existing park/release and return/schedule controls",88,5ce1a72c0ed29857,
+  345    requirements. Retention work must price the existing park/release and return/schedule controls",88,5ce1a72c0ed29857,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/climber-gate/SKILL.md:488,climber-failure-modes workspace's `gate_…(+34 more),"  485  climber-adversary workspace's `gate_final.csv`, with `gate_f3b.csv` /
   486  `gate_f3.csv` / `gate_f1.csv` / `gate_f4.csv` / `gate_auditroom.csv` beside it as the earlier
   487  records; the prior shipped-design record is the
   488  climber-failure-modes workspace's `gate_v3dev_port.csv`. All values are on
   489  these generators' instances; average-verdict ablation values are kept in parentheses where the
   490  two verdict forms differ. **Bimodal families (widepin, phases, straywall2@8192's rare low draw,
-  491  crashnoise_a12 — added 2026-08-02, previously recorded as deterministic on N=2 — and",88,81c1cf94a7a806da,
+  491  crashnoise_a12 — added 2026-08-02, previously recorded as deterministic on N=2 — and",88,81c1cf94a7a806da,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/climber-gate/SKILL.md:734,**The reactive arm is ahead on 18 of the…(+54 more),"  731  | `hazefloor` (2026-08-17, 320 samples) | 8 seeded | 41.09 | 36.52 | **+4.57** (seeded; `noaudit` 37.46 ± 5.71 with one starvation escape at 47.3; the machine −8.1 below LRU, so the layer earns its ke…
   732  | `moat_h7800` | | | | not run — 12M-request instance omitted from this sweep |
   733  
   734  **The reactive arm is ahead on 18 of the 51 rows, and the machine is worth under a point on 28
   735  of 51** (the two 2026-08-16 `absolve` rows added two more, at −13.3 and −17.4, the table's largest
   736  margins, until the 2026-08-17 repair put the machine ahead on both by +3.0 and +1.0;
-  737  `hill-climber.md` §5). On six of the original rows the reactive arm's margin exceeds",88,e01551799b0b8ffd,
+  737  `hill-climber.md` §5). On six of the original rows the reactive arm's margin exceeds",88,e01551799b0b8ffd,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/climber-gate/SKILL.md:760,across three seeds) and `demoflood` (±9.…(+57 more),"  757  within +1pp, so on 28 of 51 the machine is worth under a point. Its job on those families is to
   758  *recover* to parity, which is a weaker claim than ""the trap is defended"". **(2) Where Δ is large
   759  it is sometimes a spread, not a level.** The reactive arm is bimodal on `straywall2` (±19.8
   760  across three seeds) and `demoflood` (±9.9) where `hybrid` holds ±0.03 and ±0.05; a single draw on
   761  either reads near-parity and is wrong. That variance reduction is real value and is invisible at
   762  N=1. **(3) The two-run rows are two runs.** Treat anything under ~2.5pp on an N=2 row as
-  763  unresolved — `mixmod_a010` and `posjam_d0` in particular deserve N=8 before being acted on.",88,f441c0997ee985f7,
+  763  unresolved — `mixmod_a010` and `posjam_d0` in particular deserve N=8 before being acted on.",88,f441c0997ee985f7,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/climber-gate/SKILL.md:763,unresolved — `mixmod_a010` and `posjam_d…(+51 more),"  760  across three seeds) and `demoflood` (±9.9) where `hybrid` holds ±0.03 and ±0.05; a single draw on
   761  either reads near-parity and is wrong. That variance reduction is real value and is invisible at
   762  N=1. **(3) The two-run rows are two runs.** Treat anything under ~2.5pp on an N=2 row as
   763  unresolved — `mixmod_a010` and `posjam_d0` in particular deserve N=8 before being acted on.
   764  
   765  Where the machine is unambiguously earning it: `zigzag_s7` +28.13, `straywall2` +17.47,
-  766  `trickle_s11` +15.07, `slowswap_step` +9.30 and `slowswap_ramp` +13.25, `widepin` +8.51,",88,007b11f1b297e3f5,
+  766  `trickle_s11` +15.07, `slowswap_step` +9.30 and `slowswap_ramp` +13.25, `widepin` +8.51,",88,007b11f1b297e3f5,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/climber-minimize/SKILL.md:72,mechanism worth keeping: a step that buy…(+55 more),"   69  ## Reading the result, and the trap in it
    70  
    71  **Never adjudicate on a battery mean.** The mean is the one summary that hides what makes a
    72  mechanism worth keeping: a step that buys a great deal on a few workloads and costs a little on
    73  many is insurance, and insurance always looks bad on average. `ablate.py` reports the asymmetry
    74  instead — total gain across the cells an arm helps, total cost across the cells it hurts, the
-   75  worst single row, and how many cells the arm leaves bit-identical. The audit layer's own case is",88,33ebb497c8900aa4,
+   75  worst single row, and how many cells the arm leaves bit-identical. The audit layer's own case is",88,33ebb497c8900aa4,fp,group: reversed/escaped-text detector on plain prose
 ben-manes/caffeine,GR015,high,.claude/skills/climber-minimize/SKILL.md:107,"   is unexercised, which is weaker still…(+49 more)","  104     you: it runs ship once per cell with `-Dcaffeine.climber.counts`, which dumps
   105     `STEPFIRE <step>=<n>` at exit, and folds the totals into the verdict. A branch that executes
   106     and changes no outcome is inert, which is weak; a branch that never executes on a *narrow* set
   107     is unexercised, which is weaker still, and the tool says so. `norepeat` never fires on
   108     `demoflood` and is worth 18.61 on `absolve_p8`, which is why the DEAD verdict is gated on the
   109     `full` preset and everything short of it prints PROVISIONAL.
-  110  ",88,fd5a382569d08d69,
+  110  ",88,fd5a382569d08d69,fp,group: reversed/escaped-text detector on plain prose
 debpalash/VoiceStudio,GR015,high,CLAUDE.md:8,"instructions, tests, and browser assets …(+40 more)","    5  them. Triage reports from final Tauri installations toward the migration guide and
     6  preserve their immutable updater feeds. Some modules under `electron/src/shared/` remain
     7  temporarily shared by Electron; they are not a runnable app. New UI, IPC, setup
     8  instructions, tests, and browser assets belong in Electron; validate Electron on
     9  macOS, Windows and Linux.
    10  
-   11  ## Mobile: native iOS and Android (owner-set 2026-10-17)",88,b267bf3aa0386a7c,
+   11  ## Mobile: native iOS and Android (owner-set 2026-10-17)",88,b267bf3aa0386a7c,fp,group: reversed/escaped-text detector on plain prose
 discourse/discourse,GR015,high,.skills/discourse-writing-typescript/SKILL.md:231,- **Explain the *why* when a member's pu…(+42 more),"  228  - **Say what the argument IS, not how it is wired internally.** `@type` is ""The severity of
   229    the message"", not ""selects the `alert-*` modifier class"". The class it maps to is an
   230    implementation detail the consumer does not need.
   231  - **Explain the *why* when a member's purpose is not self-evident.** `@context` on
   232    `d-async-content` is not just ""a value forwarded to the function form"": it is **tracked**,
   233    so updating it re-invokes the function and reloads the data; the doc should tell the
-  234    consumer to pass the reactive state the data source depends on.",88,9129f078aaf1efe0,
+  234    consumer to pass the reactive state the data source depends on.",88,9129f078aaf1efe0,fp,group: reversed/escaped-text detector on plain prose
 discourse/discourse,GR015,high,.skills/discourse-writing-typescript/SKILL.md:234,  consumer to pass the reactive state th…(+25 more),"  231  - **Explain the *why* when a member's purpose is not self-evident.** `@context` on
   232    `d-async-content` is not just ""a value forwarded to the function form"": it is **tracked**,
   233    so updating it re-invokes the function and reloads the data; the doc should tell the
   234    consumer to pass the reactive state the data source depends on.
   235  - **Watch the phrasing.** Read each line back as a consumer would. ""Icon ID displayed at the
   236    start"" reads backwards (the *icon* is displayed, not the ID): ""ID of the icon displayed at
-  237    the start of the input."" ""Rendered ... (no default: a spinner)"" is cryptic: ""When omitted, a",88,c192d24d152d7a40,
+  237    the start of the input."" ""Rendered ... (no default: a spinner)"" is cryptic: ""When omitted, a",88,c192d24d152d7a40,fp,group: reversed/escaped-text detector on plain prose
 dotnet/aspnetcore,GR015,high,src/Components/AGENTS.md:347,- You've changed public APIs that other …(+18 more),"  344  - Rapid iteration on a specific library
   345  
   346  **When NOT to use `--no-dependencies`:**
   347  - You've changed public APIs that other projects depend on
   348  - You need to verify that dependent projects still compile correctly
   349  - You're unsure if your changes affect other projects (safer to build without this flag)
-  350  ",88,5a14afbdca0a887c,
+  350  ",88,5a14afbdca0a887c,fp,group: reversed/escaped-text detector on plain prose
 dotnet/aspnetcore,GR015,high,src/Components/AGENTS.md:438,"1. First, check if there are already E2E…(+55 more)","  435  
   436  The Selenium E2E tests are located in `src/Components/test/E2ETest`.
   437  
   438  1. First, check if there are already E2E tests for the component/feature area you're working on
   439  2. Try to add an additional test to existing test files when possible
   440  3. When adding test coverage, prefer extending existing test components and assets over creating a set of new ones if it doesn't complicate the existing ones excessively. This reduces test infrastruct…
-  441  4. Regression tests for lifecycle-sensitive behavior must exercise the render boundary that owns the relevant DOM. A page-level render mode can leave the surrounding layout static, so verify that the …",88,0df2554fd00bb02e,
+  441  4. Regression tests for lifecycle-sensitive behavior must exercise the render boundary that owns the relevant DOM. A page-level render mode can leave the surrounding layout static, so verify that the …",88,0df2554fd00bb02e,fp,group: reversed/escaped-text detector on plain prose
 dotnet/maui,GR015,high,.github/instructions/collectionview-handler-detection.instructions.md:44,## Which Handler to Work On,"   41  
    42  ---
    43  
    44  ## Which Handler to Work On
    45  
    46  ### Decision Tree by Platform
-   47  ",88,36c83b4037118e69,
+   47  ",88,36c83b4037118e69,fp,group: plain prose; not reproduced on rescan
 dotnet/maui,GR015,high,.github/skills/trace-regression/SKILL.md:184,then distributes the six-diff budget acr…(+37 more),"  181  are allowed only when necessary and available; stop after a denial and retain
   182  the gap. Never infer absence from a capped history or blame the newest commit.
   183  Diff selection prioritizes commits present in the visible compared bad-side history,
   184  then distributes the six-diff budget across paths rather than consuming it on
   185  the first path. A complete forward comparison excludes older commits from that
   186  selection; a truncated or diverged comparison may retain unverified history leads.
-  187  `inComparedBadHistory: true` in a diverged comparison is not",88,711a30ef37589001,
+  187  `inComparedBadHistory: true` in a diverged comparison is not",88,711a30ef37589001,fp,group: reversed/escaped-text detector on plain prose
 electron/electron,GR015,high,docs/development/api-best-practices.md:49,### What underlying Chromium or OS featu…(+26 more),"   46  
    47  See the [style guide for designing APIs when dealing with arrays.](#provide-createreadupdatedelete-options-when-dealing-with-arrays)
    48  
    49  ### What underlying Chromium or OS features does this API rely on?
    50  
    51  If the API you’re changing relies on underlying features provided by Chromium or by the operating system, how stable are those underlying features? How might those underlying features change in the fu…
-   52  ",88,b005eac92dc20abb,
+   52  ",88,b005eac92dc20abb,fp,group: plain prose; not reproduced on rescan
 envoyproxy/envoy,GR015,high,.github/instructions/api-review.instructions.md:492,- Does the field have protocgen-validate…(+32 more),"  489  - Is the PR aligned with the [API style guidelines](STYLE.md)?
   490  
   491  ## Validation Rules
   492  - Does the field have protocgen-validate rules to enforce constraints on
   493    its value?
   494  - Is the field mandatory? Does it have the required rule?
-  495  - Is the field numeric? Is it bounded correctly?",88,6d58dc4ea5b58c7d,
+  495  - Is the field numeric? Is it bounded correctly?",88,6d58dc4ea5b58c7d,fp,group: plain prose; not reproduced on rescan
 garrytan/gstack,GR015,high,setup-gbrain/SKILL.md:220,"  skill — the user asked for gbrain, so …(+35 more)","  217  
   218  - `""offer"": false` with reason `bin-absent` → the installed gstack predates
   219    the code-intelligence CLI. Skip this step entirely and continue with the
   220    skill — the user asked for gbrain, so set up gbrain. Never block setup on
   221    a missing optional gate.
   222  
-  223  - `""offer"": false` with reason `small-repo` → grep is already fast here; say",88,90a529983e293887,
+  223  - `""offer"": false` with reason `small-repo` → grep is already fast here; say",88,90a529983e293887,fp,group: reversed/escaped-text detector on plain prose
 garrytan/gstack,GR015,high,setup-gbrain/SKILL.md:368,binary. User scope makes the MCP availab…(+34 more),"  365  ### Paths 1, 2a, 2b, 3 (Local stdio)
   366  
   367  Register at **user scope** with an **absolute path** to the gbrain
   368  binary. User scope makes the MCP available in every Claude Code session on
   369  this machine, not just the current workspace. Absolute path avoids PATH
   370  resolution issues when Claude Code spawns `gbrain serve` as a subprocess.
-  371  ",88,96bf0c83ff1cb726,
+  371  ",88,96bf0c83ff1cb726,fp,group: reversed/escaped-text detector on plain prose
 garrytan/gstack,GR015,high,setup-gbrain/SKILL.md:584,Confirms the round trip. The page goes i…(+34 more),"  581  [ ""$PUT_RC"" -eq 0 ] && gbrain search ""smoke test"" | grep -i ""$SLUG""
   582  ```
   583  
   584  Confirms the round trip. The page goes in from a temp file, not a pipe: on
   585  Windows, gbrain failed to read a piped page. On failure, surface
   586  `gbrain doctor --json` output and STOP with a NEEDS_CONTEXT escalation.
-  587  ",88,3a595eace56286fe,
+  587  ",88,3a595eace56286fe,fp,group: reversed/escaped-text detector on plain prose
 krayin/laravel-crm,GR015,high,.github/skills/krayin-authorization/SKILL.md:50,source. Start here rather than searching…(+35 more),"   47  # 0. Verified Source Anchors
    48  
    49  These paths and symbols exist in branch 2.2 and were verified against the
    50  source. Start here rather than searching blind. Re-verify before relying on
    51  any behavioral detail — this section is an index, not a substitute for
    52  reading the code.
-   53  ",88,6e280a59568b05fc,
+   53  ",88,6e280a59568b05fc,fp,group: reversed/escaped-text detector on plain prose
 krayin/laravel-crm,GR015,high,.github/skills/krayin-authorization/SKILL.md:554,authorized-ID result. The prevailing bra…(+23 more),"  551  for global access.
   552  
   553  Check how each repository/datagrid/controller handles the
   554  authorized-ID result. The prevailing branch 2.2 idiom relies on
   555  truthiness, so a `null` result adds no constraint at all:
   556  
-  557  ```php",88,1b9e9ff7f0f42599,
+  557  ```php",88,1b9e9ff7f0f42599,fp,group: reversed/escaped-text detector on plain prose
 modelcontextprotocol/servers,GR015,high,.claude/skills/release/SKILL.md:249,"Do this **last**, close to the release: …(+30 more)","  246  
   247  ### 2c. The Python version stamps: ""Prepare Python Release""
   248  
   249  Do this **last**, close to the release: it stamps the date it runs on.
   250  
   251  ```sh
-  252  gh workflow run prepare-python-release.yml --repo modelcontextprotocol/servers \",88,2d8f90eea988477d,
+  252  gh workflow run prepare-python-release.yml --repo modelcontextprotocol/servers \",88,2d8f90eea988477d,fp,group: reversed/escaped-text detector on plain prose
 modelcontextprotocol/servers,GR015,high,.claude/skills/release/SKILL.md:384,and turn it straight back on.,"  381  **Source is v2/main** check fails that PR, by design, and nobody can bypass
   382  it, admins included. The only way through is a deliberate act by a repo
   383  admin: disable the `main: milestone merges only` ruleset for that one merge,
   384  and turn it straight back on.
   385  
   386  The disable, the merge and the re-enable run as one command, in a subshell
-  387  whose exit trap re-enables the ruleset however it ends: the merge failing, an",88,e9afc8e110bd7ba4,
+  387  whose exit trap re-enables the ruleset however it ends: the merge failing, an",88,e9afc8e110bd7ba4,fp,group: reversed/escaped-text detector on plain prose
 modelcontextprotocol/servers,GR015,high,.claude/skills/release/SKILL.md:535,"names both merge PRs with their heads, a…(+36 more)","  532  
   533  **A second merge PR.** When a fix lands after the first merge PR merged (4e;
   534  in v2.2.0, #5342 followed #5338 for a `certifi` lockfile bump), the masthead
   535  names both merge PRs with their heads, and the page says which checks ran on
   536  which head and what differs between the two trees
   537  (`git diff --stat <first head> <second head>`).
-  538  ",88,b634da8761c3a614,
+  538  ",88,b634da8761c3a614,fp,group: reversed/escaped-text detector on plain prose
 modelcontextprotocol/servers,GR015,high,.claude/skills/release/SKILL.md:539,"**4e. When verification finds something,…(+36 more)","  536  which head and what differs between the two trees
   537  (`git diff --stat <first head> <second head>`).
   538  
   539  **4e. When verification finds something, the fix goes on `v2/main`, never on
   540  the merge branch.** File the issue (`/issue-create`), fix it through an
   541  ordinary PR, then fast-forward the merge branch to the new `origin/v2/main`,
-  542  so the fix arrives the way everything else did and the branch is still",88,a51189439b839ebb,
+  542  so the fix arrives the way everything else did and the branch is still",88,a51189439b839ebb,fp,group: reversed/escaped-text detector on plain prose
 modelcontextprotocol/servers,GR015,high,.claude/skills/release/SKILL.md:712,- **Editing a published Release's notes …(+32 more),"  709  - **The tag is a label, not a version.** Seven packages publish at seven
   710    versions; none is compared with the tag. Naming it for the milestone is what
   711    ties the Release to the board.
   712  - **Editing a published Release's notes is safe.** `release.yml` runs on
   713    `published` only, so an edit never re-runs publishing. Fixing a typo or
   714    adding a known issue afterwards needs no ceremony.
-  715  ",88,fe5c361ab28868c0,
+  715  ",88,fe5c361ab28868c0,fp,group: reversed/escaped-text detector on plain prose
 modelcontextprotocol/servers,GR015,high,.claude/skills/release/SKILL.md:795,cases: a transient failure is re-run on …(+34 more),"  792  `/pr-flow` step 10), and tell the maintainer the milestone can be closed.
   793  
   794  **If the run failed**, `RELEASING.md` **When a publish fails** has the two
   795  cases: a transient failure is re-run on the same run; a defect is fixed on
   796  `v2/main`, merged to `main` again, and released again, and the registry guard
   797  publishes only what never arrived.
-  798  ",88,caeedd9af1fb4a6e,
+  798  ",88,caeedd9af1fb4a6e,fp,group: reversed/escaped-text detector on plain prose
 netdata/netdata,GR015,high,.agents/skills/health-alert-authoring/SKILL.md:174,  each alert completes. A consumer with …(+79 more),"  171  - This is the only one of the three patterns that can combine database-window results such as “max of the last hour of X
   172    with the average of the last minute of Y”.
   173  - Health evaluates all lookup/calculation phases before warning/critical phases, but helper snapshots are published as
   174    each alert completes. A consumer with a different cadence can therefore read the helper's previous published value on
   175    its first beat or after cadence drift. Align `every:` or disclose this timing difference.
   176  - Prefer `to: silent` on helpers and document why they exist; a helper is instrumentation, not a second incident owner.
-  177  ",88,fa821770b9d64bcc,
+  177  ",88,fa821770b9d64bcc,fp,group: reversed/escaped-text detector on plain prose
 nexu-io/open-design,GR015,high,AGENTS.md:233,- `enable_smoke` and `enable_tests` also…(+397 more),"  230  - Prerelease builds macOS x64 (Intel) on every run. `release-prerelease.yml` takes an `enable_mac_x64` input that defaults to `true`, and `notify-release-feishu.yml` (the push-to-`release/**` entry po…
   231  - **A prerelease built without `enable_mac_x64` cannot be promoted to stable.** Stable ships Intel and stable's gate is validated prerelease artifacts, so an Intel-less prerelease has not validated th…
   232  - The `notify-release-feishu.yml` forwarding for a default-on boolean must be `${{ github.event_name != 'workflow_dispatch' || inputs.<flag> }}`, never `${{ inputs.<flag> || true }}`. `inputs` is unse…
   233  - `enable_smoke` and `enable_tests` also default to `true`, because neither costs the build anything any more — see ""Prerelease validation runs outside the pipeline"" below. `mac_sign_mode` (default `s…
   234  - **Signing is not optional for a prerelease that will be promoted.** `validateStablePrereleaseMetadata` requires `platforms.mac.signed == true` and `platforms.macIntel.signed == true`, so `mac_sign_m…
   235  - **Automated tests do not gate prerelease delivery.** A prerelease exists so a person can install it and test it by hand; machine CI is a parallel opinion about the same commit rather than a valve on…
-  236  - **Prerelease validation runs outside the pipeline.** `release-prerelease.yml` holds one repository-wide concurrency group (`open-design-release-prerelease`, `cancel-in-progress: false`), so any job …",88,99d4df94bfd33071,
+  236  - **Prerelease validation runs outside the pipeline.** `release-prerelease.yml` holds one repository-wide concurrency group (`open-design-release-prerelease`, `cancel-in-progress: false`), so any job …",88,99d4df94bfd33071,fp,group: reversed/escaped-text detector on plain prose
 nexu-io/open-design,GR015,high,AGENTS.md:419,- **Hold the spec's scope.** Defects dis…(+205 more),"  416  
   417  - **Lead with a red spec.** Default to encoding the bug as a falsifiable test that goes red before any source change, so the fix is anchored in observable behavior rather than source-code intuition. I…
   418  - **Try the cheapest layer first.** Reach for the lightest test layer that can still see the symptom (e2e Vitest at the daemon HTTP boundary → app-local Vitest → Playwright UI → platform-native harnes…
   419  - **Hold the spec's scope.** Defects discovered outside the bug's described boundary belong in a follow-up — their own red spec, their own PR — not in this fix. List them in the PR body's ""Adjacent is…
   420  - **Let the fix read as an invariant.** Prefer a named helper whose docblock describes what must hold over a bolt-on `if` guard with apologetic history-comments. The call site should read as intent.
   421  - **Diff against the baseline.** When neighboring suites have pre-existing failures, stash or check out upstream before claiming ""no new failures.""
-  422  - **Link the issue from the PR body.** Use `Fixes #N` / `Closes #N` / `Resolves #N` so the issue auto-closes on merge and the release-time reverse lookup (`gh issue view N --json closedByPullRequestsR…",88,d24615644f91deac,
+  422  - **Link the issue from the PR body.** Use `Fixes #N` / `Closes #N` / `Resolves #N` so the issue auto-closes on merge and the release-time reverse lookup (`gh issue view N --json closedByPullRequestsR…",88,d24615644f91deac,fp,group: reversed/escaped-text detector on plain prose
 nexu-io/open-design,GR015,high,skills/motion-design/SKILL.md:382,   Use a new descriptive directory for a…(+38 more),"  379  
   380  1. Scaffold a visible source directory with the native shell tool:
   381     `""$OD_NODE_BIN"" ""$OD_BIN"" media scaffold --project ""$OD_PROJECT_ID"" --composition-dir ""motion-source/film""`.
   382     Use a new descriptive directory for a new film; edit the existing source on
   383     revisions. Keep `hyperframes.json`, `meta.json`, HTML and local assets there.
   384  2. Author `motion-source/film/index.html`. Its composition root must have
-  385     `data-composition-id=""main""`, `data-start=""0""`, `data-duration`, `data-width`,",88,24bf8ec00f7eef2e,
+  385     `data-composition-id=""main""`, `data-start=""0""`, `data-duration`, `data-width`,",88,24bf8ec00f7eef2e,fp,group: reversed/escaped-text detector on plain prose
 nexu-io/open-design,GR015,high,skills/ui-animation/SKILL.md:166,- Motion `x`/`y` values are the default …(+365 more),"  163  - Pause looping animations off-screen with `IntersectionObserver`; they burn GPU even when invisible.
   164  - Toggle `will-change` only during heavy motion and only for `transform`/`opacity`; remove it after. Each promotion costs compositor memory; permanent promotion across many elements is worse than none…
   165  - Do not animate drag via CSS variables on a container; every update recalculates styles for all children. Set `transform` directly on the moving element.
   166  - Motion `x`/`y` values are the default for axis movement and drag (they bypass React re-renders). Use a full `transform` string when one owner must combine multiple transform functions, interop with …
   167  - Motion that janks only sometimes (on open, during navigation, while data lands) is usually a long task sharing the tick, not a costly animation. Don't start an animation and expensive work in the sa…
   168  - See [references/performance-deep-dive.md](references/performance-deep-dive.md) for WAAPI, compositing layers, long tasks during animation, and the CSS vs JS comparison table.
-  169  ",88,e0873507af8ccb9c,
+  169  ",88,e0873507af8ccb9c,fp,group: split-fragments detector on a plain list
 phaserjs/phaser,GR015,high,skills/scenes/SKILL.md:400,| Event String | Constant | Callback Sig…(+21 more),"  397  
   398  ### Transition Events
   399  
   400  | Event String | Constant | Callback Signature | Emitted On |
   401  |---|---|---|---|
   402  | `'transitionout'` | `TRANSITION_OUT` | `(targetScene, duration)` | Source scene |
-  403  | `'transitioninit'` | `TRANSITION_INIT` | `(fromScene, duration)` | Target scene (during init) |",88,cff32680affcc828,
+  403  | `'transitioninit'` | `TRANSITION_INIT` | `(fromScene, duration)` | Target scene (during init) |",88,cff32680affcc828,fp,group: reversed/escaped-text detector on plain prose
 pnpm/pnpm,GR015,high,pnpm/AGENTS.md:132,in `pnpm-workspace.yaml`) hold the build…(+36 more),"  129  calling `cargo` or `just` yourself. Each script wraps the `just` recipe or
   130  node script it is listed with below and passes its arguments through. Going
   131  through `pnpm` is what lets a task concurrency group (`concurrencyGroups`
   132  in `pnpm-workspace.yaml`) hold the builds and test runs of every worktree on
   133  a machine to a limit it can carry; a bare `cargo` slips past it. Drop down to `cargo` / `taplo` / etc. only for a
   134  one-off that no script covers.
-  135  ",88,9289d141ce12663a,
+  135  ",88,9289d141ce12663a,fp,group: reversed/escaped-text detector on plain prose
 pnpm/pnpm,GR015,high,pnpm/AGENTS.md:157,  `test:rust-affected` runs it automatic…(+37 more),"  154    skill covers extending that map.
   155  - `pnpm test:rust-smoke` (`just smoke`) — one end-to-end test per area of CLI
   156    behavior, listed in the `smoke` profile in `.config/nextest.toml`.
   157    `test:rust-affected` runs it automatically when unselected crates depend on
   158    what changed, standing in for their full test sets; this runs it on its own.
   159  - `pnpm test:rust` (`just test`) — `cargo nextest run` over the whole workspace.
-  160  - `pnpm ci:rust-test` / `pnpm ci:pnpr-test` (`just test-pacquet` /",88,747f527c93a975fa,
+  160  - `pnpm ci:rust-test` / `pnpm ci:pnpr-test` (`just test-pacquet` /",88,747f527c93a975fa,fp,group: reversed/escaped-text detector on plain prose
 pytorch/pytorch,GR015,high,.agents/skills/pr-review/SKILL.md:172,3. **Don't move the goalposts on code th…(+785 more),"  169  
   170  1. **Settle the earlier blocking findings first.** For each one, check HEAD: fixed, still present, or answered by the author or a maintainer with a claim that holds up at HEAD. Report one that is stil…
   171  2. **Review what changed since the last review in full.** The commit the last review saw is the review's commit (its `commit_id`; its body names it, abbreviated, as ""**Automated review** of <sha>""). T…
   172  3. **Don't move the goalposts on code the last review already covered.** Covered code is unchanged since the last review and was reviewed by it: not a file that review named as not reviewed, and not c…
   173  4. **Keep earlier non-blocking points non-blocking** unless the code changed in a way that makes them worse, or you can now show the concrete failure rule 3 requires; then make it blocking and say wha…
   174  
-  175  Write ""non-blocking"" in each non-blocking point and keep it out of the Recommendation's justification. When only non-blocking points remain, do not recommend **Request Changes**.",88,6011b147d830144f,
+  175  Write ""non-blocking"" in each non-blocking point and keep it out of the Recommendation's justification. When only non-blocking points remain, do not recommend **Request Changes**.",88,6011b147d830144f,fp,group: reversed/escaped-text detector on plain prose
 pytorch/pytorch,GR015,high,.agents/skills/pyrefly-type-coverage/SKILL.md:158,  ignore. (Exception: the backward-compa…(+39 more),"  155  - When an inline `# pyrefly: ignore[...]` would push a line past the length
   156    limit, put it on the line immediately above the flagged line rather than
   157    reaching for `# fmt: skip` to keep it inline — pyrefly honors a previous-line
   158    ignore. (Exception: the backward-compat carve-out below, where it must sit on
   159    the `def` line.)
   160  
-  161  #### Backward compatibility (the one exception to never-suppress)",88,5c4fd38be065e140,
+  161  #### Backward compatibility (the one exception to never-suppress)",88,5c4fd38be065e140,fp,group: reversed/escaped-text detector on plain prose
 pytorch/pytorch,GR015,high,CLAUDE.md:120,"`is None`, `in` -> `not in`, `==` -> `!=…(+38 more)","  117  `if not cond: raise AssertionError(msg)`); otherwise synthesize a short one that
   118  names what was expected and shows the actual value. Invert the condition rather
   119  than wrapping it in `not (...)` when there is a clean inverse (`is not None` ->
   120  `is None`, `in` -> `not in`, `==` -> `!=`). Do not invert `<`/`>`/`<=`/`>=` on
   121  floats: `not (a < b)` is not `a >= b` when a value is NaN, so keep those as
   122  `if not (a < b)`.
-  123  ",88,95e64479d488d17c,
+  123  ",88,95e64479d488d17c,fp,group: reversed/escaped-text detector on plain prose
 spacedriveapp/spacedrive,GR015,high,.agents/skills/spacedrive-cli/SKILL.md:40,The port comes from the instance alone. …(+31 more),"   37  (`sd-cli --format json sources list`) and are rejected after it. `--device`
    38  works anywhere.
    39  
    40  The port comes from the instance alone. The default instance listens on
    41  127.0.0.1:6969, which is also where the desktop app connects. A named instance
    42  gets 6970 plus the byte sum of its name mod 1000, with its data in
-   43  `<data-dir>/instances/<name>`.",88,c72ef803dddfaea7,
+   43  `<data-dir>/instances/<name>`.",88,c72ef803dddfaea7,fp,group: reversed/escaped-text detector on plain prose
 spacedriveapp/spacedrive,GR015,high,.agents/skills/spacedrive-cli/SKILL.md:292,- A deletion to the trash records where …(+33 more),"  289  only those sequences. An undo writes its own journal, so undoing an undo is
   290  the same command over it.
   291  
   292  - A deletion to the trash records where the item went: `NSFileManager` on
   293    macOS reports the location, and on Windows and Linux the item is found in
   294    the trash by its original path. A volume with no trash of its own, a
-  295    network mount among them, gets a Spacedrive trash directory at its root,",88,663432a06b5b3e9c,
+  295    network mount among them, gets a Spacedrive trash directory at its root,",88,663432a06b5b3e9c,fp,group: reversed/escaped-text detector on plain prose
 spree/spree,GR015,high,.agents/skills/apple-design/SKILL.md:22,"The moment lag appears, the feeling of d…(+86 more)","   19  
    20  ## 1. Response — kill latency
    21  
    22  The moment lag appears, the feeling of directness ""falls off a cliff."" Response is the foundation everything else is built on.
    23  
    24  - **Respond on pointer-down, not on release.** Highlight a button the instant it's pressed. Waiting for `click`/touch-up to show feedback feels dead.
-   25  - **Be vigilant about every latency.** Audit debounces, artificial timers, transition waits, and the ~300ms tap delay. Anything on the input path that isn't essential is a regression.",88,4d28b51c19f4cc3f,
+   25  - **Be vigilant about every latency.** Audit debounces, artificial timers, transition waits, and the ~300ms tap delay. Anything on the input path that isn't essential is a regression.",88,4d28b51c19f4cc3f,fp,group: reversed/escaped-text detector on plain prose
 supabase/supabase,GR015,high,apps/studio/AGENTS.md:71,- **Memoization is not the default**: `u…(+101 more),"   68  - **`useEffect` is for synchronizing with external systems** (subscriptions, DOM, timers) — not for deriving data (compute it in render), reacting to user actions (do it in the handler), or fetching (…
    69  - **State** stays as local as possible — lift it only when it's actually shared. Related form fields belong in a single react-hook-form + zod form, not parallel `useState` calls.
    70  - **Component size**: split at ~200–300 lines — or sooner when a component grows multiple distinct UI sections, tangled conditional rendering, or clusters of unrelated `useState`. Extract repeated JSX…
    71  - **Memoization is not the default**: `useMemo`/`useCallback` only for measured expense or referential stability a memoized child depends on.
    72  - **TypeScript**: avoid `as` casts — where external data enters, parse it with zod (`schema.parse`/`safeParse`) instead. Model multi-state values as discriminated unions (`{ status: 'success'; data: T…
    73  - **Naming**: prop callbacks are `onX`, internal handlers are `handleX`. Custom hooks return objects, not tuples.
-   74  - **Refactoring**: when you move or extract code into a new module, update every importer to point at the new location directly — do **not** leave a re-export shim in the old file ""for backward compat…",88,28dc8185f66a0419,
+   74  - **Refactoring**: when you move or extract code into a new module, update every importer to point at the new location directly — do **not** leave a re-export shim in the old file ""for backward compat…",88,28dc8185f66a0419,fp,group: reversed/escaped-text detector on plain prose
 symfony/symfony,GR015,high,.agents/skills/pr-review-merge-prep/SKILL.md:86,- Separate regressions from pre-existing…(+75 more),"   83  ## Reporting
    84  
    85  - Lead with the verdict. Then list findings ranked by severity, each with its evidence: what was run, on which state, and the exact failure text.
    86  - Separate regressions from pre-existing gaps, and blockers from polish. Say which findings the merger must act on.
    87  - State what was not covered as plainly as what was.
    88  - In a batch, relay each verdict as soon as it lands. When all reports are in, give a summary table: one line per PR with its verdict and target branch.
-   89  - For the detailed pass, present one PR at a time and wait for a go-ahead keyword (such as ""next"") before the following one. This keeps each review open for discussion and lets fixes happen before mov…",88,b736c80d74fdd5f0,
+   89  - For the detailed pass, present one PR at a time and wait for a go-ahead keyword (such as ""next"") before the following one. This keeps each review open for discussion and lets fixes happen before mov…",88,b736c80d74fdd5f0,fp,group: reversed/escaped-text detector on plain prose
 symfony/symfony,GR015,high,.agents/skills/pr-review-merge-prep/SKILL.md:89,"- For the detailed pass, present one PR …(+167 more)","   86  - Separate regressions from pre-existing gaps, and blockers from polish. Say which findings the merger must act on.
    87  - State what was not covered as plainly as what was.
    88  - In a batch, relay each verdict as soon as it lands. When all reports are in, give a summary table: one line per PR with its verdict and target branch.
-   89  - For the detailed pass, present one PR at a time and wait for a go-ahead keyword (such as ""next"") before the following one. This keeps each review open for discussion and lets fixes happen before mov…",88,734850f6c3f6dbc3,
+   89  - For the detailed pass, present one PR at a time and wait for a go-ahead keyword (such as ""next"") before the following one. This keeps each review open for discussion and lets fixes happen before mov…",88,734850f6c3f6dbc3,fp,group: reversed/escaped-text detector on plain prose
 telegramdesktop/tdesktop,GR015,high,.agents/skills/rebase/SKILL.md:271,reading it. Treat it as a conflict that …(+39 more),"  268  
   269  **rerere.** When git prints `Resolved '<path>' using previous resolution`, that
   270  file was resolved from a recorded past resolution and staged without anyone
   271  reading it. Treat it as a conflict that arrived pre-filled: run §5 steps 2–4 on
   272  it and read `git diff --cached -- <path>`. If it is wrong,
   273  `git rerere forget <path>` drops the recording and restores the conflicted
-  274  state; resolve it by hand from there.",88,28c44ace7e2fc14a,
+  274  state; resolve it by hand from there.",88,28c44ace7e2fc14a,fp,group: reversed/escaped-text detector on plain prose
 tensorflow/tensorflow,GR015,high,third_party/xla/.agents/skills/cuda_api_review/SKILL.md:215,     satisfies the runtime requirement f…(+37 more),"  212     - For example, `CudaCommandBuffer::Create` in
   213       `xla/stream_executor/cuda/cuda_command_buffer.cc` checks
   214       `device_description.driver_version() < SemanticVersion{12, 3, 0}`, which
   215       satisfies the runtime requirement for all `<= 12.3` graph APIs called on
   216       `CudaCommandBuffer` (such as `cuGraphAddNode_v2` and
   217       `cuGraphExecNodeSetParams`), whereas `12.4+` APIs (such as `12.9`
-  218       `CU_GRAPH_CHILD_GRAPH_OWNERSHIP_MOVE`) require their own `>= 12.9` check.",88,4873af6ac705292c,
+  218       `CU_GRAPH_CHILD_GRAPH_OWNERSHIP_MOVE`) require their own `>= 12.9` check.",88,4873af6ac705292c,fp,group: reversed/escaped-text detector on plain prose
 tensorflow/tensorflow,GR015,high,third_party/xla/.agents/skills/gpu_aot_compatibility_review/SKILL.md:173,"    in the current change, because follo…(+36 more)","  170    - Treat any bug in `FromProto`, `ToProto`, or runtime `DebugOptions` /
   171      `HloModuleConfig` propagation as a **blocking AOT defect** even if the
   172      change description states that the new flag or parameter is not yet consumed
   173      in the current change, because follow-up changes in a stack will rely on
   174      that plumbing without touching `FromProto` again.
   175  - **Formal verification when removing legacy / backward-compatibility paths**:
-  176    If the change deletes a fallback branch in `FromProto`/runtime execution or",88,bf57660fc14e5c31,
+  176    If the change deletes a fallback branch in `FromProto`/runtime execution or",88,bf57660fc14e5c31,fp,group: reversed/escaped-text detector on plain prose
 tensorflow/tensorflow,GR015,high,third_party/xla/xla/AGENTS.md:83,        `absl/algorithm/container.h`) ov…(+39 more),"   80      *   Avoid unnecessary string copies or expensive allocations in hot paths (e.g., HLO passes).
    81      *   Prefer Abseil container algorithms (`absl::c_find`, `absl::c_any_of`,
    82          `absl::c_all_of`, `absl::c_sort`, `absl::c_transform` from
    83          `absl/algorithm/container.h`) over iterator-pair `std::*` algorithms on
    84          full containers.
    85      *   Prefer `absl::flat_hash_map` and `absl::flat_hash_set` over
-   86          `std::unordered_map` and `std::unordered_set`, and `std::vector` indexed",88,4b1502c19fbb5803,
+   86          `std::unordered_map` and `std::unordered_set`, and `std::vector` indexed",88,4b1502c19fbb5803,fp,group: reversed/escaped-text detector on plain prose
 tensorflow/tensorflow,GR015,high,third_party/xla/xla/AGENTS.md:114,        *   When testing functions retur…(+31 more),"  111              `EXPECT_FALSE(status.ok())`; verify both the error code and message
   112              substring with
   113              `absl_testing::StatusIs(absl::StatusCode::k..., HasSubstr(""...""))`.
   114          *   When testing functions returning `xla::Decision`, assert on
   115              `decision.Explain()` whenever a case is forbidden.
   116      *   Put tests and `using ::testing::...;` declarations into an anonymous
-  117          `namespace {` block.",88,20bf4f76bf852393,
+  117          `namespace {` block.",88,20bf4f76bf852393,fp,group: reversed/escaped-text detector on plain prose
 usebruno/bruno,GR015,high,.claude/skills/code-review/reviewers/dsl-changes.md:30,- **Not a finding:** the read-accepts-`{…(+45 more),"   27    a name/structure that won't scale (positional vs keyed, widening union).
    28  - Also push back on any **unnecessary** DSL change that could be solved in memory / UI without
    29    altering the serialized shape.
    30  - **Not a finding:** the read-accepts-`{content}` / write-emits-`string` asymmetry on
    31    `description` fields — string-only internally is an established convention (see rule), not a
-   32    lossy round-trip.",88,cb516b2a68d23e63,
+   32    lossy round-trip.",88,cb516b2a68d23e63,fp,group: plain prose; not reproduced on rescan
 woocommerce/woocommerce,GR015,high,AGENTS.md:260,- **Constants name values; they never ch…(+259 more),"  257  
   258  - **Use the existing constants.** When writing code that compares or assigns one of these values, reference the constant (e.g. `OrderStatus::COMPLETED`, `ProductType::SIMPLE`), not the raw string lite…
   259  - **New vocabularies get a class by default.** When introducing a new fixed set of string values (including new settings option values), add a class in `src/Enums/`: one `final` class per concept, exp…
   260  - **Constants name values; they never change them.** The string is the contract and the constant is a permanent alias for it. Never change a constant's value, and never rename or remove one — deprecat…
   261  - **Respect the plugin lifecycle.** Some code paths (REST controllers, report queries) can run during install or upgrade, before the autoloader resolves classes under `src/`; referencing an enum class…
   262  - **Near-duplicate vocabularies are distinct classes on purpose.** `OrderStatus` holds the unprefixed values (`completed`) most WooCommerce APIs expect; `OrderInternalStatus` holds the `wc-`-prefixed …
-  263  ",88,a12f6c380fcb5087,
+  263  ",88,a12f6c380fcb5087,fp,group: reversed/escaped-text detector on plain prose
 zed-industries/zed,GR015,high,docs/AGENTS.md:17,- Apologetic tone for missing features—s…(+31 more),"   14  
    15  - Superlatives without substance (""incredibly fast,"" ""seamlessly integrated"")
    16  - Hedging language (""simply,"" ""just,"" ""easily"")—if something is simple, the instructions will show it
    17  - Apologetic tone for missing features—state the limitation and move on
    18  - Comparisons that disparage other tools—be factual, not competitive
    19  - Meta-commentary about honesty (""the honest take is..."", ""to be frank..."", ""honestly..."")—let honesty show through frank assessments, not announcements
-   20  - LLM-isms and filler words (""entirely,"" ""certainly,"", ""deeply,"" ""definitely,"" ""actually"")—these add nothing",88,99dd2d466f1922b1,
+   20  - LLM-isms and filler words (""entirely,"" ""certainly,"", ""deeply,"" ""definitely,"" ""actually"")—these add nothing",88,99dd2d466f1922b1,fp,group: reversed/escaped-text detector on plain prose
 zed-industries/zed,GR015,high,docs/AGENTS.md:323,- Apologetic tone for missing features—s…(+31 more),"  320  
   321  - Superlatives without substance (""incredibly fast,"" ""seamlessly integrated"")
   322  - Hedging language (""simply,"" ""just,"" ""easily"")—if something is simple, the instructions will show it
   323  - Apologetic tone for missing features—state the limitation and move on
   324  - Comparisons that disparage other tools—be factual, not competitive
   325  - Lots of use of em or en dashes.
-  326  ",88,99dd2d466f1922b1,
-D4Vinci/Scrapling,GR017,critical,agent-skill/Scrapling-Skill/SKILL.md:102,"…RL in format ""http://username:****@host:port""                   …",,24,dde80dc781554a7b,
-D4Vinci/Scrapling,GR017,critical,agent-skill/Scrapling-Skill/SKILL.md:156,"…RL in format ""http://username:****@host:port""                   …",,24,dde80dc781554a7b,
-affaan-m/ECC,GR017,critical,.kiro/skills/django-security/SKILL.md:536,…ATABASE_URL=postgresql://USER:****@HOST:PORT/DBNAME,,24,369c8ce616d8e064,
-affaan-m/ECC,GR017,critical,.kiro/skills/docker-patterns/SKILL.md:40,…   - DATABASE_URL=****://****:****@db:5432/app_dev,,24,042ebcca415bbd33,
-affaan-m/ECC,GR017,critical,.kiro/skills/docker-patterns/SKILL.md:163,"****://****:****@db:5432/app_dev    # ""db"" res…",,24,77d657f7a0d5c6db,
-affaan-m/ECC,GR017,critical,docs/es/skills/docker-patterns/SKILL.md:36,…   - DATABASE_URL=****://****:****@db:5432/app_dev,,24,d31fc0933a10c019,
-affaan-m/ECC,GR017,critical,docs/es/skills/docker-patterns/SKILL.md:159,"****://****:****@db:5432/app_dev    # ""db"" res…",,24,9157d88a1fb7b6ae,
-affaan-m/ECC,GR017,critical,docs/ja-JP/skills/django-security/SKILL.md:538,…ATABASE_URL=postgresql://user:****@localhost:5432/dbname,,24,7989dcb183e15ca1,
-affaan-m/ECC,GR017,critical,docs/ja-JP/skills/django-verification/SKILL.md:436,…    DATABASE_URL: ****://****:****@localhost:5432/test,,24,79b4cfcd38fc3c3b,
-affaan-m/ECC,GR017,critical,docs/tr/skills/docker-patterns/SKILL.md:36,…   - DATABASE_URL=****://****:****@db:5432/app_dev,,24,74ed2dcf6a2692f6,
-affaan-m/ECC,GR017,critical,docs/tr/skills/docker-patterns/SKILL.md:159,"****://****:****@db:5432/app_dev    # ""db"" db …",,24,980ccab45244fafb,
-affaan-m/ECC,GR017,critical,docs/zh-CN/skills/django-security/SKILL.md:539,…ATABASE_URL=postgresql://user:****@localhost:5432/dbname,,24,c98aafa0f157a829,
-affaan-m/ECC,GR017,critical,docs/zh-CN/skills/django-verification/SKILL.md:451,…    DATABASE_URL: ****://****:****@localhost:5432/test,,24,9ef3c7c7706b41f4,
-affaan-m/ECC,GR017,critical,docs/zh-CN/skills/docker-patterns/SKILL.md:36,…   - DATABASE_URL=****://****:****@db:5432/app_dev,,24,305840dda80fbf7f,
-affaan-m/ECC,GR017,critical,docs/zh-CN/skills/docker-patterns/SKILL.md:160,"****://****:****@db:5432/app_dev    # ""db"" 解析到…",,24,a4f87de1522c52a8,
-affaan-m/ECC,GR017,critical,pi/core/skills/django-security/SKILL.md:587,…ATABASE_URL=postgresql://user:****@localhost:5432/dbname,,24,96ff9f57fbb9e04c,
-affaan-m/ECC,GR017,critical,pi/core/skills/django-verification/SKILL.md:446,…    DATABASE_URL: ****://****:****@localhost:5432/test,,24,844a325d8e28a75b,
-affaan-m/ECC,GR017,critical,pi/core/skills/docker-patterns/SKILL.md:27,…   - DATABASE_URL=****://****:****@db:5432/app_dev,,24,2beb93c2604fdfb9,
-affaan-m/ECC,GR017,critical,pi/core/skills/docker-patterns/SKILL.md:150,"****://****:****@db:5432/app_dev    # ""db"" res…",,24,71b0d85068759cfe,
-affaan-m/ECC,GR017,critical,skills/django-security/SKILL.md:587,…ATABASE_URL=postgresql://user:****@localhost:5432/dbname,,24,8172be3848e5d6b7,
-affaan-m/ECC,GR017,critical,skills/django-verification/SKILL.md:446,…    DATABASE_URL: ****://****:****@localhost:5432/test,,24,ee3bf3ed3db41262,
-affaan-m/ECC,GR017,critical,skills/docker-patterns/SKILL.md:27,…   - DATABASE_URL=****://****:****@db:5432/app_dev,,24,15212f410b59794d,
-affaan-m/ECC,GR017,critical,skills/docker-patterns/SKILL.md:150,"****://****:****@db:5432/app_dev    # ""db"" res…",,24,87dc3afc4fd32f7b,
-midudev/autoskills,GR017,critical,packages/autoskills/skills-registry/django-security/SKILL.md:590,…ATABASE_URL=postgresql://user:****@localhost:5432/dbname,,24,561f236d42f6d660,
+  326  ",88,99dd2d466f1922b1,fp,group: reversed/escaped-text detector on plain prose
+D4Vinci/Scrapling,GR017,critical,agent-skill/Scrapling-Skill/SKILL.md:102,"…RL in format ""http://username:****@host:port""                   …",,24,dde80dc781554a7b,fp,"group: docs example, DB URL with placeholder/local host"
+D4Vinci/Scrapling,GR017,critical,agent-skill/Scrapling-Skill/SKILL.md:156,"…RL in format ""http://username:****@host:port""                   …",,24,dde80dc781554a7b,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,.kiro/skills/django-security/SKILL.md:536,…ATABASE_URL=postgresql://USER:****@HOST:PORT/DBNAME,,24,369c8ce616d8e064,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,.kiro/skills/docker-patterns/SKILL.md:40,…   - DATABASE_URL=****://****:****@db:5432/app_dev,,24,042ebcca415bbd33,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,.kiro/skills/docker-patterns/SKILL.md:163,"****://****:****@db:5432/app_dev    # ""db"" res…",,24,77d657f7a0d5c6db,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,docs/es/skills/docker-patterns/SKILL.md:36,…   - DATABASE_URL=****://****:****@db:5432/app_dev,,24,d31fc0933a10c019,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,docs/es/skills/docker-patterns/SKILL.md:159,"****://****:****@db:5432/app_dev    # ""db"" res…",,24,9157d88a1fb7b6ae,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,docs/ja-JP/skills/django-security/SKILL.md:538,…ATABASE_URL=postgresql://user:****@localhost:5432/dbname,,24,7989dcb183e15ca1,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,docs/ja-JP/skills/django-verification/SKILL.md:436,…    DATABASE_URL: ****://****:****@localhost:5432/test,,24,79b4cfcd38fc3c3b,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,docs/tr/skills/docker-patterns/SKILL.md:36,…   - DATABASE_URL=****://****:****@db:5432/app_dev,,24,74ed2dcf6a2692f6,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,docs/tr/skills/docker-patterns/SKILL.md:159,"****://****:****@db:5432/app_dev    # ""db"" db …",,24,980ccab45244fafb,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,docs/zh-CN/skills/django-security/SKILL.md:539,…ATABASE_URL=postgresql://user:****@localhost:5432/dbname,,24,c98aafa0f157a829,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,docs/zh-CN/skills/django-verification/SKILL.md:451,…    DATABASE_URL: ****://****:****@localhost:5432/test,,24,9ef3c7c7706b41f4,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,docs/zh-CN/skills/docker-patterns/SKILL.md:36,…   - DATABASE_URL=****://****:****@db:5432/app_dev,,24,305840dda80fbf7f,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,docs/zh-CN/skills/docker-patterns/SKILL.md:160,"****://****:****@db:5432/app_dev    # ""db"" 解析到…",,24,a4f87de1522c52a8,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,pi/core/skills/django-security/SKILL.md:587,…ATABASE_URL=postgresql://user:****@localhost:5432/dbname,,24,96ff9f57fbb9e04c,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,pi/core/skills/django-verification/SKILL.md:446,…    DATABASE_URL: ****://****:****@localhost:5432/test,,24,844a325d8e28a75b,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,pi/core/skills/docker-patterns/SKILL.md:27,…   - DATABASE_URL=****://****:****@db:5432/app_dev,,24,2beb93c2604fdfb9,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,pi/core/skills/docker-patterns/SKILL.md:150,"****://****:****@db:5432/app_dev    # ""db"" res…",,24,71b0d85068759cfe,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,skills/django-security/SKILL.md:587,…ATABASE_URL=postgresql://user:****@localhost:5432/dbname,,24,8172be3848e5d6b7,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,skills/django-verification/SKILL.md:446,…    DATABASE_URL: ****://****:****@localhost:5432/test,,24,ee3bf3ed3db41262,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,skills/docker-patterns/SKILL.md:27,…   - DATABASE_URL=****://****:****@db:5432/app_dev,,24,15212f410b59794d,fp,"group: docs example, DB URL with placeholder/local host"
+affaan-m/ECC,GR017,critical,skills/docker-patterns/SKILL.md:150,"****://****:****@db:5432/app_dev    # ""db"" res…",,24,87dc3afc4fd32f7b,fp,"group: docs example, DB URL with placeholder/local host"
+midudev/autoskills,GR017,critical,packages/autoskills/skills-registry/django-security/SKILL.md:590,…ATABASE_URL=postgresql://user:****@localhost:5432/dbname,,24,561f236d42f6d660,fp,"group: docs example, DB URL with placeholder/local host"
 spree/spree,GR107,high,.claude/settings.local.json:4,"      ""Bash"",","    1  {
     2    ""permissions"": {
     3      ""allow"": [
     4        ""Bash"",
     5        ""Read"",
     6        ""Edit"",
-    7        ""Write"",",4,f669b49783bf154a,
+    7        ""Write"",",4,f669b49783bf154a,tp,broad shell permission committed in settings.local.json
 spree/spree,GR107,high,.claude/settings.local.json:10,"      ""WebFetch"",","    7        ""Write"",
     8        ""Glob"",
     9        ""Grep"",
    10        ""WebFetch"",
    11        ""WebSearch"",
    12        ""Task"",
-   13        ""Bash(rm -rf server)"",",4,6310361abeb6258b,
+   13        ""Bash(rm -rf server)"",",4,6310361abeb6258b,dubious,unrestricted WebFetch in a committed settings.local.json; low risk
 unclecode/crawl4ai,GR107,high,.claude/settings.local.json:10,"      ""Bash(rm:*)"",","    7        ""Bash(grep:*)"",
     8        ""Bash(mkdir:*)"",
     9        ""Bash(cp:*)"",
    10        ""Bash(rm:*)"",
    11        ""Bash(true)"",
    12        ""Bash(./package-extension.sh:*)"",
-   13        ""Bash(find:*)"",",4,0d33e9d0e189acb9,
+   13        ""Bash(find:*)"",",4,0d33e9d0e189acb9,tp,broad shell permission committed in settings.local.json
 unclecode/crawl4ai,GR107,high,.claude/settings.local.json:21,"      ""Bash(curl:*)"",","   18        ""Bash(/Users/unclecode/.npm-global/lib/node_modules/@anthropic-ai/claude-code/vendor/ripgrep/arm64-darwin/rg \""<style>\"" docs/md_v2/apps/crawl4ai-assistant/index.html -A 5)"",
    19        ""Bash(git checkout:*)"",
    20        ""Bash(docker logs:*)"",
    21        ""Bash(curl:*)"",
    22        ""Bash(docker compose:*)"",
    23        ""Bash(./test-final-integration.sh:*)"",
-   24        ""Bash(mv:*)""",4,05efd7bc11ca58db,
+   24        ""Bash(mv:*)""",4,05efd7bc11ca58db,tp,broad shell permission committed in settings.local.json
 JuliusBrussee/caveman,GR110,high,plugins/caveman/skills/caveman-compress/scripts/compress.py:817,        with urllib.request.url…,"  814          # one to another host.
   815          request.add_unredirected_header(""Authorization"", f""Bearer {api_key}"")
   816      try:
   817          with urllib.request.urlopen(request, timeout=CLAUDE_CALL_TIMEOUT_SECONDS) as response:
   818              raw = response.read()
   819      except urllib.error.HTTPError as error:
-  820          detail = error.read().decode(""utf-8"", ""replace"")[:500]",13,634029d300a4b892,
+  820          detail = error.read().decode(""utf-8"", ""replace"")[:500]",13,634029d300a4b892,fp,script calls its own or its vendor API with its own key
 JuliusBrussee/caveman,GR110,high,skills/caveman-compress/scripts/compress.py:817,        with urllib.request.url…,"  814          # one to another host.
   815          request.add_unredirected_header(""Authorization"", f""Bearer {api_key}"")
   816      try:
   817          with urllib.request.urlopen(request, timeout=CLAUDE_CALL_TIMEOUT_SECONDS) as response:
   818              raw = response.read()
   819      except urllib.error.HTTPError as error:
-  820          detail = error.read().decode(""utf-8"", ""replace"")[:500]",13,1848164f693b5c81,
+  820          detail = error.read().decode(""utf-8"", ""replace"")[:500]",13,1848164f693b5c81,fp,script calls its own or its vendor API with its own key
 bytedance/deer-flow,GR110,high,.agent/skills/smoke-test/scripts/frontend_check.sh:57,    if ! login_code=$(printf '%…,"   54  
    55      echo ""🔐 Auth is enabled — signing in to the existing test account...""
    56      local login_code
    57      if ! login_code=$(printf '%s' ""$SMOKE_TEST_PASSWORD"" | curl -q -s -o /dev/null -w ""%{http_code}"" \
    58          ""${BASE_URL}/api/v1/auth/login/local"" \
    59          --data-urlencode ""username=${SMOKE_TEST_EMAIL}"" \
-   60          --data-urlencode 'password@-' \",13,3964282cac8f7c83,
+   60          --data-urlencode 'password@-' \",13,3964282cac8f7c83,fp,script calls its own or its vendor API with its own key
 datawhalechina/hello-agents,GR110,high,Co-creation-projects/lcyting-StockSage-agent/skills/模拟组合管理/mx-moni/mx_moni.py:35,        response = requests.pos…,"   32      }
    33      
    34      try:
    35          response = requests.post(full_url, headers=headers, json=body)
    36          response.raise_for_status()
    37          result = response.json()
-   38          ",13,8b0aa194ae9a1b0b,
+   38          ",13,8b0aa194ae9a1b0b,fp,script calls its own or its vendor API with its own key
 datawhalechina/hello-agents,GR110,high,Co-creation-projects/lcyting-StockSage-agent/skills/自选股管理/mx-zixuan/mx_zixuan.py:61,    response = requests.post(QU…,"   58          ""apikey"": apikey
    59      }
    60      
    61      response = requests.post(QUERY_URL, headers=headers, json={}, timeout=30)
    62      response.raise_for_status()
    63      return response.json()
-   64  ",13,dce8e68babb500d9,
+   64  ",13,dce8e68babb500d9,fp,script calls its own or its vendor API with its own key
 koala73/worldmonitor,GR110,high,.agents/skills/verify-worldmonitor/steps/orbital-map-popups.mjs:21,  const res = await fetch('http…,"   18  const COORD = /25\.27|51\.52/;
    19  
    20  async function newestScene() {
    21    const res = await fetch('https://planetarycomputer.microsoft.com/api/stac/v1/search', {
    22      method: 'POST',
    23      headers: { 'content-type': 'application/json' },
-   24      signal: AbortSignal.timeout(20_000),",13,232192180d15d095,
+   24      signal: AbortSignal.timeout(20_000),",13,232192180d15d095,fp,script calls its own or its vendor API with its own key
 microsoft/vscode,GR110,high,.github/skills/azure-pipelines/azure-pipeline.ts:756,		const response = await fetch(…,"  753  		const tokenArgs = ['account', 'get-access-token', '--resource', '499b84ac-1321-427f-aa17-267ca6975798', '--query', 'accessToken', '--output', 'tsv'];
   754  		const token = (await this.runAzCommand(tokenArgs)).trim();
   755  
   756  		const response = await fetch(downloadUrl, {
   757  			headers: { 'Authorization': `Bearer ${token}` },
   758  			redirect: 'follow',
-  759  		});",13,34978dadf296e0ce,
+  759  		});",13,34978dadf296e0ce,dubious,secret sent to a destination taken from env or built at run time
 nexu-io/open-design,GR110,high,design-templates/open-design-landing/scripts/imagegen.ts:201,  const res = await fetch(endpo…,"  198    // fal.ai exposes both queue (async) and run (sync) endpoints. Use sync
   199    // for simpler scripting; per-image latency is ~25-45s.
   200    const endpoint = 'https://fal.run/openai/gpt-image-2';
   201    const res = await fetch(endpoint, {
   202      method: 'POST',
   203      headers: {
-  204        Authorization: `Key ${apiKey}`,",13,a71900a6ef74d5a0,
+  204        Authorization: `Key ${apiKey}`,",13,a71900a6ef74d5a0,fp,script calls its own or its vendor API with its own key
 ossrs/srs,GR110,high,skills/internal-obs-control/scripts/obsws.py:147,        self.sock.sendall(req.e…,"  144          req = (""GET / HTTP/1.1\r\nHost: %s:%s\r\nUpgrade: websocket\r\nConnection: Upgrade\r\n""
   145                 ""Sec-WebSocket-Key: %s\r\nSec-WebSocket-Version: 13\r\nSec-WebSocket-Protocol: %s\r\n\r\n""
   146                 % (host, port, key, subprotocol))
   147          self.sock.sendall(req.encode())
   148          head = self._read_until(b""\r\n\r\n"")
   149          lines = head.decode(""latin-1"").split(""\r\n"")
-  150          if "" 101 "" not in lines[0]:",13,8da3d6f4991179e7,
+  150          if "" 101 "" not in lines[0]:",13,8da3d6f4991179e7,fp,script calls its own or its vendor API with its own key
 paperclipai/paperclip,GR110,high,skills/paperclip/scripts/paperclip-issue-update.sh:117,    curl -sS -m 30 -X PATCH \,"  114    body=""""
   115    set +e
   116    response=""$(
   117      curl -sS -m 30 -X PATCH \
   118        ""$PAPERCLIP_API_URL/api/issues/$issue_id"" \
   119        -H ""Authorization: Bearer $PAPERCLIP_API_KEY"" \
-  120        -H ""X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID"" \",13,7577ec7dd4d29a54,
+  120        -H ""X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID"" \",13,7577ec7dd4d29a54,dubious,secret sent to a destination taken from env or built at run time
 paperclipai/paperclip,GR110,high,skills/paperclip/scripts/paperclip-upload-artifact.sh:179,    curl -sS -X POST -w '%{http…,"  176    escaped_path=""${escaped_path//\""/\\\""}""
   177    response_file=""$(helper_response_file)""
   178    status_code=""$(
   179      curl -sS -X POST -w '%{http_code}' -o ""$response_file"" \
   180        ""$url"" \
   181        -H ""Authorization: Bearer $PAPERCLIP_API_KEY"" \
-  182        -H ""X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID"" \",13,a4999c87c4167b12,
+  182        -H ""X-Paperclip-Run-Id: $PAPERCLIP_RUN_ID"" \",13,a4999c87c4167b12,dubious,secret sent to a destination taken from env or built at run time
 paperclipai/paperclip,GR110,high,skills/paperclip/scripts/submit-agent-commentary.mjs:30,  const response = await fetch(…,"   27      throw new Error(""Missing run context"");
    28    }
    29    const apiUrl = PAPERCLIP_API_URL.replace(/\/+$/, """").replace(/\/api$/, """");
    30    const response = await fetch(`${apiUrl}/api/companies/${PAPERCLIP_COMPANY_ID}/agent-commentary`, {
    31      method: ""POST"",
    32      headers: {
-   33        ""Content-Type"": ""application/json"",",13,7fe17889172cd68b,
+   33        ""Content-Type"": ""application/json"",",13,7fe17889172cd68b,dubious,secret sent to a destination taken from env or built at run time
 pytorch/pytorch,GR110,high,.agents/skills/ci-metrics/gcx-wrapper.sh:70,"    curl -fsSL -H @- ""https://h…","   67  
    68    local gcx_token
    69    if ! gcx_token=""$(printf 'Authorization: Bearer %s\n' ""${gh_token}"" |
    70      curl -fsSL -H @- ""https://hud.pytorch.org/api/gcx-token?token_name=$HOSTNAME"" 2>&1)""; then
    71      echo ""error: failed to fetch gcx token from HUD: ${gcx_token}""
    72      return 1
-   73    fi",13,03307c07dbf644d8,
+   73    fi",13,03307c07dbf644d8,fp,script calls its own or its vendor API with its own key
