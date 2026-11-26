@@ -203,6 +203,7 @@ class EncodedRun(NamedTuple):
     start: int
     end: int
     decoded: str | None
+    strong: bool = True  # False: reported, but not enough to fail the default check
 
 
 def _decode_text(data: bytes) -> str | None:
@@ -307,6 +308,14 @@ def find_encoded_payloads(text: str) -> list[EncodedRun]:
 _REVERSE_CUE = re.compile(
     r"\bright[- ]to[- ]left\b|\bbackwards?\b|\bin\s+reverse\b|\breversed\b", re.I
 )
+_REVERSE_AND_ACT = re.compile(
+    r"(?:right[- ]to[- ]left|backwards?|in\s+reverse|reversed)\b[^\n]{0,60}?"
+    r"\b(?:follow|obey|apply|execute|comply|run)\b"
+    r"|\b(?:follow|obey|apply|execute|comply|run)\b[^\n]{0,60}?"
+    r"\b(?:right[- ]to[- ]left|backwards?|in\s+reverse|reversed)\b",
+    re.IGNORECASE,
+)
+_CUE_LINES = 2  # lines before a reversed line that may carry its "obey it" cue
 _ESCAPES = re.compile(r"(?:\\u[0-9a-fA-F]{4}|\\x[0-9a-fA-F]{2}){2}")
 _ESCAPE_ONE = re.compile(r"\\u([0-9a-fA-F]{4})|\\x([0-9a-fA-F]{2})")
 _ESCAPE_CUE = re.compile(r"\b(?:escapes?|unescape|interpret|decode)\b", re.I)
@@ -338,8 +347,11 @@ def find_disguised_runs(text: str) -> list[EncodedRun]:
     found: list[EncodedRun] = []
     reverse_cue = _REVERSE_CUE.search(text) is not None
     offset = 0
+    recent: list[str] = []  # the lines just before, where an "obey it" cue would be
     for line in text.splitlines(keepends=True):
         body = line.rstrip("\r\n")
+        nearby = " ".join([*recent, body])
+        recent = [*recent, body][-_CUE_LINES:]
         start, end = offset, offset + len(body)
         offset += len(line)
         options: list[tuple[str, bool]] = []
@@ -353,7 +365,12 @@ def find_disguised_runs(text: str) -> list[EncodedRun]:
                 found.append(EncodedRun(start, end, decoded))
         for decoded, anywhere in options:
             if is_instruction(decoded, anywhere=anywhere):
-                found.append(EncodedRun(start, end, decoded))
+                # A cue anywhere in the file is not enough for a reversed line (phase 16): it is
+                # high only if the reversed text is addressed to the agent or a line just before
+                # asks to decode it and act on it. Escapes carry their own cue on the line.
+                strong = anywhere or reads_as_agent_directive(decoded)
+                strong = strong or any(c.search(nearby) for c in (DECODE_AND_ACT, _REVERSE_AND_ACT))
+                found.append(EncodedRun(start, end, decoded, strong))
                 break
     return found
 
@@ -463,7 +480,14 @@ def find_joined_fragments(text: str) -> list[EncodedRun]:
             pieces.append(match.group(1).strip("`").strip())
             end += len(item)
         if len(pieces) >= 2:
-            found.append(EncodedRun(start, end, "".join(pieces)))
+            joined = "".join(pieces)
+            # The cue line is not enough (phase 16): the joined text must be something to run.
+            strong = (
+                reads_as_agent_directive(joined)
+                or _EXTERNAL_RE.search(joined) is not None
+                or bool(match_injection(joined))
+            )
+            found.append(EncodedRun(start, end, joined, strong))
     return found
 
 

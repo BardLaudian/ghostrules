@@ -661,7 +661,7 @@ def gr015_encoded_payloads(target: ScanTarget) -> Iterator[Finding]:
         yield _finding(
             target,
             "GR015",
-            Severity.HIGH,
+            Severity.HIGH if run.strong else Severity.MEDIUM,
             "Encoded payload",
             "Instruction hidden in reversed, escaped or character-referenced text",
             (run.start, run.end),
@@ -673,7 +673,7 @@ def gr015_encoded_payloads(target: ScanTarget) -> Iterator[Finding]:
         yield _finding(
             target,
             "GR015",
-            Severity.HIGH,
+            Severity.HIGH if run.strong else Severity.MEDIUM,
             "Encoded payload",
             "Instruction split into fragments that the file asks to join and run",
             (run.start, run.end),
@@ -757,6 +757,29 @@ _CODE_SPAN_RUN = re.compile(r"`[^`\n]+`(?:\s+`[^`\n]+`)+")
 _CODE_SPAN = re.compile(r"`([^`\n]+)`")
 
 
+_CRED_URL_HOST = re.compile(r"@(?P<host>\[[^\]]*\]|[^\s:/'\"`<>]+)")
+_PLACEHOLDER_HOST = re.compile(
+    r"^(?:host(?:name)?|your[-_.a-z]*|my[-_.a-z]*|example(?:\.\w+)?|server|database|db)$"
+    r"|(?:^|\.)(?:local|localhost|internal|lan)$"
+    r"|(?:^|[-_.])(?:host|hostname|your-?host)(?:[-_.]|$)",
+    re.IGNORECASE,
+)
+
+
+def _local_or_placeholder_host(url: str) -> bool:
+    """The host of a ``user:password@host`` URL is the agent's own machine, a name that only
+    resolves inside a compose or cluster network (one label, no dots), or a documentation
+    placeholder. Such a URL is an example connection string, not a credential for a remote
+    service (phase 16: 0 of 24 corpus findings were real)."""
+    found = _CRED_URL_HOST.search(url)
+    if found is None:
+        return False
+    host = found.group("host").strip("[]").lower()
+    if host in {"::1", "0.0.0.0"} or host.startswith("127."):
+        return True
+    return "." not in host or _PLACEHOLDER_HOST.search(host) is not None
+
+
 @rule(
     "GR017",
     Severity.CRITICAL,
@@ -776,11 +799,12 @@ def gr017_secret_in_prose(target: ScanTarget) -> Iterator[Finding]:
             if span in seen or is_placeholder(value):
                 continue
             seen.add(span)
+            local = pattern is _URL_PASSWORD and _local_or_placeholder_host(m.group(0))
             yield build_finding(
                 target=target,
                 rule_id="GR017",
-                confidence="high",
-                severity=Severity.CRITICAL,
+                confidence="medium" if local else "high",
+                severity=Severity.MEDIUM if local else Severity.CRITICAL,
                 title="Secret in an instruction file",
                 message=f"{label} written in the file: {mask_value(value)}",
                 start=span[0],
