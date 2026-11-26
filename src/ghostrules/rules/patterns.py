@@ -38,7 +38,7 @@ _READ_VERB = (
     r"|leak|paste|share)\b"
 )
 _SENSITIVE_PATH = (
-    r"(?:~/\.ssh|\bid_rsa\b|\bid_ed25519\b|\.aws/credentials|(?<!\w)\.env\b(?!\.(?:example|sample|template|dist)\b)|\.npmrc|\.pypirc|\.netrc|\.git-credentials|\.config/gh/hosts\.yml"
+    r"(?:~/\.ssh|\bid_rsa\b|\bid_ed25519\b|\.aws/credentials|(?<!\w)\.env\b(?!\.(?:example|sample|template|dist)\b)|\.npmrc|\.pypirc|\.netrc|\.git-credentials|\.gitconfig\b|\.config/gh/hosts\.yml"
     r"|\bkubeconfig\b|\bkeychain\b|/etc/shadow|(?:chrome|firefox|safari|browser)\W{0,3}[\w ]{0,15}"
     r"cookies?)"
 )
@@ -234,7 +234,9 @@ def _in_url(text: str, offset: int) -> bool:
 # instruction", "convert and execute". The cue, not the decoded text, makes the run an instruction.
 DECODE_AND_ACT = re.compile(
     r"\b(?:decod\w*|convert\w*)\b[^\n]{0,60}?\b(?:follow|obey|apply|execute|comply"
-    r"|as\s+(?:an?\s+)?instructions?)\b",
+    r"|as\s+(?:an?\s+)?instructions?)\b"
+    # the act first, then the decoded part: "run the decoded step"
+    r"|\b(?:run|follow|execute|perform)\b[^\n]{0,40}?\bdecoded\b",
     re.I,
 )
 # a URL, or the target of a markdown link (a relative path can carry the same percent-encoded text)
@@ -283,7 +285,11 @@ def find_encoded_runs(text: str) -> list[EncodedRun]:
         except (binascii.Error, ValueError):
             continue
         if before.endswith("base64,"):
-            if decoded is not None and reads_as_agent_directive(decoded):
+            # a data: URI that is not an image is text; text that tells the agent what to do is
+            # an instruction whichever words sit around the link
+            if decoded is not None and (
+                reads_as_agent_directive(decoded) or is_instruction(decoded)
+            ):
                 found.append(EncodedRun(match.start(), match.end(), decoded))
             continue
         if decoded is not None:
@@ -330,6 +336,9 @@ _CHAR_REFS = re.compile(r"(?:&#x?[0-9a-fA-F]{1,6};){4,}")
 _CHAR_REF_ONE = re.compile(r"&#(x?)([0-9a-fA-F]{1,6});")
 
 
+_MARKUP_CHARS = re.compile(r"[*_`]+")  # emphasis and code-span delimiters, invisible when rendered
+
+
 def _char_ref(match: re.Match[str]) -> str:
     code = int(match.group(2), 16 if match.group(1) else 10)
     return chr(code) if code <= 0x10FFFF else "�"
@@ -361,8 +370,15 @@ def find_disguised_runs(text: str) -> list[EncodedRun]:
             options.append((_ESCAPE_ONE.sub(_unescape, body), True))
         if _CHAR_REFS.search(body):
             decoded = _CHAR_REF_ONE.sub(_char_ref, body)
-            if reads_as_agent_directive(decoded):  # prose with &#8220; quotes is not a directive
+            # prose with &#8220; quotes is not a directive; a decoded line that matches a known
+            # injection pattern (a pipe into a shell) is, whatever the words around it say
+            if reads_as_agent_directive(decoded) or match_injection(decoded):
                 found.append(EncodedRun(start, end, decoded))
+        if _MARKUP_CHARS.search(body):
+            # emphasis and code spans cut a sentence into pieces that render as one: "up*load*"
+            stripped = _MARKUP_CHARS.sub("", body)
+            if match_injection(stripped) and not match_injection(body):
+                found.append(EncodedRun(start, end, stripped))
         for decoded, anywhere in options:
             if is_instruction(decoded, anywhere=anywhere):
                 # A cue anywhere in the file is not enough for a reversed line (phase 16): it is

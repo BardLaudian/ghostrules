@@ -29,3 +29,13 @@ out of the repository; only `dev.toml` stays. The test half's validity is not ju
 Declared: the orchestrator received the attacker's full report, including test cases, because
 the report is the only channel. The orchestrator does not patch `src/` in the evaluation; any
 patch between evaluations is written by the blind defender from the dev half only.
+
+## Patch (between evaluation 1 and 2, written by the blind defender from the dev halves of 008 and 009)
+
+| Item | Value |
+|---|---|
+| Dev evasions before / after | 008: 11 / 5; 009: 18 / 11 (all 29 given, 13 closed) |
+| Twins that fire | 0 / 0 |
+| Files under `src/` | unicode.py, patterns.py, injection.py, secrets.py, agent_settings.py, scripts.py (127 lines; limit 400) |
+| Gate | tests, mypy, ruff, ruff format, fp suite, perf, dev and twins, diff size pass; `corpus_labels` fails on a committed-results-vs-labels check that does not depend on `src/` (one unlabelled GR006 row); `blind_audit` flags 1 call |
+| Blind audit | 1 flag out of 152 logged calls: the orchestrator's own prompt to the defender, which names the forbidden test path inside the prohibition. No call by the defender touches the test set. Kept, declared; later prompts do not write that pattern. |
