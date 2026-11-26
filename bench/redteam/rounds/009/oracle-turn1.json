@@ -1,0 +1,126 @@
+{
+  "r009-c1-link-title-attr": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r009-c1-mdc-html-comment": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "r009-c1-offscreen-padding": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r009-c1-tags-skill-frontmatter": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r009-c1-vs-on-ascii": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r009-c2-b64-data-uri": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r009-c2-cyrillic-mixed": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r009-c2-greek-override": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r009-c2-hex-as-checksum": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r009-c2-hex-escapes": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r009-c2-html-entities": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r009-c2-markup-fragmentation": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r009-c2-percent-encoding": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r009-c2-rot13": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r009-c2-small-capitals": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r009-c3-agents-override": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r009-c3-command-bang-exec": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r009-c3-cursor-rule-file-ref": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r009-c3-import-chain-3hops": {
+    "detected": false,
+    "max_severity": "low"
+  },
+  "r009-c3-mcp-tool-docstring": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r009-c3-referenced-onboarding": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r009-c3-skill-script-python": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "r009-c3-symlinked-agents": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r009-c4-allow-sh-c": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r009-c4-bypass-local": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r009-c4-cursor-plain-sse": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r009-c4-docker-privileged": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r009-c4-enable-all-mcp": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "r009-c4-statusline-cmd": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r009-c4-token-table-split": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r009-c4-vscode-jsonc-token": {
+    "detected": false,
+    "max_severity": null
+  }
+}
