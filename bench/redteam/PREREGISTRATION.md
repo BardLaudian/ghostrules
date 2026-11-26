@@ -98,3 +98,11 @@ None, except a new dated entry below that states what changed and why. Earlier t
   (human labels for criterion 5, the 20–30 case review) are not simulated: they stay "not
   measured" and block the grade, whatever the rest says. The human review of the judge is
   waived for these rounds by the maintainer and declared as not done.
+
+- **2026-11-26 — evaluation 2: version frozen.** Evaluation 1 is published in
+  `bench/redteam/EVALUATION-1.md` (not met). Between evaluations the blind defender patched `src/`
+  from the dev halves of rounds 008 and 009 only; the commit is `4aaa674` on branch
+  `fase-18-iter1`. That commit is the frozen version of evaluation 2 (look 2 of at most 4). Rounds
+  011 and 012 (C1–C4, seeds 1811 and 1812, new test halves) are generated against it. C5 stays
+  outside this evaluation (the attacker model's safeguards stopped the C5 round). The test halves
+  of rounds 008 and 009 are spent and are never reused.
