@@ -181,6 +181,11 @@ _ZWSP = "\u200b"
 _ZWJ, _ZWNJ = "\u200d", "\u200c"
 _ZW_HIGH_PER_LINE = 5
 _ZW_HIGH_PER_FILE = 20
+# blank characters that look like nothing: Hangul fillers and the braille blank
+_FILLERS = "".join(chr(cp) for cp in (0x3164, 0x115F, 0x1160, 0xFFA0, 0x2800))
+_BLANKS = " \t" + _FILLERS
+_ASCII_PAD = re.compile(r"[ \t]{60,}")  # a run of spaces wide enough to leave the editor view
+_FILLER_PAD = re.compile(f"[{_FILLERS}]{{8,}}")  # a few fillers are a glyph; eight are a gap
 
 
 def _in_ranges(ch: str, ranges: tuple[tuple[int, int], ...]) -> bool:
@@ -235,6 +240,35 @@ def zero_width_offsets(text: str) -> list[int]:
     return offsets
 
 
+def _padding_findings(target: ScanTarget) -> Iterator[Finding]:
+    """Text pushed off-screen: a long run of blank space or blank fillers, then words on the same
+    line. Outside code, in an instruction file, the run has no reason to exist: the words after it
+    are what the reader never sees."""
+    if target.kind != "instructions":
+        return
+    for pattern in (_ASCII_PAD, _FILLER_PAD):
+        for match in pattern.finditer(target.text):
+            line_end = target.text.find("\n", match.end())
+            rest = target.text[match.end() : len(target.text) if line_end < 0 else line_end]
+            if not rest.strip(_BLANKS) or target.code_block_at(match.start()) is not None:
+                continue
+            if target.in_inline_code(match.start()):
+                continue
+            yield build_finding(
+                target=target,
+                rule_id="GR003",
+                severity=Severity.HIGH,
+                title="Text hidden after a long run of blank characters",
+                message=(
+                    f"{len(match.group())} blank characters push the rest of this line out of "
+                    "view; the words after them are not seen when the file is read in an editor."
+                ),
+                start=match.start(),
+                end=match.end() + len(rest),
+                fix_hint=clean_hint(target),
+            )
+
+
 @rule(
     "GR003",
     Severity.MEDIUM,
@@ -243,7 +277,10 @@ def zero_width_offsets(text: str) -> list[int]:
     ALL_KINDS,
 )
 def gr003_zero_width(target: ScanTarget) -> Iterator[Finding]:
-    """One finding per line; high when a line has >= 5 or the file has >= 20 such characters."""
+    """One finding per line; high when a line has >= 5 or the file has >= 20 such characters.
+
+    Also high: a long run of blank space or filler characters that pushes words off-screen."""
+    yield from _padding_findings(target)
     text = target.text
     offsets = zero_width_offsets(text)
     if not offsets:
@@ -316,6 +353,20 @@ _HTML_COMMENT_RE = re.compile(r"<!--(.*?)(?:-->|\Z)", re.DOTALL)
 _LINK_COMMENT_RE = re.compile(
     r"^[ \t]*\[(?://|comment)\]:[ \t]*(?:#|<>)[ \t]*\((.*)\)[ \t]*$", re.MULTILINE
 )
+# an element a renderer hides (the hidden attribute, display:none), read by the model all the same
+_HIDDEN_ELEMENT_RE = re.compile(
+    r"<(\w+)(?=[^>]*(?:\shidden(?=[\s=/>])|style\s*=\s*[\"'][^\"']*display\s*:\s*none))"
+    r"[^>]*>(.*?)</\1\s*>",
+    re.IGNORECASE | re.DOTALL,
+)
+# the title of a Markdown link: a tooltip that a reader sees only on hover
+_LINK_TITLE_RE = re.compile(r'\]\(\s*[^)\s]+\s+"([^"\n]+)"\s*\)')
+# a standing rule ("when", "before", "always") that tells the agent to pull or send from a URL
+_STANDING_CUE = re.compile(r"\b(?:when|whenever|before|after|always|never|you\s+must)\b", re.I)
+_PULLS_FROM_URL = re.compile(
+    r"\b(?:add|install|import|pull|clone|register|load|copy|upload|send|post)\b[^\n]{0,80}?https?://",
+    re.I,
+)
 _COMMENT_MIN_CHARS = 40
 _FRAGMENT_GAP_LINES = 2  # short comments this close may be pieces of one sentence
 _MARKDOWN_SUFFIXES = (".md", ".mdc", ".markdown", ".mdx")
@@ -327,10 +378,16 @@ class _Comment(NamedTuple):
     end: int
     body: str
     closed: bool  # False for an unterminated ``<!--``, which hides the rest of the file
+    kind: str = "HTML comment"
+    note: str = "is invisible when rendered"
 
 
 def _comments(text: str) -> list[_Comment]:
-    """HTML comments and link-reference comments, in document order."""
+    """HTML comments, link-reference comments, hidden elements and link titles, in document order.
+
+    Hidden elements and link titles are text a renderer does not show, like a comment, so they go
+    through the same verdict (see ``gr005_html_comments`` for the severity they get).
+    """
     found = [
         _Comment(m.start(), m.end(), m.group(1).strip(), m.group().endswith("-->"))
         for m in _HTML_COMMENT_RE.finditer(text)
@@ -338,6 +395,14 @@ def _comments(text: str) -> list[_Comment]:
     found += [
         _Comment(m.start(), m.end(), m.group(1).strip(), True)
         for m in _LINK_COMMENT_RE.finditer(text)
+    ]
+    found += [
+        _Comment(m.start(), m.end(), m.group(2).strip(), True, "Hidden HTML element")
+        for m in _HIDDEN_ELEMENT_RE.finditer(text)
+    ]
+    found += [
+        _Comment(m.start(), m.end(), m.group(1).strip(), True, "Link title", "shows only on hover")
+        for m in _LINK_TITLE_RE.finditer(text)
     ]
     return sorted(found)
 
@@ -385,6 +450,12 @@ def _classify_comment(target: ScanTarget, comment: _Comment) -> tuple[Severity, 
         return Severity.HIGH, f"matches {', '.join(matched)} patterns"
     if acts_on_external_url(body) and not urls_allowed(body, target.allow_domains):
         return Severity.HIGH, "tells the AI agent to send, run or fetch from an external URL"
+    if (
+        _STANDING_CUE.search(body)
+        and _PULLS_FROM_URL.search(body)
+        and not urls_allowed(body, target.allow_domains)
+    ):
+        return Severity.HIGH, "tells the AI agent to add or send data to an external URL"
     if has_instruction_cue(body):
         return Severity.MEDIUM, "addresses the AI agent"
     if is_instruction(body) and _SECOND_PERSON.search(body):
@@ -404,9 +475,11 @@ def _comment_finding(
         target=target,
         rule_id="GR005",
         severity=severity,
-        title="Hidden HTML comment with instructions",
+        title="Hidden HTML comment with instructions"
+        if comment.kind == "HTML comment"
+        else "Hidden text with instructions",
         message=(
-            f"HTML comment ({len(comment.body)} chars) is invisible when rendered but {reason}."
+            f"{comment.kind} ({len(comment.body)} chars) {comment.note} but {reason}."
             + (
                 " The comment is never closed, so it hides the rest of the file."
                 if not comment.closed
@@ -474,6 +547,11 @@ def gr005_html_comments(target: ScanTarget) -> Iterator[Finding]:
         if len(comment.body) < _COMMENT_MIN_CHARS:
             continue
         verdict = _classify_comment(target, comment)
+        if verdict is None and comment.kind != "HTML comment" and is_instruction(comment.body):
+            verdict = (Severity.MEDIUM, "reads as an instruction")  # a hidden imperative
+        if verdict is not None and comment.kind != "HTML comment" and verdict[0] >= Severity.MEDIUM:
+            # text a renderer hides, and a model reads, is high at medium too: hiding is the act
+            verdict = (Severity.HIGH, verdict[1])
         if verdict is not None:
             yield _comment_finding(target, comment, *verdict)
     yield from _fragment_findings(target, shown)

@@ -19,6 +19,7 @@ from ghostrules.rules.directive import (
     OBFUSCATION_NOTE,
     classify,
     downgrade_note,
+    is_instruction,
     severity_for,
 )
 from ghostrules.rules.helpers import build_finding, host_allowed, urls_allowed
@@ -698,6 +699,8 @@ def _reads_as_instruction(text: str, run: EncodedRun) -> bool:
     window = text[max(0, run.start - 200) : run.end + 200]
     if DECODE_AND_ACT.search(window) is not None:
         return True
+    if text[max(0, run.start - 7) : run.start] == "base64," and is_instruction(run.decoded or ""):
+        return True  # the payload of a data: URI is text, and it is an instruction
     return reads_as_agent_directive(run.decoded or "")
 
 

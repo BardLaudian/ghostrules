@@ -27,6 +27,8 @@ _HOOK_EXFIL_PATTERNS = tuple(
         rf"\b(?:env|printenv)\b[^\n]{{0,60}}\|\s*{_SENDER}\b",
     )
 )
+# a directory grant that is the whole home folder or the disk root (not a project subfolder)
+_BROAD_DIR = re.compile(r"~/?|\$HOME/?|\$\{HOME\}/?|/|/home/?|/Users/?|/root/?")
 _BROAD_ALLOW = re.compile(
     r"Bash(?:\(\s*\*{0,2}\s*\))?"
     r"|Bash\(\s*(?:curl|sudo|rm)\s*:\s*\*\s*\)"
@@ -239,6 +241,15 @@ def gr107_permissive_settings(target: ScanTarget) -> Iterator[Finding]:
                 f"Permission rule '{item.value}' lets the agent use a secret file without asking.",
                 item.string_span(),
                 "Remove the rule; allow only the project files the task needs.",
+            )  # fmt: skip
+    extra = permissions.get("additionalDirectories") if permissions else None
+    for item in (extra.elements or []) if extra else []:
+        if isinstance(item.value, str) and _BROAD_DIR.fullmatch(item.value.strip()):
+            yield _finding(
+                target, "GR107", Severity.HIGH, "Over-permissive agent settings",
+                f"additionalDirectories grants '{item.value}': the whole home folder or disk.",
+                item.string_span(),
+                "List only the project folders the task needs in additionalDirectories.",
             )  # fmt: skip
     yolo = root.get("yolo")
     if yolo is not None and yolo.value is True and ".gemini/" in target.path.replace("\\", "/"):

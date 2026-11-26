@@ -60,6 +60,7 @@ _SECRETS = tuple(
         rf"\bprocess\.env\.{_SECRET_NAME}",
         r"\$env:|Get-ChildItem\s+Env:",
         rf"(?:cat|tar|cp|base64|zip)\b[^\n|]{{0,80}}(?:{_CRED_PATH}|{_DOTENV})",
+        rf"\bopen\([^)\n]{{0,80}}(?:{_CRED_PATH}|{_DOTENV})",  # python reads the file itself
         rf"(?:{_CRED_PATH})",
     )
 )
