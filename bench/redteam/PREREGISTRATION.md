@@ -84,3 +84,17 @@ None, except a new dated entry below that states what changed and why. Earlier t
   environment, so criterion 6 has no mutation score; run time is above +15 % of 0.5.0 on the large
   prose scenarios), and criterion 5 was not met in the Phase 16 re-measurement (33 failing, 11 per
   100 repos). The hash of the evaluation set is still to be added before the round runs.
+
+- **2026-11-26 — iteration allowed (maintainer decision, before any Phase 18 round).** The maintainer
+  asked for the Phase 18 evaluation to be repeated unsupervised, with improvements between
+  evaluations, until the 0.6 criteria are met. Rules this entry sets so the numbers stay honest:
+  (1) every evaluation uses a **new** round, with new seeds, and its own `test` half that nobody
+  read; a `test` half is used once and never again; (2) improvements to `src/` use only the `dev`
+  halves and the benign twins, never `test` cases or their verdicts; (3) every evaluation is
+  published, passing or not, with its count (k-th look); a pass after several looks is reported as
+  "passed on look k", not as a first-try pass; (4) each evaluation is of 3 rounds of 60 cases, the
+  attacker on the most capable model, the judge on a different tier from the defender, no defender
+  turn inside the evaluation; (5) a hard cap of 4 evaluations; (6) criteria that need a person
+  (human labels for criterion 5, the 20–30 case review) are not simulated: they stay "not
+  measured" and block the grade, whatever the rest says. The human review of the judge is
+  waived for these rounds by the maintainer and declared as not done.
