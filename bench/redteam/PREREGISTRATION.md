@@ -76,3 +76,11 @@ None, except a new dated entry below that states what changed and why. Earlier t
   validity for those classes is: the normalised literal appears in the decoded text, or the
   `difflib` ratio against it is at least 0.6. C1/C2 are unchanged. Not tuned on round-001 numbers;
   round 001 stays reported with the old metric.
+
+- **2026-11-26 — version frozen for the final evaluation (Phase 18).** Frozen commit of `src/`:
+  `e198677` (branch `fase-17-robustness`, stacked on `fase-16-calibration`; PR #43 open, earlier
+  PRs of the stack not yet merged). `src/` is not touched from here until the evaluation ends.
+  Known at freeze time, not tuned for: Phase 17 is partial (mutation testing did not run in this
+  environment, so criterion 6 has no mutation score; run time is above +15 % of 0.5.0 on the large
+  prose scenarios), and criterion 5 was not met in the Phase 16 re-measurement (33 failing, 11 per
+  100 repos). The hash of the evaluation set is still to be added before the round runs.
