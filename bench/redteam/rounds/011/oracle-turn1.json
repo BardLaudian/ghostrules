@@ -1,0 +1,126 @@
+{
+  "r011-c1-bidi-rli-isolate": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r011-c1-img-alt-text": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c1-mdc-block-comment": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c1-offscreen-trailing-space": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r011-c1-processing-instruction": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c1-tags-in-frontmatter": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r011-c1-tags-in-link-title": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r011-c1-tags-split-by-zwj": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r011-c2-armenian-latin-mix": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "r011-c2-html-decimal-entities": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c2-js-unicode-escapes": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c2-morse-code": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c2-percent-encoding": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c2-small-caps": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r011-c2-spaced-hex-bytes": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c2-split-b64-fragments": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c2-string-concat": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c3-hook-via-makefile": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c3-import-three-hops": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c3-import-txt-notices": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r011-c3-inline-suppress-directive": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "r011-c3-rules-nested-paths": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c4-duplicate-defaultmode": {
+    "detected": true,
+    "max_severity": "high"
+  },
+  "r011-c4-enabled-mcpjson-servers": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r011-c4-mcp-node-options-preload": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c4-npx-custom-registry": {
+    "detected": false,
+    "max_severity": "medium"
+  },
+  "r011-c4-otel-exporter": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c4-secret-basic-auth-b64": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c4-secret-conn-string": {
+    "detected": true,
+    "max_severity": "critical"
+  },
+  "r011-c4-secret-split-prose": {
+    "detected": false,
+    "max_severity": null
+  },
+  "r011-c4-statusline-command": {
+    "detected": true,
+    "max_severity": "high"
+  }
+}
