@@ -608,12 +608,14 @@ def gr006_homoglyphs(target: ScanTarget) -> Iterator[Finding]:
 _LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "8": "b"})
 
 
-def _disguised_reading(line: str) -> str | None:
+def _disguised_reading(line: str) -> tuple[str, bool] | None:
     """The plain reading of a line that hides words with look-alike, fullwidth or leet characters,
-    when that reading is addressed to the agent; None otherwise.
+    when that reading is addressed to the agent, and whether a look-alike or fullwidth letter was
+    needed to get it; None otherwise.
 
     Fullwidth or look-alike letters count when NFKC maps them to ASCII. Leet applies when most
-    words carry a digit that reads as a letter, so version numbers ("Python3") stay as they are.
+    words carry a digit that reads as a letter and a letter of their own, so numbers ("5.0",
+    "100") and version numbers ("Python3") stay as they are.
     """
     hidden = any(
         c in _CONFUSABLES
@@ -622,13 +624,20 @@ def _disguised_reading(line: str) -> str | None:
     )
     plain = "".join(_CONFUSABLES.get(c, c) for c in unicodedata.normalize("NFKC", line))
     words = re.findall(r"\w+", plain)
-    leet = {w for w in words if any(c.isdigit() for c in w) and w.translate(_LEET).isalpha()}
+    leet = {
+        w
+        for w in words
+        if any(c.isdigit() for c in w)
+        and any(c.isalpha() for c in w)
+        and w.translate(_LEET).isalpha()
+    }
+    lookalike = hidden
     if len(leet) >= 3 and 2 * len(leet) >= len(words):
         hidden = True
         plain = re.sub(
             r"\w+", lambda m: m.group().translate(_LEET) if m.group() in leet else m.group(), plain
         )
-    return plain if hidden and is_instruction(plain) else None
+    return (plain, lookalike) if hidden and is_instruction(plain) else None
 
 
 def _disguised_directives(target: ScanTarget) -> Iterator[Finding]:
@@ -638,11 +647,17 @@ def _disguised_directives(target: ScanTarget) -> Iterator[Finding]:
     for line in target.text.splitlines(keepends=True):
         body = line.rstrip("\r\n")
         start, offset = offset, offset + len(line)
-        if body.strip() and _disguised_reading(body) is not None:
+        reading = _disguised_reading(body) if body.strip() else None
+        if reading is not None:
+            plain, lookalike = reading
+            # Leet alone is not a disguise (phase 16): high needs a look-alike or fullwidth
+            # letter, or a plain reading that matches a known injection; else it is reported low.
+            high = lookalike or bool(match_injection(plain))
             yield build_finding(
                 target=target,
                 rule_id="GR006",
-                severity=Severity.HIGH,
+                confidence="medium" if high else "low",
+                severity=Severity.HIGH if high else Severity.LOW,
                 title="Instruction written with disguised characters",
                 message="The line reads as an instruction once look-alike, fullwidth or leet "
                 "characters are folded to plain letters.",

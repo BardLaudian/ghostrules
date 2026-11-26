@@ -138,9 +138,11 @@ def test_lookalike_instruction_is_high(tmp_path: Path) -> None:
     assert is_high(scan(tmp_path, "CLAUDE.md", text))
 
 
-def test_leet_instruction_is_high(tmp_path: Path) -> None:
+def test_leet_instruction_without_an_injection_is_low(tmp_path: Path) -> None:
+    # Phase 16 (docs/CALIBRATION.md): leet alone is not a disguise; it stays low unless the plain
+    # reading matches a known injection (see tests/test_calibration_decisions.py).
     text = "5k1p wr1t1ng t35t5 f0r f1l35 und3r l3g4cy/.\n"
-    assert is_high(scan(tmp_path, "AGENTS.md", text))
+    assert not is_high(scan(tmp_path, "AGENTS.md", text))
 
 
 def test_plain_instruction_with_nbsp_is_not_high(tmp_path: Path) -> None:
