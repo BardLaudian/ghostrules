@@ -5,6 +5,23 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- **JSON report `schema_version` 1 → 2 (migration).** Every finding now carries `confidence`
+  (`high` | `medium` | `low`) and `effective_severity`, both required by `scan.schema.json`. Before,
+  `confidence` was present on a few findings only. Consumers that ignore unknown keys keep working;
+  a consumer that validated against schema 1 must accept the two new keys and read
+  `"schema_version": 2`. `severity` is unchanged. `context --format json` findings gain the same
+  two keys.
+- **`--fail-on` compares the effective severity**, which is the severity one step lower when the
+  confidence is `low`. Only GR114 findings with a single signal have confidence `low`, so a scan
+  that failed at `--fail-on medium` because of such a finding now needs `--fail-on low`.
+- **SARIF:** `level` and `security-severity` follow the effective severity;
+  `properties.confidence` and `properties.declaredSeverity` are new.
+- **GR114 is always medium** (it was high for a combination of signals): on the 300-repo corpus it
+  was 1581 of the 1743 findings that fail the default check. A combination has confidence
+  `medium`, one signal confidence `low`.
+
 ### Added
 
 - **GR114 scores paraphrased instructions.** A new rule reads weak signals (a credential store or a

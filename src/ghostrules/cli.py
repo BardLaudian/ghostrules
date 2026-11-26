@@ -342,7 +342,9 @@ def _exit_for(result: ScanResult, cfg: Config) -> None:
     """Exit 2 when a rule crashed, 1 when a finding reaches ``--fail-on``."""
     if result.errors:
         raise typer.Exit(EXIT_ERROR)
-    if cfg.fail_on is not None and any(f.severity >= cfg.fail_on for f in result.findings):
+    if cfg.fail_on is not None and any(
+        f.effective_severity >= cfg.fail_on for f in result.findings
+    ):
         raise typer.Exit(EXIT_FINDINGS)
 
 
@@ -576,7 +578,9 @@ def context(
     _emit_context(report, format_, show_text, output, no_color)
     if report.errors:
         raise typer.Exit(EXIT_ERROR)
-    if cfg.fail_on is not None and any(f.severity >= cfg.fail_on for f in report.findings):
+    if cfg.fail_on is not None and any(
+        f.effective_severity >= cfg.fail_on for f in report.findings
+    ):
         raise typer.Exit(EXIT_FINDINGS)
 
 

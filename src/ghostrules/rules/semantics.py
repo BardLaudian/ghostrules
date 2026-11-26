@@ -382,6 +382,7 @@ def _paragraph_findings(target: ScanTarget, hits: Iterable[Hit]) -> list[Finding
                 start=start,
                 end=end,
                 fix_hint="Read the instruction. Remove it if the team did not write it.",
+                confidence="medium" if combo else "low",
             )
         )
     return findings

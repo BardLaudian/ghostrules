@@ -65,6 +65,7 @@ def gr001_tag_characters(target: ScanTarget) -> Iterator[Finding]:
         yield build_finding(
             target=target,
             rule_id="GR001",
+            confidence="high",
             severity=Severity.CRITICAL,
             title="Unicode tag characters (ASCII smuggling)",
             message=(
@@ -139,6 +140,7 @@ def gr002_bidi_controls(target: ScanTarget) -> Iterator[Finding]:
         yield build_finding(
             target=target,
             rule_id="GR002",
+            confidence="high",
             severity=severity,
             title="Bidirectional control characters (Trojan Source)",
             message=(
