@@ -351,7 +351,7 @@ def gr004_variation_selectors(target: ScanTarget) -> Iterator[Finding]:
 _HTML_COMMENT_RE = re.compile(r"<!--(.*?)(?:-->|\Z)", re.DOTALL)
 # a link-reference comment, "[//]: # (text)" or "[comment]: <> (text)": no renderer shows it
 _LINK_COMMENT_RE = re.compile(
-    r"^[ \t]*\[(?://|comment)\]:[ \t]*(?:#|<>)[ \t]*\((.*)\)[ \t]*$", re.MULTILINE
+    r"^[ \t]*\[(?://|comment)\]:[ \t]*(?:#|<>)[ \t]*\((.*)\)[ \t\r]*$", re.MULTILINE
 )
 # an element a renderer hides (the hidden attribute, display:none), read by the model all the same
 _HIDDEN_ELEMENT_RE = re.compile(

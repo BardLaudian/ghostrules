@@ -866,7 +866,7 @@ def _encoded_secrets(target: ScanTarget) -> Iterator[Finding]:
 
 # a known token format whose first piece ends a line; the reader joins it with a piece nearby
 _LINE_END_PIECE = re.compile(
-    r"(?<![A-Za-z0-9])(?:gh[pousr]_|github_pat_)[A-Za-z0-9_]+[ \t]*$", re.M
+    r"(?<![A-Za-z0-9])(?:gh[pousr]_|github_pat_)[A-Za-z0-9_]+[ \t\r]*$", re.M
 )
 _NEXT_PIECE = re.compile(r"[A-Za-z0-9_]{8,}")
 _PIECE_LINES = 2  # how many lines after the first piece are searched for the rest
