@@ -1,5 +1,5 @@
 """Property tests (hypothesis) for the parts that read untrusted text: the normaliser, the
-``@path`` resolver, the located-JSON parser and the reporters (docs/improvement, phase 4)."""
+``@path`` resolver, the located-JSON parser and the reporters."""
 
 import json
 import re

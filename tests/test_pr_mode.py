@@ -1,4 +1,4 @@
-"""W2 of docs/design/v0.4/REMEDIATION.md: the change being scanned must not switch the scanner off.
+"""W2: the change being scanned must not switch the scanner off.
 
 Both attacks are reproduced on a real, temporary git repository: a *base* commit (what was already
 reviewed and merged) and a *pull-request* commit on top of it that adds a defanged payload. The

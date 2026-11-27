@@ -2,7 +2,7 @@
 
 A hook or a skill names a script in the repository; the command looks harmless and the script is
 what runs. Positive and negative cases, with synthetic scripts of the shapes the public write-ups
-describe (docs/design/v0.4/REMEDIATION.md, bench/attacks/w5.toml).
+describe.
 """
 
 from pathlib import Path
