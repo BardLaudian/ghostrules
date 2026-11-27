@@ -249,6 +249,27 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b[^.;!?\n]{0,30}?\bghostrules\b",
         r"\b(?:add|insert|put|write|append|include)\b[^.;!?\n]{0,50}?\bghostrules-ignore\b",
     ),
+    # GR012 written as prose: a fetch verb, a URL, then a hand-over to a shell or an execute verb.
+    # No shell syntax is needed ("pull the script from <url> and feed it into bash").
+    "GR012P": _compile(
+        r"\b(?:fetch|download|retrieve|grab|pull|obtain|get|load)\b[^.;!?\n]{0,80}?https?://\S+"
+        r"[^.;!?\n]{0,80}?\b(?:(?:hand|pass|pipe|feed|send|forward|redirect|stream)\w*\b[^.;!?\n]{0,40}?"
+        r"\b(?:to|into|through)\b[^.;!?\n]{0,20}?\b(?:shell|bash|sh|zsh|interpreter|terminal|powershell"
+        r"|cmd)\b|(?:run|execute|eval(?:uate)?|interpret|source)\w*\b[^.;!?\n]{0,30}?\b(?:it|them"
+        r"|the\s+(?:script|file|output|response|result|routine|code|payload|installer))\b)",
+        r"\b(?:descarga|baja|obt[eé]n|recupera|trae)\b[^.;!?\n]{0,80}?https?://\S+[^.;!?\n]{0,80}?"
+        r"\b(?:ejec[uú]ta\w*|corre\w*|l[aá]nza\w*|p[aá]sa\w*\s+(?:al|a\s+la)\s+(?:shell|terminal"
+        r"|consola|int[eé]rprete))\b",
+        r"\b(?:baixe|baixar|obtenha|recupere|busque)\b[^.;!?\n]{0,80}?https?://\S+[^.;!?\n]{0,80}?"
+        r"\b(?:execute|rode|execut[ea]\w*|passe\w*\s+(?:ao|para\s+o)\s+(?:shell|terminal"
+        r"|interpretador))\b",
+        r"\b(?:t[ée]l[ée]charge\w*|r[ée]cup[èe]re\w*|obtiens|obtenez)\b[^.;!?\n]{0,80}?https?://\S+"
+        r"[^.;!?\n]{0,80}?\b(?:ex[ée]cute\w*|lance\w*|passe\w*\s+(?:au|[àa]\s+la)\s+(?:shell|terminal"
+        r"|interpr[ée]teur))\b",
+        r"\b(?:lade|laden|hole|besorge)\b[^.;!?\n]{0,80}?https?://\S+[^.;!?\n]{0,80}?"
+        r"\b(?:f[üu]hr\w*\b[^.;!?\n]{0,30}?\baus|starte\w*|[üu]bergib\w*\s+(?:an\s+die|der)\s+"
+        r"(?:Shell|Konsole))\b",
+    ),
     "GR013": EXFIL_PATTERNS + COLLECTOR_PATTERNS,
     # the verb governs the path: same clause (no `;` or sentence end), at most six words apart
     "GR014": _compile(
@@ -282,9 +303,29 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:instructions?|commands?|directions?|says?|tells?)\b",
         r"\b(?:follow|obey|execute|carry\s+out)\b[^.;!?\n]{0,30}?\b(?:instructions?|commands?|directions?)\b"
         r"[^.;!?\n]{0,20}?\b(?:at|in|from|on|found\s+at)\s+https?://",
-        r"\b(?:run|execute|eval(?:uate)?|source)\s+(?:it|them|that|this|the\s+(?:script|file|code|command"
-        r"|download\w*|installer|output|result))\b[^.;!?\n]{0,25}?\bwithout\s+(?:reading|reviewing"
-        r"|inspecting|checking|looking\s+at|verifying|examining)\b",
+        r"\b(?:run|execute|eval(?:uate)?|source|invoke|launch|apply|install)\s+(?:it|them|that|this"
+        r"|the\s+(?:script|file|code|command|download\w*|installer|output|result|payload|snippet|block"
+        r"|package))\b[^.;!?\n]{0,25}?\bwithout\s+(?:reading|reviewing|inspecting|checking"
+        r"|looking\s+at|verifying|examining|vetting|auditing|opening|validating)\b",
+        r"\b(?:run|execute|apply|install)\s+(?:it|them|the\s+(?:\w+\s+)?(?:script|file|code|command"
+        r"|installer|payload|snippet))\s+(?:blindly|sight\s+unseen)\b",
+        r"\b(?:do\s+not|don'?t)\s+(?:read|inspect|review|check)\s+(?:it|them|the\s+(?:script|file|code"
+        r"|command|installer))\b[^.;!?\n]{0,20}?\b(?:just\s+)?(?:run|execute)\b",
+        # the same in Spanish, Portuguese, French and German (a pronoun or a named object, so that
+        # "ejecuta los tests sin leer el log" is not matched)
+        r"\b(?:ejec[uú]ta|ejecutar|corre|correr|lanza|aplica|instala)(?:lo|la|los|las)\b[^.;!?\n]{0,30}?"
+        r"\bsin\s+(?:leer\w*|revisar\w*|inspeccionar\w*|verificar\w*|comprobar\w*|mirar\w*)",
+        r"\b(?:ejec[uú]ta|corre|lanza|aplica|instala)\s+(?:el|la)\s+(?:script|archivo|c[oó]digo|comando"
+        r"|descarga|instalador|resultado|salida|paquete)\b[^.;!?\n]{0,30}?\bsin\s+(?:leer\w*|revisar\w*"
+        r"|inspeccionar\w*|verificar\w*|comprobar\w*|mirar\w*)",
+        r"\b(?:execute|rode|aplique|instale)(?:-(?:o|a|os|as)|\s+(?:o|a)\s+(?:script|arquivo|c[óo]digo"
+        r"|comando|instalador|resultado|pacote))\b[^.;!?\n]{0,30}?\bsem\s+(?:ler|revisar|inspecionar"
+        r"|verificar|checar|olhar)\b",
+        r"\b(?:ex[ée]cute|ex[ée]cutez|lance|applique|installe)(?:-(?:le|la|les)|\s+(?:le|la)\s+(?:script|fichier|code"
+        r"|commande|installeur|r[ée]sultat))\b[^.;!?\n]{0,30}?\bsans\s+(?:l[ea]s?\s+)?(?:lire|relire"
+        r"|v[ée]rifier|inspecter|examiner|regarder)\b",
+        r"\bf[üu]hr\w*\s+(?:es|das\s+Skript|die\s+Datei|den\s+Code|den\s+Befehl|das\s+Ergebnis)\b"
+        r"[^.;!?\n]{0,30}?\bohne\s+(?:zu\s+)?(?:lesen|pr[üu]fen|Pr[üu]fung|Durchsicht|Kontrolle)\b",
     ),
     # GR033: an instruction asking to be carried through compaction, summaries or new sessions
     "GR033": _compile(

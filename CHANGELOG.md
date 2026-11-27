@@ -60,6 +60,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   key` wording) and more stores (`.kube/config`, `.docker/config.json`, gcloud and Azure credentials,
   any `.ssh/`). A `copy X into the ticket` is no longer mistaken for the `.env.example` template case.
 
+- **GR012 matches a download-and-run written as prose** (fetch verb, URL, then a hand-over to a shell or
+  an execute verb) in five languages, unless a safeguard (read, review, verify, approval) or a prohibition
+  is in the sentence. **GR032 reads "run it without checking"** more widely (`blindly`, `sight unseen`,
+  `don't read it, just run it`) and in Spanish, Portuguese, French and German.
+
 ### Tests
 
 - **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in

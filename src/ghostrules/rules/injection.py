@@ -289,7 +289,14 @@ def gr012_remote_code_execution(target: ScanTarget) -> Iterator[Finding]:
     URL is in ``allow_domains``. The snippet shows the whole command. (The "high elsewhere" case
     of RULES.md is GR105/GR107, which reuse these patterns for MCP server commands and hooks.)
     """
-    for span in _spans(target, INJECTION_PATTERNS["GR012"], fence_ok=False):
+    prose = [
+        span
+        for span in _spans(target, INJECTION_PATTERNS["GR012P"], fence_ok=False)
+        if not _prohibited_in_clause(target.text, span[0]) and not _has_safeguard(target.text, span)
+    ]
+    shell = _spans(target, INJECTION_PATTERNS["GR012"], fence_ok=False)
+    extra = [p for p in prose if not any(p[0] < e and b < p[1] for b, e in shell)]
+    for span in sorted([*shell, *extra]):
         severity, message, installers = _gr012_verdict(target, span)
         if severity is None:
             continue
@@ -305,6 +312,26 @@ def gr012_remote_code_execution(target: ScanTarget) -> Iterator[Finding]:
             else "Remove it, or download, review and pin the script instead of piping it.",
             limit=_LONG_SNIPPET,
         )
+
+
+# "Download the script, read it, show it to the user and run it after they approve" is the safe
+# procedure; "run it without reading it" is not, so a "without" in the sentence cancels the guard.
+_SAFEGUARD = re.compile(
+    r"\b(?:review\w*|inspect\w*|read\s+(?:it|them|the)|verify\w*|checksum|sha-?256|signature|approv\w+"
+    r"|confirm\w*|ask\s+the\s+user|show\s+(?:it|them|the\s+script)|sandbox\w*|pinned|l[ée]elo"
+    # Spanish, Portuguese, French and German safeguards
+    r"|revis\w+|verific\w+|aprob\w+|aprov\w+|inspeccion\w+|inspecion\w+|autoriz\w+|autoris\w+"
+    r"|v[ée]rifi\w+|relis\w*|valid\w+|pr[üu]f\w*|freigabe|best[äa]tig\w*|genehmig\w*|leia)\b",
+    re.IGNORECASE,
+)
+_UNGUARDED = re.compile(
+    r"\b(?:without|sin|sem|sans|ohne|blindly|unreviewed|unread|sight\s+unseen)\b", re.IGNORECASE
+)
+
+
+def _has_safeguard(text: str, span: tuple[int, int]) -> bool:
+    window = text[max(0, span[0] - 100) : span[1] + 140]
+    return _SAFEGUARD.search(window) is not None and _UNGUARDED.search(window) is None
 
 
 _GR012_HINT_SOFT = (
