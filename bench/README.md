@@ -59,25 +59,25 @@ quotes only the two headline paragraphs.
 <!-- bench:recall-detail:start -->
 | Origin | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
-| author | 37 | 33 (89%) | 15 (41%) |
+| author | 37 | 33 (89%) | 13 (35%) |
 | review (independent) | 4 | 1 (25%) | 1 (25%) |
-| public | 69 | 68 (99%) | 44 (64%) |
+| public | 69 | 67 (97%) | 42 (61%) |
 
 All origins, by technique:
 
 | Technique | Cases | Reported | Fails the default check |
 |---|---:|---:|---:|
-| agent-settings | 9 | 9 | 8 |
+| agent-settings | 9 | 8 | 7 |
 | bidi | 3 | 3 | 3 |
 | concealment | 5 | 4 | 0 |
 | encoded-payload | 3 | 3 | 3 |
 | exfiltration | 11 | 10 | 0 |
-| homoglyph | 3 | 3 | 3 |
+| homoglyph | 3 | 3 | 1 |
 | hook-scripts | 7 | 7 | 6 |
 | html-comment | 4 | 4 | 3 |
 | imports | 5 | 5 | 5 |
 | instruction-override | 9 | 7 | 0 |
-| mcp-config | 7 | 7 | 5 |
+| mcp-config | 7 | 7 | 4 |
 | mcp-server-content | 1 | 0 | 0 |
 | referenced-files | 4 | 4 | 4 |
 | remote-code-execution | 10 | 10 | 6 |

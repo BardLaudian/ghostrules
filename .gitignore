@@ -21,6 +21,3 @@ _site/
 
 # benchmark: findings of third-party repositories
 bench/.cache/
-
-# red-team round: tool-call log of the session (audited, never committed)
-.claude/redteam-calls.jsonl

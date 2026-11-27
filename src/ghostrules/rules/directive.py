@@ -77,7 +77,7 @@ dispatch display do don't dont download dump echo edit ejecuta elimina enable en
 envia envía escribe eval evita exec execute exfiltrate export expose fetch fill find forget
 forward gather get give grant grep guarda haz head hide ignora ignore import imprime include
 incluye inform instala install invoke keep launch leak lee leer list load log look make
-make_sure manda mention merge mirror modifica modify move muestra no note olvida omite open output
+make_sure manda mention merge modifica modify move muestra no note olvida omite open output
 override pass paste permit pide pipe post print provide publish pull push put read record
 remember remove rename replace reply respond reveal run save say scan search send set share
 show skip source start stop store sube submit switch tail take tell test transmit treat
@@ -178,21 +178,6 @@ def _is_directive(sentence: str, span_in_sentence: tuple[int, int]) -> bool:
         if index < len(clauses) and _clause_leads_with_verb(clauses[index][1]):
             return True
     return _first_word(clauses[0][1]) not in _SUBJECTS
-
-
-def is_instruction(text: str, *, anywhere: bool = False) -> bool:
-    """Whether a standalone text (decoded or unfolded hidden text) is addressed to the agent.
-
-    True for a modal ("you must") or a first clause that leads with a verb, after "whenever" and
-    "you" ("Whenever you create a file ..." counts). With ``anywhere``, every clause of the text is
-    checked: for a line that mixes an explanation with an instruction. Pure.
-    """
-    end = _END.search(text)
-    head = text[: end.start()] if end else text
-    if _MODAL.search(head):
-        return True
-    clauses = _CLAUSE_BREAK.split(head) if anywhere else [_CLAUSE_BREAK.split(head, 1)[0]]
-    return any(_clause_leads_with_verb(re.sub(r"\byou\b", " ", c, flags=re.I)) for c in clauses)
 
 
 def classify(target: ScanTarget, span: tuple[int, int]) -> TextKind:

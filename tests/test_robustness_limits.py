@@ -26,15 +26,14 @@ def big_repo(root: Path, size: int) -> Path:
 # --- --max-file-size --------------------------------------------------------------------------
 
 
-def test_an_agent_file_over_the_limit_is_scanned_in_windows_with_a_visible_warning(
-    tmp_path: Path,
-) -> None:
+def test_a_file_over_the_limit_is_skipped_with_a_visible_warning(tmp_path: Path) -> None:
     big_repo(tmp_path, 2000)
     result = scan_paths([tmp_path], Config(max_file_size=1000))
-    assert any(f.path == "CLAUDE.md" for f in result.findings)  # padding hides nothing
-    assert result.skipped_files == 0 and result.scanned_files == 2
+    assert not any(f.path == "CLAUDE.md" for f in result.findings)
+    assert result.skipped_files == 1
     (warning,) = [w for w in result.warnings if "CLAUDE.md" in w]
-    assert "windows" in warning and "1000" in warning  # name and cap
+    assert "skipped" in warning and "2" in warning and "1000" in warning  # name and sizes
+    assert result.scanned_files == 1  # AGENTS.md
 
 
 @pytest.mark.parametrize("render", [json_.render, markdown.render, sarif.render, table.render])
@@ -62,8 +61,7 @@ def test_zero_means_no_limit(tmp_path: Path) -> None:
 def test_the_default_limit_is_one_mebibyte(tmp_path: Path) -> None:
     assert Config().max_file_size == 1024 * 1024
     big_repo(tmp_path, 1024 * 1024 + 1)
-    result = scan_paths([tmp_path], Config())
-    assert result.skipped_files == 0 and any("windows" in w for w in result.warnings)
+    assert scan_paths([tmp_path], Config()).skipped_files == 1
 
 
 def test_cli_option_and_config_key(tmp_path: Path) -> None:
@@ -71,7 +69,7 @@ def test_cli_option_and_config_key(tmp_path: Path) -> None:
     skipped = runner.invoke(
         app, ["scan", "--max-file-size", "1000", "--format", "json", str(tmp_path)]
     )
-    assert skipped.exit_code in (0, 1)  # the file is scanned in windows, not skipped
+    assert skipped.exit_code == 0  # nothing was scanned that could fail
     assert "CLAUDE.md" in json.loads(skipped.stdout)["warnings"][0]
     scanned = runner.invoke(
         app, ["scan", "--max-file-size", "0", "--fail-on", "low", str(tmp_path)]

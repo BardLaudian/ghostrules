@@ -11,7 +11,7 @@ from ghostrules import __version__
 from ghostrules.models import ScanResult
 from ghostrules.reporters.common import safe, severity_counts
 
-SCHEMA_VERSION = 2  # bump only when a field is removed, renamed or retyped
+SCHEMA_VERSION = 1  # bump only when a field is removed, renamed or retyped
 
 
 def _clean(value: Any) -> Any:
