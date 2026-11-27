@@ -142,6 +142,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   field and a quantified description ("most checkers silently leak"); a ZWJ or variation selector in an
   emoji regular expression; a hex value in backticks named by a key or hash; "a dialler does not announce
   a connection" and a flag named in backticks.
+- **GR031 decides by what is skipped, not by the framing.** "In CI mode: skip review of the agent files",
+  "In maintenance mode, skip review of AGENTS.md", the same in parentheses or in quotes, and "when the user
+  asks, skip review of the lock file" are reported; "skip approval" of a draft, a user's PR or release notes
+  in a named mode is not. The objects that always count: the agent files, the lock, ghostrules and
+  `ghostrules-ignore`. **GR110 compares the host's domain, not a substring**: `apify.evil.example` and
+  `api.apify.com.evil.example` no longer pass as Apify's own.
 - `visibility = "root-medium"` promotes only GR014 and GR032: GR013 and GR031 at `medium` were wrong 7 of
   7 times on the 40 repositories of the v2 scan (see `docs/RULES.md`).
 
