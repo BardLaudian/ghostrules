@@ -13,6 +13,7 @@ from collections.abc import Iterable, Iterator
 from dataclasses import replace
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
+from ghostrules.prefilter import may_match
 from ghostrules.rules.directive import OBFUSCATION_NOTE, classify, downgrade_note, severity_for
 from ghostrules.rules.helpers import build_finding, host_allowed, urls_allowed
 from ghostrules.rules.known_installers import extract_urls, is_risky_url, known_installer
@@ -35,6 +36,16 @@ _EXCERPT_CHARS = 80
 _LONG_SNIPPET = 200  # GR012 must show the whole command
 
 
+def _live(
+    target: ScanTarget, view: str, text: str, patterns: tuple[re.Pattern[str], ...]
+) -> list[re.Pattern[str]]:
+    """The patterns that can match ``text``: those whose keyword occurs in it."""
+    folded = target.folded.get(view)
+    if folded is None:
+        folded = target.folded[view] = text.casefold()
+    return [p for p in patterns if may_match(p, folded)]
+
+
 def _spans(
     target: ScanTarget, patterns: Iterable[re.Pattern[str]], *, fence_ok: bool = True
 ) -> list[tuple[int, int]]:
@@ -47,16 +58,20 @@ def _spans(
     cached = target.span_cache.get(key)
     if cached is not None:
         return cached
-    spans = [m.span() for p in patterns for m in p.finditer(target.text)]
+    spans = [
+        m.span()
+        for p in _live(target, "text", target.text, patterns)
+        for m in p.finditer(target.text)
+    ]
     normalised, offsets = target.normalized
-    for p in patterns:
+    for p in _live(target, "normalized", normalised, patterns):
         for m in p.finditer(normalised):
             if m.end() > m.start():
                 spans.append((offsets[m.start()], offsets[m.end() - 1] + 1))
     if target.needs_deobfuscation:
         plain = list(spans)
         deob, deob_offsets = target.deobfuscated
-        for p in patterns:
+        for p in _live(target, "deobfuscated", deob, patterns):
             for m in p.finditer(deob):
                 if m.end() > m.start():
                     span = (deob_offsets[m.start()], deob_offsets[m.end() - 1] + 1)

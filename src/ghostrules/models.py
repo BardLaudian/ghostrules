@@ -192,6 +192,11 @@ class ScanTarget:
         return {}
 
     @cached_property
+    def folded(self) -> dict[str, str]:
+        """Case-folded copies of the views of the text the patterns run on (see ``prefilter``)."""
+        return {}
+
+    @cached_property
     def obfuscated_spans(self) -> set[tuple[int, int]]:
         """Spans a rule matched only after de-obfuscation (filled in by the rules)."""
         return set()
