@@ -128,6 +128,29 @@ def _is_catalog(target: ScanTarget) -> bool:
     return _catalog(target.path, target.text)
 
 
+# Phrases with no ordinary use in an instruction file, however they are worded: shown at medium
+# there, because the default view must not hide them. Examples and catalogues stay at info.
+_ROOT_PROSE_RULES = frozenset({"GR010", "GR011"})
+_EXAMPLE_NOTE = "an example or a quotation"
+
+
+def _in_open_quotation(target: ScanTarget, offset: int) -> bool:
+    """Whether a quotation opened earlier in the paragraph is still open at ``offset``: a quoted
+    attack of several sentences ("Ignore ... Do not tell the user.") reads as orders in its last."""
+    start = target.text.rfind("\n\n", 0, offset) + 1
+    chunk = target.text[start:offset]
+    return _counts_inside_quotes([chunk.count(mark) for mark in _QUOTE_MARKS])
+
+
+def _shown_in_root_file(finding: Finding, target: ScanTarget, lenient: bool) -> bool:
+    return (
+        not lenient
+        and finding.rule_id in _ROOT_PROSE_RULES
+        and target.kind == "instructions"
+        and not _in_open_quotation(target, target.offset(finding.line, finding.column))
+    )
+
+
 def _user_scope(finding: Finding, target: ScanTarget) -> Finding:
     """A user-level file (``~/...``) is read in every project: one level up, never lowered."""
     if finding.severity == Severity.INFO or _USER_NOTE in finding.message:
@@ -155,8 +178,13 @@ def by_visibility(
         or target.in_html_comment(target.offset(finding.line, finding.column))
     ):
         return finding
-    lowered = "severity lowered" in finding.message or _is_catalog(target)
-    cap = Severity.INFO if lowered else Severity.LOW
+    example = _EXAMPLE_NOTE in finding.message or _is_catalog(target)
+    if example:
+        cap = Severity.INFO
+    elif _shown_in_root_file(finding, target, lenient):
+        cap = Severity.MEDIUM  # an override or a concealment in an instruction file is shown
+    else:
+        cap = Severity.INFO if "severity lowered" in finding.message else Severity.LOW
     if finding.severity <= cap:
         return finding
     note = _NOTE.format(level=cap.label)
