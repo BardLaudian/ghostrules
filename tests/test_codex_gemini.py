@@ -1,4 +1,4 @@
-"""W5.3: Codex and Gemini CLI (docs/design/v0.4/REMEDIATION.md).
+"""W5.3: Codex and Gemini CLI.
 
 Sources, read on 2026-10-29: https://developers.openai.com/codex/guides/agents-md,
 https://developers.openai.com/codex/config-reference and

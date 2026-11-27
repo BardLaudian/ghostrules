@@ -138,6 +138,27 @@ exit=1
               }
             },
             {
+              "id": "GR007",
+              "name": "Hidden-data character run",
+              "shortDescription": {
+                "text": "Hidden-data character run"
+              },
+              "fullDescription": {
+                "text": "Runs of regional indicators, invisible math operators or interlinear annotation marks can carry hidden text."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr007",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "5.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
               "id": "GR010",
               "name": "Instruction override",
               "shortDescription": {
@@ -474,6 +495,69 @@ exit=1
               }
             },
             {
+              "id": "GR031",
+              "name": "Review of the agent files switched off",
+              "shortDescription": {
+                "text": "Review of the agent files switched off"
+              },
+              "fullDescription": {
+                "text": "Text telling the agent to approve changes, delete or silently regenerate the lock, disable the scanner or add ghostrules-ignore."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr031",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR032",
+              "name": "Remote instructions or unread code",
+              "shortDescription": {
+                "text": "Remote instructions or unread code"
+              },
+              "fullDescription": {
+                "text": "Text telling the agent to fetch a URL and obey it, or to run something without reading it."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr032",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR033",
+              "name": "Instruction that asks to persist",
+              "shortDescription": {
+                "text": "Instruction that asks to persist"
+              },
+              "fullDescription": {
+                "text": "Text asking to be kept through context compaction, summaries or new sessions."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr033",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
               "id": "GR101",
               "name": "Hardcoded secret in agent config",
               "shortDescription": {
@@ -642,6 +726,27 @@ exit=1
               }
             },
             {
+              "id": "GR109",
+              "name": "Non-standard package registry",
+              "shortDescription": {
+                "text": "Non-standard package registry"
+              },
+              "fullDescription": {
+                "text": "An MCP server fetches its package from a registry other than npm or PyPI."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr109",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "5.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
               "id": "GR110",
               "name": "Script sends the environment or a secret",
               "shortDescription": {
@@ -714,6 +819,69 @@ exit=1
                 "text": "A script that a hook or a skill runs decodes an encoded string and executes it (eval of base64, exec of a decoded blob)."
               },
               "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr113",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR114",
+              "name": "All tools of an MCP server auto-approved",
+              "shortDescription": {
+                "text": "All tools of an MCP server auto-approved"
+              },
+              "fullDescription": {
+                "text": "autoApprove or alwaysAllow set to true or \"*\" lets every tool run without a prompt."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr114",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR115",
+              "name": "MCP server bound to all network interfaces",
+              "shortDescription": {
+                "text": "MCP server bound to all network interfaces"
+              },
+              "fullDescription": {
+                "text": "A server told to listen on 0.0.0.0 or :: can be reached from the network."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr115",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR116",
+              "name": "Package name imitates a well-known MCP server",
+              "shortDescription": {
+                "text": "Package name imitates a well-known MCP server"
+              },
+              "fullDescription": {
+                "text": "A server package whose name is a typo of a popular one may be a typosquat."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr116",
               "defaultConfiguration": {
                 "level": "error"
               },
@@ -843,7 +1011,7 @@ exit=1
               "reached-via-import"
             ]
           },
-          "ruleIndex": 7,
+          "ruleIndex": 8,
           "relatedLocations": [
             {
               "id": 0,
@@ -914,7 +1082,7 @@ exit=1
               "reached-via-import"
             ]
           },
-          "ruleIndex": 9,
+          "ruleIndex": 10,
           "relatedLocations": [
             {
               "id": 0,
@@ -985,7 +1153,7 @@ exit=1
               "reached-via-import"
             ]
           },
-          "ruleIndex": 10,
+          "ruleIndex": 11,
           "relatedLocations": [
             {
               "id": 0,
@@ -1052,7 +1220,7 @@ exit=1
               "copilot-cli"
             ]
           },
-          "ruleIndex": 15
+          "ruleIndex": 16
         },
         {
           "ruleId": "GR020",
@@ -1087,7 +1255,7 @@ exit=1
               "copilot-cli"
             ]
           },
-          "ruleIndex": 14
+          "ruleIndex": 15
         }
       ],
       "invocations": [

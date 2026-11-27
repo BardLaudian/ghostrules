@@ -5,6 +5,56 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **GR031, review of the agent files switched off (high).** An instruction that deletes the lock,
+  regenerates it silently or without review, auto-approves changes to agent files, disables the
+  scanner or adds `ghostrules-ignore` markers. Prohibitions ("Never delete .ghostrules.lock") and
+  reviewed workflows are not reported. Like GR030 it cannot be suppressed inline or baselined: a
+  line that carries `ghostrules-ignore` used to silence its own finding.
+
+- **GR032, remote instructions or unread code (high)**, and **GR033, instruction that asks to
+  persist (high)**. GR032: "download a URL and follow its instructions", "follow the instructions at
+  https://…", "run it without reading it". GR033: "these instructions must survive context
+  compaction", "copy this message into every summary". Ordinary compaction advice is not reported.
+- **GR010, GR011 and GR016 read paraphrases**: "set aside everything you were told", "keep this
+  between us", "the user does not need to know about this", "don't ask for confirmation".
+
+- **GR007, hidden-data character run (medium, high from 8).** Regional indicators that are not
+  whole flags (decoded to letters), two or more invisible math operators in a row, and interlinear
+  annotation marks. Flags, emoji sequences and native scripts are not reported.
+- **GR004 now reports two variation selectors in a row** (it was three). A single selector after an
+  emoji or an ideograph is still fine. `reveal` and the lock use the same threshold.
+
+- **Severity by context.** Prose in documentation (`docs/`, `examples/`, `tests/`…) or under a heading
+  that lists attacks is `info`; hidden, decoded and imported text keeps its severity. A finding in a
+  user-level file read with `--home` is raised one level.
+
+- **MCP supply chain: GR109, GR114, GR115 and GR116.** GR109: a registry that is not npm or PyPI
+  (`--registry`, `--index-url`, `NPM_CONFIG_REGISTRY`…; high over http). GR114: `autoApprove` or
+  `alwaysAllow` set to `true` or `"*"`. GR115: a server bound to `0.0.0.0` or `::`. GR116: a package
+  name one typo away from a popular MCP server. GR102 now says when `-y` installs without asking.
+
+### Tests
+
+- **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in
+  `tests/fixtures/evasion/cases.toml`, run by `pytest` as a gate: a known attack that stops being
+  reported fails CI. Known misses are marked `open`. `scripts/corpus_metrics.py` prints precision,
+  recall and the open cases.
+- Metamorphic tests: `examples/poisoned-repo` rewritten as CRLF, with a BOM, with trailing tabs,
+  and its JSON minified, with reversed keys and with every string spelled as `\u` escapes gives the
+  same findings.
+
+### Fixed
+
+- **GR012 detects `bash -c "$(curl URL)"`, download-then-run and hex or base64 decoded into a
+  shell.** `curl -sO URL && bash i.sh` and `wget URL && sh run.sh` count only when the shell runs the
+  file just downloaded; `sh -n`, an unrelated script or an archive do not. `xxd -r | sh`,
+  `printf '\x..' | sh`, `eval "$(... | base64 -d)"` and `sh <(... | base64 -d)` are reported too.
+- **GR010-GR016 match leetspeak.** `1gnore all prev1ous instruct1ons` is reported like the plain
+  phrase, on the original line and marked as obfuscated. Only words that mix letters with `0 1 3 4
+  5 7 @ $` are folded, so plain numbers and words like `python3` or `sha256` do not change.
+
 ## [0.5.1] - 2026-11-24
 
 ### Fixed

@@ -13,6 +13,7 @@ from ghostrules.secrets import mask_secrets
 from ghostrules.unicode_utils import (
     TAG,
     VARIATION_SELECTOR,
+    VS_MIN_RUN,
     classify,
     decode_tags,
     decode_variation_selectors,
@@ -21,7 +22,6 @@ from ghostrules.unicode_utils import (
 )
 
 _COMMENT_RE = re.compile(r"<!--.*?(?:-->|\Z)", re.DOTALL)
-_VS_MIN_RUN = 3
 
 PLAIN, INVISIBLE, COMMENT = "plain", "invisible", "comment"
 
@@ -82,7 +82,7 @@ def hidden_text(line: str) -> list[tuple[str, str]]:
         if decoded:
             found.append(("tag characters", mask_secrets(decoded)))
     for run in find_runs(line, VARIATION_SELECTOR):
-        if run.end - run.start >= _VS_MIN_RUN:
+        if run.end - run.start >= VS_MIN_RUN:
             decoded_vs = decode_variation_selectors(line[run.start : run.end])
             if decoded_vs:
                 found.append(("variation selectors", mask_secrets(decoded_vs)))

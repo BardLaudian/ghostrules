@@ -1,4 +1,4 @@
-"""W4.3: the specific false positives of the independent review (docs/design/v0.4/REMEDIATION.md).
+"""W4.3: the specific false positives of the independent review.
 
 Synthetic reproductions with the same shape as the lines that were flagged; sources in comments.
 """

@@ -232,7 +232,12 @@ def gr102_unpinned_package(target: ScanTarget) -> Iterator[Finding]:
             Severity.MEDIUM,
             "Unpinned package execution",
             f"Server '{server.name}' runs '{spec}' without an exact version: "
-            "whatever is published latest will execute with your agent's access.",
+            "whatever is published latest will execute with your agent's access."
+            + (
+                " The -y flag installs it without asking."
+                if {"-y", "--yes"} & set(server.args)
+                else ""
+            ),
             server.span(f"args.{index}"),
             _pin_hint(spec, python),
         )

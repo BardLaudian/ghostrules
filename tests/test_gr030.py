@@ -1,4 +1,4 @@
-"""GR030, scanner configuration changed (W2.3 of docs/design/v0.4/REMEDIATION.md).
+"""GR030, scanner configuration changed.
 
 The change under review adds or edits ``.ghostrules.toml``, ``[tool.ghostrules]``, the lockfile or a
 ``ghostrules-ignore`` comment: a reviewer must always see it, even when it is legitimate. It needs a
