@@ -1,8 +1,7 @@
 """Files with Windows line endings are judged like the same file with LF (Windows CI found this)."""
 
 import pytest
-
-from ghostrules.playground import analyze
+from _analyze import analyze
 
 TEXTS = [
     "# Permissions\n\n`bypassPermissions` is a permission mode that skips every permission\n"
