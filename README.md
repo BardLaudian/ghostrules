@@ -13,7 +13,7 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/ghostrules.svg)](https://pypi.org/project/ghostrules/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/BardLaudian/ghostrules/blob/main/LICENSE)
 
-`ghostrules` finds hidden text and risky settings in the files your AI agent obeys (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`, Copilot instructions, skills and MCP configs): invisible characters, hidden comments and unsafe MCP configuration are detected reliably, while instructions that tell the agent to misbehave are matched by patterns, on a best-effort basis. It also locks what the agent reads, so each change to it is reviewed. A CLI, a GitHub Action and a pre-commit hook.
+`ghostrules` finds hidden text and risky settings in the files your AI agent obeys (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`, Copilot instructions, skills and MCP configs): invisible characters, hidden comments and unsafe MCP configuration are found with deterministic character-level rules, while instructions that tell the agent to misbehave are matched by patterns, on a best-effort basis. It also locks what the agent reads, so each change to it is reviewed. A CLI, a GitHub Action and a pre-commit hook.
 
 ## Install and run
 
