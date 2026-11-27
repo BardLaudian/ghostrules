@@ -1,4 +1,4 @@
-"""The core must import and work without typer/rich: the browser playground runs it in Pyodide."""
+"""The core must import and work without typer/rich."""
 
 import os
 import subprocess

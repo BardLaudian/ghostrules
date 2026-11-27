@@ -232,7 +232,6 @@ are `claude-code`, `copilot-cli`, `cursor`, `generic`, `codex` and `gemini-cli`;
 The oldest trick is still the hidden Unicode one: an innocent-looking `AGENTS.md` that carries an
 instruction only the model can read.
 
-![ghostrules finds an instruction hidden in an innocent-looking AGENTS.md](https://raw.githubusercontent.com/BardLaudian/ghostrules/main/demo/demo.gif)
 
 ### How it works
 

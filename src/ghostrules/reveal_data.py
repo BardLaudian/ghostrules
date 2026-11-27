@@ -1,6 +1,6 @@
 """The data behind ``ghostrules reveal``: lines split into visible and invisible segments.
 
-No ``rich`` here, so the core (and the browser playground) can use it. Secrets are masked.
+No ``rich`` here, so the core can use it. Secrets are masked.
 """
 
 from __future__ import annotations

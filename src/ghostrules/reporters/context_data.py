@@ -1,6 +1,6 @@
 """Data side of the ``ghostrules context`` reports: the node tree, JSON and Markdown.
 
-No ``rich`` here, so the core (and the browser playground) can use it. The terminal tree is in
+No ``rich`` here, so the core can use it. The terminal tree is in
 ``reporters/context.py``.
 """
 
