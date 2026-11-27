@@ -280,6 +280,21 @@ def zero_width_offsets(text: str) -> list[int]:
     return offsets
 
 
+# A joiner or an emoji variation selector written inside the emoji regular expression of a script
+# (``/^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\u200d|\s)+$/u``) is how that expression
+# is spelled; another invisible character on the line, or the same two elsewhere, is not.
+_EMOJI_PROPERTY = re.compile(r"\\p\{(?:Emoji\w*|Extended_Pictographic)\}")
+_EMOJI_GLUE = "\u200d\ufe0f"
+
+
+def _in_emoji_regex(text: str, offset: int) -> bool:
+    if text[offset] not in _EMOJI_GLUE:
+        return False
+    start = text.rfind("\n", 0, offset) + 1
+    end = text.find("\n", offset)
+    return _EMOJI_PROPERTY.search(text, start, len(text) if end < 0 else end) is not None
+
+
 @rule(
     "GR003",
     Severity.MEDIUM,
@@ -290,7 +305,7 @@ def zero_width_offsets(text: str) -> list[int]:
 def gr003_zero_width(target: ScanTarget) -> Iterator[Finding]:
     """One finding per line; high when a line has >= 5 or the file has >= 20 such characters."""
     text = target.text
-    offsets = zero_width_offsets(text)
+    offsets = [i for i in zero_width_offsets(text) if not _in_emoji_regex(text, i)]
     if not offsets:
         return
     by_line = group_by_line(target, offsets)
