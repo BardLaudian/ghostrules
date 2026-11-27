@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import enum
 import io
+import os
+import shutil
 import sys
 from dataclasses import replace
 from pathlib import Path
@@ -857,12 +859,18 @@ def clean(
             )
         )
         return
+    if file.is_symlink():
+        _fail(f"{file} is a symbolic link; clean the file it points to instead")
     backup = file.with_name(file.name + ".ghostrules.bak")
     if backup.exists():
         _fail(f"{backup} already exists; move it away first so no earlier backup is lost")
     try:
         backup.write_bytes(data)
-        file.write_bytes(result.cleaned.encode("utf-8", errors="surrogateescape"))
+        # write beside the file and swap it in, so a crash never leaves a half-written file
+        staged = file.with_name(file.name + ".ghostrules.tmp")
+        staged.write_bytes(result.cleaned.encode("utf-8", errors="surrogateescape"))
+        shutil.copymode(file, staged)
+        os.replace(staged, file)
     except OSError as exc:
         _fail(f"cannot write {file}: {exc.strerror or exc}")
     console.print(
