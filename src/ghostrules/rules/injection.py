@@ -136,6 +136,27 @@ def gr010_instruction_override(target: ScanTarget) -> Iterator[Finding]:
 # --- GR011 ---------------------------------------------------------------------------------
 
 
+# "Omit secrets from the log" protects data; it does not hide an action from the user.
+_OMISSION = re.compile(
+    r"\b(?:omit\w*|exclu\w+|leave|keep|drop|suppress|redact|do(?:\s+not|n'?t)\s+(?:include|list|record"
+    r"|log|mention|put|write)|omite\w*|omita|omets|omettez|omettre|deja\w*|lass\w*"
+    r"|n[ãa]o\s+(?:inclua|registre)|no\s+(?:lo|la|esto|eso)\s+(?:incluyas|registres|anotes|pongas))\b",
+    re.IGNORECASE,
+)
+_HYGIENE = re.compile(
+    r"\b(?:secrets?|tokens?|passwords?|credentials?|api[\s_-]?keys?|pii|personal|private\s+keys?"
+    r"|sensitive|confidential|geheim\w*|passw\w+|segredo\w*|senhas?|contrase\w+|mots?\s+de\s+passe)\b",
+    re.IGNORECASE,
+)
+
+
+def _hygiene_omission(text: str, span: tuple[int, int]) -> bool:
+    """An omission sentence about secrets or personal data, not about the agent's own actions."""
+    if not _OMISSION.search(text[span[0] : span[1]]):
+        return False
+    return _HYGIENE.search(text[max(0, span[0] - 120) : span[1] + 60]) is not None
+
+
 @rule(
     "GR011",
     Severity.HIGH,
@@ -150,6 +171,8 @@ def gr011_concealment(target: ScanTarget) -> Iterator[Finding]:
     for span in _spans(target, INJECTION_PATTERNS["GR011"]):
         if _prohibited_in_clause(target.text, span[0]):
             continue  # "Never silently add scope": the sentence forbids it
+        if _hygiene_omission(target.text, span):
+            continue  # "If a token appears, do not log it": data hygiene
         if _MODAL_BEFORE.search(target.text[max(0, span[0] - 12) : span[0]]):
             continue  # "operations either silently run on CPU": a description, not an order
         kind = classify(target, span)
@@ -523,7 +546,8 @@ def _negated_before(text: str, start: int) -> bool:
 
 _CLAUSE_END = re.compile(r"[.;:!?\n]")
 _PROHIBITION = re.compile(
-    r"(?:never|do\s+not|don'?t|must\s+not|should\s+not|shouldn'?t|mustn'?t|avoid|nunca|evita"
+    r"\b(?:never|do\s+not|don'?t|must\s+not|should\s+not|shouldn'?t|mustn'?t|avoid|nunca|evita|evite"
+    r"|jamais|niemals|nie|vermeide|vermeiden"
     r"|rather\s+than|instead\s+of|does\s+not|doesn'?t|cannot|can'?t|won'?t)\s+(?:[a-z']+\s+){0,8}$",
     re.IGNORECASE,
 )

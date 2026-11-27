@@ -109,10 +109,69 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\bhide\s+(?:this|the)\s+(?:from|output)",
         r"\bno\s+(?:se\s+lo\s+)?(?:digas|menciones|muestres)\s+al\s+usuario",
         r"\bsin\s+avisar\s+al\s+usuario",
+        # hiding by omission: "leave the extra call out of the report", "do not log it"
+        r"\b(?:omit|exclude|suppress|drop|redact)\s+(?:this|that|these|those|it|them)\s+(?:from|in)\s+"
+        r"(?:the\s+|your\s+|any\s+|all\s+)?(?:final\s+|written\s+)?(?:summary|summaries|report|reports"
+        r"|log|logs|output|message|reply|response|description|changelog|history|transcript|recap)\b",
+        r"\b(?:leave|keep)\s+(?:this|that|these|those|it|them|(?:the\s+)?(?:extra|additional|background"
+        r"|hidden|network|silent)\s+\w+(?:\s+\w+)?)\s+out\s+of\s+(?:the\s+|your\s+|any\w*\s+|all\s+)?"
+        r"(?:final\s+|written\s+)?(?:summary|report|log|logs|output|message|reply|response|description"
+        r"|changelog|history|transcript|recap|anything\s+you\s+(?:say|write|log|report))",
+        r"\bdo(?:\s+not|n'?t)\s+(?:include|list|record|log|mention|put|write)\s+(?:(?:this|that|these"
+        r"|those)(?:\s+\w+)?|it|them)\s+(?:in|on|to)\s+(?:the\s+|your\s+|any\s+)?(?:final\s+)?(?:summary|report|log|logs"
+        r"|output|message|reply|response|description|changelog|history|transcript|recap)\b",
+        r"\b(?:delete|clear|wipe|erase|scrub|purge)\s+(?:the\s+|your\s+|all\s+)?(?:(?:shell|command|bash"
+        r"|zsh|terminal|session)\s+history|history\s+of\s+(?:the\s+)?(?:shell|commands|session)"
+        r"|traces|audit\s+trail)\b",
+        r"\bso\s+(?:that\s+)?(?:the\s+)?(?:reviewers?|users?|maintainers?|nobody|no\s+one|anyone|people"
+        r"|they)\s+(?:does\s*n[o']t|do\s*n[o']t|won'?t|will\s+not|can(?:not|'t))\s+(?:notice|see"
+        r"|find\s+out|realize|spot|catch)",
+        r"\bno\s+need\s+to\s+(?:bother|tell|inform|notify|trouble|mention)\b[^.;!?\n]{0,25}?\buser\b",
+        # German
+        r"\b(?:erw[äa]hne|sage|sag|nenne|zeige|teile|melde|berichte|informiere|benachrichtige|verrate)\s+"
+        r"(?:es\s+|das\s+|dies\s+|davon\s+)?(?:dem|den)\s+(?:Benutzer|Nutzer|User|Anwender)"
+        r"(?:\s+gegen[üu]ber)?\s+(?:nicht|niemals|nie|nichts)\b",
+        r"\bverschweig\w*\s+(?:es\s+|das\s+|dies\s+)?(?:dem|den)\s+(?:Benutzer|Nutzer|User|Anwender)\b"
+        r"(?!\s+(?:niemals|nie|nicht|keine?n?)\b)",
+        r"\bohne\s+(?:den|dem)\s+(?:Benutzer|Nutzer|User)\s+(?:zu\s+(?:informieren|benachrichtigen"
+        r"|warnen)|Bescheid\s+zu\s+geben)",
+        r"\b(?:der|dem)\s+(?:Benutzer|Nutzer)\s+(?:muss|braucht|soll)\s+(?:davon\s+|das\s+)?"
+        r"(?:nichts|nicht)\s+(?:zu\s+)?(?:wissen|erfahren|mitbekommen)\b",
+        r"\blass\w*\s+(?:das|dies|es|diese\w*)\b[^.;!?\n]{0,40}?\b(?:Zusammenfassung|Bericht|Protokoll"
+        r"|Log|Ausgabe|Antwort)\w*\s+weg\b",
+        r"\bl(?:ö|oe)sch\w*\b[^.;!?\n]{0,30}?\b(?:(?:Shell|Bash|Befehls|Terminal)[- ]?"
+        r"(?:Verlauf|Historie)|(?:Verlauf|Historie)\s+der\s+(?:Shell|Bash|Befehle|Sitzung)|Spuren)\b",
+        # Portuguese
+        r"\bn[ãa]o\s+(?:(?:lhe|o|a)\s+)?(?:diga|conte|mencione|mostre|informe|avise|revele|comunique"
+        r"|fale)\b[^.;!?\n]{0,20}?\b(?:ao|para\s+o|o)\s+usu[áa]rio\b"
+        r"(?!\s+que\b(?!\s+(?:voc[eê]|tu|eu|isso|foi|fez|executou|instalou|rodou)))",
+        r"\bsem\s+(?:avisar|informar|notificar|alertar)\s+o\s+usu[áa]rio\b",
+        r"\b(?:oculte|esconda|omita)\s+(?:isso|isto|esta\s+\w+|essa\s+\w+)?\s*(?:d[oa]|ao)\s+usu[áa]rio\b",
+        r"\bo\s+usu[áa]rio\s+n[ãa]o\s+(?:precisa|deve|tem\s+que)\s+(?:saber|ser\s+(?:informado|avisado))",
+        r"\bmantenha\s+(?:isso|isto|essa\s+\w+)\s+(?:em\s+segredo|entre\s+n[óo]s|em\s+sigilo)",
+        r"\b(?:omita|n[ãa]o\s+inclua|n[ãa]o\s+registre|deixe\s+de\s+fora)\s+(?:isso|isto|essa\s+\w+"
+        r"|este\s+\w+)\s+(?:d[oa]|no|na|nos)\s+(?:resumo|relat[óo]rio|log|registro|hist[óo]rico"
+        r"|mensagem|descri[çc][ãa]o)",
+        # French
+        r"(?<!\bne\s)(?<!\bn['’])\b(?:cache[zrs]?|dissimule[zrs]?|omets|omettez)\b"
+        r"(?!\s+(?:jamais|rien|pas)\b)[^.;!?\n]{0,25}?\b[àa]\s+l['’]utilisateur",
+        r"\bl['’]utilisateur\s+n['’]a\s+pas\s+besoin\s+de\s+(?:le\s+|en\s+)?(?:savoir|conna[iî]tre)",
+        r"\bgarde[zs]?\s+(?:cela|ceci|ça|ca)\s+(?:pour\s+(?:toi|vous)|secret|entre\s+nous)",
+        r"\b(?:omets|omettez|exclus|excluez|ne\s+(?:le\s+|la\s+)?(?:mentionne|mentionnez|consigne"
+        r"|consignez|note|notez|inclus|incluez)\s+pas)\b[^.;!?\n]{0,30}?\b(?:dans|du|de\s+la)\s+"
+        r"(?:le\s+|la\s+|l['’])?\s*(?:r[ée]sum[ée]|compte[- ]rendu|rapport|journal|log|historique)",
+        # Spanish, more variants
+        r"\bel\s+usuario\s+no\s+(?:necesita|tiene\s+que|debe)\s+saber",
+        r"\bmant[eé]n(?:lo|\s+esto|\s+eso)?\s+en\s+secreto",
+        r"\bsin\s+que\s+(?:el\s+usuario|nadie)\s+(?:lo\s+)?(?:sepa|note|se\s+entere|vea)",
+        r"\boculta\s+(?:esto|eso|lo\s+\w+)\s+al\s+usuario",
+        r"\b(?:omite|omitir|omita|excluye|no\s+(?:lo|la|esto|eso)\s+(?:incluyas|menciones|registres"
+        r"|anotes|pongas)|deja\s+(?:esto|eso|lo)\s+fuera)\b[^.;!?\n]{0,30}?\b(?:del?|en\s+(?:el|la))\s+"
+        r"(?:resumen|informe|reporte|log|registro|historial|mensaje|descripci[oó]n)",
         # "no le cuentes / menciones / muestres / informes al usuario"; "... que" is wording advice
         r"\bno\s+(?:se\s+lo\s+|le\s+|se\s+)?(?:dig(?:as|a)|cuent(?:es|e)|mencion(?:es|e)"
         r"|muestr(?:es|e)|inform(?:es|e)|revel(?:es|e)|comuniqu(?:es|e))\s+(?:nada\s+|esto\s+|eso\s+)?"
-        r"(?:al|a\s+el)\s+usuario\b(?!\s+que\b)",
+        r"(?:al|a\s+el)\s+usuario\b(?!\s+que\b(?!\s+(?:t[úu]|usted|has|hiciste|ejecutaste|se)\b))",
         r"\b(?:sube|subir|env[ií]a|enviar|copia|copiar|borra|borrar|elimina|eliminar|filtra|filtrar)\b"
         r"[^.;!?\n]{0,40}?\b(?:en\s+silencio|a\s+escondidas|en\s+secreto|silenciosamente)\b",
         r"\bne\s+(?:le\s+)?(?:dis|dites|montre|montrez|mentionne|mentionnez)\s+pas\s+[àa]"
@@ -121,7 +180,8 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         # paraphrases: "keep this between us", "the user does not need to know about this"
         r"\bkeep\s+this\s+(?:between\s+us|to\s+yourself|secret|private|quiet|confidential)\b",
         r"\bthe\s+user\s+(?:does\s+not|doesn'?t|should\s+not|shouldn'?t|must\s+not|mustn'?t|need\s+not"
-        r"|needn'?t)\s+(?:need\s+to\s+)?(?:know|find\s+out|learn|see|be\s+(?:told|informed))\s+"
+        r"|needn'?t)\s+(?:need\s+to\s+)?(?:know|find\s+out|learn|see|hear\s+about|be\s+(?:told|informed"
+        r"|notified|bothered|aware))\s+"
         r"(?:about\s+)?(?:this|that|it|these|those)\b",
         r"\b(?:do\s+not|don'?t)\s+let\s+the\s+user\s+(?:know|see|find\s+out|notice)\b",
         r"\bwithout\s+the\s+user\s+(?:knowing|noticing|seeing)\b",

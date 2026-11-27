@@ -177,6 +177,14 @@ finding says so in its message. GR012 has its own context rules and does not use
 `do not (tell|inform|mention|show|reveal)( this)? (to )?the user`, `without (telling|notifying) the user`,
 `(silently|secretly|quietly) (run|execute|add|send|install|modify)`, `don't mention (this|these)`,
 `hide (this|the) (from|output)`, ES: `no (se lo )?(digas|menciones|muestres) al usuario`, `sin avisar al usuario`.
+Since 0.6 concealment is read by category and in five languages (English, Spanish, French, German,
+Portuguese): not telling or informing the user (`no need to inform the user`, `verschweige dem Nutzer`,
+`não conte ao usuário`, `l'utilisateur n'a pas besoin de le savoir`), leaving an action out of the
+summary, report, log or changelog (`leave the extra call out of your final report`, `omite este paso del
+resumen`), covering tracks (`delete the shell history`, `lösche den Shell-Verlauf`) and stealth framing
+(`so that reviewers do not notice`). A prohibition in any of those languages (`nunca`, `jamais`,
+`niemals`, `evite`…) and omission sentences about secrets or personal data (`omit secrets from the log`)
+are not reported; a UI feature that happens to be called "Clear History" is not covering tracks.
 Since 0.6 Spanish `no le cuentes / menciones / muestres / informes / reveles al usuario` and
 `sube en silencio …` are matched (`no le digas al usuario que reinicie` is wording advice and is not),
 and `silently upload|forward|exfiltrate|collect|leak|delete|copy`. Also `keep this between us`, `the user does not need to know about this`, `don't let the
