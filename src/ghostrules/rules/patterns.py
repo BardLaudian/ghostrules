@@ -42,10 +42,15 @@ _SENSITIVE_PATH = (
 
 SENSITIVE_PATH_RE = re.compile(_SENSITIVE_PATH, re.IGNORECASE)
 
+# "the contents of the environment": the whole environment, not one named variable
+_ENV_CONTENTS = r"(?:contents?\s+of\s+|dump\s+of\s+)(?:the\s+|your\s+)?(?:environment|env)\b"
 _EXFIL_PATTERNS_EN = _compile(
     r"!\[[^\]]*\]\(https?://[^)\s]*[?&][^=\s)]+=(?:\{|\$|%7B|<)",
-    rf"{_EXFIL_VERB}.{{0,80}}?{_SECRET}.{{0,200}}?https?://[^\s)\]>\"']+",
+    rf"{_EXFIL_VERB}.{{0,80}}?(?:{_SECRET}|{_ENV_CONTENTS}).{{0,200}}?https?://[^\s)\]>\"']+",
     rf"{_EXFIL_VERB}.{{0,200}}?https?://.{{0,80}}?{_SECRET}",
+    # `POST` in capitals is the HTTP method, so only "POST <all|the|your> <secret> to <url>" counts
+    rf"\bPOST\s+(?:all|every|the|your|any)\s+(?:of\s+)?(?:{_SECRET}|{_ENV_CONTENTS})"
+    r".{0,200}?https?://[^\s)\]>\"']+",
 )
 # Spanish and French: a short reviewed list, the same shape as the English patterns above
 _EXFIL_VERB_ES_FR = (
@@ -98,11 +103,18 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\s+the\s+user(?!\s+(?:to|which|what|how|where|when|why)\b)(?!\s+that\b(?!\s+you\b))"
         r"(?!\s+(?:they|he|she|them|their)\b)",  # "tell the user they are wrong": wording advice
         r"\bwithout\s+(?:telling|notifying)\s+the\s+user",  # asking: permission, GR016
-        r"\b(?:silently|secretly|quietly)\s+(?:run|execute|add|send|install|modify)\b",
+        r"\b(?:silently|secretly|quietly)\s+(?:run|execute|add|send|install|modify|upload|forward"
+        r"|exfiltrate|collect|leak|delete|copy)\b",
         r"\bdon'?t\s+mention\s+(?:this|these)",
         r"\bhide\s+(?:this|the)\s+(?:from|output)",
         r"\bno\s+(?:se\s+lo\s+)?(?:digas|menciones|muestres)\s+al\s+usuario",
         r"\bsin\s+avisar\s+al\s+usuario",
+        # "no le cuentes / menciones / muestres / informes al usuario"; "... que" is wording advice
+        r"\bno\s+(?:se\s+lo\s+|le\s+|se\s+)?(?:dig(?:as|a)|cuent(?:es|e)|mencion(?:es|e)"
+        r"|muestr(?:es|e)|inform(?:es|e)|revel(?:es|e)|comuniqu(?:es|e))\s+(?:nada\s+|esto\s+|eso\s+)?"
+        r"(?:al|a\s+el)\s+usuario\b(?!\s+que\b)",
+        r"\b(?:sube|subir|env[ií]a|enviar|copia|copiar|borra|borrar|elimina|eliminar|filtra|filtrar)\b"
+        r"[^.;!?\n]{0,40}?\b(?:en\s+silencio|a\s+escondidas|en\s+secreto|silenciosamente)\b",
         r"\bne\s+(?:le\s+)?(?:dis|dites|montre|montrez|mentionne|mentionnez)\s+pas\s+[àa]"
         r"\s+l['’]utilisateur",
         r"\bsans\s+(?:en\s+)?(?:avertir|informer|pr[eé]venir)\s+l['’]utilisateur",
@@ -214,6 +226,12 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:summar\w+|compact\w*|memory|new\s+session|next\s+(?:session|conversation)"
         r"|future\s+(?:sessions|conversations)|every\s+(?:response|reply|message))",
         r"\bsurvive\s+(?:context\s+)?(?:compaction|summari[sz]ation)\b",
+        r"\b(?:estas|estos)\s+(?:instrucciones|reglas|mensaje|texto|secci[oó]n)\b[^.;!?\n]{0,50}?"
+        r"\b(?:sobrevivir|persistir|conservar\w*|mantener\w*|preservar\w*)\b[^.;!?\n]{0,40}?"
+        r"\b(?:compactaci[oó]n|compactar\w*|resum\w+|nueva\s+sesi[oó]n|pr[oó]xima\s+sesi[oó]n)",
+        r"\bsobreviv\w+\s+a\s+la\s+(?:compactaci[oó]n|resumen)\b",
+        r"\b(?:copia|incluye|repite|conserva)\b[^.;!?\n]{0,30}?\b(?:este|estas|estos)\s+(?:mensaje|instrucciones"
+        r"|reglas|texto)\b[^.;!?\n]{0,60}?\b(?:resumen|resumes|compactaci[oó]n|memoria|cada\s+respuesta)",
     ),
 }
 

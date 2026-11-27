@@ -130,7 +130,7 @@ def _is_catalog(target: ScanTarget) -> bool:
 
 # Phrases with no ordinary use in an instruction file, however they are worded: shown at medium
 # there, because the default view must not hide them. Examples and catalogues stay at info.
-_ROOT_PROSE_RULES = frozenset({"GR010", "GR011"})
+_ROOT_PROSE_RULES = frozenset({"GR010", "GR011", "GR033"})
 _EXAMPLE_NOTE = "an example or a quotation"
 
 

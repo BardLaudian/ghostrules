@@ -184,6 +184,26 @@ def _in_ranges(ch: str, ranges: tuple[tuple[int, int], ...]) -> bool:
     return any(lo <= cp <= hi for lo, hi in ranges)
 
 
+# An invisible math operator is typography only between math tokens (a function name before a
+# parenthesis, a number before a variable). Inside a word it splits a keyword, so it is reported.
+_MATH_OPERATORS: dict[str, re.Pattern[str]] = {
+    "\u2061": re.compile(r"(?<![A-Za-z])[A-Za-z]{1,6}\u2061(?=[(\[])"),
+    "\u2062": re.compile(r"(?<![A-Za-z])[A-Za-z0-9)]\u2062(?=[A-Za-z0-9(])(?![A-Za-z]{2})"),
+    "\u2063": re.compile(r"(?<![A-Za-z])[A-Za-z0-9]\u2063[A-Za-z0-9](?![A-Za-z])"),
+    "\u2064": re.compile(r"\d\u2064\d"),
+}
+
+
+def _is_math_operator(text: str, start: int) -> bool:
+    pattern = _MATH_OPERATORS.get(text[start])
+    if pattern is None:
+        return False
+    window_start, window_end = max(0, start - 8), min(len(text), start + 4)
+    return any(
+        m.start() <= start < m.end() for m in pattern.finditer(text, window_start, window_end)
+    )
+
+
 def _is_legit_joiner(text: str, start: int, end: int) -> bool:
     """A lone ZWJ/ZWNJ that has a real job: emoji sequences, Persian and Indic scripts.
 
@@ -192,6 +212,8 @@ def _is_legit_joiner(text: str, start: int, end: int) -> bool:
     """
     if end - start != 1:
         return False
+    if _is_math_operator(text, start):
+        return True
     ch = text[start]
     prev = text[start - 1] if start > 0 else ""
     nxt = text[end] if end < len(text) else ""

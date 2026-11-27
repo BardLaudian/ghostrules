@@ -39,6 +39,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   when worded as a description). Documentation, examples, quotations and attack catalogues stay at
   `info`; `--lenient` keeps `low`.
 
+- **Detection gaps closed.** GR011: Spanish `no le cuentes / menciones / muestres / informes al
+  usuario`, `sube en silencio …`, and `silently upload|forward|exfiltrate|…`. GR013: "the contents of
+  the environment" and `POST all environment variables to <url>`. GR033: Spanish, and shown at
+  `medium` in a root instruction file. GR005 now reports a hidden comment with a silent order.
+- **GR003 no longer flags a single invisible math operator** between math tokens (function application and invisible times); inside a word or in a run it is still reported.
+
 ### Tests
 
 - **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in
