@@ -26,6 +26,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **GR004 now reports two variation selectors in a row** (it was three). A single selector after an
   emoji or an ideograph is still fine. `reveal` and the lock use the same threshold.
 
+- **Severity by context.** Prose in documentation (`docs/`, `examples/`, `tests/`…) or under a heading
+  that lists attacks is `info`; hidden, decoded and imported text keeps its severity. A finding in a
+  user-level file read with `--home` is raised one level.
+
 ### Tests
 
 - Metamorphic tests: `examples/poisoned-repo` rewritten as CRLF, with a BOM, with trailing tabs,
