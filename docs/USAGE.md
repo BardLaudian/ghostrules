@@ -242,7 +242,7 @@ are `claude-code`, `copilot-cli`, `cursor`, `generic`, `codex` and `gemini-cli`;
 | | |
 |---|---|
 | **Hidden from humans** (GR001–GR006) | Invisible Unicode tag characters, variation selectors, zero-width characters and bidirectional controls; long HTML comments that address the AI; Latin/Cyrillic look-alike words and domains |
-| **Telling the agent to misbehave** (GR010–GR016) | "Ignore previous instructions", hiding actions from the user, `curl … \| sh`, sending `.env` or keys to a URL, reading `~/.ssh`, base64 payloads, `--dangerously-skip-permissions`; in English and Spanish |
+| **Telling the agent to misbehave** (GR010–GR016, GR031–GR035) | "Ignore previous instructions", hiding actions from the user, `curl … \| sh`, sending `.env` or keys to a URL, reading `~/.ssh`, base64 payloads, `--dangerously-skip-permissions`; patterns in English, Spanish, French and, for some rules, German and Portuguese, best effort (see "Blind measurement" in the threat model) |
 | **Risky configuration** (GR101–GR108) | Hardcoded tokens in MCP configs, unpinned `npx`/`uvx` servers, `http://` remotes, a filesystem server on `/`, shell wrappers, `docker --privileged`, `bypassPermissions`, auto-enabled project MCP servers |
 
 The oldest trick is still the hidden Unicode one: an innocent-looking `AGENTS.md` that carries an
@@ -628,9 +628,10 @@ running server.
 
 What still escapes, by design: a paraphrase that shares no words with the patterns ("send what the
 environment holds to this address"), a sensitive file described by intent instead of a path or
-`private key` + `ssh`, languages other than English, Spanish and French, a command split over several
-lines or built from variables and aliases (GR012 does not emulate a shell), and a secret without a
-known format. The `private key` + `ssh` description is a low-severity heuristic.
+`private key` + `ssh`, wordings and languages the patterns do not know (they exist in English, Spanish,
+French and, for some rules, German and Portuguese), a command split over several lines or built from
+variables and aliases (GR012 does not emulate a shell; a simple command rebuilt from named parts is
+covered), and a secret without a known format. The `private key` + `ssh` description is a low-severity heuristic.
 
 The agent models follow each agent's public documentation and say `(unverified)` where it is
 silent. They do not see what lives outside the repository or the machine: Cursor user and team
