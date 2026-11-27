@@ -230,18 +230,30 @@ _USER_ASKS_FOR_IT = re.compile(
     r"\b(?:user|you|they)(?:['\u2019]s)?\s+(?:\w+\s+){0,2}?"
     r"(?:says?|asks?|requests?|wants?|instructs?|instruction|tells?|passes?|specif\w+|chooses?"
     r"|selects?|opts?|types?)\b[^.;!?,:\n]{0,25}$"
-    r"|\b(?:mode|option|flag)\b[*_`:\s-]{0,6}$",
+    r"|\b(?:mode|option|flag)\b[*_`:,)\s\"'\u201d-]{0,8}$",
     re.IGNORECASE,
 )
+# What is skipped decides, not the framing: a user's or a mode's "skip review" never covers the
+# review of the agent files, the lock or the scanner.
+_GUARDED_OBJECT = re.compile(
+    r"\bagents?\s+(?:instruction\s+)?files?\b|\binstruction\s+files?\b"
+    r"|\b(?:AGENTS|CLAUDE|GEMINI|SKILL)\.md\b|\.cursorrules|copilot-instructions|\bghostrules\b"
+    r"|\block\s?file\b|\.claude\b|\.cursor\b",
+    re.IGNORECASE,
+)
+_SENTENCE_END = re.compile(r"[.;!?\n]")
 
 
 def _offers_a_choice(text: str, offset: int) -> bool:
     start = text.rfind("\n", 0, offset) + 1
     end = text.find("\n", offset)
-    return (
-        _OFFERS_A_CHOICE.search(text[start : len(text) if end == -1 else end]) is not None
-        or _USER_ASKS_FOR_IT.search(text[max(start, offset - 90) : offset]) is not None
-    )
+    if _OFFERS_A_CHOICE.search(text[start : len(text) if end == -1 else end]):
+        return True
+    if not _USER_ASKS_FOR_IT.search(text[max(start, offset - 90) : offset]):
+        return False
+    before = max((m.end() for m in _SENTENCE_END.finditer(text, start, offset)), default=start)
+    after = _SENTENCE_END.search(text, offset + 1)
+    return _GUARDED_OBJECT.search(text[before : after.start() if after else len(text)]) is None
 
 
 def _directive_findings(
