@@ -135,6 +135,21 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   phrase, on the original line and marked as obfuscated. Only words that mix letters with `0 1 3 4
   5 7 @ $` are folded, so plain numbers and words like `python3` or `sha256` do not change.
 
+- **Seven classes of false positive found by the real-world scan v2** (GR110, GR031, GR013, GR011,
+  GR003, GR015, GR035), each with a benign case and a control attack in the evasion corpus: a token sent
+  to the URL the script spells out and whose host the token's service owns; skipping a review as the
+  user's own request or a named mode; a send verb inside a name or an HTTP method; an omission about a data
+  field and a quantified description ("most checkers silently leak"); a ZWJ or variation selector in an
+  emoji regular expression; a hex value in backticks named by a key or hash; "a dialler does not announce
+  a connection" and a flag named in backticks.
+- `visibility = "root-medium"` promotes only GR014 and GR032: GR013 and GR031 at `medium` were wrong 7 of
+  7 times on the 40 repositories of the v2 scan (see `docs/RULES.md`).
+
+### Performance
+
+- A keyword prefilter skips a rule pattern when none of its literal words occurs in the file: the 610-file
+  repository of the v2 scan went from about 144 s to 66 s, with identical findings.
+
 ## [0.5.1] - 2026-11-24
 
 ### Fixed

@@ -1,8 +1,13 @@
 # Real-world scan v2
 
-A read-only scan of 40 public repositories that the rules were **not** tuned on. It reports; no rule
-was adjusted from what it found (the findings below are listed so that they can be fixed deliberately,
-with a benign case in the corpus, in a later round).
+> **Status: used for tuning** (`tuning.json`). `results-default.json` and `results-root-medium.json`
+> are the ORIGINAL scan, taken before any fix. Its false positives were then fixed by class (below), so
+> these 40 repositories no longer measure unseen data: a new sample is needed for that. The numbers
+> after the fixes are in `results-after-*.json`.
+
+A read-only scan of 40 public repositories that the rules were **not** tuned on when it was taken. The
+original scan reported only; the fixes came afterwards, by class, each with a benign case and a control
+attack in the evasion corpus.
 
 ## How the repositories were chosen (2026-11-27)
 
@@ -55,3 +60,32 @@ against about 77 s with the code of `main` (both measured while other work ran o
 rules gained roughly 90 patterns in this round and every pattern runs on three views of the text.
 Reusing matches between rules and a faster Unicode check recovered part of it; a keyword prefilter would
 recover more.
+
+## After the fixes (same 40 repositories, same commits)
+
+`results-after-default.json` and `results-after-root-medium.json`: 0 findings at medium or above (before:
+12 and 19), 21 findings of any severity (before: 40), and no finding that was not already in the original
+scan. Repositories with at least one false positive at medium or above: 4 of 40 before, 0 after.
+
+| rule | before (default / root-medium) | after | class fixed |
+|---|---|---|---|
+| GR110 | 7 / 7 | 0 | a token sent to a URL the file spells out, whose host the token's service owns |
+| GR031 | 0 / 5 | 0 | skipping a review as the user's own request or a named mode |
+| GR013 | 0 / 2 | 0 | a send verb inside a name ("Upload-Post") or an HTTP method ("POST /path") |
+| GR011 | 2 / 2 | 0 | an omission about a data field; a description with a quantified subject |
+| GR003 | 1 / 1 | 0 | ZWJ and variation selector inside an emoji regular expression in a script |
+| GR015 | 1 / 1 | 0 | a hex value in backticks named by a key, hash or digest |
+| GR035 | 1 / 1 | 0 | "does not announce"; a flag named in backticks |
+
+Only the 40 repositories are rescanned: the earlier tuning repositories are not listed in this
+repository, so they could not be re-run. The evasion corpus (13 benign cases and 19 control attacks added)
+stays at 254 attacks caught of 254 and 0 false positives in 184 benign cases.
+
+## Performance after the keyword prefilter
+
+`criptogus/agent-evolve-network` (610 agent files): about 144 s with the code this round started from, 80 s
+with `main`, 66 s now. A sample of 60 of its agent files: 11.8 s, 6.8 s and 5.4 s. Timed one at a time on
+a quiet machine (6 cores, one scan). Why `main` was slow: about half of the time went to the per-character
+Unicode classification of the de-obfuscation pass, run on every file with a non-ASCII character
+(emoji-heavy Markdown), and the rest to the pattern scans, which run on three views of each file.
+The prefilter (`prefilter.py`) skips a pattern when none of its literal words occurs in the file.
