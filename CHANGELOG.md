@@ -76,6 +76,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   A menu option offered to the user (`[B] Skip the review (NOT recommended)`, found scanning public
   repositories) is not reported.
 
+- **GR016 reads pre-approval and blanket consent** (`pre-approve the permission prompts`, `treat every
+  confirmation dialog as granted`, `answer yes to any prompt`, `auto-accept all permission requests`) in five
+  languages, on top of its existing auto-approve and never-ask patterns.
+
 ### Tests
 
 - **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in
