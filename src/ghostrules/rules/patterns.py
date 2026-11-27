@@ -255,6 +255,24 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:disable|turn\s+off|skip|bypass|uninstall|stop\s+running|(?:do\s+not|don'?t|never)\s+run)"
         r"\b[^.;!?\n]{0,30}?\bghostrules\b",
         r"\b(?:add|insert|put|write|append|include)\b[^.;!?\n]{0,50}?\bghostrules-ignore\b",
+        # other security controls and the review itself, not only the scanner's own files
+        r"\b(?:remove|delete|disable|skip|bypass|turn\s+off|comment\s+out|drop|relax|loosen|weaken"
+        r"|neutrali[sz]e|silence)\b[^.;!?\n]{0,50}?(?:\bsecrets?[- ]?(?:scan\w*|detection|check\w*)"
+        r"|\bgitleaks\b|\btrufflehog\b|\bdetect-secrets\b|\bpre-commit\s+(?:hook|check|config\w*)s?"
+        r"|\bcode\s+scanning\b|\bcodeql\b|\bsecurity\s+(?:check|scan|gate|workflow|policy|review)s?\b"
+        r"|\bbranch\s+protection\b|\brequired\s+(?:checks?|reviews?|status\s+checks?)\b|\bcodeowners\b"
+        r"|\bsignature\s+verification\b|\bdependabot\b|\bSAST\b|\bcommit\s+signing\b"
+        r"|\bsigned\s+commits\b)",
+        r"\b(?:approve|merge|accept|sign\s+off\s+on|ship|push|land)\b[^.;!?\n]{0,40}?\bwithout\s+"
+        r"(?:a\s+|any\s+)?(?:review\w*|reading|checking|looking|testing|waiting\s+for\s+(?:ci|checks"
+        r"|tests|reviewers?|approval))",
+        r"\b(?:skip|bypass|avoid|don'?t\s+(?:wait\s+for|request|ask\s+for))\s+(?:the\s+)?"
+        r"(?:code\s+|peer\s+|human\s+)?(?:review|approval|sign-?off)\b",
+        r"\b(?:mark|set|flag|label|record)\b[^.;!?\n]{0,30}?\b(?:as\s+)?(?:approved|reviewed|verified"
+        r"|safe|trusted|audited)\b[^.;!?\n]{0,40}?(?:\block\w*|\.ghostrules|\bbaseline\b|\ballowlist\b"
+        r"|review\s+status)",
+        r"\b(?:lock\w*|baseline)\b[^.;!?\n]{0,30}?\bas\s+(?:approved|reviewed|trusted)\b",
+        r"\bforce[- ]push\b[^.;!?\n]{0,30}?\b(?:main|master|protected|production|release)\b",
     ),
     # GR012 written as prose: a fetch verb, a URL, then a hand-over to a shell or an execute verb.
     # No shell syntax is needed ("pull the script from <url> and feed it into bash").

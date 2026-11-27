@@ -190,13 +190,27 @@ def gr011_concealment(target: ScanTarget) -> Iterator[Finding]:
 # --- GR031-GR033: instructions that attack the review of the agent files ---------------------
 
 
+# "[B] Skip the review - accept the risk (NOT recommended)" is an option offered to the user.
+_OFFERS_A_CHOICE = re.compile(
+    r"^[ \t]*(?:[-*][ \t]*)?`?\[[A-Za-z0-9]\]|\bnot\s+recommended\b|\bdiscouraged\b"
+    r"|\bat\s+your\s+own\s+risk\b",
+    re.IGNORECASE,
+)
+
+
+def _offers_a_choice(text: str, offset: int) -> bool:
+    start = text.rfind("\n", 0, offset) + 1
+    end = text.find("\n", offset)
+    return _OFFERS_A_CHOICE.search(text[start : len(text) if end == -1 else end]) is not None
+
+
 def _directive_findings(
     target: ScanTarget, rule_id: str, title: str, message: str, fix_hint: str
 ) -> Iterator[Finding]:
     """High for an instruction, lower for a description or an example; a prohibition ("Never
     delete the lock") is skipped."""
     for span in _spans(target, INJECTION_PATTERNS[rule_id]):
-        if _prohibited_in_clause(target.text, span[0]):
+        if _prohibited_in_clause(target.text, span[0]) or _offers_a_choice(target.text, span[0]):
             continue
         kind = classify(target, span)
         yield _finding(
@@ -226,7 +240,7 @@ def gr031_tamper(target: ScanTarget) -> Iterator[Finding]:
         target,
         "GR031",
         "Review of the agent files switched off",
-        "Tells the agent to bypass the review of the files it reads",
+        "Tells the agent to bypass a review or switch off a security control",
         "Remove the instruction; changes to agent files must be reviewed by a person.",
     )
 
