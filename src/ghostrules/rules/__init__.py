@@ -2,6 +2,7 @@
 
 from ghostrules.rules import (
     agent_settings,
+    combined,
     context_rules,
     injection,
     mcp,
@@ -15,6 +16,7 @@ from ghostrules.rules.registry import Rule, all_rules, get_rule, register, rule
 __all__ = [
     "Rule",
     "agent_settings",
+    "combined",
     "context_rules",
     "all_rules",
     "get_rule",

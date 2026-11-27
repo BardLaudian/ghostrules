@@ -86,6 +86,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   third party*. GR012 reads a command rebuilt from named parts. A payload spread over distant sections
   is not followed.
 
+- **GR035, combined weak signals (medium).** Two different classes of signal (action, remote target,
+  hiding, skipped authorisation) in one paragraph, one of them hiding or authorisation, are reported at
+  `medium` with the signals listed, even when each phrase alone would only be `low`. Prohibitions,
+  negated cues, paragraphs about attacks and documentation do not count. The scheme is in RULES.md.
+- Example and quotation detection also recognises `things like …` and `attackers write …`.
+
 ### Tests
 
 - **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in
