@@ -143,6 +143,13 @@ def _short(text: str) -> str:
     return text if len(text) <= 36 else text[:35] + "…"
 
 
+def _flag_mention(text: str, start: int, end: int) -> bool:
+    """A command-line flag named in backticks (``--dangerously-skip-permissions``) is mentioned,
+    not ordered; GR016 reports an order that uses it."""
+    quoted = text[start - 1 : start] == "`" and text[end : end + 1] == "`"
+    return quoted and text[start : start + 2] == "--"
+
+
 def _signals(
     target: ScanTarget, start: int, end: int, spans: dict[str, list[tuple[int, int]]]
 ) -> dict[str, list[Cue]]:
@@ -155,7 +162,11 @@ def _signals(
         *((k, "hide") for k in _HIDE_RULES),
         *((k, "authorization") for k in _AUTH_RULES),
     ):
-        found[kind] += [(a, _short(text[a:b])) for a, b in spans[key] if start <= a < end]
+        found[kind] += [
+            (a, _short(text[a:b]))
+            for a, b in spans[key]
+            if start <= a < end and not _flag_mention(text, a, b)
+        ]
     for base, raw in _sentences(text[start:end], start):
         sentence = _EMPHASIS.sub(" ", raw)  # same length, so offsets stay true
         if not _prohibits(sentence):

@@ -4,8 +4,13 @@ independently of the blind holdout set; the benign twins are ordinary guidance."
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 from _analyze import analyze
+
+from ghostrules.config import Config
+from ghostrules.scanner import scan_paths
 
 
 def reported(text: str, rule: str, *, file: str = "AGENTS.md") -> list[dict]:
@@ -465,3 +470,15 @@ def test_a_double_negation_is_still_an_order(rule: str, text: str) -> None:
 @pytest.mark.parametrize(("rule", "text"), REAL_PROHIBITIONS)
 def test_a_real_prohibition_is_still_not_reported(rule: str, text: str) -> None:
     assert reported(text, rule) == [], (rule, text)
+
+
+def test_a_flag_named_in_backticks_is_a_mention_not_a_signal(tmp_path: Path) -> None:
+    """GR035 counted ``--dangerously-skip-permissions`` as a skipped approval in a description."""
+    mention = (
+        "The terminal is for running something beside an agent. Plan mode is asked even under "
+        "`--dangerously-skip-permissions`, and the shell running there is the user's own.\n"
+    )
+    for text, expected in ((mention, False), (mention.replace("`", ""), True)):
+        (tmp_path / "AGENTS.md").write_text(text, encoding="utf-8")
+        found = {f.rule_id for f in scan_paths([tmp_path], Config()).findings}
+        assert ("GR035" in found) is expected
