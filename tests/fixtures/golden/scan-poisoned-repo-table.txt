@@ -123,7 +123,7 @@ AGENTS.md  4 findings ───────────────────�
   MEDIUM   GR102 Unpinned package execution                                                               .mcp.json:7:10
      7 │         "some-mcp-server@latest"                                                                               
   Server 'github' runs 'some-mcp-server@latest' without an exact version: whatever is published latest will execute with
-  your agent's access.                                                                                                  
+  your agent's access. The -y flag installs it without asking.                                                          
   fix  Pin an exact version, for example some-mcp-server@1.2.3.                                                         
 
   MEDIUM   GR104 Overly broad filesystem scope                                                           .mcp.json:21:10

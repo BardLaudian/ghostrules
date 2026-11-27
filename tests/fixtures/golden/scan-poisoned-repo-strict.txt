@@ -333,7 +333,7 @@ exit=1
       "rule_id": "GR102",
       "severity": "medium",
       "title": "Unpinned package execution",
-      "message": "Server 'github' runs 'some-mcp-server@latest' without an exact version: whatever is published latest will execute with your agent's access.",
+      "message": "Server 'github' runs 'some-mcp-server@latest' without an exact version: whatever is published latest will execute with your agent's access. The -y flag installs it without asking.",
       "path": ".mcp.json",
       "line": 7,
       "column": 10,

@@ -30,6 +30,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   that lists attacks is `info`; hidden, decoded and imported text keeps its severity. A finding in a
   user-level file read with `--home` is raised one level.
 
+- **MCP supply chain: GR109, GR114, GR115 and GR116.** GR109: a registry that is not npm or PyPI
+  (`--registry`, `--index-url`, `NPM_CONFIG_REGISTRY`…; high over http). GR114: `autoApprove` or
+  `alwaysAllow` set to `true` or `"*"`. GR115: a server bound to `0.0.0.0` or `::`. GR116: a package
+  name one typo away from a popular MCP server. GR102 now says when `-y` installs without asking.
+
 ### Tests
 
 - Metamorphic tests: `examples/poisoned-repo` rewritten as CRLF, with a BOM, with trailing tabs,

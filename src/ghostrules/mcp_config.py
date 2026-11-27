@@ -34,6 +34,7 @@ class ServerDef:
     url: str | None = None
     headers: Mapping[str, str] = field(default_factory=dict)
     trust: bool = False
+    auto_approve: bool = False
     spans: Mapping[str, Span] = field(default_factory=dict)
 
     def span(self, key: str) -> Span:
@@ -69,6 +70,10 @@ def _str_map(node: JNode | None, prefix: str, spans: dict[str, Span]) -> dict[st
     return out
 
 
+# Cline and Roo list the tools a server may use without asking; "*" or true means all of them.
+_AUTO_APPROVE_KEYS = ("autoApprove", "alwaysAllow", "auto_approve")
+
+
 def _server_from_json(name: str, key_start: int, node: JNode) -> ServerDef | None:
     if node.members is None:
         return None
@@ -97,6 +102,14 @@ def _server_from_json(name: str, key_start: int, node: JNode) -> ServerDef | Non
     trust = bool(trust_node and trust_node.value is True)
     if trust_node is not None:
         spans["trust"] = trust_node.start, trust_node.end
+    approve_node = next((node.get(k) for k in _AUTO_APPROVE_KEYS if node.get(k) is not None), None)
+    auto_approve = approve_node is not None and (
+        approve_node.value is True
+        or approve_node.value == "*"
+        or any(e.value == "*" for e in approve_node.elements or [])
+    )
+    if approve_node is not None:
+        spans["auto_approve"] = approve_node.start, approve_node.end
     return ServerDef(
         name=name,
         command=command,
@@ -105,6 +118,7 @@ def _server_from_json(name: str, key_start: int, node: JNode) -> ServerDef | Non
         url=url,
         headers=_str_map(node.get("headers"), "headers", spans),
         trust=trust,
+        auto_approve=auto_approve,
         spans=spans,
     )
 
