@@ -5,6 +5,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Tests
+
+- Metamorphic tests: `examples/poisoned-repo` rewritten as CRLF, with a BOM, with trailing tabs,
+  and its JSON minified, with reversed keys and with every string spelled as `\u` escapes gives the
+  same findings.
+
 ### Fixed
 
 - **GR010-GR016 match leetspeak.** `1gnore all prev1ous instruct1ons` is reported like the plain
