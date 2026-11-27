@@ -474,6 +474,27 @@ exit=1
               }
             },
             {
+              "id": "GR031",
+              "name": "Review of the agent files switched off",
+              "shortDescription": {
+                "text": "Review of the agent files switched off"
+              },
+              "fullDescription": {
+                "text": "Text telling the agent to approve changes, delete or silently regenerate the lock, disable the scanner or add ghostrules-ignore."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr031",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
               "id": "GR101",
               "name": "Hardcoded secret in agent config",
               "shortDescription": {

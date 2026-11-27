@@ -474,6 +474,27 @@ exit=1
               }
             },
             {
+              "id": "GR031",
+              "name": "Review of the agent files switched off",
+              "shortDescription": {
+                "text": "Review of the agent files switched off"
+              },
+              "fullDescription": {
+                "text": "Text telling the agent to approve changes, delete or silently regenerate the lock, disable the scanner or add ghostrules-ignore."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr031",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
               "id": "GR101",
               "name": "Hardcoded secret in agent config",
               "shortDescription": {
@@ -1019,7 +1040,7 @@ exit=1
             "security-severity": "9.5",
             "fixHint": "Reference an environment variable (for example ${GITHUB_TOKEN}) instead, and rotate this secret: it is exposed to everyone with access to the repository."
           },
-          "ruleIndex": 22
+          "ruleIndex": 23
         },
         {
           "ruleId": "GR105",
@@ -1050,7 +1071,7 @@ exit=1
             "security-severity": "9.5",
             "fixHint": "Launch the server binary directly with arguments instead of a shell command string."
           },
-          "ruleIndex": 26
+          "ruleIndex": 27
         },
         {
           "ruleId": "GR004",
@@ -1207,7 +1228,7 @@ exit=1
             "security-severity": "8.0",
             "fixHint": "Use https:// so traffic and credentials are encrypted."
           },
-          "ruleIndex": 24
+          "ruleIndex": 25
         },
         {
           "ruleId": "GR106",
@@ -1238,7 +1259,7 @@ exit=1
             "security-severity": "8.0",
             "fixHint": "Remove the option and mount only the specific directories the server needs."
           },
-          "ruleIndex": 27
+          "ruleIndex": 28
         },
         {
           "ruleId": "GR005",
@@ -1331,7 +1352,7 @@ exit=1
             "security-severity": "8.0",
             "fixHint": "Remove defaultMode or use a mode that asks for permission."
           },
-          "ruleIndex": 28
+          "ruleIndex": 29
         },
         {
           "ruleId": "GR107",
@@ -1362,7 +1383,7 @@ exit=1
             "security-severity": "8.0",
             "fixHint": "Allow only specific commands or domains, for example Bash(npm run test:*)."
           },
-          "ruleIndex": 28
+          "ruleIndex": 29
         },
         {
           "ruleId": "GR006",
@@ -1455,7 +1476,7 @@ exit=1
             "security-severity": "5.5",
             "fixHint": "Pin an exact version, for example some-mcp-server@1.2.3."
           },
-          "ruleIndex": 23
+          "ruleIndex": 24
         },
         {
           "ruleId": "GR104",
@@ -1486,7 +1507,7 @@ exit=1
             "security-severity": "5.5",
             "fixHint": "Restrict the server to the project directory, for example ${workspaceFolder}."
           },
-          "ruleIndex": 25
+          "ruleIndex": 26
         },
         {
           "ruleId": "GR108",
@@ -1517,7 +1538,7 @@ exit=1
             "security-severity": "5.5",
             "fixHint": "Remove it and approve project servers one by one."
           },
-          "ruleIndex": 29
+          "ruleIndex": 30
         },
         {
           "ruleId": "GR006",

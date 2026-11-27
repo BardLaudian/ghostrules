@@ -32,7 +32,7 @@ from ghostrules.targets import Candidate, discover, home_targets, matches_any
 from ghostrules.visibility import attack_findings, by_visibility
 
 # Invisible-character findings must never be silenceable from inside the scanned file.
-NEVER_SUPPRESS: frozenset[str] = frozenset({"GR001", "GR002", "GR030"})
+NEVER_SUPPRESS: frozenset[str] = frozenset({"GR001", "GR002", "GR030", "GR031"})
 
 _RULE_ID_RE = re.compile(r"GR\d{3}", re.IGNORECASE)
 
@@ -145,9 +145,9 @@ def unhonoured_markers(target: ScanTarget, policy: SuppressionPolicy | None) -> 
 def is_suppressed(finding: Finding, table: Suppressions, target: ScanTarget | None = None) -> bool:
     """Whether an inline marker silences this finding.
 
-    Never GR001, GR002 or GR030, and never a finding inside an HTML comment: the agent reads that
-    text and a reviewer looking at the rendered file does not, so a marker next to it cannot be
-    taken as the reviewer's approval."""
+    Never GR001, GR002, GR030 or GR031, and never a finding inside an HTML comment: the agent
+    reads that text and a reviewer looking at the rendered file does not, so a marker next to it
+    cannot be taken as the reviewer's approval."""
     if finding.rule_id in NEVER_SUPPRESS or finding.line not in table:
         return False
     if target is not None and target.in_html_comment(target.offset(finding.line, finding.column)):

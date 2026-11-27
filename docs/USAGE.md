@@ -148,7 +148,7 @@ ghostrules scan .                   # fails only on findings that are not in the
 finding, **not its line number** (so a line that moves stays baselined, and an edited line is a new
 finding). The file holds no snippet, so it cannot carry a secret; it lists rule, path and severity for
 a reviewer. A scan with a baseline leaves those findings out and says how many. Invisible characters
-(GR001), GR002, GR030 and anything decoded from hidden characters are listed but **never hidden**: a
+(GR001), GR002, GR030, GR031 and anything decoded from hidden characters are listed but **never hidden**: a
 baseline is a statement that someone read the finding, and nobody can read those.
 
 In a pull request the baseline is read from the base ref (`--baseline-from-ref`, which the Action
@@ -556,7 +556,7 @@ The same holds for any text an agent reads but a reviewer looking at the rendere
   that file together with the file that imports it. The report counts them. A file that is also an
   agent file (`AGENTS.md` imported by `CLAUDE.md`) keeps its ignores. An ignore in the importing
   file still covers findings on its own import lines.
-- GR030 (the scanner's own configuration changed) can never be suppressed either.
+- GR030 (the scanner's own configuration changed) and GR031 (an instruction that switches the review off) can never be suppressed either.
 
 Because configuration and ignore comments also come from the repository being scanned, a
 malicious pull request could try to switch rules off. The report therefore says when a config file
