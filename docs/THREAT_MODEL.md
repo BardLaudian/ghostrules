@@ -86,6 +86,34 @@ These are limits by design, not bugs. Several are listed in the limits of USAGE.
 "No findings" is therefore never "safe": it means none of the listed patterns matched in the files
 the model says the agent reads.
 
+## Known limitations
+
+Open gaps that a determined author can use today. They are not fixed because each fix would flag
+ordinary text in the real-world scans (`tests/realworld/v2/README.md`).
+
+- **An evasion left open: an own-service default that the environment can override (GR110).**
+  `os.environ.get("APIFY_BASE_URL", "https://api.apify.com")` followed by a send of `APIFY_TOKEN` is
+  read as the service's own call, because the file spells out its own domain. Whoever controls that
+  variable (a `.env` in the repository, a CI setting) gets the token, and the scanner does not read
+  the environment. A host the file spells out that is not the service's own domain is reported:
+  `apify.com` and `api.apify.com` pass, `apify.evil.example` does not. A host that is unknown is
+  reported too.
+- **Languages.** Patterns exist for English, Spanish, French, German and Portuguese, and not every
+  rule covers all five. In any other language, or in a paraphrase with none of the listed words, the
+  attack is not seen. The detection is lexical.
+- **A payload spread over sections.** GR035 weighs one paragraph. An action in one section, a
+  remote target in another and "do not mention it" in a third are three harmless paragraphs. The
+  same holds for an instruction split between two files.
+- **Framing that exempts.** A skipped review is not reported when the user asks for it or a mode
+  names it, unless what is skipped is the review of the agent files, the lock or ghostrules (GR031).
+  A hidden-text cue in a paragraph that talks about attacks ("for example", "attackers") is not
+  reported (GR035). Both can be used to dress an order up as a description of one.
+- **The numbers are not recall.** Blind set v1 and the 91 real repositories (51 of the first
+  round and 40 of the second) were used to adjust the rules, so they no longer measure anything. v1
+  was written without seeing the rules, but it has been read since; the real repositories hold no
+  attack at all, so they measure false positives only, and only before the fixes made from them.
+  A new, unseen set is needed for a fresh figure.
+
 ## Blind measurement
 
 The rules were tuned on a labelled corpus the rule author wrote, so its numbers say nothing about inputs
