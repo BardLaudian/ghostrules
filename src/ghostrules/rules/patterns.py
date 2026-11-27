@@ -131,6 +131,24 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"(?:\b(?:ba|z)?sh\s+<\(|\beval\s+[\"']?\$\()[^\n)]{0,300}?"
         r"\b(?:base64\s+(?:-d|--decode)|xxd\s+-r)\b",
     ),
+    # GR031: instructions that switch off the review of the agent files themselves. A lock update is
+    # normal work; it counts when it is silent or unreviewed, and deleting the lock never is.
+    "GR031": _compile(
+        r"\b(?:delete|remove|rm|erase|wipe)\b[^.;!?\n]{0,25}?\.ghostrules\.lock\b",
+        r"\b(?:regenerate|recreate|rebuild|overwrite|reset|update|refresh)\b[^.;!?\n]{0,30}?"
+        r"(?:\.ghostrules\.lock\b|\bghostrules\s+lock\b|\block\s?file\b)[^.;!?\n]{0,60}?"
+        r"\b(?:silently|automatically|without\s+(?:asking|review(?:ing)?|approval|confirmation"
+        r"|telling|checking|a\s+review))",
+        r"\bghostrules\s+lock\b(?:\s+--?[\w-]+)*[^.;!?\n]{0,40}?\b(?:silently|automatically"
+        r"|without\s+(?:asking|review(?:ing)?|approval|confirmation|telling|checking))",
+        r"\bauto-?\s?(?:approve|accept|merge)\b[^.;!?\n]{0,60}?"
+        r"(?:lock\s?file|\.ghostrules|ghostrules|scanner|agent\s+files?|instruction\s+files?)",
+        r"\b(?:approve|accept)\s+(?:all|every|any)\b[^.;!?\n]{0,40}?(?:changes?|diffs?)"
+        r"[^.;!?\n]{0,60}?(?:lock\s?file|ghostrules|scanner|agent\s+files?|instruction\s+files?)",
+        r"\b(?:disable|turn\s+off|skip|bypass|uninstall|stop\s+running|(?:do\s+not|don'?t|never)\s+run)"
+        r"\b[^.;!?\n]{0,30}?\bghostrules\b",
+        r"\b(?:add|insert|put|write|append|include)\b[^.;!?\n]{0,50}?\bghostrules-ignore\b",
+    ),
     "GR013": EXFIL_PATTERNS + COLLECTOR_PATTERNS,
     # the verb governs the path: same clause (no `;` or sentence end), at most six words apart
     "GR014": _compile(

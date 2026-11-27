@@ -5,6 +5,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- **GR031, review of the agent files switched off (high).** An instruction that deletes the lock,
+  regenerates it silently or without review, auto-approves changes to agent files, disables the
+  scanner or adds `ghostrules-ignore` markers. Prohibitions ("Never delete .ghostrules.lock") and
+  reviewed workflows are not reported. Like GR030 it cannot be suppressed inline or baselined: a
+  line that carries `ghostrules-ignore` used to silence its own finding.
+
 ### Tests
 
 - Metamorphic tests: `examples/poisoned-repo` rewritten as CRLF, with a BOM, with trailing tabs,

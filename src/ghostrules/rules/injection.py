@@ -164,6 +164,36 @@ def gr011_concealment(target: ScanTarget) -> Iterator[Finding]:
         )
 
 
+# --- GR031 ---------------------------------------------------------------------------------
+
+
+@rule(
+    "GR031",
+    Severity.HIGH,
+    "Review of the agent files switched off",
+    "Text telling the agent to approve changes, delete or silently regenerate the lock, disable the"
+    " scanner or add ghostrules-ignore.",
+    INSTRUCTIONS,
+    scans_decoded=True,
+)
+def gr031_tamper(target: ScanTarget) -> Iterator[Finding]:
+    """The scanner's own safeguards, attacked from inside an instruction file (GR030 reports the
+    same attack in a diff). High for an instruction, lower for a description or an example."""
+    for span in _spans(target, INJECTION_PATTERNS["GR031"]):
+        if _prohibited_in_clause(target.text, span[0]):
+            continue  # "Never delete .ghostrules.lock", "Do not disable ghostrules"
+        kind = classify(target, span)
+        yield _finding(
+            target,
+            "GR031",
+            severity_for(kind, Severity.HIGH),
+            "Review of the agent files switched off",
+            "Tells the agent to bypass the review of the files it reads" + downgrade_note(kind),
+            span,
+            fix_hint="Remove the instruction; changes to agent files must be reviewed by a person.",
+        )
+
+
 # --- GR012 ---------------------------------------------------------------------------------
 
 
