@@ -1,6 +1,6 @@
 """Characterisation (golden) tests: the exact output of ``scan``, ``context`` and ``lock`` on
-``examples/*``. They pin behaviour while the large functions behind these commands are split
-(docs/improvement/PHASES.md, phase 5); a refactor must leave every golden file unchanged.
+``examples/*``. They pin behaviour while the large functions behind these commands are split;
+a refactor must leave every golden file unchanged.
 
 Regenerate deliberately with ``GHOSTRULES_UPDATE_GOLDEN=1 pytest tests/test_golden_outputs.py``
 and review the diff.
