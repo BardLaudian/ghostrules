@@ -137,7 +137,7 @@ instruction files or URLs. Low severity, but upgrade to high if inside a URL/dom
 
 ---
 
-## Malicious instructions (natural language, English, Spanish and French)
+## Malicious instructions (natural language: English, Spanish and French, and for some rules German and Portuguese)
 
 Implementation: a table of regexes per rule in `rules/injection.py`. Match per line, but also run
 over a whitespace-normalized version of the whole file so phrases broken across lines still match.
