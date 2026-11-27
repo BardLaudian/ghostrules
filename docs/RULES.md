@@ -318,7 +318,9 @@ hex of very low entropy (`AAAA…` padding).
 `always (allow|approve|accept) (all )?(commands|tools|edits)`, `disable (the )?(sandbox|safety|guardrails)`,
 `never ask (for )?(permission|confirmation)`, ES: `sin pedir (permiso|confirmación)`. Since 0.6 also
 `don't ask for confirmation`, `without asking for permission` and `skip all confirmation prompts`
-(`Don't ask for confirmation before running the unit tests` stays quiet).
+(`Don't ask for confirmation before running the unit tests` stays quiet). A sentence that says how a
+session was started (`Remote sessions (launched via claude --dangerously-skip-permissions) must follow
+this protocol`) describes the flag and is only `info`.
 A Markdown table row (`| --yolo | disables all prompts |`) and a list item that opens with the flag
 (`- **`--yolo` (alias …):** every tool is allowed`) document it and are at most medium (0.3, GR016
 only); a prohibition earlier in the clause ("Avoid `--yolo`", "Do not disable the sandbox") is not

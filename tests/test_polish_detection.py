@@ -137,3 +137,26 @@ def test_one_invisible_operator_in_math_is_not_gr003(text: str) -> None:
 )
 def test_an_operator_inside_a_word_or_in_a_run_is_still_gr003(text: str) -> None:
     assert found(text, "GR003")
+
+
+def _gr016(text: str) -> list[dict]:
+    return found(text, "GR016", file="CLAUDE.md")
+
+
+def test_a_sentence_that_says_how_a_session_was_launched_is_only_info() -> None:
+    text = (
+        "Remote sessions (launched via `claude --dangerously-skip-permissions`) must follow this."
+    )
+    assert {f["severity"] for f in _gr016(text)} == {"info"}  # found in a public repository
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Start the agent with --dangerously-skip-permissions.",
+        "Run claude --dangerously-skip-permissions for every task.",
+        "Start every session with `claude --dangerously-skip-permissions`.",
+    ],
+)
+def test_an_order_to_use_the_flag_is_still_reported_above_info(text: str) -> None:
+    assert {f["severity"] for f in _gr016(text)} & {"low", "medium", "high"}

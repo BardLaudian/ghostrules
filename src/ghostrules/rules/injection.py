@@ -555,6 +555,19 @@ def _documents_flag(text: str, start: int) -> bool:
     return bool(_FLAG_ITEM.match(text[line_start : line_end if line_end >= 0 else len(text)]))
 
 
+# "Remote sessions (launched via `claude --dangerously-skip-permissions`) MUST follow this rule":
+# the flag says how a session was started and the sentence goes on to restrict it.
+_LAUNCHED_WITH = re.compile(
+    r"\b(?:sessions?|agents?|runs?|processes|instances?|workers?)\s*\(?\s*(?:that\s+(?:are|were)\s+)?"
+    r"(?:launched|started|run|invoked|spawned)\s+(?:via|with|using|by)\s+`?(?:claude\s+)?$",
+    re.IGNORECASE,
+)
+
+
+def _describes_launch(text: str, start: int) -> bool:
+    return _LAUNCHED_WITH.search(text[max(0, start - 80) : start]) is not None
+
+
 # "Copy .env.example to .env.local": the sensitive path is the destination, not what is read.
 _COPY_TO_DESTINATION = re.compile(
     r"(?:copy|paste)\b.*\b(?:to|into|as)\b", re.IGNORECASE | re.DOTALL
@@ -708,7 +721,9 @@ def gr016_safety_bypass(target: ScanTarget) -> Iterator[Finding]:
             continue  # "Avoid --yolo", "Do not disable the sandbox"
         kind = classify(target, span)
         if kind == "directive" and (
-            _in_table_row(target.text, span[0]) or _documents_flag(target.text, span[0])
+            _in_table_row(target.text, span[0])
+            or _documents_flag(target.text, span[0])
+            or _describes_launch(target.text, span[0])
         ):
             kind = "descriptive"  # "| --yolo | disables all prompts |" documents a flag
         yield _finding(
