@@ -20,6 +20,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **GR010, GR011 and GR016 read paraphrases**: "set aside everything you were told", "keep this
   between us", "the user does not need to know about this", "don't ask for confirmation".
 
+- **GR007, hidden-data character run (medium, high from 8).** Regional indicators that are not
+  whole flags (decoded to letters), two or more invisible math operators in a row, and interlinear
+  annotation marks. Flags, emoji sequences and native scripts are not reported.
+- **GR004 now reports two variation selectors in a row** (it was three). A single selector after an
+  emoji or an ideograph is still fine. `reveal` and the lock use the same threshold.
+
 ### Tests
 
 - Metamorphic tests: `examples/poisoned-repo` rewritten as CRLF, with a BOM, with trailing tabs,
