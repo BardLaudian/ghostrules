@@ -2,6 +2,7 @@
 exclude = [
   "examples/**",
   "tests/fixtures/**",
+  "tests/holdout/**",  # a blind set of attacks, scanned on purpose by scripts/holdout_eval.py
   "dist/**",
   "build/**",
   ".mypy_cache/**",
