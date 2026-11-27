@@ -343,6 +343,27 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\bwithout\s+(?:asking|waiting)\s+(?:the\s+user\s+)?(?:for\s+)?(?:any\s+)?"
         r"(?:permission|confirmation|approval)\b",
         r"\bskip\s+(?:all\s+|any\s+)?(?:confirmation|permission|approval)\s+prompts?",
+        # pre-approval and "answer yes to everything" (the rest of GR016: auto-approve, never ask)
+        r"\b(?:pre-?approv\w*|pre-?authori[sz]\w*|pre-?grant\w*)\b[^.;!?\n]{0,40}?"
+        r"(?:confirmations?|permissions?|prompts?|dialog(?:ue)?s?)\b",
+        r"\b(?:every|all|any)\s+(?:confirmation|permission|approval)\s+(?:dialog(?:ue)?|prompt|request)s?"
+        r"\s+(?:as\s+|is\s+|are\s+)?(?:pre-?approved|approved|granted|accepted)\b",
+        r"\banswer\s+(?:yes|y|ok|okay|accept)\s+to\s+(?:every|all|any|each|anything)\b[^.;!?\n]{0,30}?"
+        r"(?:prompts?|requests?|questions?|dialog(?:ue)?s?|confirmations?|permissions?)?",
+        r"\bauto-?\s?(?:accept|confirm|allow|grant)\w*\b[^.;!?\n]{0,30}?\b(?:all|every|any)\s+"
+        r"(?:prompts?|dialog(?:ue)?s?|confirmations?|permissions?|requests?)",
+        r"\b(?:always|automatically)\s+(?:say|answer|reply|respond|click)\s+(?:yes|y|ok|accept|allow)\b",
+        r"\b(?:pre-?aprueba|aprueba\s+autom[aá]ticamente|responde\s+(?:s[ií]|que\s+s[ií])\s+a\s+(?:todo"
+        r"|cualquier|cada)|acepta\s+(?:todas?|cualquier)\s+(?:las\s+)?(?:confirmaciones|solicitudes"
+        r"|peticiones|permisos))",
+        r"\b(?:pr[ée]-?aprove|aprove\s+automaticamente|responda\s+sim\s+a\s+(?:tudo|qualquer|cada)"
+        r"|aceite\s+(?:todas?|qualquer)\s+(?:as\s+)?(?:confirma[çc][õo]es|solicita[çc][õo]es"
+        r"|permiss[õo]es))",
+        r"\b(?:pr[ée]-?approuve|approuve\s+automatiquement|r[ée]ponds\s+oui\s+[àa]\s+(?:tout|chaque)"
+        r"|accepte\s+(?:toutes?|n['’]importe\s+quelle)\s+(?:les\s+)?(?:confirmations|demandes"
+        r"|permissions))",
+        r"\b(?:genehmige\s+(?:automatisch|alles)|antworte\s+(?:immer\s+)?mit\s+ja|best[äa]tige\s+"
+        r"(?:automatisch|alles|jede\w*))\b",
     ),
     # GR032: remote text treated as instructions, or fetched code run unread
     "GR032": _compile(

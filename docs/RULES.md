@@ -355,6 +355,12 @@ hex of very low entropy (`AAAA…` padding).
 (`Don't ask for confirmation before running the unit tests` stays quiet). A sentence that says how a
 session was started (`Remote sessions (launched via claude --dangerously-skip-permissions) must follow
 this protocol`) describes the flag and is only `info`.
+Since 0.6 it also matches pre-approval and blanket consent, without a second rule: `pre-approve the
+permission prompts`, `treat every confirmation dialog as granted`, `answer yes to any prompt`,
+`auto-accept all permission requests`, `always click allow`, and the same in Spanish (`pre-aprueba las
+confirmaciones`, `responde sí a todo`), Portuguese, French and German. `Answer yes to the licence prompt
+in the installer`, `Auto-accept is disabled by default` and `a change request was pre-approved` are not
+reported.
 A Markdown table row (`| --yolo | disables all prompts |`) and a list item that opens with the flag
 (`- **`--yolo` (alias …):** every tool is allowed`) document it and are at most medium (0.3, GR016
 only); a prohibition earlier in the clause ("Avoid `--yolo`", "Do not disable the sandbox") is not
