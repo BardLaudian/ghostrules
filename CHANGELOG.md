@@ -80,6 +80,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   confirmation dialog as granted`, `answer yes to any prompt`, `auto-accept all permission requests`) in five
   languages, on top of its existing auto-approve and never-ask patterns.
 
+- **Override and exfiltration paraphrases.** GR010 reads what voids the user or what came before
+  (`superseded`, `override the user's instructions`, `takes precedence over`, `even if the user objects`)
+  in five languages, and now skips a sentence a prohibition governs. GR013 reads *collect, then send to a
+  third party*. GR012 reads a command rebuilt from named parts. A payload spread over distant sections
+  is not followed.
+
 ### Tests
 
 - **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in

@@ -119,6 +119,8 @@ def gr010_instruction_override(target: ScanTarget) -> Iterator[Finding]:
     sentence describes something and at most low inside a code block or quotation (guidance that
     tells the agent to *ignore* such text quotes it)."""
     for span in _spans(target, INJECTION_PATTERNS["GR010"]):
+        if _prohibited_in_clause(target.text, span[0]):
+            continue  # "Never override the user's instructions": the sentence forbids it
         kind = classify(target, span)
         in_block = target.code_block_at(span[0]) is not None
         note = " (appears inside a code block)" if in_block else downgrade_note(kind)
