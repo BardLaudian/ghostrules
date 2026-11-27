@@ -5,6 +5,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+
+- **GR010-GR016 match leetspeak.** `1gnore all prev1ous instruct1ons` is reported like the plain
+  phrase, on the original line and marked as obfuscated. Only words that mix letters with `0 1 3 4
+  5 7 @ $` are folded, so plain numbers and words like `python3` or `sha256` do not change.
+
 ## [0.5.1] - 2026-11-24
 
 ### Fixed
