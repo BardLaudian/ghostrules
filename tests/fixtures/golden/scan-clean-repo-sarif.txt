@@ -138,6 +138,27 @@ exit=0
               }
             },
             {
+              "id": "GR007",
+              "name": "Hidden-data character run",
+              "shortDescription": {
+                "text": "Hidden-data character run"
+              },
+              "fullDescription": {
+                "text": "Runs of regional indicators, invisible math operators or interlinear annotation marks can carry hidden text."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr007",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "5.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
               "id": "GR010",
               "name": "Instruction override",
               "shortDescription": {

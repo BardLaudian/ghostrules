@@ -26,6 +26,9 @@ _RANGES: dict[str, tuple[tuple[int, int], ...]] = {
     VARIATION_SELECTOR: ((0xFE00, 0xFE0F), (0xE0100, 0xE01EF)),
 }
 
+# Two selectors in a row are already not typography (one follows an emoji or an ideograph).
+VS_MIN_RUN = 2
+
 _TAG_BASE = 0xE0000
 _TAG_FALLBACK_NAMES = {0xE0001: "LANGUAGE TAG", 0xE007F: "CANCEL TAG"}
 

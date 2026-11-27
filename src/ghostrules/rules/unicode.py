@@ -20,6 +20,7 @@ from ghostrules.unicode_utils import (
     BIDI,
     TAG,
     VARIATION_SELECTOR,
+    VS_MIN_RUN,
     ZERO_WIDTH,
     char_name,
     decode_tags,
@@ -265,9 +266,59 @@ def gr003_zero_width(target: ScanTarget) -> Iterator[Finding]:
         )
 
 
-# --- GR004 ---------------------------------------------------------------------------------
+# --- GR007 ---------------------------------------------------------------------------------
 
-_VS_MIN_RUN = 3
+_RI_RUN = re.compile("[\U0001f1e6-\U0001f1ff]{3,}")  # regional indicators: flags are pairs
+_INVISIBLE_MATH_RUN = re.compile("[\u2061-\u2064]{2,}")  # function application, times, separator
+_INTERLINEAR = re.compile("[\ufff9-\ufffb]+")  # annotation anchors, never used in plain text
+_RI_FLAGS_MAX = 6  # three flags in a row; longer, or an odd count, is not a run of flags
+_HIGH_RUN = 8
+
+
+@rule(
+    "GR007",
+    Severity.MEDIUM,
+    "Hidden-data character run",
+    "Runs of regional indicators, invisible math operators or interlinear annotation marks can"
+    " carry hidden text.",
+    ALL_KINDS,
+)
+def gr007_character_runs(target: ScanTarget) -> Iterator[Finding]:
+    """Regional indicators spell A-Z, so a run that is not whole flags can hide a message. Invisible
+    math operators in a row and interlinear annotation marks have no use in agent instructions."""
+    text = target.text
+    found: list[tuple[int, int, str, str | None]] = []
+    for m in _RI_RUN.finditer(text):
+        size = m.end() - m.start()
+        if size % 2 == 0 and size <= _RI_FLAGS_MAX:
+            continue  # one to three flags
+        letters = "".join(chr(ord("A") + ord(c) - 0x1F1E6) for c in m.group())
+        found.append((m.start(), m.end(), "regional indicators", letters))
+    found += [
+        (m.start(), m.end(), "invisible math operators", None)
+        for m in _INVISIBLE_MATH_RUN.finditer(text)
+    ]
+    found += [
+        (m.start(), m.end(), "interlinear annotation marks", None)
+        for m in _INTERLINEAR.finditer(text)
+    ]
+    for start, end, what, decoded in sorted(found):
+        count = end - start
+        yield build_finding(
+            target=target,
+            rule_id="GR007",
+            severity=Severity.HIGH if count >= _HIGH_RUN else Severity.MEDIUM,
+            title="Hidden-data character run",
+            message=f"Run of {count} {what}: they can carry hidden text.",
+            start=start,
+            end=end,
+            decoded=decoded,
+            fix_hint="Delete the characters; none of them belongs in an instruction file.",
+            with_name=True,
+        )
+
+
+# --- GR004 ---------------------------------------------------------------------------------
 
 
 @rule(
@@ -278,14 +329,14 @@ _VS_MIN_RUN = 3
     ALL_KINDS,
 )
 def gr004_variation_selectors(target: ScanTarget) -> Iterator[Finding]:
-    """One finding per run of >= 3 variation selectors.
+    """One finding per run of >= 2 variation selectors.
 
     Legitimate use is a single selector after one base character (emoji presentation, CJK
     variants), so no base-character exemption is needed above the threshold.
     """
     for run in find_runs(target.text, VARIATION_SELECTOR):
         count = run.end - run.start
-        if count < _VS_MIN_RUN:
+        if count < VS_MIN_RUN:
             continue
         decoded = decode_variation_selectors(target.text[run.start : run.end])
         yield build_finding(
@@ -544,7 +595,7 @@ def removable(text: str, *, keep_bom: bool = False) -> Removal:
         found.update(bidi)
     found.update(zero_width_offsets(text))
     for run in find_runs(text, VARIATION_SELECTOR):
-        if run.end - run.start >= _VS_MIN_RUN:
+        if run.end - run.start >= VS_MIN_RUN:
             found.update(range(run.start, run.end))
     if text.startswith("\ufeff") and not keep_bom:
         found.add(0)

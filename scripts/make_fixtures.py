@@ -117,7 +117,6 @@ def unicode_cases() -> dict[str, dict[str, str]]:
         "gr004_vs_ok": {
             "AGENTS.md": _md(
                 "Hearts: ❤" + VS16 + " keycap 1" + VS16 + "⃣ text ☺\ufe0e",
-                "Two selectors in a row: ❤" + VS16 + VS16,
             )
         },
         # GR005 ----------------------------------------------------------------------------

@@ -138,6 +138,27 @@ exit=1
               }
             },
             {
+              "id": "GR007",
+              "name": "Hidden-data character run",
+              "shortDescription": {
+                "text": "Hidden-data character run"
+              },
+              "fullDescription": {
+                "text": "Runs of regional indicators, invisible math operators or interlinear annotation marks can carry hidden text."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr007",
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "5.5",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
               "id": "GR010",
               "name": "Instruction override",
               "shortDescription": {
@@ -906,7 +927,7 @@ exit=1
               "reached-via-import"
             ]
           },
-          "ruleIndex": 7,
+          "ruleIndex": 8,
           "relatedLocations": [
             {
               "id": 0,
@@ -977,7 +998,7 @@ exit=1
               "reached-via-import"
             ]
           },
-          "ruleIndex": 9,
+          "ruleIndex": 10,
           "relatedLocations": [
             {
               "id": 0,
@@ -1048,7 +1069,7 @@ exit=1
               "reached-via-import"
             ]
           },
-          "ruleIndex": 10,
+          "ruleIndex": 11,
           "relatedLocations": [
             {
               "id": 0,
@@ -1115,7 +1136,7 @@ exit=1
               "copilot-cli"
             ]
           },
-          "ruleIndex": 15
+          "ruleIndex": 16
         },
         {
           "ruleId": "GR020",
@@ -1150,7 +1171,7 @@ exit=1
               "copilot-cli"
             ]
           },
-          "ruleIndex": 14
+          "ruleIndex": 15
         }
       ],
       "invocations": [

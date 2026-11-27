@@ -27,6 +27,7 @@ the URLs in any file.
 | <a id="gr004"></a>`GR004` | high | instructions, config, any file* | **Variation-selector steganography.** Runs of variation selectors can hide arbitrary bytes behind a single visible character. |
 | <a id="gr005"></a>`GR005` | medium | instructions, any file* | **Hidden HTML comment with instructions.** HTML comments are invisible when Markdown is rendered but are read by AI agents. |
 | <a id="gr006"></a>`GR006` | low | instructions, config, any file* | **Mixed-script homoglyph word.** Latin words with Cyrillic/Greek lookalikes disguise keywords and domains. |
+| <a id="gr007"></a>`GR007` | medium | instructions, config, any file* | **Hidden-data character run.** Runs of regional indicators, invisible math operators or interlinear annotation marks can carry hidden text. |
 | <a id="gr010"></a>`GR010` | high | instructions | **Instruction override.** Text telling the agent to ignore, forget or override its previous or system instructions. |
 | <a id="gr011"></a>`GR011` | high | instructions | **Concealment from the user.** Text telling the agent to hide what it does from the user. |
 | <a id="gr012"></a>`GR012` | critical | instructions | **Remote code execution pattern.** Commands that download and execute remote code (curl \| sh, iex, encoded PowerShell...); severity depends on the source and context. |
@@ -81,8 +82,20 @@ Ignore U+200D between emoji code points (emoji ZWJ sequences) and U+200C/U+200D 
 Indic/Persian letters. Since 0.3 a lone U+200B between two letters of Khmer, Thai, Lao or Myanmar is
 the word separator of those scripts and is ignored (a run, or a Latin neighbour, is still reported).
 
+### GR007 — Hidden-data character run (medium; high from 8 characters)
+Runs of characters that have no use in an instruction file and can carry text:
+- **Regional indicators** (U+1F1E6–U+1F1FF) spell A–Z. A flag is exactly two, so a run that is odd or
+  longer than three flags is reported, and `decoded` shows the letters.
+- **Invisible math operators** (U+2061–U+2064) two or more in a row.
+- **Interlinear annotation marks** (U+FFF9–U+FFFB), any.
+
+True positive: `Team ` followed by ten regional indicators spelling `SENDTHEENV` (`decoded:
+SENDTHEENV`). False positives that stay quiet: one to three real flags (Spain, or France + Germany +
+Italy), a single invisible function-application operator in math, emoji ZWJ sequences, a
+lone variation selector after an emoji and text in native scripts (Devanagari, Arabic).
+
 ### GR004 — Variation-selector steganography (high)
-Runs of ≥ 3 chars in U+FE00–U+FE0F or U+E0100–U+E01EF not directly following an emoji / CJK base.
+Runs of ≥ 2 chars (0.6; it was 3) in U+FE00–U+FE0F or U+E0100–U+E01EF not directly following an emoji / CJK base.
 (Known technique to hide bytes after a single visible char.) Try to decode as bytes
 (FE00–FE0F → 0–15, E0100–E01EF → 16–255) and show printable result in `decoded`.
 
