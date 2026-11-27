@@ -65,10 +65,11 @@ _EXTERNAL = re.compile(
     r"\b(?:external|third[- ]party|remote)\s+(?:server|host|service|endpoint|party)\b",
     re.IGNORECASE,
 )
-# a cue that is itself a negation ("do not announce") counts even though it carries a prohibition
+# a cue that is itself a negation ("do not announce") counts even though it carries a prohibition;
+# "a dialler does not announce a connection" describes a program, it is not an order
 _HIDE_NEGATED = re.compile(
     r"\bdo\s+not\s+announce\b|\bno\s+need\s+to\s+(?:bother|tell|inform|notify|mention|announce)\b"
-    r"|\bwithout\s+(?:mentioning|announcing|telling)\b|\bnot\s+(?:to\s+)?(?:announce|mention)\b"
+    r"|\bwithout\s+(?:mentioning|announcing|telling)\b|(?<!does\s)(?<!did\s)(?<!is\s)(?<!are\s)(?<!was\s)(?<!were\s)\bnot\s+(?:to\s+)?(?:announce|mention)\b"
     r"|\bkeep\s+(?:it|this)\s+(?:low[- ]key|quiet)\b|\bleave\s+(?:it|those|that)\s+out\b",
     re.IGNORECASE,
 )
