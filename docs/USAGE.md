@@ -137,6 +137,12 @@ block, a code span, a quotation or a description stays `low`. `--lenient` (confi
 "strict"`, Action input `profile: strict`) restores the 0.3 severities for teams that want the check
 to fail on them too.
 
+Since 0.6 GR010 (override) and GR011 (concealment) found as visible prose in an instruction file are
+shown at `medium` instead of `low`, whether the sentence is an order or a description: they have no
+ordinary use there, and `low` was easy to miss. Examples, quotations (also a long one that opened in
+an earlier sentence), documentation and catalogues of attacks stay at `info`, and `--lenient` keeps
+the old `low` cap. They still do not fail the default `--fail-on high` check.
+
 Since 0.6 two more things move the severity:
 
 - **Documentation and catalogues of attacks are `info`.** A file under `docs/`, `examples/`,

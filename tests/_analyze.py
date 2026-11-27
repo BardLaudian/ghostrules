@@ -14,7 +14,11 @@ from ghostrules.scanner import scan_paths
 
 
 def analyze(
-    files: Mapping[str, str], *, strict: bool = False, min_severity: str = "low"
+    files: Mapping[str, str],
+    *,
+    strict: bool = False,
+    min_severity: str = "low",
+    profile: str | None = None,
 ) -> dict[str, Any]:
     """Write ``files`` to a temp directory, scan it and return ``json_.to_dict(result)``."""
     with tempfile.TemporaryDirectory(prefix="ghostrules-test-") as tmp:
@@ -24,6 +28,7 @@ def analyze(
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(text.encode("utf-8", "surrogatepass"))
         config = Config(
-            profile="strict" if strict else "default", min_severity=Severity.parse(min_severity)
+            profile=profile or ("strict" if strict else "default"),
+            min_severity=Severity.parse(min_severity),
         )
         return json_.to_dict(scan_paths([root], config))

@@ -35,6 +35,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `alwaysAllow` set to `true` or `"*"`. GR115: a server bound to `0.0.0.0` or `::`. GR116: a package
   name one typo away from a popular MCP server. GR102 now says when `-y` installs without asking.
 
+- **GR010 and GR011 in a root instruction file are shown at `medium`** (they were `low`, or `info`
+  when worded as a description). Documentation, examples, quotations and attack catalogues stay at
+  `info`; `--lenient` keeps `low`.
+
 ### Tests
 
 - **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in
