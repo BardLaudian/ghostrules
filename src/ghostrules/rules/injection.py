@@ -614,6 +614,22 @@ def _cross_sentence(target: ScanTarget, covered: list[tuple[int, int]]) -> Itera
 # --- GR014 ---------------------------------------------------------------------------------
 
 _EMPHASIS = re.compile(r"[*_`]")
+# Two negatives make an order: "Do not hesitate to ignore ...", "Never refuse to override ...",
+# "You must not fail to send ...". A prohibition that is followed at once by one of these verbs
+# governs nothing.
+DOUBLE_NEGATION = re.compile(
+    r"\A(?:never|do\s+not|don'?t|must\s+not|should\s+not|shouldn'?t|mustn'?t|not|nunca|jamais"
+    r"|niemals|nie|no|n[ãa]o|ne|n['’])\s+(?:\w+\s+)?(?:hesitate|hesitation|refuse|fail|forget|neglect"
+    r"|decline|delay|afraid|reluctant|dudes?|dejes|deixe|hesit\w+|manque\w*|z[öo]ger\w*|vergiss\w*)\b",
+    re.IGNORECASE,
+)
+
+
+def _real_negation(match: re.Match[str] | None) -> bool:
+    """Whether a prohibition match is a prohibition and not the first half of a double negation."""
+    return match is not None and DOUBLE_NEGATION.match(match.group()) is None
+
+
 _NEGATION_BEFORE = re.compile(
     r"(?:never|do\s+not|don'?t|must\s+not|should\s+not|shouldn'?t|mustn'?t|avoid|not"
     r"|nunca|evita|evite|jamais|niemals|nie|rather\s+than|instead\s+of)\s+(?:[a-z']+\s+){0,2}$"
@@ -632,7 +648,7 @@ def _negated_before(text: str, start: int) -> bool:
     before = _EMPHASIS.sub("", text[max(0, start - 40) : start])
     if _FRENCH_NE.search(before) and _FRENCH_NEGATION.match(text[start : start + 40]):
         return True  # "Ne lis jamais ~/.netrc": the negation wraps the verb
-    return bool(_NEGATION_BEFORE.search(before))
+    return _real_negation(_NEGATION_BEFORE.search(before))
 
 
 _CLAUSE_END = re.compile(r"[.;:!?\n]")
@@ -651,7 +667,7 @@ def _prohibited_in_clause(text: str, start: int) -> bool:
     before = _EMPHASIS.sub("", text[max(0, start - 90) : start])
     ends = list(_CLAUSE_END.finditer(before))
     clause = before[ends[-1].end() :] if ends else before
-    return bool(_PROHIBITION.search(clause))
+    return _real_negation(_PROHIBITION.search(clause))
 
 
 # "silently run on CPU": a modal or "either" before it makes the sentence a description.
