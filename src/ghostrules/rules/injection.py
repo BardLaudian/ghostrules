@@ -595,7 +595,11 @@ def gr013_exfiltration(target: ScanTarget) -> Iterator[Finding]:
 _SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
 _NEGATED = re.compile(r"\b(?:never|do\s+not|don'?t|must\s+not|avoid|without|not\s+to)\b", re.I)
 _SECRET_IN_SENTENCE = re.compile(f"{_SECRET}|{_SENSITIVE_PATH}", re.I)
-_SEND_VERB = re.compile(r"(?<!\.)\b(?:send|post|upload|append|forward|exfiltrate|transmit)\b", re.I)
+# not part of a name ("Upload-Post API"), and not the HTTP method of an endpoint ("POST /api/x")
+_SEND_VERB = re.compile(
+    r"(?<![.\-])\b(?:send|(?!(?-i:POST)\s+[/`h])post|upload|append|forward|exfiltrate|transmit)\b(?!-\w)",
+    re.I,
+)
 _HTTP = re.compile(r"https?://[^\s)\]>\"']+", re.I)
 
 

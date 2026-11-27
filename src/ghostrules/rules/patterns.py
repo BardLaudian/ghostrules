@@ -29,7 +29,10 @@ _SECRET = (
     r"|\bcredentials\b|ssh\s+keys?|\bpasswords?\b)"
 )
 # `POST` in capitals is the HTTP method and `.post(` a call, not the verb "post"
-_EXFIL_VERB = r"(?<!\.)\b(?:send|(?-i:[Pp]ost)|upload|append|include|exfiltrate|forward)\b"
+# not part of a name ("Upload-Post API", "api.upload-post.com")
+_EXFIL_VERB = (
+    r"(?<![.\-])\b(?:send|(?-i:[Pp]ost)|upload|append|include|exfiltrate|forward)\b(?!-\w)"
+)
 _READ_VERB = (
     r"\b(?:read|open|print|cat|send|upload|post|show|display|dump|output|copy|exfiltrate|attach"
     r"|leak|paste|share"
