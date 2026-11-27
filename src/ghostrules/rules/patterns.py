@@ -80,6 +80,16 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\bolvida\s+(?:tus|las)\s+instrucciones",
         r"\bignore[zr]?\s+(?:toutes\s+)?les\s+instructions\s+(?:pr[eé]c[eé]dentes|ant[eé]rieures)",
         r"\boublie[zs]?\s+(?:tes|vos|les)\s+instructions",
+        # paraphrases: "set aside everything you were told", "pay no attention to the above"
+        r"\bset\s+aside\s+(?:everything|all|anything)\s+(?:you\s+(?:were|have\s+been)\s+(?:told|given)"
+        r"|(?:previous|prior|earlier|above))",
+        r"\b(?:pay\s+no\s+(?:attention|heed)\s+to|do\s+not\s+follow|stop\s+following|disregard)\s+"
+        r"(?:any\s+of\s+)?(?:the\s+|all\s+|any\s+)?(?:previous|prior|above|earlier|original)\s+"
+        r"(?:instructions|rules|guidance|directions|prompts?)",
+        r"\b(?:previous|prior|earlier|original|above)\s+(?:instructions|rules|guidance|directions)\s+"
+        r"(?:no\s+longer\s+apply|are\s+(?:void|obsolete|revoked|cancell?ed|superseded))",
+        r"\bfrom\s+now\s+on\s*,?\s+(?:ignore|disregard)\b",
+        r"\bforget\s+(?:all\s+)?(?:that\s+|what\s+)?you\s+(?:were|have\s+been)\s+(?:told|taught|given)",
     ),
     "GR011": _compile(
         # "do not tell the user to ...", "... which|what|how|where|when|why ..." is about what to
@@ -96,6 +106,13 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\bne\s+(?:le\s+)?(?:dis|dites|montre|montrez|mentionne|mentionnez)\s+pas\s+[àa]"
         r"\s+l['’]utilisateur",
         r"\bsans\s+(?:en\s+)?(?:avertir|informer|pr[eé]venir)\s+l['’]utilisateur",
+        # paraphrases: "keep this between us", "the user does not need to know about this"
+        r"\bkeep\s+this\s+(?:between\s+us|to\s+yourself|secret|private|quiet|confidential)\b",
+        r"\bthe\s+user\s+(?:does\s+not|doesn'?t|should\s+not|shouldn'?t|must\s+not|mustn'?t|need\s+not"
+        r"|needn'?t)\s+(?:need\s+to\s+)?(?:know|find\s+out|learn|see|be\s+(?:told|informed))\s+"
+        r"(?:about\s+)?(?:this|that|it|these|those)\b",
+        r"\b(?:do\s+not|don'?t)\s+let\s+the\s+user\s+(?:know|see|find\s+out|notice)\b",
+        r"\bwithout\s+the\s+user\s+(?:knowing|noticing|seeing)\b",
     ),
     "GR012": _compile(
         # stdin is code only when the interpreter reads its program from it: `sh -c '...'` and
@@ -117,6 +134,37 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:python[0-9.]*|node)\s+-[ce]\b[^\n]{0,300}?(?:urlopen|requests\.get|\bfetch\s*\()"
         r"[^\n]{0,200}?(?:\.then\(\s*eval\b|\bexec\b|\beval\b)",
         r"\beval\s+[\"']?\$\(\s*(?:curl|wget)\b",
+        # `sh -c "$(curl URL)"`: the program is the downloaded text (or a decoded blob)
+        r"\b(?:ba|z)?sh\s+-c\s+[\"']?(?:\$\(|`)[^\n)`]{0,300}?"
+        r"\b(?:curl|wget|base64\s+(?:-d|--decode)|xxd\s+-r)\b",
+        # two steps: download to a file, then run that same file (`sh -n file` only checks it)
+        r"\b(?:curl|wget)\b[^\n|;&]{0,200}?\s(?:-[A-Za-z]*o|--output)[ =](?:\./)?([\w.-]+)"
+        r"[^\n|;&]{0,200}(?:&&|;)\s*(?:sudo\s+)?(?:ba|z)?sh\s+(?:\./)?\1\b",
+        r"\b(?:curl|wget)\b[^\n|;&]{0,200}?https?://[^\s|;&]*?/([\w.-]+)(?:\?[^\s|;&]*)?[^\n|;&]{0,100}"
+        r"(?:&&|;)\s*(?:sudo\s+)?(?:ba|z)?sh\s+(?:\./)?\1\b",
+        # hex or base64 decoded straight into a shell
+        r"\bxxd\s+-r\b[^\n|]{0,100}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b",
+        r"\bprintf\s+[\"']?(?:\\x[0-9a-fA-F]{2}){4,}[^\n|]{0,60}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b",
+        r"(?:\b(?:ba|z)?sh\s+<\(|\beval\s+[\"']?\$\()[^\n)]{0,300}?"
+        r"\b(?:base64\s+(?:-d|--decode)|xxd\s+-r)\b",
+    ),
+    # GR031: instructions that switch off the review of the agent files themselves. A lock update is
+    # normal work; it counts when it is silent or unreviewed, and deleting the lock never is.
+    "GR031": _compile(
+        r"\b(?:delete|remove|rm|erase|wipe)\b[^.;!?\n]{0,25}?\.ghostrules\.lock\b",
+        r"\b(?:regenerate|recreate|rebuild|overwrite|reset|update|refresh)\b[^.;!?\n]{0,30}?"
+        r"(?:\.ghostrules\.lock\b|\bghostrules\s+lock\b|\block\s?file\b)[^.;!?\n]{0,60}?"
+        r"\b(?:silently|automatically|without\s+(?:asking|review(?:ing)?|approval|confirmation"
+        r"|telling|checking|a\s+review))",
+        r"\bghostrules\s+lock\b(?:\s+--?[\w-]+)*[^.;!?\n]{0,40}?\b(?:silently|automatically"
+        r"|without\s+(?:asking|review(?:ing)?|approval|confirmation|telling|checking))",
+        r"\bauto-?\s?(?:approve|accept|merge)\b[^.;!?\n]{0,60}?"
+        r"(?:lock\s?file|\.ghostrules|ghostrules|scanner|agent\s+files?|instruction\s+files?)",
+        r"\b(?:approve|accept)\s+(?:all|every|any)\b[^.;!?\n]{0,40}?(?:changes?|diffs?)"
+        r"[^.;!?\n]{0,60}?(?:lock\s?file|ghostrules|scanner|agent\s+files?|instruction\s+files?)",
+        r"\b(?:disable|turn\s+off|skip|bypass|uninstall|stop\s+running|(?:do\s+not|don'?t|never)\s+run)"
+        r"\b[^.;!?\n]{0,30}?\bghostrules\b",
+        r"\b(?:add|insert|put|write|append|include)\b[^.;!?\n]{0,50}?\bghostrules-ignore\b",
     ),
     "GR013": EXFIL_PATTERNS + COLLECTOR_PATTERNS,
     # the verb governs the path: same clause (no `;` or sentence end), at most six words apart
@@ -138,6 +186,34 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\bdisable\s+(?:the\s+)?(?:sandbox|safety|guardrails)",
         r"\bnever\s+ask\s+(?:for\s+)?(?:permission|confirmation)",
         r"\bsin\s+pedir\s+(?:permiso|confirmaci[oó]n)",
+        r"\b(?:do\s+not|don'?t)\s+(?:ask|prompt)\s+(?:the\s+user\s+)?(?:for\s+)?(?:any\s+|further\s+)?"
+        r"(?:permission|confirmation|approval)\b(?!\s+(?:before|to|when)\b)",
+        r"\bwithout\s+(?:asking|waiting)\s+(?:the\s+user\s+)?(?:for\s+)?(?:any\s+)?"
+        r"(?:permission|confirmation|approval)\b",
+        r"\bskip\s+(?:all\s+|any\s+)?(?:confirmation|permission|approval)\s+prompts?",
+    ),
+    # GR032: remote text treated as instructions, or fetched code run unread
+    "GR032": _compile(
+        r"\b(?:download|fetch|retrieve|load|curl|wget|open)\b[^.;!?\n]{0,60}?(?:https?://\S+|\burl\b|\blink\b)"
+        r"[^.;!?\n]{0,80}?\b(?:follow|obey|execute|carry\s+out|do\s+what)\b[^.;!?\n]{0,40}?"
+        r"\b(?:instructions?|commands?|directions?|says?|tells?)\b",
+        r"\b(?:follow|obey|execute|carry\s+out)\b[^.;!?\n]{0,30}?\b(?:instructions?|commands?|directions?)\b"
+        r"[^.;!?\n]{0,20}?\b(?:at|in|from|on|found\s+at)\s+https?://",
+        r"\b(?:run|execute|eval(?:uate)?|source)\s+(?:it|them|that|this|the\s+(?:script|file|code|command"
+        r"|download\w*|installer|output|result))\b[^.;!?\n]{0,25}?\bwithout\s+(?:reading|reviewing"
+        r"|inspecting|checking|looking\s+at|verifying|examining)\b",
+    ),
+    # GR033: an instruction asking to be carried through compaction, summaries or new sessions
+    "GR033": _compile(
+        r"\b(?:this|these)\s+(?:instructions?|rules?|message|text|section|prompt|note)\b[^.;!?\n]{0,50}?"
+        r"\b(?:surviv\w+|persist\w*|carr(?:y|ied)\s+over|remain\w*|kept|preserved|retained)\b"
+        r"[^.;!?\n]{0,40}?\b(?:compact\w*|summar\w+|context\s+(?:reset|clear\w*|window)|new\s+session"
+        r"|next\s+(?:session|conversation))",
+        r"\b(?:preserve|retain|keep|include|repeat|copy|carry|reproduce)\b[^.;!?\n]{0,30}?"
+        r"\b(?:this|these)\s+(?:instructions?|rules?|message|text|section|prompt|note)\b[^.;!?\n]{0,60}?"
+        r"\b(?:summar\w+|compact\w*|memory|new\s+session|next\s+(?:session|conversation)"
+        r"|future\s+(?:sessions|conversations)|every\s+(?:response|reply|message))",
+        r"\bsurvive\s+(?:context\s+)?(?:compaction|summari[sz]ation)\b",
     ),
 }
 

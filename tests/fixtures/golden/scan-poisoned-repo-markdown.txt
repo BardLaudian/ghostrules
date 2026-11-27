@@ -27,7 +27,7 @@ exit=1
 | 🟠 high | `GR107` | `.claude/settings.json:5:8` | **Over-permissive agent settings**<br>Permission rule 'Bash(*)' allows unrestricted use of a powerful tool. |
 | 🟠 high | `GR006` | `.github/copilot-instructions.md:4:9` | **Mixed-script homoglyph in URL**<br>Host label 'dоcs' mixes Latin and Cyrillic/Greek letters. The URL may impersonate another domain. |
 | 🟠 high | `GR014` | `.claude/skills/setup/SKILL.md:9:4` | **Sensitive file access**<br>Tells the agent to access a credentials or secrets file: “Read ~/.ssh/id_rsa” |
-| 🟡 medium | `GR102` | `.mcp.json:7:10` | **Unpinned package execution**<br>Server 'github' runs 'some-mcp-server@latest' without an exact version: whatever is published latest will execute with your agent's access. |
+| 🟡 medium | `GR102` | `.mcp.json:7:10` | **Unpinned package execution**<br>Server 'github' runs 'some-mcp-server@latest' without an exact version: whatever is published latest will execute with your agent's access. The -y flag installs it without asking. |
 | 🟡 medium | `GR104` | `.mcp.json:21:10` | **Overly broad filesystem scope**<br>Filesystem server 'files' can access '/': the whole disk or home. |
 | 🟡 medium | `GR108` | `.claude/settings.json:8:33` | **Auto-enabled project MCP servers**<br>enableAllProjectMcpServers is true: any cloned repo's .mcp.json starts its servers without review. |
 | 🔵 low | `GR006` | `.github/copilot-instructions.md:3:9` | **Mixed-script homoglyph word**<br>'reаct' mixes Latin with lookalike letters: U+0430 CYRILLIC SMALL LETTER A (looks like 'a'). |

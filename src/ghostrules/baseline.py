@@ -3,7 +3,7 @@
 The file lists fingerprints (rule, path and the text of the finding; never its line number, so
 moving a line does not break it) plus rule, path and severity for a reviewer. It stores no snippet,
 so it cannot carry a secret. Hidden text is never baselined, like it is never suppressed: invisible
-characters, GR002, GR030 and anything decoded from hidden characters.
+characters, GR002, GR030, GR031 and anything decoded from hidden characters.
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from ghostrules import __version__
 from ghostrules.models import Finding
 
 BASELINE_FILENAME = ".ghostrules-baseline.json"
-NEVER_BASELINE: frozenset[str] = frozenset({"GR001", "GR002", "GR030"})
+NEVER_BASELINE: frozenset[str] = frozenset({"GR001", "GR002", "GR030", "GR031"})
 
 
 class BaselineError(Exception):

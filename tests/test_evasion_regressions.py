@@ -1,4 +1,4 @@
-"""Regression net for the audit findings H1-H5 (docs/improvement/PLAN.md).
+"""Regression net for the audit findings H1-H5.
 
 Evasion cases assert the DESIRED behaviour and are ``xfail(strict=True)``: when a later
 phase fixes one, it XPASSes, the strict mode fails the run, and the marker must be removed.

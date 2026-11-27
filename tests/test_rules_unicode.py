@@ -192,10 +192,11 @@ def test_gr004_ignores_normal_variation_selectors(fixtures_root: Path) -> None:
     assert scan_case(fixtures_root, "gr004_vs_ok", "GR004") == []
 
 
-def test_gr004_threshold_is_three() -> None:
-    assert run_rule("GR004", "x\ufe00\ufe01\n") == []
-    (finding,) = run_rule("GR004", "x\ufe00\ufe01\ufe02\n")
-    assert finding.decoded is None  # bytes 0,1,2 are not printable text
+def test_gr004_threshold_is_two() -> None:
+    assert run_rule("GR004", "x\ufe00\n") == []
+    (finding,) = run_rule("GR004", "x\ufe00\ufe01\n")
+    assert finding.decoded is None  # bytes 0,1 are not printable text
+    assert run_rule("GR004", "\u2764\ufe0f\ufe0f\n")  # two in a row is not typography
 
 
 # --- GR005 ---------------------------------------------------------------------------------

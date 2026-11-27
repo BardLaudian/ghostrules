@@ -20,6 +20,7 @@ from ghostrules.secrets import mask_secrets
 from ghostrules.unicode_utils import (
     TAG,
     VARIATION_SELECTOR,
+    VS_MIN_RUN,
     classify,
     decode_tags,
     decode_variation_selectors,
@@ -66,7 +67,7 @@ def hidden_text(line: str) -> list[str]:
         if decoded:
             found.append(mask_secrets(decoded))
     for run in find_runs(line, VARIATION_SELECTOR):
-        if run.end - run.start >= 3:
+        if run.end - run.start >= VS_MIN_RUN:
             decoded_vs = decode_variation_selectors(line[run.start : run.end])
             if decoded_vs:
                 found.append(mask_secrets(decoded_vs))

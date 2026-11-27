@@ -164,6 +164,88 @@ def gr011_concealment(target: ScanTarget) -> Iterator[Finding]:
         )
 
 
+# --- GR031-GR033: instructions that attack the review of the agent files ---------------------
+
+
+def _directive_findings(
+    target: ScanTarget, rule_id: str, title: str, message: str, fix_hint: str
+) -> Iterator[Finding]:
+    """High for an instruction, lower for a description or an example; a prohibition ("Never
+    delete the lock") is skipped."""
+    for span in _spans(target, INJECTION_PATTERNS[rule_id]):
+        if _prohibited_in_clause(target.text, span[0]):
+            continue
+        kind = classify(target, span)
+        yield _finding(
+            target,
+            rule_id,
+            severity_for(kind, Severity.HIGH),
+            title,
+            message + downgrade_note(kind),
+            span,
+            fix_hint=fix_hint,
+        )
+
+
+@rule(
+    "GR031",
+    Severity.HIGH,
+    "Review of the agent files switched off",
+    "Text telling the agent to approve changes, delete or silently regenerate the lock, disable the"
+    " scanner or add ghostrules-ignore.",
+    INSTRUCTIONS,
+    scans_decoded=True,
+)
+def gr031_tamper(target: ScanTarget) -> Iterator[Finding]:
+    """The scanner's own safeguards, attacked from inside an instruction file (GR030 reports the
+    same attack in a diff)."""
+    yield from _directive_findings(
+        target,
+        "GR031",
+        "Review of the agent files switched off",
+        "Tells the agent to bypass the review of the files it reads",
+        "Remove the instruction; changes to agent files must be reviewed by a person.",
+    )
+
+
+@rule(
+    "GR032",
+    Severity.HIGH,
+    "Remote instructions or unread code",
+    "Text telling the agent to fetch a URL and obey it, or to run something without reading it.",
+    INSTRUCTIONS,
+    scans_decoded=True,
+)
+def gr032_remote_instructions(target: ScanTarget) -> Iterator[Finding]:
+    """What the page says can change after review, so it is not reviewed content."""
+    yield from _directive_findings(
+        target,
+        "GR032",
+        "Remote instructions or unread code",
+        "Tells the agent to obey fetched content or run code without reading it",
+        "Put the instructions in the repository, or pin and review what is fetched.",
+    )
+
+
+@rule(
+    "GR033",
+    Severity.HIGH,
+    "Instruction that asks to persist",
+    "Text asking to be kept through context compaction, summaries or new sessions.",
+    INSTRUCTIONS,
+    scans_decoded=True,
+)
+def gr033_persistence(target: ScanTarget) -> Iterator[Finding]:
+    """Asking to be copied into a summary or a memory is how an injection outlives its file."""
+    yield from _directive_findings(
+        target,
+        "GR033",
+        "Instruction that asks to persist",
+        "Asks to be preserved through compaction, summaries or new sessions",
+        "Remove the instruction; the file is already loaded every session.",
+    )
+
+
 # --- GR012 ---------------------------------------------------------------------------------
 
 

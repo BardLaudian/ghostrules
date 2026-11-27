@@ -1,4 +1,4 @@
-"""W4.1: severity by visibility (docs/design/v0.4/REMEDIATION.md).
+"""W4.1: severity by visibility.
 
 What a human cannot review keeps the rule's severity: decoded hidden text, text in an HTML comment,
 text in a file that is only reached through an import, and anything that executes (configuration).

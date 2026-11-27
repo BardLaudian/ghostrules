@@ -1,4 +1,4 @@
-"""Time budget on hostile input (docs/improvement phase 4).
+"""Time budget on hostile input.
 
 Marked ``slow`` and excluded from the normal run (``pytest -q``); run them with
 ``pytest -m slow``. The limits are generous on purpose: they catch a change that makes a rule
