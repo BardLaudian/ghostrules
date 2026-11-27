@@ -186,7 +186,8 @@ def _belongs(name: str, host: str) -> bool:
     first = service.split("_")[0].lower()
     if len(first) >= 3:
         wanted.add(first)
-    return any(w in host.lower() for w in wanted)
+    labels = host.lower().split(".")  # the service owns the domain, not a subdomain of another
+    return len(labels) >= 2 and labels[-2] in wanted
 
 
 def _own_service(context: str) -> bool:
