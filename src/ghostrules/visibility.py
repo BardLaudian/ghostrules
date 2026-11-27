@@ -14,6 +14,7 @@ import re
 from bisect import bisect_right
 from collections.abc import Iterable
 from dataclasses import replace
+from functools import lru_cache
 
 from ghostrules.models import Finding, ScanTarget, Severity
 from ghostrules.rules.directive import OBFUSCATION_NOTE, classify
@@ -101,11 +102,49 @@ def _imperative_prose_command(finding: Finding, target: ScanTarget) -> bool:
     return classify(target, (offset, offset + 1)) == "directive"
 
 
+_USER_NOTE = " Raised one level: this file applies to every project on this machine."
+_CATALOG_DIRS = frozenset({"docs", "doc", "examples", "example", "fixtures", "samples", "tests"})
+# A heading that names attacks and also says it is a list of them ("Prompt injection examples").
+_TOPIC = r"\b(?:prompt[- ]injection|jailbreaks?|attacks?|threats?|malicious|red[- ]team\w*)\b"
+_LISTING = (
+    r"\b(?:examples?|patterns?|catalogu?e|taxonomy|cheat[- ]?sheet|signatures?|samples?|corpus)\b"
+)
+_CATALOG_HEADING = re.compile(
+    rf"^#{{1,4}}[ \t]+(?=.*{_TOPIC})(?=.*{_LISTING})", re.IGNORECASE | re.MULTILINE
+)
+
+
+@lru_cache(maxsize=16)
+def _catalog(path: str, text: str) -> bool:
+    return (
+        bool(_CATALOG_DIRS.intersection(path.lower().split("/")[:-1]))
+        or _CATALOG_HEADING.search(text) is not None
+    )
+
+
+def _is_catalog(target: ScanTarget) -> bool:
+    """Documentation, examples or a list of attack patterns: its text names attacks, it does not
+    give orders. Hidden, decoded and imported text is excluded by the caller."""
+    return _catalog(target.path, target.text)
+
+
+def _user_scope(finding: Finding, target: ScanTarget) -> Finding:
+    """A user-level file (``~/...``) is read in every project: one level up, never lowered."""
+    if finding.severity == Severity.INFO or _USER_NOTE in finding.message:
+        return finding
+    raised = Severity(min(finding.severity + 1, Severity.CRITICAL))
+    return replace(finding, severity=raised, message=finding.message + _USER_NOTE)
+
+
 def by_visibility(
     finding: Finding, target: ScanTarget, *, import_only: bool, lenient: bool = False
 ) -> Finding:
-    """``finding`` with the severity its visibility calls for (never raised)."""
-    if not lenient and _imperative_prose_command(finding, target):
+    """``finding`` with the severity its visibility and scope call for: prose a reviewer can read
+    is lowered (to ``info`` in documentation or a catalogue of attacks), and a user-level file is
+    raised one level."""
+    if target.path.startswith("~/"):
+        return _user_scope(finding, target)
+    if not lenient and _imperative_prose_command(finding, target) and not _is_catalog(target):
         return finding
     if (
         finding.rule_id not in VISIBLE_PROSE_RULES
@@ -116,7 +155,8 @@ def by_visibility(
         or target.in_html_comment(target.offset(finding.line, finding.column))
     ):
         return finding
-    cap = Severity.INFO if "severity lowered" in finding.message else Severity.LOW
+    lowered = "severity lowered" in finding.message or _is_catalog(target)
+    cap = Severity.INFO if lowered else Severity.LOW
     if finding.severity <= cap:
         return finding
     note = _NOTE.format(level=cap.label)

@@ -137,6 +137,16 @@ block, a code span, a quotation or a description stays `low`. `--lenient` (confi
 "strict"`, Action input `profile: strict`) restores the 0.3 severities for teams that want the check
 to fail on them too.
 
+Since 0.6 two more things move the severity:
+
+- **Documentation and catalogues of attacks are `info`.** A file under `docs/`, `examples/`,
+  `fixtures/`, `samples/` or `tests/`, or one with a heading that names attacks and says it lists them
+  ("Prompt injection examples", "Jailbreak patterns"), names attacks and does not give orders. Hidden,
+  decoded and imported text keeps its severity, so a heading cannot be used to hide an attack.
+- **A user-level file is raised one level.** `~/.claude/CLAUDE.md` and the other files `--home` reads
+  apply in every project on the machine, so a finding there is one level higher and is never lowered
+  by visibility.
+
 ### Adopting it on an existing repository: the baseline
 
 ```bash
