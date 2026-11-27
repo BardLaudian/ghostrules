@@ -47,3 +47,21 @@ def test_every_finding_at_medium_or_above_has_a_verdict() -> None:
     judged = {(v["repo"], v["path"], v["line"], v["rule"]) for v in verdicts}
     assert judged == at_least_medium
     assert all(v["verdict"] in {"TP", "FP"} and v["why"] for v in verdicts)
+
+
+def test_the_original_scan_is_marked_as_used_for_tuning() -> None:
+    tuning = _load("tuning.json")
+    assert isinstance(tuning, dict) and tuning["status"] == "used for tuning"
+    assert all(
+        (V2 / name).exists()
+        for key in ("original_results", "after_fixes_results")
+        for name in tuning[key]
+    )
+
+
+def test_after_the_fixes_nothing_reaches_medium_and_nothing_is_new() -> None:
+    for variant in ("default", "root-medium"):
+        before = _findings(f"results-{variant}.json")
+        after = _findings(f"results-after-{variant}.json")
+        assert set(after) <= set(before)
+        assert all(RANK[s] < RANK["medium"] for s in after.values())
