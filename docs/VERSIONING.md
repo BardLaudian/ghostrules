@@ -15,7 +15,7 @@ a patch version (`0.N.P`) does not.
 |---|---|---|
 | **Rule IDs** (`GR001`…) | An ID keeps its meaning. It is never reused for a different check. A retired rule's ID stays reserved | [RULES.md](RULES.md) index |
 | **Rule severity** | Part of the contract. Raising or lowering a default severity is a **Changed** entry, and a lowering that stops failing `--fail-on high` is called out | RULES.md; golden tests |
-| **JSON report** | `schema_version` is an integer (2 since 0.6: every finding has `confidence` and `effective_severity`). Within one version fields are only **added**. A field removed, renamed or retyped bumps it | `src/ghostrules/schemas/scan.schema.json`, `tests/test_output_contract.py` |
+| **JSON report** | `schema_version` is an integer. Within one version fields are only **added**. A field removed, renamed or retyped bumps it | `src/ghostrules/schemas/scan.schema.json`, `tests/test_output_contract.py` |
 | **SARIF** | SARIF 2.1.0; rule IDs and `executionSuccessful` as above | validated against the official schema in tests |
 | **Exit codes** | 0 clean, 1 findings at or above `--fail-on`, 2 usage, config or rule failure, 3 internal failure | [USAGE.md](USAGE.md#exit-codes), `tests/test_exit_codes.py` |
 | **CLI flags and commands** | A documented flag keeps its name and meaning | `tests/test_usage_matches_help.py` |

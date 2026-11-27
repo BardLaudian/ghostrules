@@ -297,16 +297,11 @@ def test_gr015_opaque_random_base64_is_medium() -> None:
 
 
 def test_gr015_skips_code_blocks_unless_shell() -> None:
-    blob = b64("The build output is stored under dist and is safe to remove.")  # not an instruction
+    blob = b64(PAYLOAD)
     assert run_rule("GR015", f'```json\n{{"a": "{blob}"}}\n```\n') == []
     assert run_rule("GR015", f"```\n{blob}\n```\n") == []
     assert len(run_rule("GR015", f"```bash\necho {blob} | base64 -d\n```\n")) == 1
     assert len(run_rule("GR015", f"```sh\necho {blob}\n```\n")) == 1
-
-
-def test_gr015_instruction_in_a_data_block_is_reported() -> None:
-    (finding,) = run_rule("GR015", f'```yaml\nchecksum: "{b64(PAYLOAD)}"\n```\n')
-    assert finding.severity is Severity.HIGH
 
 
 @pytest.mark.parametrize(

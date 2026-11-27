@@ -100,8 +100,7 @@
         "via": {"type": "array", "items": {"type": "string"}},
         "agents": {"type": "array", "items": {"type": "string"}},
         "tags": {"type": "array", "items": {"type": "string"}},
-        "confidence": {"enum": ["high", "medium", "low"]},
-        "effective_severity": {"enum": ["critical", "high", "medium", "low", "info"]}
+        "confidence": {"type": "string"}
       }
     }
   }

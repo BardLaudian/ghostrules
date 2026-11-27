@@ -74,23 +74,13 @@ ghostrules scan . --format sarif -o ghostrules.sarif   # GitHub code scanning
 ghostrules scan . --format markdown >> "$GITHUB_STEP_SUMMARY"
 ```
 
-**Compatibility of the JSON report.** `--format json` starts with `"schema_version": 2`, the version
+**Compatibility of the JSON report.** `--format json` starts with `"schema_version": 1`, the version
 of the report's *shape* (distinct from `"version"`, the ghostrules release). The shape is described by
 [`src/ghostrules/schemas/scan.schema.json`](https://github.com/BardLaudian/ghostrules/blob/main/src/ghostrules/schemas/scan.schema.json) and the
 tests validate every example against it. Within a `schema_version`, fields are only **added**: none
 is removed, renamed or given another type, so a consumer that ignores unknown keys keeps working.
 Removing or retyping a field raises `schema_version`. SARIF output follows the SARIF 2.1.0 schema
 (also checked in the tests); `context --format json` has its own schema (`context.schema.json`).
-
-**Confidence.** Every finding has `confidence` (`high`, `medium`, `low`) and `effective_severity`.
-`confidence` says how sure the rule is that the text is a hostile or risky instruction and not just
-matching wording: `high` for facts about the text itself (invisible tag or bidi characters, a token
-of a known format), `low` for a lone weak signal (GR114 with one signal), `medium` for the rest.
-`medium` means *not measured yet*: the per-rule precision comes with the human labels of
-[CALIBRATION.md](https://github.com/BardLaudian/ghostrules/blob/main/docs/CALIBRATION.md). `effective_severity` is `severity` lowered one step when the
-confidence is `low` (never below `info`), and it is what `--fail-on` compares. `severity` stays the
-rule's declared level. In SARIF, `level` and `security-severity` follow the effective severity and
-`properties.confidence` and `properties.declaredSeverity` carry the two inputs.
 
 | `scan` option | Default | Meaning |
 |---|---|---|
@@ -103,7 +93,7 @@ rule's declared level. In SARIF, `level` and `security-severity` follow the effe
 | `--home` | off | Also scan user-level agent configs |
 | `--disable GR010,GR012` | | Disable rules |
 | `--follow-imports`, `--no-follow-imports` | on | Scan the files that `@path` imports in instruction files reach |
-| `--max-file-size BYTES` | `1048576` | Size of one scan window. A larger instruction file is scanned in overlapping windows, with a warning; a larger config or script file fails the scan (exit 2); a larger file no agent reads is skipped with a warning (`0` = no limit). Above 16 MiB nothing is scanned and the run fails |
+| `--max-file-size BYTES` | `1048576` | Skip files larger than this, with a warning that names each one (`0` = no limit) |
 | `--config FILE` | auto | Config file (default: `.ghostrules.toml` in the scan root) |
 | `--trusted-config FILE` | | Use this config file and never the scanned repository's own config |
 | `--config-from-ref REF` | | Read `.ghostrules.toml` (or `[tool.ghostrules]`) from this git ref, never the working tree |
@@ -124,7 +114,7 @@ These are a stable contract (fixed by `tests/test_exit_codes.py`); a change is a
 |------|---------|
 | `0` | Clean: nothing at or above `--fail-on` |
 | `1` | Findings at or above `--fail-on` (also `lock --check` drift) |
-| `2` | Usage or configuration error: unknown option, a path that does not exist, an invalid `.ghostrules.toml` (reported as `file:line: message`), a rule that crashed, or a file an agent reads that could not be scanned (over the 16 MiB hard limit, or a config or script file over `--max-file-size`), so a broken scan can never look clean |
+| `2` | Usage or configuration error: unknown option, a path that does not exist, an invalid `.ghostrules.toml` (reported as `file:line: message`), or a rule that crashed, so a broken scan can never look clean |
 | `3` | Internal failure: an unexpected exception in ghostrules itself. It is a bug, never a finding; the message asks for a report |
 
 For `json`, `sarif` and `markdown`, stdout carries only the report; diagnostics go to stderr.
@@ -406,7 +396,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: BardLaudian/ghostrules@a959634d50f378e2e0ff9bf8bf65e832106df70c # v0.5.1
+      - uses: BardLaudian/ghostrules@3a5f7120fc4e1dc1c9b58fad760567f8116b0b35 # v0.5.0
         with:
           fail-on: high          # critical | high | medium | low | info | none
           all-files: "false"     # also check every text file for hidden Unicode
@@ -434,7 +424,7 @@ jobs:
 **Pinning the Action.** The examples use a full commit SHA with the version in a comment: a tag
 can be moved after you reviewed it, a commit cannot, and Dependabot updates both together. As
 alternatives, `BardLaudian/ghostrules@v0` follows the latest stable `0.x.y` release (the release
-workflow moves that tag) and an exact tag such as `@v0.5.1` stays put, but both depend on the tag
+workflow moves that tag) and an exact tag such as `@v0.5.0` stays put, but both depend on the tag
 not being moved. Inside, the Action's own dependencies and build backend are installed from a
 file with a hash for each (`--require-hashes`), and every action it uses is pinned to a commit.
 
@@ -484,7 +474,7 @@ output `lock-exit-code` is `0` up to date, `1` changed, `2` the check could not 
 ```yaml
 repos:
   - repo: https://github.com/BardLaudian/ghostrules
-    rev: v0.5.1
+    rev: v0.5.0
     hooks:
       - id: ghostrules
 ```
@@ -537,7 +527,7 @@ extra_targets = ["docs/ai/*.md"]    # extra files, treated as instructions
 allow_domains = ["mycompany.com"]   # never flagged by the URL and exfiltration rules (GR012, GR013)
 trust_known_installers = true       # GR012: lower the severity of well-known installers (uv, rustup...)
 follow_imports = true               # scan files reached through @path imports
-max_file_size = 1048576             # bytes per scan window; bigger instruction files are scanned in windows (0 = no limit)
+max_file_size = 1048576             # bytes; a bigger file is skipped with a warning (0 = no limit)
 lockfile = ".ghostrules.lock"       # where `ghostrules lock` writes the pinned context
 agents = ["claude-code", "copilot-cli", "cursor", "generic"]  # agents whose loading is modelled
 profile = "default"                 # "strict": visible prose at the rules' own severity (0.3); "lenient": 0.4 cap
