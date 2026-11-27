@@ -41,6 +41,7 @@ _PROHIBITION = re.compile(
     re.IGNORECASE,
 )
 
+_FENCE_STRICT = frozenset({"GR012", "GR012P"})  # GR012 drops matches that run across a code fence
 # strong rules whose own patterns count as a signal of a class
 _ACTION_RULES = ("GR012", "GR012P", "GR014", "GR034")
 _HIDE_RULES = ("GR011",)
@@ -183,7 +184,8 @@ def gr035_combined_signals(target: ScanTarget) -> Iterator[Finding]:
     spans = {
         key: [
             s
-            for s in _spans(target, INJECTION_PATTERNS[key])
+            # the same call the rule itself makes, so its cached result is reused
+            for s in _spans(target, INJECTION_PATTERNS[key], fence_ok=key not in _FENCE_STRICT)
             if not _prohibited_in_clause(text, s[0]) and target.code_block_at(s[0]) is None
         ]
         for key in (*_ACTION_RULES, *_HIDE_RULES, *_AUTH_RULES)

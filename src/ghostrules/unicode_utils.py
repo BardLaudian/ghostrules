@@ -29,6 +29,7 @@ _RANGES: dict[str, tuple[tuple[int, int], ...]] = {
 # Two selectors in a row are already not typography (one follows an emoji or an ideograph).
 VS_MIN_RUN = 2
 
+_LOWEST_INVISIBLE = min(lo for ranges in _RANGES.values() for lo, _ in ranges)
 _TAG_BASE = 0xE0000
 _TAG_FALLBACK_NAMES = {0xE0001: "LANGUAGE TAG", 0xE007F: "CANCEL TAG"}
 
@@ -55,6 +56,8 @@ class Run(NamedTuple):
 def classify(ch: str) -> str | None:
     """Return the invisible class of a single character, or ``None`` if it is not invisible."""
     cp = ord(ch)
+    if cp < _LOWEST_INVISIBLE:
+        return None  # ASCII and Latin-1 letters: nothing below U+00AD is invisible
     for kind, ranges in _RANGES.items():
         if any(lo <= cp <= hi for lo, hi in ranges):
             return kind
