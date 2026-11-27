@@ -34,6 +34,9 @@ _ITEM_START = re.compile(r"^[ \t]*(?:[-*+>|]|\d+[.)]|#{1,6})[ \t]", re.MULTILINE
 
 _EXAMPLE_CUES = re.compile(
     r"\b(?:e\.g\.|i\.e\.|for\s+(?:example|instance)|such\s+as)"
+    r"|\b(?:phrases?|text|strings?|things|wording|lines?|messages?)\s+(?:like|such\s+as)\b"
+    r"|\b(?:attackers?|an\s+attack|malicious\s+\w+)\s+(?:may\s+|might\s+|can\s+|will\s+|often\s+)?"
+    r"(?:write|writes|say|says|use|uses|put|puts|embed|embeds|insert|inserts)\b"
     r"|\b(?:a|an|the|any|this|that)\s+(?:[\w-]+\s+){0,2}"
     r"(?:skill|prompt|file|instruction|rule|tool|server|document|page|comment|repo|repository|"
     r"readme|plugin|extension|package)s?\b[^.\n]{0,80}?\b(?:that|which)\b"

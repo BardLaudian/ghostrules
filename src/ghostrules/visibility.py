@@ -22,7 +22,19 @@ from ghostrules.rules.helpers import _URL_HOST_RE, host_allowed
 
 # GR015 is not here: a base64 blob is on screen but nobody can read it, so it keeps its severity.
 VISIBLE_PROSE_RULES = frozenset(
-    {"GR010", "GR011", "GR012", "GR013", "GR014", "GR016", "GR031", "GR032", "GR033", "GR034"}
+    {
+        "GR010",
+        "GR011",
+        "GR012",
+        "GR013",
+        "GR014",
+        "GR016",
+        "GR031",
+        "GR032",
+        "GR033",
+        "GR034",
+        "GR035",
+    }
 )
 
 _NOTE = (
@@ -130,7 +142,7 @@ def _is_catalog(target: ScanTarget) -> bool:
 
 # Phrases with no ordinary use in an instruction file, however they are worded: shown at medium
 # there, because the default view must not hide them. Examples and catalogues stay at info.
-_ROOT_PROSE_RULES = frozenset({"GR010", "GR011", "GR033"})
+_ROOT_PROSE_RULES = frozenset({"GR010", "GR011", "GR033", "GR035"})
 _EXAMPLE_NOTE = "an example or a quotation"
 
 
