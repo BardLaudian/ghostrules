@@ -205,10 +205,26 @@ _OFFERS_A_CHOICE = re.compile(
 )
 
 
+# What comes before the match when the skipping is the user's own request or a named mode:
+# "if the user's instruction says to skip review", "when the user asks to skip approval",
+# "In Quick Shot mode: skip approval". A comma or a full stop between the request and the match
+# ends it ("if the user asks for a review, skip it" is an order, not an option).
+_USER_ASKS_FOR_IT = re.compile(
+    r"\b(?:user|you|they)(?:['\u2019]s)?\s+(?:\w+\s+){0,2}?"
+    r"(?:says?|asks?|requests?|wants?|instructs?|instruction|tells?|passes?|specif\w+|chooses?"
+    r"|selects?|opts?|types?)\b[^.;!?,:\n]{0,25}$"
+    r"|\b(?:mode|option|flag)\b[*_`:\s-]{0,6}$",
+    re.IGNORECASE,
+)
+
+
 def _offers_a_choice(text: str, offset: int) -> bool:
     start = text.rfind("\n", 0, offset) + 1
     end = text.find("\n", offset)
-    return _OFFERS_A_CHOICE.search(text[start : len(text) if end == -1 else end]) is not None
+    return (
+        _OFFERS_A_CHOICE.search(text[start : len(text) if end == -1 else end]) is not None
+        or _USER_ASKS_FOR_IT.search(text[max(start, offset - 90) : offset]) is not None
+    )
 
 
 def _directive_findings(
