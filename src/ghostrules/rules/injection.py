@@ -43,6 +43,10 @@ def _spans(
     With ``fence_ok=False`` a match that runs across a code fence is dropped before deduplication:
     folding whitespace can join a prose word to the command in the next code block."""
     patterns = tuple(patterns)
+    key = (tuple(id(p) for p in patterns), fence_ok)
+    cached = target.span_cache.get(key)
+    if cached is not None:
+        return cached
     spans = [m.span() for p in patterns for m in p.finditer(target.text)]
     normalised, offsets = target.normalized
     for p in patterns:
@@ -65,6 +69,7 @@ def _spans(
     for start, end in sorted(set(spans), key=lambda s: (s[0], -s[1])):
         if not kept or start >= kept[-1][1]:
             kept.append((start, end))
+    target.span_cache[key] = kept
     return kept
 
 

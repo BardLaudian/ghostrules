@@ -186,6 +186,12 @@ class ScanTarget:
         return needs_deobfuscation(self.text)
 
     @cached_property
+    def span_cache(self) -> dict[tuple[tuple[int, ...], bool], list[tuple[int, int]]]:
+        """Pattern matches already computed for this file, so a rule that reuses another rule's
+        patterns (GR035) does not run the same regular expressions again."""
+        return {}
+
+    @cached_property
     def obfuscated_spans(self) -> set[tuple[int, int]]:
         """Spans a rule matched only after de-obfuscation (filled in by the rules)."""
         return set()
