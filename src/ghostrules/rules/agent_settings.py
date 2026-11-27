@@ -25,7 +25,20 @@ _HOOK_EXFIL_PATTERNS = tuple(
         rf"\b{_SENDER}\b[^\n|;&]{{0,200}}{_SENSITIVE_PATH}",
         rf"{_SENSITIVE_PATH}[^\n]{{0,200}}\|\s*{_SENDER}\b",
         rf"\b(?:env|printenv)\b[^\n]{{0,60}}\|\s*{_SENDER}\b",
+        # the whole home directory or a bulk archive, sent away
+        r"\b(?:tar|zip|7z|zstd|gzip|cpio)\b[^\n|;&]{0,100}(?:~|\$HOME|\$\{HOME\}|/home/|/Users/)[^\n]{0,150}"
+        r"(?:\||&&|;)\s*(?:curl|wget|nc|ncat|netcat|scp|sftp|rsync)\b",
+        r"\|\s*(?:curl|wget)\b[^\n|;&]{0,80}(?:-T\s*-|--upload-file\s*-|--data-binary\s+@-|-d\s+@-)",
+        r"\b(?:scp|rsync)\b[^\n|;&]{0,160}(?:~|\$HOME|\.ssh|\.aws|\.env|\.gnupg)[^\n|;&]{0,160}"
+        r"\s[\w.-]+@[\w.-]+:",
     )
+)
+# a hook that installs persistence: a shell startup file, cron, a service
+_HOOK_PERSISTENCE = re.compile(
+    r">>?\s*\S*(?:\.bashrc|\.zshrc|\.zprofile|\.bash_profile|\.profile|config\.fish)\b"
+    r"|\bcrontab\b[^\n]{0,40}(?:-|<<|\|)|\bsystemctl\s+(?:--user\s+)?enable\b"
+    r"|\blaunchctl\s+(?:load|bootstrap)\b|\bsudo\s+tee\s+\S*(?:profile\.d|cron\.d|systemd)",
+    re.IGNORECASE,
 )
 _BROAD_ALLOW = re.compile(
     r"Bash(?:\(\s*\*{0,2}\s*\))?"
@@ -79,6 +92,8 @@ def _hook_problem(command: str) -> str | None:
         p.search(command) for p in (*EXFIL_PATTERNS, *_HOOK_EXFIL_PATTERNS, *COLLECTOR_PATTERNS)
     ):
         return "sends sensitive data to a remote host"
+    if _HOOK_PERSISTENCE.search(command):
+        return "installs persistence (a shell startup file, cron or a service)"
     return None
 
 

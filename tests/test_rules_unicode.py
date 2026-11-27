@@ -318,3 +318,52 @@ def test_gr006_homoglyph_in_a_url_path_not_just_the_host() -> None:
     assert finding.severity is Severity.HIGH
     assert "CYRILLIC SMALL LETTER A" in finding.message
     assert finding.column == len("see https://example.com/docs/") + 1
+
+
+# --- GR002 and natural bidirectional text (a lone direction mark is not Trojan Source) -------
+
+_RLM, _LRM, _ALM, _RLO = chr(0x200F), chr(0x200E), chr(0x061C), chr(0x202E)
+_HEBREW = "".join(
+    chr(c)
+    for c in (0x05D4, 0x05E8, 0x05E6, 0x05EA, 0x20, 0x05D1, 0x05D3, 0x05D9, 0x05E7, 0x05D5, 0x05EA)
+)
+_ARABIC = "".join(
+    chr(c) for c in (0x064A, 0x062C, 0x0628, 0x20, 0x062A, 0x0634, 0x063A, 0x064A, 0x0644)
+)
+_PERSIAN = "".join(
+    chr(c)
+    for c in (
+        0x0642,
+        0x0628,
+        0x0644,
+        0x20,
+        0x0627,
+        0x0632,
+        0x20,
+        0x0627,
+        0x0646,
+        0x062A,
+        0x0634,
+        0x0627,
+        0x0631,
+    )
+)
+
+
+@pytest.mark.parametrize("script", [_HEBREW, _ARABIC, _PERSIAN])
+@pytest.mark.parametrize("mark", [_RLM, _LRM, _ALM])
+def test_gr002_ignores_one_direction_mark_inside_rtl_text(script: str, mark: str) -> None:
+    assert run_rule("GR002", f"{mark}{script} (npm test){mark}.\n") == []
+    assert run_rule("GR002", f"- {script}{mark}\n- {script} pytest{mark}\n") == []
+
+
+def test_gr002_still_reports_a_mark_in_code_or_without_rtl_text() -> None:
+    assert run_rule("GR002", f"```bash\nrm -rf build{_RLM}\n```\n")
+    assert run_rule("GR002", f"Run the formatter first{_RLM} and push.\n")
+    assert run_rule("GR002", f"{_HEBREW} `make{_RLM} test` {_HEBREW}\n")
+    assert run_rule("GR002", f"{_HEBREW}{_RLM * 3} npm test\n")
+
+
+def test_gr002_does_not_exempt_overrides_or_isolates() -> None:
+    assert run_rule("GR002", f"{_HEBREW} {_RLO}tcennoc{_RLO} {_HEBREW}\n")
+    assert run_rule("GR002", f"Use the script {chr(0x2067)}install.sh{chr(0x2069)} first.\n")

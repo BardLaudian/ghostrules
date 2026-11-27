@@ -78,6 +78,7 @@ max-branches = 15
 max-statements = 60
 
 [tool.ruff.lint.per-file-ignores]
+"tests/test_detection2.py" = ["E501"]  # tables of sentences, one per line
 
 [tool.mypy]
 python_version = "3.10"

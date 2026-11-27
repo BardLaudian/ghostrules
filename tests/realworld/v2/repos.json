@@ -1,0 +1,492 @@
+{
+ "selected_on": "2026-11-27",
+ "seed": 20261128,
+ "repos": [
+  {
+   "repo": "3edc4rfv5rdx/Zerkalo",
+   "commit": "bc7f8da37ca944fe73f7c38962a29710429656bf",
+   "stars": 0,
+   "stars_bucket": "0-9",
+   "size_kb": 294,
+   "primary_language": "Kotlin",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-11-11"
+  },
+  {
+   "repo": "Cyb-Leon/Streamlit-SnowflakeAI-app",
+   "commit": "d3a80a3159cd90d0f4fafea59b5271c724733892",
+   "stars": 0,
+   "stars_bucket": "0-9",
+   "size_kb": 104,
+   "primary_language": "Python",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-01-31"
+  },
+  {
+   "repo": "GKjohns/project-gpe",
+   "commit": "b9a31b4f58ab2a9a1206be69cc191e71d167fd82",
+   "stars": 0,
+   "stars_bucket": "0-9",
+   "size_kb": 8687,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-11-09"
+  },
+  {
+   "repo": "LeastAction-Labs/LeastAction",
+   "commit": "1f4b907e4040340cc0519e0cb1bc52196c0ac6f3",
+   "stars": 12,
+   "stars_bucket": "10-99",
+   "size_kb": 6199,
+   "primary_language": "Python",
+   "found_by_filename": [
+    "SKILL.md"
+   ],
+   "last_push": "2026-10-12"
+  },
+  {
+   "repo": "actions-marketplace-validations/doncheli_don-cheli-sdd",
+   "commit": "4e447cf93117ca18a7fc035e345ac9bf6f583a11",
+   "stars": 0,
+   "stars_bucket": "0-9",
+   "size_kb": 3724,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    ".cursorrules"
+   ],
+   "last_push": "2026-08-30"
+  },
+  {
+   "repo": "agentailor/create-mcp-server",
+   "commit": "490e3b0419d1c7dfc5bee60928b6158edd743b13",
+   "stars": 14,
+   "stars_bucket": "10-99",
+   "size_kb": 481,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-11-08"
+  },
+  {
+   "repo": "birkskyum/arewearmyet",
+   "commit": "aa4fe634e1c1586f8b81370fc64b0c2a994db4c7",
+   "stars": 6,
+   "stars_bucket": "0-9",
+   "size_kb": 9788,
+   "primary_language": "ASL",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-11-27"
+  },
+  {
+   "repo": "boring-design/elastic-fruit-runner",
+   "commit": "bcb9c8ed63a51923d54aee5b3da07aab6924d0be",
+   "stars": 20,
+   "stars_bucket": "10-99",
+   "size_kb": 1376,
+   "primary_language": "Go",
+   "found_by_filename": [
+    "SKILL.md"
+   ],
+   "last_push": "2026-11-10"
+  },
+  {
+   "repo": "chetmancini/tubeless",
+   "commit": "0308d0bca83f78eb588df74f9b6ef9089d24dc3b",
+   "stars": 3,
+   "stars_bucket": "0-9",
+   "size_kb": 6705,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-11-27"
+  },
+  {
+   "repo": "criptogus/agent-evolve-network",
+   "commit": "a4c5c247cafb4452ddc6b188d4915cedda3dd0bc",
+   "stars": 230,
+   "stars_bucket": "100-999",
+   "size_kb": 20246,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-11-23"
+  },
+  {
+   "repo": "danielemoraschi/maplace.js",
+   "commit": "abd3af497950ebd241425d5bf08e6a239c81fb41",
+   "stars": 990,
+   "stars_bucket": "100-999",
+   "size_kb": 19219,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "SKILL.md"
+   ],
+   "last_push": "2026-11-24"
+  },
+  {
+   "repo": "dfinity/icskills",
+   "commit": "5d4851fbdd1506a8205b034cd17ee041f4581be6",
+   "stars": 40,
+   "stars_bucket": "10-99",
+   "size_kb": 3426,
+   "primary_language": "Python",
+   "found_by_filename": [
+    "SKILL.md"
+   ],
+   "last_push": "2026-11-27"
+  },
+  {
+   "repo": "doncheli/don-cheli-sdd",
+   "commit": "4adc1c84f82f9b8df926845e12b4c2718c9bd031",
+   "stars": 59,
+   "stars_bucket": "10-99",
+   "size_kb": 3761,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    ".cursorrules"
+   ],
+   "last_push": "2026-08-10"
+  },
+  {
+   "repo": "emaitchess/refd",
+   "commit": "f1c782e5220e2f6bb1ea5e6a3f849ebed11e2256",
+   "stars": 2,
+   "stars_bucket": "0-9",
+   "size_kb": 3042,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-09-29"
+  },
+  {
+   "repo": "gqcn/agentbox",
+   "commit": "17388770eb3fc93ef0bd5480d721d54a2ea4fdf0",
+   "stars": 0,
+   "stars_bucket": "0-9",
+   "size_kb": 12544,
+   "primary_language": "Go",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-06-17"
+  },
+  {
+   "repo": "gramiojs/create-gramio",
+   "commit": "b16a532a884b3b74df5805f71a08883337fd3b30",
+   "stars": 15,
+   "stars_bucket": "10-99",
+   "size_kb": 417,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "CLAUDE.md"
+   ],
+   "last_push": "2026-11-27"
+  },
+  {
+   "repo": "hideokamoto/stripe-pwa-elements",
+   "commit": "6e92c2dc9b3c08b87b097ce98f516585119b5b76",
+   "stars": 5,
+   "stars_bucket": "0-9",
+   "size_kb": 5173,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "SKILL.md"
+   ],
+   "last_push": "2026-11-27"
+  },
+  {
+   "repo": "hristo2612/jinn-landing",
+   "commit": "4c64b57f3c0f82a9ee9a7ef83aa35a6e009b3a5d",
+   "stars": 0,
+   "stars_bucket": "0-9",
+   "size_kb": 28481,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-09-10"
+  },
+  {
+   "repo": "hyper-code-harness/hyper-code",
+   "commit": "6f1be23d621ed9696935a4f010e4af95fe9ae764",
+   "stars": 20,
+   "stars_bucket": "10-99",
+   "size_kb": 8088,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "SKILL.md"
+   ],
+   "last_push": "2026-11-26"
+  },
+  {
+   "repo": "ibelick/ui-skills",
+   "commit": "49289efa4ce27c3c174f9c90731c6ce4013830eb",
+   "stars": 11468,
+   "stars_bucket": "1000+",
+   "size_kb": 3236,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "SKILL.md"
+   ],
+   "last_push": "2026-11-27"
+  },
+  {
+   "repo": "ichsansting/mysh",
+   "commit": "c0844a3e1625bfa15f214d92dfe2568b819eff33",
+   "stars": 0,
+   "stars_bucket": "0-9",
+   "size_kb": 1329,
+   "primary_language": "Shell",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-11-23"
+  },
+  {
+   "repo": "jackulau/coding.sh",
+   "commit": "644325340c20ec77d3c254554a6995f576cc15f2",
+   "stars": 191,
+   "stars_bucket": "100-999",
+   "size_kb": 34810,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "AGENTS.md",
+    "SKILL.md"
+   ],
+   "last_push": "2026-11-27"
+  },
+  {
+   "repo": "jesusgraterol/agenticcoding",
+   "commit": "c6ec549aca29104cfa2b282882cd863fedb5aaf8",
+   "stars": 0,
+   "stars_bucket": "0-9",
+   "size_kb": 817,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-11-21"
+  },
+  {
+   "repo": "kleos-research/kaleidoscope-docs",
+   "commit": "46d5f1bfc2d72699b79eac773c2e48b3afd801fa",
+   "stars": 0,
+   "stars_bucket": "0-9",
+   "size_kb": 3141,
+   "primary_language": "Python",
+   "found_by_filename": [
+    "CLAUDE.md"
+   ],
+   "last_push": "2026-10-04"
+  },
+  {
+   "repo": "linaproai/linapro",
+   "commit": "75395c8a10ff54817dd688169613bad2161ce0fd",
+   "stars": 170,
+   "stars_bucket": "100-999",
+   "size_kb": 16490,
+   "primary_language": "Go",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-09-07"
+  },
+  {
+   "repo": "luizarnoldch/nextjs-better-auth",
+   "commit": "68c54ca478f80dee49ddcd78f23aea96727134ec",
+   "stars": 0,
+   "stars_bucket": "0-9",
+   "size_kb": 1043,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "SKILL.md"
+   ],
+   "last_push": "2026-07-31"
+  },
+  {
+   "repo": "mcp2cli/source-code",
+   "commit": "1c514ffc38e7f10d127083ea9af7865acc5dfa27",
+   "stars": 14,
+   "stars_bucket": "10-99",
+   "size_kb": 819,
+   "primary_language": "Rust",
+   "found_by_filename": [
+    "SKILL.md"
+   ],
+   "last_push": "2026-09-21"
+  },
+  {
+   "repo": "neoswarm/neosh",
+   "commit": "32ab702f5fe84c3358d9e451780431f14ea81ca7",
+   "stars": 32,
+   "stars_bucket": "10-99",
+   "size_kb": 8442,
+   "primary_language": "Rust",
+   "found_by_filename": [
+    "AGENTS.md",
+    "SKILL.md"
+   ],
+   "last_push": "2026-10-17"
+  },
+  {
+   "repo": "nilbuild/driver.js",
+   "commit": "7c442ae7e2722585de297ffe97b6e3e99e951b45",
+   "stars": 27307,
+   "stars_bucket": "1000+",
+   "size_kb": 9341,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "SKILL.md"
+   ],
+   "last_push": "2026-11-14"
+  },
+  {
+   "repo": "reliverse/experiments",
+   "commit": "33d3ba35b730abd10de39d85f94b72a05fdbf5f0",
+   "stars": 117,
+   "stars_bucket": "100-999",
+   "size_kb": 26768,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "AGENTS.md",
+    "CLAUDE.md"
+   ],
+   "last_push": "2026-03-07"
+  },
+  {
+   "repo": "sebastien/monitoring",
+   "commit": "5d781d593865999982075f4af059fcd17f081bd3",
+   "stars": 438,
+   "stars_bucket": "100-999",
+   "size_kb": 205,
+   "primary_language": "Python",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-01-25"
+  },
+  {
+   "repo": "siriusshepheard/Test-Repo",
+   "commit": "d0641cce97acfb3c02b01315353f872eca3e0e5f",
+   "stars": 0,
+   "stars_bucket": "0-9",
+   "size_kb": 27,
+   "primary_language": "Python",
+   "found_by_filename": [
+    ".cursorrules"
+   ],
+   "last_push": "2025-05-28"
+  },
+  {
+   "repo": "t4t5/caldir",
+   "commit": "30a2e43a0e82b5c6c26479fb0acd33f677d2d460",
+   "stars": 89,
+   "stars_bucket": "10-99",
+   "size_kb": 2086,
+   "primary_language": "Rust",
+   "found_by_filename": [
+    "SKILL.md"
+   ],
+   "last_push": "2026-11-18"
+  },
+  {
+   "repo": "tanbiralam/claude-code",
+   "commit": "6f6f12b37f529488b10e53928dd5508bb93535c7",
+   "stars": 2392,
+   "stars_bucket": "1000+",
+   "size_kb": 10732,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "SKILL.md"
+   ],
+   "last_push": "2026-05-06"
+  },
+  {
+   "repo": "tech4242/aquaman",
+   "commit": "4acf025dbd8c4c4d6e7842ce75b9fc653fbbda37",
+   "stars": 39,
+   "stars_bucket": "10-99",
+   "size_kb": 5032,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-11-27"
+  },
+  {
+   "repo": "valentynkit/awesome-jev-typesafe",
+   "commit": "33f532a536e01c71013c38cdc6e42a40bda779c4",
+   "stars": 190,
+   "stars_bucket": "100-999",
+   "size_kb": 25128,
+   "primary_language": "JavaScript",
+   "found_by_filename": [
+    "SKILL.md"
+   ],
+   "last_push": "2026-11-27"
+  },
+  {
+   "repo": "vite-hub/drop",
+   "commit": "00bb442ba4e7d639d0664274ce396bdb364ff405",
+   "stars": 9,
+   "stars_bucket": "0-9",
+   "size_kb": 9886,
+   "primary_language": "JavaScript",
+   "found_by_filename": [
+    "AGENTS.md"
+   ],
+   "last_push": "2026-11-27"
+  },
+  {
+   "repo": "vorillaz/devicons",
+   "commit": "ed0c56720767431c55ed56ec5abe94bee9b791c5",
+   "stars": 2797,
+   "stars_bucket": "1000+",
+   "size_kb": 33320,
+   "primary_language": "MDX",
+   "found_by_filename": [
+    "AGENTS.md",
+    "SKILL.md"
+   ],
+   "last_push": "2026-10-13"
+  },
+  {
+   "repo": "xdsjs/llm-invest-wiki",
+   "commit": "16d72a47e4b3386ba38538710318e9f01d2dcaa7",
+   "stars": 2,
+   "stars_bucket": "0-9",
+   "size_kb": 14083,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "AGENTS.md",
+    "CLAUDE.md"
+   ],
+   "last_push": "2026-05-07"
+  },
+  {
+   "repo": "zernie/vigiles",
+   "commit": "a6b0262c6657f472a2fc2d6e2a59b29dc17b1033",
+   "stars": 17,
+   "stars_bucket": "10-99",
+   "size_kb": 25562,
+   "primary_language": "TypeScript",
+   "found_by_filename": [
+    "CLAUDE.md",
+    "SKILL.md"
+   ],
+   "last_push": "2026-11-27"
+  }
+ ]
+}

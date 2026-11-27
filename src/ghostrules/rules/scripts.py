@@ -135,6 +135,33 @@ _GITHUB_HOSTS = ("api.github.com", "github.com", "uploads.github.com")
 _AZURE_HOSTS = ("dev.azure.com", "visualstudio.com")
 
 
+_SERVICE_SUFFIXES = ("_API_KEY", "_API_TOKEN", "_TOKEN", "_SECRET", "_KEY")
+
+
+def _service_of(upper: str) -> str:
+    """``X`` of ``X_API_KEY`` / ``X_TOKEN`` / ``X_SECRET`` / ``X_KEY``, or ``""``."""
+    for suffix in _SERVICE_SUFFIXES:
+        if upper.endswith(suffix) and len(upper) > len(suffix):
+            return upper.removesuffix(suffix)
+    return ""
+
+
+_ASSIGNED = re.compile(r"^\s*(\w+)\s*=[^=].*$", re.MULTILINE)
+
+
+def _with_definitions(target: ScanTarget, context: str) -> str:
+    """``context`` plus the one-line assignments of the names it uses (``URL = "https://..."``,
+    ``TOKEN = os.getenv("X_TOKEN")``), two hops: a send through a constant is a send to its host."""
+    defined: dict[str, list[str]] = {}
+    for m in _ASSIGNED.finditer(target.text):
+        defined.setdefault(m.group(1), []).append(m.group(0).strip())
+    seen = context
+    for _ in range(2):
+        words = set(re.findall(r"\w+", seen))
+        seen += "\n" + "\n".join(d for w in words for d in defined.get(w, ()) if d not in seen)
+    return seen
+
+
 def _hosts_of(name: str) -> tuple[str, ...] | None:
     """Hosts a variable's token belongs to (``*`` prefix match on its name), ``()`` for a
     ``<X>_API_KEY`` (any host containing x, see ``_belongs``) and ``None`` when unknown."""
@@ -143,7 +170,7 @@ def _hosts_of(name: str) -> tuple[str, ...] | None:
         return _GITHUB_HOSTS
     if upper.startswith(("AZURE_", "ADO_")) or upper == "SYSTEM_ACCESSTOKEN":
         return _AZURE_HOSTS
-    if upper.endswith("_API_KEY") and len(upper) > len("_API_KEY"):
+    if _service_of(upper):
         return ()
     return None
 
@@ -154,12 +181,13 @@ def _belongs(name: str, host: str) -> bool:
         return host_allowed(host, hosts)
     if hosts is None:
         return False
-    service = name.upper().removesuffix("_API_KEY")
+    service = _service_of(name.upper())
     wanted = {service.replace("_", "").lower(), service.replace("_", "-").lower()}
     first = service.split("_")[0].lower()
     if len(first) >= 3:
         wanted.add(first)
-    return any(w in host.lower() for w in wanted)
+    labels = host.lower().split(".")  # the service owns the domain, not a subdomain of another
+    return len(labels) >= 2 and labels[-2] in wanted
 
 
 def _own_service(context: str) -> bool:
@@ -239,19 +267,93 @@ def _cred_string(node: ast.AST) -> bool:
 _NET_CALLS = frozenset({"post", "put", "patch", "urlopen", "request", "send", "sendall", "fetch"})
 
 
+def _env_names(node: ast.AST, tainted: dict[str, set[str]]) -> set[str]:
+    """The secret variables whose value ``node`` carries: the name read from the environment, or
+    ``*`` for the whole environment or a credentials file (nothing names the service)."""
+    names: set[str] = set()
+    calls = [n for n in ast.walk(node) if isinstance(n, ast.Call)]
+    inner = {id(n.func.value) for n in calls if isinstance(n.func, ast.Attribute)}
+    inner |= {id(n.value) for n in ast.walk(node) if isinstance(n, ast.Subscript)}
+    for n in ast.walk(node):
+        if isinstance(n, ast.Name) and n.id in tainted:
+            names |= tainted[n.id]
+        elif isinstance(n, ast.Attribute) and _is_secret_source(n):
+            if id(n) not in inner:  # ``os.environ`` itself, not a read of one variable
+                names.add("*")
+        elif _is_secret_source(n):
+            key = n.slice if isinstance(n, ast.Subscript) else (n.args[0] if n.args else None)  # type: ignore[attr-defined]
+            named = isinstance(key, ast.Constant) and _secret_name(key)
+            names.add(key.value if named else "*")  # type: ignore[union-attr]
+    return names
+
+
+_UNKNOWN = "\x00"
+
+
+def _strings(node: ast.AST, values: dict[str, list[ast.AST]], depth: int = 0) -> set[str]:
+    """Every string ``node`` can be, following names assigned in the file and the default of an
+    environment read; a part that is not known (a parameter, input, a call) is ``\\x00``."""
+    if depth > 6:
+        return {_UNKNOWN}
+    if isinstance(node, ast.Constant):
+        return {node.value} if isinstance(node.value, str) else {_UNKNOWN}
+    if isinstance(node, ast.Name):
+        found = [_strings(v, values, depth + 1) for v in values.get(node.id, ())]
+        return set().union(*found) if found else {_UNKNOWN}
+    if isinstance(node, ast.BoolOp):
+        return set().union(*(_strings(v, values, depth + 1) for v in node.values))
+    if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+        if node.func.attr in ("get", "getenv") and len(node.args) == 2:
+            return _strings(node.args[1], values, depth + 1)  # the user's own setting + default
+        return {_UNKNOWN}
+    if isinstance(node, (ast.JoinedStr, ast.BinOp)):
+        pieces = (
+            [v.value if isinstance(v, ast.FormattedValue) else v for v in node.values]
+            if isinstance(node, ast.JoinedStr)
+            else [node.left, node.right]
+        )
+        out = {""}
+        for piece in pieces:
+            got = _strings(piece, values, depth + 1)
+            if len(out) * len(got) > 64:
+                return {_UNKNOWN}
+            out = {a + b for a in out for b in got}
+        return out
+    return {_UNKNOWN}
+
+
+_SCHEME_HOST = re.compile(r"https?://([^/?#:\s\x00]+)(?=[/?#:]|$)", re.IGNORECASE)
+
+
+def _sent_to_own_service(call: ast.Call, names: set[str], values: dict[str, list[ast.AST]]) -> bool:
+    """The call goes to a URL whose host the file spells out (a constant, a setting with a
+    default) and every such host is one a named secret belongs to (``APIFY_API_TOKEN`` to
+    api.apify.com). A path that is not known does not matter; a host that is not known does."""
+    url = call.args[0] if call.args else None
+    url = url or next((k.value for k in call.keywords if k.arg == "url"), None)
+    if url is None or "*" in names:
+        return False
+    hosts = [_SCHEME_HOST.match(u) for u in _strings(url, values)]
+    return all(m is not None and any(_belongs(n, m.group(1).lower()) for n in names) for m in hosts)
+
+
 def _python_sends_a_secret(source: str) -> int | None:
-    """Line of a network call whose arguments carry a secret, directly or through a variable."""
+    """Line of a network call whose arguments carry a secret, directly or through a variable,
+    unless it goes to the service the secret belongs to."""
     try:
         tree = ast.parse(source)
     except (SyntaxError, ValueError, RecursionError):
         return None
-    tainted: set[str] = set()
+    tainted: dict[str, set[str]] = {}
+    values: dict[str, list[ast.AST]] = {}
     for node in ast.walk(tree):  # one hop is enough for the shapes that matter
-        if isinstance(node, ast.Assign) and any(
-            _is_secret_source(n) or (isinstance(n, ast.Name) and n.id in tainted)
-            for n in ast.walk(node.value)
-        ):
-            tainted.update(t.id for t in node.targets if isinstance(t, ast.Name))
+        if isinstance(node, ast.Assign):
+            found = _env_names(node.value, tainted)
+            for t in node.targets:
+                if isinstance(t, ast.Name):
+                    values.setdefault(t.id, []).append(node.value)
+                    if found:
+                        tainted.setdefault(t.id, set()).update(found)
     for node in ast.walk(tree):
         if not isinstance(node, ast.Call):
             continue
@@ -259,11 +361,10 @@ def _python_sends_a_secret(source: str) -> int | None:
         called = func.attr if isinstance(func, ast.Attribute) else _name(func)
         if called not in _NET_CALLS:
             continue
-        if any(
-            _is_secret_source(n) or (isinstance(n, ast.Name) and n.id in tainted)
-            for argument in (*node.args, *(k.value for k in node.keywords))
-            for n in ast.walk(argument)
-        ):
+        names: set[str] = set()
+        for argument in (*node.args, *(k.value for k in node.keywords)):
+            names |= _env_names(argument, tainted)
+        if names and not _sent_to_own_service(node, names, values):
             return node.lineno
     return None
 
@@ -293,7 +394,10 @@ def gr110_script_sends_secrets(target: ScanTarget) -> Iterator[Finding]:
     for send in _SENDS:
         for secret in _SECRETS:
             candidates.extend(_nearby(target, send, secret))
-    start = next((at for at, context in candidates if not _own_service(context)), None)
+    start = next(
+        (at for at, context in candidates if not _own_service(_with_definitions(target, context))),
+        None,
+    )
     if start is not None:
         yield _finding(
             target, "GR110", Severity.HIGH, "Script sends the environment or a secret",

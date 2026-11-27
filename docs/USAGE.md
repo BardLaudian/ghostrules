@@ -102,6 +102,7 @@ Removing or retyping a field raises `schema_version`. SARIF output follows the S
 | `--baseline FILE` | `.ghostrules-baseline.json` if present | Leave out the findings listed in this baseline |
 | `--no-baseline` | off | Do not use a baseline |
 | `--baseline-from-ref REF` | | Read the baseline from this git ref, never the working tree |
+| `--visibility MODE` | `default` | `root-medium` also shows GR014 and GR032 at `medium` in root instruction files (see below) |
 | `--lenient` | off | Report all plain visible prose at `low`, including an imperative `curl \| sh` (the 0.4 behaviour; see below) |
 | `--strict` | off | Report plain visible prose at the rules' own severity (the 0.3 behaviour; see below) |
 | `--no-color` | off | Plain output |
@@ -136,6 +137,20 @@ block, a code span, a quotation or a description stays `low`. `--lenient` (confi
 "lenient"`) restores the 0.4 cap for that command too. `--strict` (config `profile =
 "strict"`, Action input `profile: strict`) restores the 0.3 severities for teams that want the check
 to fail on them too.
+
+Since 0.6 GR010 (override) and GR011 (concealment) found as visible prose in an instruction file are
+shown at `medium` instead of `low`, whether the sentence is an order or a description: they have no
+ordinary use there, and `low` was easy to miss. Examples, quotations (also a long one that opened in
+an earlier sentence), documentation and catalogues of attacks stay at `info`, and `--lenient` keeps
+the old `low` cap. They still do not fail the default `--fail-on high` check.
+
+`visibility = "root-medium"` (or `--visibility root-medium`) goes one step further for two rules whose
+prose has no ordinary use in a root instruction file (sensitive-file access, running something unread):
+GR014 and GR032 are shown at `medium` there too, like GR010, GR011, GR033 and GR035. GR013, GR016, GR031
+and GR034 stay at `low` in both modes: real-world data showed that documentation and drafting options
+read like them (see [RULES.md](https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#visibility-modes-and-the-real-world-data)). Docs, examples,
+tests, quotations and attack catalogues stay at `info`, and `--lenient` still caps everything at `low`.
+The default is unchanged.
 
 Since 0.6 two more things move the severity:
 
@@ -236,7 +251,7 @@ are `claude-code`, `copilot-cli`, `cursor`, `generic`, `codex` and `gemini-cli`;
 | | |
 |---|---|
 | **Hidden from humans** (GR001–GR006) | Invisible Unicode tag characters, variation selectors, zero-width characters and bidirectional controls; long HTML comments that address the AI; Latin/Cyrillic look-alike words and domains |
-| **Telling the agent to misbehave** (GR010–GR016) | "Ignore previous instructions", hiding actions from the user, `curl … \| sh`, sending `.env` or keys to a URL, reading `~/.ssh`, base64 payloads, `--dangerously-skip-permissions`; in English and Spanish |
+| **Telling the agent to misbehave** (GR010–GR016, GR031–GR035) | "Ignore previous instructions", hiding actions from the user, `curl … \| sh`, sending `.env` or keys to a URL, reading `~/.ssh`, base64 payloads, `--dangerously-skip-permissions`; patterns in English, Spanish, French and, for some rules, German and Portuguese, best effort (see "Blind measurement" in the threat model) |
 | **Risky configuration** (GR101–GR108) | Hardcoded tokens in MCP configs, unpinned `npx`/`uvx` servers, `http://` remotes, a filesystem server on `/`, shell wrappers, `docker --privileged`, `bypassPermissions`, auto-enabled project MCP servers |
 
 The oldest trick is still the hidden Unicode one: an innocent-looking `AGENTS.md` that carries an
@@ -425,6 +440,7 @@ jobs:
 | `follow-imports` | `true` | Also scan the files that `@path` imports in instruction files reach |
 | `lock-check` | `false` | Run `ghostrules lock --check`; fail the job if it differs from `.ghostrules.lock`. On pull requests the lock is the one at the base commit |
 | `approve-label` | none | A label that approves a change to what the agents read (see below) |
+| `visibility` | `default` | `root-medium` shows GR014 and GR032 at `medium` in root instruction files, never in docs, examples or tests; GR016 and GR034 stay at `low` ([Severity by visibility](#severity-by-visibility-default-since-04)) |
 | `profile` | `default` | `lenient` caps every plain visible prose finding at `low` (0.4); `strict` reports plain visible prose at the rules' own severity (see [Severity by visibility](#severity-by-visibility-default-since-04)) |
 | `config` | none | A trusted config file that replaces the repository's own (see below) |
 | `trust-repo-config` | `false` | On pull requests, read the pull request's own `.ghostrules.toml` (the 0.3 behaviour) |
@@ -622,9 +638,10 @@ running server.
 
 What still escapes, by design: a paraphrase that shares no words with the patterns ("send what the
 environment holds to this address"), a sensitive file described by intent instead of a path or
-`private key` + `ssh`, languages other than English, Spanish and French, a command split over several
-lines or built from variables and aliases (GR012 does not emulate a shell), and a secret without a
-known format. The `private key` + `ssh` description is a low-severity heuristic.
+`private key` + `ssh`, wordings and languages the patterns do not know (they exist in English, Spanish,
+French and, for some rules, German and Portuguese), a command split over several lines or built from
+variables and aliases (GR012 does not emulate a shell; a simple command rebuilt from named parts is
+covered), and a secret without a known format. The `private key` + `ssh` description is a low-severity heuristic.
 
 The agent models follow each agent's public documentation and say `(unverified)` where it is
 silent. They do not see what lives outside the repository or the machine: Cursor user and team

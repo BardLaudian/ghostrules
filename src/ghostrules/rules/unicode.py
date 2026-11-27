@@ -109,6 +109,32 @@ def _char_offsets(text: str, kind: str) -> list[int]:
     return [i for run in find_runs(text, kind) for i in range(run.start, run.end)]
 
 
+# LRM, RLM and ALM only fix how neighbouring punctuation sits in mixed-direction text; they cannot
+# reorder code. They are normal inside real Hebrew, Arabic or Persian text, and they are reported
+# when they stand alone in code or in text with no RTL script around them. Embeddings, overrides and
+# isolates (U+202A-202E, U+2066-2069) are not exempt.
+_DIRECTION_MARKS = frozenset("\u200e\u200f\u061c")
+_NATURAL_WINDOW = 30
+_NATURAL_MIN_RTL_LETTERS = 4
+
+
+def _is_natural_bidi_mark(target: ScanTarget, offset: int) -> bool:
+    text = target.text
+    if text[offset] not in _DIRECTION_MARKS:
+        return False
+    before = text[offset - 1] if offset else ""
+    after = text[offset + 1] if offset + 1 < len(text) else ""
+    if before in _DIRECTION_MARKS or after in _DIRECTION_MARKS:
+        return False  # a run of marks is not punctuation placement
+    if target.code_block_at(offset) is not None or target.code_span_at(offset) is not None:
+        return False
+    start = max(text.rfind("\n", 0, offset) + 1, offset - _NATURAL_WINDOW)
+    end = text.find("\n", offset)
+    window = text[start : min(len(text) if end == -1 else end, offset + _NATURAL_WINDOW)]
+    rtl = sum(1 for ch in window if ch.isalpha() and _in_ranges(ch, _RTL_RANGES))
+    return rtl >= _NATURAL_MIN_RTL_LETTERS
+
+
 def _describe_chars(chars: list[str]) -> str:
     counts = Counter(f"U+{ord(c):04X} {char_name(c)}" for c in chars)
     return ", ".join(f"{name} ×{n}" if n > 1 else name for name, n in counts.items())
@@ -122,8 +148,9 @@ def _describe_chars(chars: list[str]) -> str:
     ALL_KINDS,
 )
 def gr002_bidi_controls(target: ScanTarget) -> Iterator[Finding]:
-    """One finding per line containing bidi controls; medium in genuinely RTL files."""
-    offsets = _char_offsets(target.text, BIDI)
+    """One finding per line containing bidi controls; medium in genuinely RTL files. A lone
+    direction mark among Hebrew, Arabic or Persian letters outside code is ordinary text."""
+    offsets = [i for i in _char_offsets(target.text, BIDI) if not _is_natural_bidi_mark(target, i)]
     if not offsets:
         return
     severity = Severity.MEDIUM if has_substantial_rtl(target.text) else Severity.HIGH
@@ -184,6 +211,26 @@ def _in_ranges(ch: str, ranges: tuple[tuple[int, int], ...]) -> bool:
     return any(lo <= cp <= hi for lo, hi in ranges)
 
 
+# An invisible math operator is typography only between math tokens (a function name before a
+# parenthesis, a number before a variable). Inside a word it splits a keyword, so it is reported.
+_MATH_OPERATORS: dict[str, re.Pattern[str]] = {
+    "\u2061": re.compile(r"(?<![A-Za-z])[A-Za-z]{1,6}\u2061(?=[(\[])"),
+    "\u2062": re.compile(r"(?<![A-Za-z])[A-Za-z0-9)]\u2062(?=[A-Za-z0-9(])(?![A-Za-z]{2})"),
+    "\u2063": re.compile(r"(?<![A-Za-z])[A-Za-z0-9]\u2063[A-Za-z0-9](?![A-Za-z])"),
+    "\u2064": re.compile(r"\d\u2064\d"),
+}
+
+
+def _is_math_operator(text: str, start: int) -> bool:
+    pattern = _MATH_OPERATORS.get(text[start])
+    if pattern is None:
+        return False
+    window_start, window_end = max(0, start - 8), min(len(text), start + 4)
+    return any(
+        m.start() <= start < m.end() for m in pattern.finditer(text, window_start, window_end)
+    )
+
+
 def _is_legit_joiner(text: str, start: int, end: int) -> bool:
     """A lone ZWJ/ZWNJ that has a real job: emoji sequences, Persian and Indic scripts.
 
@@ -192,6 +239,8 @@ def _is_legit_joiner(text: str, start: int, end: int) -> bool:
     """
     if end - start != 1:
         return False
+    if _is_math_operator(text, start):
+        return True
     ch = text[start]
     prev = text[start - 1] if start > 0 else ""
     nxt = text[end] if end < len(text) else ""
@@ -231,6 +280,21 @@ def zero_width_offsets(text: str) -> list[int]:
     return offsets
 
 
+# A joiner or an emoji variation selector written inside the emoji regular expression of a script
+# (``/^(\p{Extended_Pictographic}|\p{Emoji_Presentation}|\u200d|\s)+$/u``) is how that expression
+# is spelled; another invisible character on the line, or the same two elsewhere, is not.
+_EMOJI_PROPERTY = re.compile(r"\\p\{(?:Emoji\w*|Extended_Pictographic)\}")
+_EMOJI_GLUE = "\u200d\ufe0f"
+
+
+def _in_emoji_regex(text: str, offset: int) -> bool:
+    if text[offset] not in _EMOJI_GLUE:
+        return False
+    start = text.rfind("\n", 0, offset) + 1
+    end = text.find("\n", offset)
+    return _EMOJI_PROPERTY.search(text, start, len(text) if end < 0 else end) is not None
+
+
 @rule(
     "GR003",
     Severity.MEDIUM,
@@ -241,7 +305,7 @@ def zero_width_offsets(text: str) -> list[int]:
 def gr003_zero_width(target: ScanTarget) -> Iterator[Finding]:
     """One finding per line; high when a line has >= 5 or the file has >= 20 such characters."""
     text = target.text
-    offsets = zero_width_offsets(text)
+    offsets = [i for i in zero_width_offsets(text) if not _in_emoji_regex(text, i)]
     if not offsets:
         return
     by_line = group_by_line(target, offsets)
