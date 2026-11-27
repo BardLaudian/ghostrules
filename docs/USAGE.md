@@ -102,6 +102,7 @@ Removing or retyping a field raises `schema_version`. SARIF output follows the S
 | `--baseline FILE` | `.ghostrules-baseline.json` if present | Leave out the findings listed in this baseline |
 | `--no-baseline` | off | Do not use a baseline |
 | `--baseline-from-ref REF` | | Read the baseline from this git ref, never the working tree |
+| `--visibility MODE` | `default` | `root-medium` also shows GR013, GR014, GR031 and GR032 at `medium` in root instruction files (see below) |
 | `--lenient` | off | Report all plain visible prose at `low`, including an imperative `curl \| sh` (the 0.4 behaviour; see below) |
 | `--strict` | off | Report plain visible prose at the rules' own severity (the 0.3 behaviour; see below) |
 | `--no-color` | off | Plain output |
@@ -142,6 +143,14 @@ shown at `medium` instead of `low`, whether the sentence is an order or a descri
 ordinary use there, and `low` was easy to miss. Examples, quotations (also a long one that opened in
 an earlier sentence), documentation and catalogues of attacks stay at `info`, and `--lenient` keeps
 the old `low` cap. They still do not fail the default `--fail-on high` check.
+
+`visibility = "root-medium"` (or `--visibility root-medium`) goes one step further for four rules whose
+prose has no ordinary use in a root instruction file (a credentials request, collecting and sending,
+switching off a review or a security control, running something unread): GR013, GR014, GR031 and GR032
+are shown at `medium` there too, like GR010, GR011, GR033 and GR035. GR016 (pre-approval, which also
+reads as documentation of a flag) and GR034 (persistence, which tutorials explain) stay at `low`. Docs,
+examples, tests, quotations and attack catalogues stay at `info`, and `--lenient` still caps everything
+at `low`. The default is unchanged; the mode exists so both variants can be measured.
 
 Since 0.6 two more things move the severity:
 
@@ -431,6 +440,7 @@ jobs:
 | `follow-imports` | `true` | Also scan the files that `@path` imports in instruction files reach |
 | `lock-check` | `false` | Run `ghostrules lock --check`; fail the job if it differs from `.ghostrules.lock`. On pull requests the lock is the one at the base commit |
 | `approve-label` | none | A label that approves a change to what the agents read (see below) |
+| `visibility` | `default` | `root-medium` shows GR013, GR014, GR031 and GR032 at `medium` in root instruction files, never in docs, examples or tests; GR016 and GR034 stay at `low` ([Severity by visibility](#severity-by-visibility-default-since-04)) |
 | `profile` | `default` | `lenient` caps every plain visible prose finding at `low` (0.4); `strict` reports plain visible prose at the rules' own severity (see [Severity by visibility](#severity-by-visibility-default-since-04)) |
 | `config` | none | A trusted config file that replaces the repository's own (see below) |
 | `trust-repo-config` | `false` | On pull requests, read the pull request's own `.ghostrules.toml` (the 0.3 behaviour) |

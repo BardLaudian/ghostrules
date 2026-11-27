@@ -22,12 +22,18 @@ _KNOWN_KEYS = {
     "agents",
     "lockfile",
     "profile",
+    "visibility",
     "max_file_size",
 }
 # Every modelled agent, and the ones used when the config does not say. A new model is opt-in:
 # adding it to the default would change every existing lockfile.
 DEFAULT_AGENTS = ("claude-code", "copilot-cli", "cursor", "generic")
 AGENT_NAMES = (*DEFAULT_AGENTS, "codex", "gemini-cli")
+
+
+# "root-medium" also shows GR013, GR014, GR031 and GR032 at medium in a root instruction file
+# (the default shows only GR010, GR011, GR033 and GR035 there); see visibility.py
+VISIBILITY_MODES = ("default", "root-medium")
 
 
 class ConfigError(Exception):
@@ -57,6 +63,7 @@ class Config:
     agents: tuple[str, ...] = DEFAULT_AGENTS
     lockfile: str = ".ghostrules.lock"
     profile: str = "default"
+    visibility: str = "default"
     max_file_size: int = DEFAULT_MAX_FILE_SIZE
     first_party: tuple[Any, ...] = ()  # set by the CLI from the repository, not from TOML
     source: str | None = None
@@ -116,6 +123,9 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
     profile = table.get("profile", "default")
     if profile not in ("default", "strict", "lenient"):
         raise ConfigError('\'profile\' must be "default", "strict" or "lenient"', "profile")
+    visibility = table.get("visibility", "default")
+    if visibility not in VISIBILITY_MODES:
+        raise ConfigError('\'visibility\' must be "default" or "root-medium"', "visibility")
     max_size = table.get("max_file_size", DEFAULT_MAX_FILE_SIZE)
     if isinstance(max_size, bool) or not isinstance(max_size, int) or max_size < 0:
         raise ConfigError(
@@ -133,6 +143,7 @@ def parse_config(table: dict[str, Any], source: str | None = None) -> Config:
         agents=agents,
         lockfile=lockfile.strip(),
         profile=profile,
+        visibility=visibility,
         max_file_size=max_size,
         source=source,
     )

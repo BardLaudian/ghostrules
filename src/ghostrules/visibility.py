@@ -143,6 +143,8 @@ def _is_catalog(target: ScanTarget) -> bool:
 # Phrases with no ordinary use in an instruction file, however they are worded: shown at medium
 # there, because the default view must not hide them. Examples and catalogues stay at info.
 _ROOT_PROSE_RULES = frozenset({"GR010", "GR011", "GR033", "GR035"})
+# ``visibility = "root-medium"`` adds these. GR016 and GR034 stay at low in both modes.
+_ROOT_EXTRA_RULES = frozenset({"GR013", "GR014", "GR031", "GR032"})
 _EXAMPLE_NOTE = "an example or a quotation"
 
 
@@ -154,10 +156,13 @@ def _in_open_quotation(target: ScanTarget, offset: int) -> bool:
     return _counts_inside_quotes([chunk.count(mark) for mark in _QUOTE_MARKS])
 
 
-def _shown_in_root_file(finding: Finding, target: ScanTarget, lenient: bool) -> bool:
+def _shown_in_root_file(
+    finding: Finding, target: ScanTarget, lenient: bool, root_medium: bool
+) -> bool:
+    rules = _ROOT_PROSE_RULES | _ROOT_EXTRA_RULES if root_medium else _ROOT_PROSE_RULES
     return (
         not lenient
-        and finding.rule_id in _ROOT_PROSE_RULES
+        and finding.rule_id in rules
         and target.kind == "instructions"
         and not _in_open_quotation(target, target.offset(finding.line, finding.column))
     )
@@ -172,7 +177,12 @@ def _user_scope(finding: Finding, target: ScanTarget) -> Finding:
 
 
 def by_visibility(
-    finding: Finding, target: ScanTarget, *, import_only: bool, lenient: bool = False
+    finding: Finding,
+    target: ScanTarget,
+    *,
+    import_only: bool,
+    lenient: bool = False,
+    root_medium: bool = False,
 ) -> Finding:
     """``finding`` with the severity its visibility and scope call for: prose a reviewer can read
     is lowered (to ``info`` in documentation or a catalogue of attacks), and a user-level file is
@@ -193,7 +203,7 @@ def by_visibility(
     example = _EXAMPLE_NOTE in finding.message or _is_catalog(target)
     if example:
         cap = Severity.INFO
-    elif _shown_in_root_file(finding, target, lenient):
+    elif _shown_in_root_file(finding, target, lenient, root_medium):
         cap = Severity.MEDIUM  # an override or a concealment in an instruction file is shown
     else:
         cap = Severity.INFO if "severity lowered" in finding.message else Severity.LOW
