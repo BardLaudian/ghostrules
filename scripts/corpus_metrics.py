@@ -46,6 +46,9 @@ def scan_case(case: dict[str, Any]) -> list[dict[str, Any]]:
         target = root / case["file"]
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(case["text"].encode("utf-8", "surrogatepass"))
+        for name, text in case.get("extra", {}).items():  # more files the case needs (a script)
+            (root / name).parent.mkdir(parents=True, exist_ok=True)
+            (root / name).write_text(text, encoding="utf-8")
         return json_.to_dict(scan_paths([root], Config()))["findings"]
 
 
