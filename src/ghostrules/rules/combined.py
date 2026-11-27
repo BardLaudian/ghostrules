@@ -23,7 +23,7 @@ from collections.abc import Iterator
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
 from ghostrules.rules.helpers import build_finding
-from ghostrules.rules.injection import _prohibited_in_clause, _spans
+from ghostrules.rules.injection import DOUBLE_NEGATION, _prohibited_in_clause, _spans
 from ghostrules.rules.patterns import (
     _STARTUP_TARGET,
     COLLECTOR_PATTERNS,
@@ -111,6 +111,20 @@ def _sentences(text: str, base: int) -> Iterator[tuple[int, str]]:
             pos = at + len(piece)
 
 
+def _prohibits(text: str) -> bool:
+    """Whether ``text`` holds a prohibition that is not half of a double negation."""
+    return any(
+        DOUBLE_NEGATION.match(text[m.start() :]) is None for m in _PROHIBITION.finditer(text)
+    )
+
+
+def _negated_before(prefix: str) -> bool:
+    return any(
+        DOUBLE_NEGATION.match(prefix[m.start() :] + " x") is None
+        for m in _NEGATION.finditer(prefix)
+    )
+
+
 def _cues(
     pattern: re.Pattern[str], sentence: str, base: int, *, check_negation: bool = True
 ) -> list[Cue]:
@@ -118,7 +132,7 @@ def _cues(
     return [
         (base + m.start(), _short(m.group()))
         for m in pattern.finditer(sentence)
-        if not check_negation or _NEGATION.search(sentence[: m.start()]) is None
+        if not check_negation or not _negated_before(sentence[: m.start()])
     ]
 
 
@@ -142,7 +156,7 @@ def _signals(
         found[kind] += [(a, _short(text[a:b])) for a, b in spans[key] if start <= a < end]
     for base, raw in _sentences(text[start:end], start):
         sentence = _EMPHASIS.sub(" ", raw)  # same length, so offsets stay true
-        if _PROHIBITION.search(sentence) is None:
+        if not _prohibits(sentence):
             found["action"] += _cues(_SECRET_VERB, sentence, base) + _cues(_STARTUP, sentence, base)
             shell += _cues(_SHELL, sentence, base)
             found["remote"] += _cues(_URL, sentence, base) + _cues(_EXTERNAL, sentence, base)
