@@ -1,10 +1,10 @@
 """Scan a folder of cloned repositories with both visibility variants (read-only).
 
-    python scripts/realworld_scan.py CLONES_DIR OUT_DIR
+    python scripts/realworld_scan.py CLONES_DIR OUT_DIR [PREFIX]
 
 Each sub-folder of CLONES_DIR is one repository (named ``owner@name``). It is scanned with
 ``ghostrules scan --format json --min-severity info`` twice, with ``--visibility default`` and
-``--visibility root-medium``, and the findings are written to ``OUT_DIR/results-<variant>.json``:
+``--visibility root-medium``, and the findings go to ``OUT_DIR/results-<PREFIX><variant>.json``:
 repository, file, line, rule, severity and a short snippet (secrets are already masked by the
 scanner). Nothing here makes a network request or runs scanned text, and no rule is adjusted from
 what it finds: this measures, it does not tune.
@@ -43,6 +43,7 @@ def scan(repo: Path, variant: str) -> dict:
 def main(argv: list[str]) -> int:
     """Write one results file per variant."""
     clones, out = Path(argv[1]), Path(argv[2])
+    prefix = argv[3] if len(argv) > 3 else ""
     out.mkdir(parents=True, exist_ok=True)
     repos = sorted(p for p in clones.iterdir() if p.is_dir())
     for variant in VARIANTS:
@@ -68,7 +69,7 @@ def main(argv: list[str]) -> int:
                     ],
                 }
             )
-        (out / f"results-{variant}.json").write_text(json.dumps(rows, indent=1), "utf-8")
+        (out / f"results-{prefix}{variant}.json").write_text(json.dumps(rows, indent=1), "utf-8")
         total = sum(len(r["findings"]) for r in rows)
         files = sum(r["scanned_files"] for r in rows)
         print(
