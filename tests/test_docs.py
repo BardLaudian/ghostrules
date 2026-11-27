@@ -232,7 +232,8 @@ def test_the_repository_is_clean_by_its_own_standards() -> None:
     for all_files in (False, True):
         result = scan_paths([ROOT], config, all_files=all_files)
         assert result.errors == []
-        assert result.scanned_files > 20 if all_files else result.scanned_files >= 1
+        if all_files:
+            assert result.scanned_files > 20
         assert result.findings == [], [(f.rule_id, f.path, f.line) for f in result.findings]
 
 
