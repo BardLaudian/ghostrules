@@ -20,7 +20,9 @@ from ghostrules.rules.directive import OBFUSCATION_NOTE, classify
 from ghostrules.rules.helpers import _URL_HOST_RE, host_allowed
 
 # GR015 is not here: a base64 blob is on screen but nobody can read it, so it keeps its severity.
-VISIBLE_PROSE_RULES = frozenset({"GR010", "GR011", "GR012", "GR013", "GR014", "GR016", "GR031"})
+VISIBLE_PROSE_RULES = frozenset(
+    {"GR010", "GR011", "GR012", "GR013", "GR014", "GR016", "GR031", "GR032", "GR033"}
+)
 
 _NOTE = (
     " Reported at {level} because the text is visible in the file itself; hidden or indirect "
