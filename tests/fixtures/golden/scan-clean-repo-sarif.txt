@@ -558,6 +558,27 @@ exit=0
               }
             },
             {
+              "id": "GR034",
+              "name": "Persistence mechanism",
+              "shortDescription": {
+                "text": "Persistence mechanism"
+              },
+              "fullDescription": {
+                "text": "Text telling the agent to make something start by itself: a shell startup file, cron, a service or a login item."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr034",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
               "id": "GR101",
               "name": "Hardcoded secret in agent config",
               "shortDescription": {

@@ -269,6 +269,46 @@ def gr033_persistence(target: ScanTarget) -> Iterator[Finding]:
     )
 
 
+# "Add this to your .bashrc to get completions" is documentation for a human, and "explain how users
+# can add ..." describes. The rule is about an agent being told to edit someone's startup files.
+_FOR_A_HUMAN = re.compile(
+    r"\b(?:your|vos|tus?|dein\w*|ton|ta|seu|sua)\s+(?:own\s+)?(?:\S+\s+){0,2}?"
+    r"(?:\.\w*rc|\.\w*profile|shell|terminal|crontab)"
+    r"|\b(?:explain|document|describe|readme|users?\s+can|you\s+can|if\s+you\s+(?:want|like)"
+    r"|to\s+enable|optionally|manually|tutorial|documentation|docs|for\s+the\s+(?:\w+\s+)?team)\b"
+    r"|(?<![\w./-])(?:examples?|templates?|samples?)\b",
+    re.IGNORECASE,
+)
+
+
+@rule(
+    "GR034",
+    Severity.HIGH,
+    "Persistence mechanism",
+    "Text telling the agent to make something start by itself: a shell startup file, cron, a"
+    " service or a login item.",
+    INSTRUCTIONS,
+    scans_decoded=True,
+)
+def gr034_persistence_mechanism(target: ScanTarget) -> Iterator[Finding]:
+    """What starts by itself survives the session that installed it."""
+    for span in _spans(target, INJECTION_PATTERNS["GR034"]):
+        if _prohibited_in_clause(target.text, span[0]):
+            continue
+        if _FOR_A_HUMAN.search(target.text[max(0, span[0] - 100) : span[1] + 100]):
+            continue
+        kind = classify(target, span)
+        yield _finding(
+            target,
+            "GR034",
+            severity_for(kind, Severity.HIGH),
+            "Persistence mechanism",
+            "Tells the agent to install something that starts by itself" + downgrade_note(kind),
+            span,
+            fix_hint="Remove it; an agent should not edit startup files or schedule jobs.",
+        )
+
+
 # --- GR012 ---------------------------------------------------------------------------------
 
 

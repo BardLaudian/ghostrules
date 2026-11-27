@@ -39,6 +39,13 @@ _READ_VERB = (
     r"|lies|lese|[öo]ffne|zeige|gib|kopiere|f[üu]ge|sende|schicke|h[äa]nge|[üu]bertrage|poste"
     r"|leia|abra|mostre|exiba|copie|cole|envie|inclua|anexe|publique|imprima)\b"
 )
+# the files a shell reads when it starts: what an instruction edits to make something persist
+_STARTUP_TARGET = (
+    r"(?:\.bashrc|\.bash_profile|\.bash_login|\.zshrc|\.zprofile|\.zshenv|\.profile\b|config\.fish"
+    r"|\$PROFILE|Microsoft\.PowerShell_profile|/etc/profile(?:\.d)?"
+    r"|\bshell\s+(?:startup|profile|init\w*|rc|configuration|config)\b|\bstartup\s+(?:file|script)s?"
+    r"|\bdotfiles?\b)"
+)
 # "the private key" in English, Spanish, French, German and Portuguese
 _PRIVATE_KEY = (
     r"(?:private\s+(?:(?:ssh|gpg|pgp|tls|ssl)\s+)?keys?|privaten?\s+Schl[üu]ssel\w*|chaves?\s+privadas?|claves?\s+privadas?"
@@ -269,6 +276,29 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:lade|laden|hole|besorge)\b[^.;!?\n]{0,80}?https?://\S+[^.;!?\n]{0,80}?"
         r"\b(?:f[üu]hr\w*\b[^.;!?\n]{0,30}?\baus|starte\w*|[üu]bergib\w*\s+(?:an\s+die|der)\s+"
         r"(?:Shell|Konsole))\b",
+    ),
+    # GR034: an instruction to make something start by itself (shell startup file, cron, service)
+    "GR034": _compile(
+        rf"\b(?:add|append|insert|write|put|echo|create|configure|set\s+up)\b[^.;!?\n]{{0,60}}?{_STARTUP_TARGET}",
+        r"\b(?:add|create|install|schedule|register|write|set\s+up|enable)\b[^.;!?\n]{0,50}?"
+        r"(?:\bcron\s*job\b|\bcrontab\b|\bcron\s+entry\b|@reboot|\blaunch(?:d|ctl)\b|LaunchAgents?"
+        r"|LaunchDaemons?|\bsystemd\s+(?:user\s+)?(?:unit|service|timer)s?\b|\bsystemctl\s+(?:--user\s+)?enable\b"
+        r"|\bautostart\b|\blogin\s+items?\b|\bstartup\s+folder\b|CurrentVersion\\\\Run|\brc\.local\b)",
+        r"\b(?:add|create|install|write|put)\b(?:[^.;!?\n]|\.(?=\w)){0,40}?(?:\.git/hooks\b|\bgit\s+hooks?\b"
+        r"|\b(?:pre|post)-(?:commit|checkout|merge|push)\s+hook\b)(?:[^.;!?\n]|\.(?=\w)){0,100}?"
+        r"(?:\b(?:that|which|to)\s+(?:\w+\s+){0,2}?(?:uploads?|sends?|posts?|copies|copy|curls?|wgets?"
+        r"|exfiltrat\w*|pushes)\b|https?://)",
+        rf"\b(?:a[ñn]ade|agrega|escribe|inserta|crea|registra|instala|programa|configura)\b[^.;!?\n]{{0,60}}?"
+        rf"(?:{_STARTUP_TARGET}|perfil\s+del\s+shell|\bcron\b|crontab|tarea\s+programada"
+        r"|inicio\s+autom[aá]tico|launchd|systemd)",
+        rf"\b(?:adicione|acrescente|escreva|insira|crie|registre|instale|agende|configure)\b[^.;!?\n]{{0,60}}?"
+        rf"(?:{_STARTUP_TARGET}|perfil\s+do\s+shell|\bcron\b|crontab|tarefa\s+agendada"
+        r"|inicializa[çc][ãa]o\s+autom[aá]tica|launchd|systemd)",
+        rf"\b(?:f[üu]ge|trage|schreibe|lege|installiere|richte)\b[^.;!?\n]{{0,60}}?"
+        rf"(?:{_STARTUP_TARGET}|Shell-Profil|\bCronjob\b|crontab|Autostart|launchd|systemd)",
+        rf"\b(?:ajoute|[ée]cris|ins[èe]re|cr[ée]e|enregistre|installe|planifie|configure)\b[^.;!?\n]{{0,60}}?"
+        rf"(?:{_STARTUP_TARGET}|profil\s+du\s+shell|\bcron\b|crontab|t[âa]che\s+planifi[ée]e"
+        r"|d[ée]marrage\s+automatique|launchd|systemd)",
     ),
     "GR013": EXFIL_PATTERNS + COLLECTOR_PATTERNS,
     # the verb governs the path: same clause (no `;` or sentence end), at most six words apart

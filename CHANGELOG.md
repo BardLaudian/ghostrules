@@ -65,6 +65,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   is in the sentence. **GR032 reads "run it without checking"** more widely (`blindly`, `sight unseen`,
   `don't read it, just run it`) and in Spanish, Portuguese, French and German.
 
+- **GR034, persistence mechanism (high).** An instruction to add a line to a shell startup file, schedule a
+  cron job, enable a service, install a launchd agent or login item, or put a git hook that uploads files,
+  in five languages. Documentation written for a human (`add this to your .bashrc`), prohibitions and
+  templates are not reported. **GR107 also flags a settings hook** that archives and sends `~`, copies a
+  credentials folder to `user@host:`, writes to a shell startup file or installs cron or a service.
+
 ### Tests
 
 - **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in
