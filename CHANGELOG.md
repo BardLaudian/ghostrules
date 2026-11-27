@@ -51,6 +51,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **GR002 no longer reports one LRM, RLM or ALM inside real Hebrew, Arabic or Persian text** (found by
   a blind test). Embeddings, overrides, isolates, marks in code and runs of marks are still reported.
 
+- **GR011 reads concealment in German, Portuguese and French as well as Spanish and English**, and the
+  variants that hide an action by omission ("leave it out of the report", "no lo registres en el log"),
+  covering tracks (shell history) and stealth framing. Prohibitions in those languages, data-hygiene
+  omissions and UI features called "Clear History" (found scanning public repositories) are not reported.
+
 ### Tests
 
 - **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in
