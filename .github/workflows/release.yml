@@ -38,7 +38,7 @@ jobs:
 
       - name: Build
         run: |
-          python -m pip install --disable-pip-version-check --quiet build
+          python -m pip install --disable-pip-version-check --quiet build==1.6.1
           python -m build
 
       - name: SBOM (CycloneDX)
@@ -46,7 +46,7 @@ jobs:
           # a clean environment, so the SBOM lists ghostrules and its runtime dependencies only
           python -m venv sbom-env
           sbom-env/bin/python -m pip install --disable-pip-version-check --quiet .
-          python -m pip install --disable-pip-version-check --quiet cyclonedx-bom
+          python -m pip install --disable-pip-version-check --quiet cyclonedx-bom==9.0.0
           mkdir sbom
           cyclonedx-py environment --of JSON -o sbom/ghostrules-sbom.cdx.json sbom-env
 
