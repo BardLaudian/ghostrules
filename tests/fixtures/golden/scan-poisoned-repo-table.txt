@@ -1,5 +1,5 @@
 exit=1
-◆ ghostrules v0.5.1  scanning examples/poisoned-repo
+◆ ghostrules v0.6.0  scanning examples/poisoned-repo
 
 AGENTS.md  4 findings ──────────────────────────────────────────────────────────────────────────────────────────────────
  CRITICAL  GR001 Unicode tag characters (ASCII smuggling)                                                 AGENTS.md:5:35

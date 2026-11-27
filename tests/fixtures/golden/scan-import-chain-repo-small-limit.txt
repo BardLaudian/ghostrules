@@ -1,5 +1,5 @@
 exit=1
-◆ ghostrules v0.5.1  scanning examples/import-chain-repo
+◆ ghostrules v0.6.0  scanning examples/import-chain-repo
 
 docs/setup.md  2 findings ──────────────────────────────────────────────────────────────────────────────────────────────
  CRITICAL  GR021 Sensitive file imported into context                                                 docs/setup.md:3:14
