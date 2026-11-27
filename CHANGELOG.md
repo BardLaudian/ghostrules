@@ -56,6 +56,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   covering tracks (shell history) and stealth framing. Prohibitions in those languages, data-hygiene
   omissions and UI features called "Clear History" (found scanning public repositories) are not reported.
 
+- **GR014 reads credential-file requests in five languages** (read, copy, paste and send verbs, `private
+  key` wording) and more stores (`.kube/config`, `.docker/config.json`, gcloud and Azure credentials,
+  any `.ssh/`). A `copy X into the ticket` is no longer mistaken for the `.env.example` template case.
+
 ### Tests
 
 - **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in

@@ -32,10 +32,21 @@ _SECRET = (
 _EXFIL_VERB = r"(?<!\.)\b(?:send|(?-i:[Pp]ost)|upload|append|include|exfiltrate|forward)\b"
 _READ_VERB = (
     r"\b(?:read|open|print|cat|send|upload|post|show|display|dump|output|copy|exfiltrate|attach"
-    r"|leak|paste|share)\b"
+    r"|leak|paste|share"
+    # the same verbs in Spanish, French, German and Portuguese (the paths are the same everywhere)
+    r"|lee|leer|abre|abrir|muestra|imprime|copia|pega|env[ií]a|incluye|adjunta|publica|sube"
+    r"|lis|lisez|ouvre|ouvrez|affiche|colle|envoie|inclus|joins|publie"
+    r"|lies|lese|[öo]ffne|zeige|gib|kopiere|f[üu]ge|sende|schicke|h[äa]nge|[üu]bertrage|poste"
+    r"|leia|abra|mostre|exiba|copie|cole|envie|inclua|anexe|publique|imprima)\b"
+)
+# "the private key" in English, Spanish, French, German and Portuguese
+_PRIVATE_KEY = (
+    r"(?:private\s+(?:(?:ssh|gpg|pgp|tls|ssl)\s+)?keys?|privaten?\s+Schl[üu]ssel\w*|chaves?\s+privadas?|claves?\s+privadas?"
+    r"|cl[ée]s?\s+priv[ée]es?)"
 )
 _SENSITIVE_PATH = (
-    r"(?:~/\.ssh|\bid_rsa\b|\bid_ed25519\b|\.aws/credentials|(?<!\w)\.env\b(?!\.(?:example|sample|template|dist)\b)|\.npmrc|\.pypirc|\.netrc|\.git-credentials|\.config/gh/hosts\.yml"
+    r"(?:~/\.ssh|\bid_(?:rsa|ed25519|ecdsa|dsa)\b|(?<![\w/])\.ssh/|\.aws/credentials|\.kube/config"
+    r"|\.docker/config\.json|\.gnupg\b|\.config/gcloud|application_default_credentials|\.azure/|(?<!\w)\.env\b(?!\.(?:example|sample|template|dist)\b)|\.npmrc|\.pypirc|\.netrc|\.git-credentials|\.config/gh/hosts\.yml"
     r"|\bkubeconfig\b|\bkeychain\b|/etc/shadow|(?:chrome|firefox|safari|browser)\W{0,3}[\w ]{0,15}"
     r"cookies?)"
 )
@@ -245,8 +256,8 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"(?:[ \t]+(?!(?:before|after|when|while|until)\b)[^\s;]*[^\s;.!?]){0,6}?"
         rf"[ \t]+[`'\"(\[\u201c]*(?:[^\s/`'\"]*/)*{_SENSITIVE_PATH}",
         # heuristic: a private key described rather than named ("the private key in the ssh folder")
-        rf"{_READ_VERB}[^.;!?\n]{{0,60}}?(?:\bssh\b[^.;!?\n]{{0,30}}?\bprivate\s+keys?\b"
-        r"|\bprivate\s+keys?\b[^.;!?\n]{0,30}?\bssh\b)",
+        rf"{_READ_VERB}[^.;!?\n]{{0,60}}?(?:\.?\bssh\b[^.;!?\n]{{0,30}}?{_PRIVATE_KEY}"
+        rf"|{_PRIVATE_KEY}[^.;!?\n]{{0,40}}?\.?\b(?:ssh|gnupg|keychain|keystore)\b)",
     ),
     "GR016": _compile(
         r"--dangerously-skip-permissions",
