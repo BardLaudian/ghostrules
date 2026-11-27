@@ -5,7 +5,7 @@ which agents honour it is the context engine's job (``docs/AGENT_MODELS.md``).
 
 Documented: an import is not parsed inside code spans or fenced code blocks; the path ends at the
 first unescaped space (``\\ `` escapes one); a path wrapped in quotes is not imported. The rest is
-an approximation, recorded in ``docs/DECISIONS.md``: a certain import has ``@`` at the start of a
+an approximation: a certain import has ``@`` at the start of a
 line or after whitespace (so ``user@example.com`` is never one); an ``@`` after ``(``, ``[``, ``,``
 and similar is a *loose* candidate, flagged so callers can scan it as unverified; trailing sentence
 punctuation is not part of the path.

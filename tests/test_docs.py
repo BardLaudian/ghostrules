@@ -66,7 +66,6 @@ def test_readme_section_order_converts_visitors() -> None:
         "Hidden Unicode",
         "Review every change to what your agents read",
         "GitHub Action and pre-commit",
-        "How we test precision",
         "Limits",
         "How this was built",
         "Alternatives",
@@ -84,7 +83,7 @@ def test_readme_is_short_and_uses_absolute_links() -> None:
         assert src.startswith("https://"), src
 
 
-def test_readme_opens_with_the_picture_banner_tagline_badges_and_the_imports_gif() -> None:
+def test_readme_opens_with_the_picture_banner_tagline_and_badges() -> None:
     base = "https://raw.githubusercontent.com/BardLaudian/ghostrules/main/"
     head = README.split("## Install and run")[0]
     assert head.startswith('<p align="center">\n  <picture>')
@@ -99,23 +98,16 @@ def test_readme_opens_with_the_picture_banner_tagline_badges_and_the_imports_gif
         "pypi/v/ghostrules",
         "pypi/pyversions",
         "license-MIT",
-        "badges%2Fcorpus%2Fbadge.json",
     ):
         assert badge in head
-    assert head.index("![CI]") < head.index(base + "demo/imports.gif")
-    # the study line follows the GIF, then install, run and the playground
-    assert head.index(base + "demo/imports.gif") < head.index("study/report.md")
     install = README.split("## Install and run")[1].split("## Why")[0]
     assert "pipx install ghostrules" in install and "ghostrules scan ." in install
-    assert "https://bardlaudian.github.io/ghostrules/" in install
-    assert README.index(base + "demo/imports.gif") < README.index(base + "demo/demo.gif")
-    assert (ROOT / "demo" / "imports.gif").is_file() and (ROOT / "demo" / "demo.gif").is_file()
 
 
 def test_every_dropped_section_is_still_linked_from_the_readme() -> None:
     for anchor in ("docs/USAGE.md#github-action", "docs/USAGE.md#limits"):
         assert anchor in README
-    for doc in ("docs/USAGE.md", "docs/RULES.md", "docs/AGENT_MODELS.md", "study/report.md"):
+    for doc in ("docs/USAGE.md", "docs/RULES.md", "docs/AGENT_MODELS.md"):
         assert f"/blob/main/{doc}" in README
     titles = section_titles(USAGE)
     for title in (
@@ -132,71 +124,6 @@ def test_every_dropped_section_is_still_linked_from_the_readme() -> None:
         "Roadmap",
     ):
         assert title in titles, title
-
-
-def test_the_study_line_quotes_numbers_that_are_in_the_study_data() -> None:
-    import csv
-
-    with (ROOT / "study" / "data" / "numbers.csv").open(encoding="utf-8", newline="") as handle:
-        nums = {r["id"]: r for r in csv.DictReader(handle)}
-    line = next(ln for ln in README.splitlines() if ln.startswith("**A one-day snapshot"))
-    mcp, hidden = nums["mcp_unpinned"], nums["hidden_unicode"]
-    assert f"{int(mcp['repos'])} of the {int(mcp['of'])}" in line and f"{mcp['pct']} %" in line
-    assert "upper bound" in line  # the denominator is a lower bound
-    assert f"{int(hidden['repos'])} repositories ({hidden['pct']} %)" in line
-    assert f"{int(nums['secrets']['of']):,} popular repositories" in line
-    for hygiene in ("two or more", "200 lines"):  # hygiene statistics are not a security headline
-        assert hygiene not in line
-
-
-def test_claims_that_were_wrong_or_unverified_are_gone() -> None:
-    """W1 of docs/design/v0.4/REMEDIATION.md: no uniqueness claims, no '0 false positives'."""
-    report = (ROOT / "study" / "report.md").read_text(encoding="utf-8")
-    for name, text in (("README", README), ("USAGE", USAGE), ("report", report)):
-        low = text.lower()
-        assert "0 false positive" not in low and "zero false positive" not in low, name
-        assert "every week a workflow" not in low, name
-        assert "nobody scans" not in low and "no tool resolves" not in low, name
-    assert "scheduled weekly" in README and "last run: 20" in README
-    assert report.startswith("# A snapshot (2026-10-28)")
-
-
-def test_prior_art_is_corrected_and_dated() -> None:
-    models = (ROOT / "docs" / "AGENT_MODELS.md").read_text(encoding="utf-8")
-    decisions = (ROOT / "docs" / "DECISIONS.md").read_text(encoding="utf-8")
-    for text in (models, decisions):
-        assert "5099798" in text and "cfgaudit" in text and "2026-10-29" in text
-        assert "cairnlock" in text and "verify --base" in text
-    assert "No tool found that resolves" not in models
-    assert "does not claim to be the first or the only tool" in decisions
-
-
-def test_the_study_reports_precision_for_a_user_with_a_per_rule_table() -> None:
-    report = (ROOT / "study" / "report.md").read_text(encoding="utf-8")
-    assert (
-        "| Rule | Findings (medium+) | True positive | Benign context | False positive |" in report
-    )
-    assert "noise" in report and "## Threats to validity" in report
-    assert "Rules tuned on the same data" in report
-    assert "lower bound" in report and "upper bound" in report  # the MCP denominator, explained
-    header = report.split("## In short")[1].split("## 1.")[0]
-    assert header.index("Security indicators") < header.index("AGENTS.md")  # hygiene comes second
-    for (
-        line
-    ) in header.splitlines():  # every percentage in the summary has its numerator/denominator
-        for pct in re.finditer(r"\d+(?:\.\d+)?%(?! \()", line):
-            assert "true positives" in line or "(" in line[pct.end() :], line
-
-
-def test_design_history_lives_in_docs_design() -> None:
-    for name in ("SPEC.md", "PLAN.md", "v0.1.1", "v0.2"):
-        assert (ROOT / "docs" / "design" / name).exists(), name
-        assert not (ROOT / "docs" / name).exists(), name
-    for name in ("RULES.md", "AGENT_MODELS.md", "DECISIONS.md"):
-        assert (ROOT / "docs" / name).is_file(), name
-    assert "design history" in (ROOT / "CONTRIBUTING.md").read_text("utf-8")
-    claude = (ROOT / "CLAUDE.md").read_text("utf-8")
-    assert "docs/design/SPEC.md" in claude and "docs/design/PLAN.md" in claude
 
 
 def test_usage_documents_every_scan_option() -> None:
@@ -241,11 +168,6 @@ def test_links_to_repository_files_point_at_files_that_exist(name: str) -> None:
         assert (ROOT / target).exists(), f"{name} links to missing {target}"
     for target in re.findall(r"\]\((?!https?:|#|mailto:)([^)#]+)", text):
         assert (ROOT / target).exists(), f"{name} links to missing {target}"
-
-
-def test_demo_gif_is_referenced_where_the_tape_writes_it() -> None:
-    assert "demo/demo.gif" in README
-    assert "Output demo/demo.gif" in (ROOT / "demo/demo.tape").read_text(encoding="utf-8")
 
 
 # --- contributing, security, templates ---------------------------------------------------------
@@ -310,7 +232,8 @@ def test_the_repository_is_clean_by_its_own_standards() -> None:
     for all_files in (False, True):
         result = scan_paths([ROOT], config, all_files=all_files)
         assert result.errors == []
-        assert result.scanned_files > 20 if all_files else result.scanned_files >= 1
+        if all_files:
+            assert result.scanned_files > 20
         assert result.findings == [], [(f.rule_id, f.path, f.line) for f in result.findings]
 
 
@@ -386,7 +309,7 @@ def test_agent_models_document_is_where_the_docs_say() -> None:
 
 
 def test_the_repository_lock_is_up_to_date() -> None:
-    """`ghostrules lock --check` passes on this repository (it locks its own CLAUDE.md)."""
+    """`ghostrules lock --check` passes on this repository."""
     from typer.testing import CliRunner
 
     result = CliRunner().invoke(app, ["lock", "--check", "--no-color", "--root", str(ROOT)])

@@ -704,12 +704,8 @@ def test_pre_commit_hook() -> None:
 def test_expected_workflows_exist() -> None:
     assert {p.name for p in WORKFLOWS} == {
         "ci.yml",
-        "scorecard.yml",
         "self-test.yml",
         "release.yml",
-        "corpus.yml",
-        "links.yml",
-        "pages.yml",
     }
 
 
@@ -853,45 +849,6 @@ def test_the_changelog_has_release_notes_for_the_packaged_version() -> None:
 # --- set_owner ---------------------------------------------------------------------------------
 
 
-def test_set_owner_replaces_the_placeholder_in_every_kind_of_file(tmp_path: Path) -> None:
-    set_owner = load_script("set_owner")
-    placeholder = set_owner.PLACEHOLDER
-    carriers = [
-        "README.md", "SECURITY.md", "CONTRIBUTING.md", "pyproject.toml",
-        "src/ghostrules/__init__.py", ".github/ISSUE_TEMPLATE/config.yml",
-    ]  # fmt: skip
-    for name in carriers:
-        target = tmp_path / name
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(f"see https://github.com/{placeholder}/issues\n", encoding="utf-8")
-    for untouched in ("tests/fixtures/keep.md", "tests/test_x.py", "examples/keep.md"):
-        target = tmp_path / untouched
-        target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(placeholder, encoding="utf-8")
-
-    assert sorted(set_owner.apply(tmp_path, "octo-cat", dry_run=True)) == sorted(carriers)
-    assert placeholder in (tmp_path / "README.md").read_text(encoding="utf-8")  # dry run
-    assert sorted(set_owner.apply(tmp_path, "octo-cat")) == sorted(carriers)
-    for name in carriers:
-        text = (tmp_path / name).read_text(encoding="utf-8")
-        assert placeholder not in text and "octo-cat/ghostrules" in text
-    assert set_owner.apply(tmp_path, "octo-cat") == []  # idempotent
-    for untouched in ("tests/fixtures/keep.md", "tests/test_x.py", "examples/keep.md"):
-        assert (tmp_path / untouched).read_text(encoding="utf-8") == placeholder
-
-
-@pytest.mark.parametrize("bad", ["", "-x", "x-", "a--b", "has space", "a/b", "x" * 40, "../up"])
-def test_set_owner_rejects_invalid_names(bad: str, tmp_path: Path) -> None:
-    with pytest.raises(ValueError, match="not a valid GitHub"):
-        load_script("set_owner").apply(tmp_path, bad)
-    result = subprocess.run(
-        [sys.executable, str(ROOT / "scripts" / "set_owner.py"), bad or "''"],
-        capture_output=True,
-        text=True,
-    )
-    assert result.returncode == 2
-
-
 def test_every_repository_url_names_the_same_owner() -> None:
     """True before and after set_owner has run: no half-replaced placeholder."""
     from ghostrules import PROJECT_URL
@@ -907,24 +864,6 @@ def test_every_repository_url_names_the_same_owner() -> None:
         owners |= found
     assert len(owners) == 1, owners
     assert PROJECT_URL.endswith(f"/{next(iter(owners))}/ghostrules")
-
-
-def test_corpus_workflow_never_runs_on_pull_requests_and_publishes_from_main_only() -> None:
-    corpus = load(ROOT / ".github/workflows/corpus.yml")
-    assert set(corpus.get("on", corpus.get(True))) == {"schedule", "workflow_dispatch"}
-    assert corpus["permissions"] == {"contents": "read"}
-    publish = corpus["jobs"]["publish"]
-    assert "refs/heads/main" in publish["if"]
-    assert publish["permissions"] == {"contents": "write"}
-    script = "\n".join(str(step.get("run", "")) for step in publish["steps"])
-    assert "git push origin badges" in script and "gh-pages" not in script
-    assert "git add corpus" in script  # only the corpus/ files go to the orphan branch
-    readme = (ROOT / "README.md").read_text(encoding="utf-8")
-    assert (
-        "raw.githubusercontent.com%2FBardLaudian%2Fghostrules%2Fbadges%2Fcorpus%2Fbadge.json"
-        in readme
-    )
-    assert "github.io%2Fghostrules%2Fcorpus" not in readme
 
 
 # --- supply chain (phase 6: H8, H9, H12) ---------------------------------------------------------
@@ -960,14 +899,6 @@ def test_release_attests_provenance_and_attaches_a_cyclonedx_sbom() -> None:
     assert "cyclonedx-py" in text and "ghostrules-sbom.cdx.json" in text
     assert "sbom/ghostrules-sbom.cdx.json" in " ".join(
         s.get("run", "") for s in release["jobs"]["github-release"]["steps"]
-    )
-
-
-def test_scorecard_workflow_is_read_only_by_default() -> None:
-    workflow = load(ROOT / ".github/workflows/scorecard.yml")
-    assert workflow["permissions"] == "read-all"
-    assert "ossf/scorecard-action@" in (ROOT / ".github/workflows/scorecard.yml").read_text(
-        encoding="utf-8"
     )
 
 

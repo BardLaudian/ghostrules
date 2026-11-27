@@ -30,7 +30,7 @@ a patch version (`0.N.P`) does not.
   remove them. That is why the baseline and `--fail-on` exist. New rules are added in minor versions.
 - The Python import path `ghostrules.*` except what [USAGE.md](USAGE.md#use-the-context-engine-as-a-library)
   documents (the context engine and its JSON schema).
-- `bench/`, `corpus/`, `study/`, `web/` and `scripts/`.
+- `scripts/`.
 - Agent models: they follow each agent's documentation, so they change when the agent does.
 
 ## Deprecation
@@ -59,7 +59,7 @@ A security fix may skip this when waiting would leave users exposed; the changel
 5. CI (lint, types, tests on three operating systems, audit, self-scan, performance budget) is
    required on the protected branch.
 6. [THREAT_MODEL.md](THREAT_MODEL.md) and the limits in USAGE.md are current, and every README claim
-   is backed (see [CLAIMS.md](CLAIMS.md)).
+   is backed.
 7. No known open vulnerability against the scanner itself.
-8. More than one person can review and release (see [GOVERNANCE.md](../GOVERNANCE.md)), or the
+8. More than one person can review and release, or the
    single-maintainer limit is stated on the front page.

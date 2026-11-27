@@ -14,7 +14,7 @@ severity for prose that is not addressed to the agent:
 It is a heuristic on English (and a little Spanish) and it is deliberately biased: when it cannot
 tell, a clause next to the match that starts with a verb makes the sentence a directive, which keeps
 the rule's normal severity. Inline code is transparent (``Run `claude --yolo` `` is read as
-"Run ..."), see ``docs/DECISIONS.md``. Pure: no I/O.
+"Run ..."). Pure: no I/O.
 """
 
 from __future__ import annotations

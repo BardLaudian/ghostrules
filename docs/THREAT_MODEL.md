@@ -67,8 +67,7 @@ What `ghostrules` protects, from whom, where it trusts and where it does not, an
 
 ## Non-goals: what it does not detect
 
-These are limits by design, not bugs. Several have a bench case listing the miss
-([bench/RESULTS.md](../bench/RESULTS.md)).
+These are limits by design, not bugs. Several are listed in the limits of USAGE.md.
 
 | Not detected | Why | Related |
 |---|---|---|

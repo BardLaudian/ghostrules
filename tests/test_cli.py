@@ -403,6 +403,18 @@ def test_output_file_that_cannot_be_written_exits_2(clean: Path, tmp_path: Path)
     assert "cannot write" in result.stderr
 
 
+def test_clean_write_refuses_a_symlink_and_leaves_the_target_alone(tmp_path: Path) -> None:
+    original = f"keep{ZWSP}\n"
+    target = write(tmp_path / "AGENTS.md", original)
+    link = tmp_path / "CLAUDE.md"
+    link.symlink_to(target)
+    result = invoke("clean", "--write", str(link))
+    assert result.exit_code == 2
+    assert "symbolic link" in result.stderr
+    assert target.read_bytes().decode("utf-8") == original
+    assert not (tmp_path / "CLAUDE.md.ghostrules.bak").exists()
+
+
 def test_clean_write_failure_exits_2_and_leaves_the_file_alone(tmp_path: Path, monkeypatch) -> None:
     original = f"keep{ZWSP}\n"
     path = write(tmp_path / "a.md", original)
