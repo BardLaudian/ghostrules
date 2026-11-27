@@ -66,6 +66,14 @@ _EXFIL_PATTERNS_EN = _compile(
     r"!\[[^\]]*\]\(https?://[^)\s]*[?&][^=\s)]+=(?:\{|\$|%7B|<)",
     rf"{_EXFIL_VERB}.{{0,80}}?(?:{_SECRET}|{_ENV_CONTENTS}).{{0,200}}?https?://[^\s)\]>\"']+",
     rf"{_EXFIL_VERB}.{{0,200}}?https?://.{{0,80}}?{_SECRET}",
+    # collect first, send afterwards: "gather the dotenv file and the credentials, send to <url>"
+    rf"\b(?:gather|collect|capture|compile|aggregate|bundle|read|grab|harvest|dump)\b[^.;!?\n]{{0,100}}?"
+    rf"(?:{_SECRET}|\bdotenv\b|credentials?\s+(?:profile|file|store)|cloud\s+credentials?|\bcookies?\b"
+    r"|shell\s+history)[^.;!?\n]{0,120}?\b(?:send|post|submit|report|transmit|forward|ship|push|upload"
+    r"|deliver)\w*\b(?:[^.;!?\n]|\.(?=\w)){0,120}?https?://[^\s)\]>\"']+",
+    rf"{_EXFIL_VERB}[^.;!?\n]{{0,80}}?(?:{_SECRET}|{_ENV_CONTENTS})[^.;!?\n]{{0,60}}?"
+    r"\b(?:external|third[- ]party|remote|outside|unknown|public)\s+"
+    r"(?:server|host|service|endpoint|party|site|address|machine)\b",
     # `POST` in capitals is the HTTP method, so only "POST <all|the|your> <secret> to <url>" counts
     rf"\bPOST\s+(?:all|every|the|your|any)\s+(?:of\s+)?(?:{_SECRET}|{_ENV_CONTENTS})"
     r".{0,200}?https?://[^\s)\]>\"']+",
@@ -113,6 +121,31 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"(?:no\s+longer\s+apply|are\s+(?:void|obsolete|revoked|cancell?ed|superseded))",
         r"\bfrom\s+now\s+on\s*,?\s+(?:ignore|disregard)\b",
         r"\bforget\s+(?:all\s+)?(?:that\s+|what\s+)?you\s+(?:were|have\s+been)\s+(?:told|taught|given)",
+        # what came before no longer counts, or this file outranks the user
+        r"\b(?:what(?:ever)?|anything|everything)\s+(?:the\s+)?(?:user|developer|person|operator|human)\s+"
+        r"(?:has\s+|have\s+)?(?:told|said|asked|wrote|instructed)\b[^.;!?\n]{0,50}?\b(?:superseded|void"
+        r"|obsolete|revoked|cancell?ed|replaced|overridden|invalid)\b",
+        r"\b(?:supersede[sd]?|overrid(?:e|es)|replace[sd]?|outrank\w*|trump\w*)\b[^.;!?\n]{0,30}?"
+        r"\b(?:the\s+)?(?:user|developer|person)(?:'s|s')?\s+(?:instructions?|requests?|prompts?|wishes"
+        r"|messages?|commands?)\b",
+        r"\b(?:this|these)\s+(?:file|document|notes|rules|instructions|section|checklist)\b[^.;!?\n]{0,40}?"
+        r"\b(?:takes?|has|have)\s+(?:precedence|priority)\s+over\b",
+        r"\b(?:even\s+if|regardless\s+of\s+what|no\s+matter\s+what)\s+(?:the\s+)?(?:user|person|developer)"
+        r"\s+(?:objects?|asks?|says?|wants?|requests?|tells?)\b[^.;!?\n]{0,40}?"
+        r"\b(?:keep|continue|follow|obey|still|instead)\b",
+        r"\b(?:keep|continue)\s+(?:following|obeying)\s+(?:this|these)\s+(?:file|document|notes"
+        r"|instructions)\s+(?:instead|regardless)\b",
+        r"\btreat\b[^.;!?\n]{0,40}?\bas\s+(?:your|the)\s+(?:new\s+|real\s+)?(?:system\s+prompt"
+        r"|instructions)\b",
+        r"\b(?:lo\s+anterior|las\s+instrucciones\s+anteriores)\s+(?:queda|quedan|est[aá]n?|ha\s+quedado)\s+"
+        r"(?:superad[oa]s?|sin\s+efecto|anulad[oa]s?|obsolet[oa]s?|invalidad[oa]s?|derogad[oa]s?)\b",
+        r"(?<!\bno\s)\b(?:tiene|tienen)\s+prioridad\s+sobre\b[^.;!?\n]{0,25}?\b(?:usuario|todo\s+lo\s+dem[aá]s)",
+        r"\b(?:o\s+que\s+foi\s+dito\s+antes|as\s+instru[çc][õo]es\s+anteriores|tudo\s+o\s+que\s+foi\s+dito)"
+        r"\s+(?:fica|ficam|est[ãa]o|est[áa])\s+(?:sem\s+efeito|superad[oa]s?|anulad[oa]s?|revogad[oa]s?)",
+        r"\b(?:ce\s+qui\s+pr[ée]c[èe]de|les\s+instructions\s+pr[ée]c[ée]dentes|tout\s+ce\s+qui\s+a\s+[ée]t[ée]"
+        r"\s+dit)\s+(?:est|sont)\s+(?:annul[ée]e?s?|r[ée]voqu[ée]e?s?|caduque?s?|sans\s+effet)",
+        r"\b(?:alles\s+Vorherige|die\s+bisherigen\s+Anweisungen|alle\s+fr[üu]heren\s+Anweisungen)\s+"
+        r"(?:ist|sind)\s+(?:hinf[äa]llig|ung[üu]ltig|aufgehoben|[üu]berholt|ersetzt)",
     ),
     "GR011": _compile(
         # "do not tell the user to ...", "... which|what|how|where|when|why ..." is about what to
@@ -277,6 +310,11 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
     # GR012 written as prose: a fetch verb, a URL, then a hand-over to a shell or an execute verb.
     # No shell syntax is needed ("pull the script from <url> and feed it into bash").
     "GR012P": _compile(
+        # a command rebuilt from named parts: "execute the concatenation of A and B", "run X then Y"
+        r"\b(?:execute|run|eval(?:uate)?)\b[^.;!?\n]{0,30}?\b(?:concatenat\w+|combination|join)\s+of\s+"
+        r"(?:the\s+)?(?:\w{1,3}\s+(?:and|with|\+)\s+\w{1,3}\b|(?:variables?|parts?|pieces?|fragments?)\b)",
+        r"\b(?:run|execute)\s+[A-Z]\w?\s+(?:immediately\s+|directly\s+)?(?:followed|then)\s+"
+        r"(?:directly\s+)?by\s+[A-Z]\w?\b(?!\w)",
         r"\b(?:fetch|download|retrieve|grab|pull|obtain|get|load)\b[^.;!?\n]{0,80}?https?://\S+"
         r"[^.;!?\n]{0,80}?\b(?:(?:hand|pass|pipe|feed|send|forward|redirect|stream)\w*\b[^.;!?\n]{0,40}?"
         r"\b(?:to|into|through)\b[^.;!?\n]{0,20}?\b(?:shell|bash|sh|zsh|interpreter|terminal|powershell"
