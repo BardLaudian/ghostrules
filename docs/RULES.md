@@ -78,6 +78,13 @@ Chars in U+E0000–U+E007F. Used to smuggle ASCII text that models read but huma
 ### GR002 — Bidirectional control characters (high)
 U+202A–U+202E, U+2066–U+2069, U+200E, U+200F, U+061C ("Trojan Source"). Medium instead of high
 if the file contains substantial RTL script (Arabic/Hebrew) — legitimate use.
+Since 0.6 a **single** direction mark (U+200E LRM, U+200F RLM, U+061C ALM) with at least four Hebrew,
+Arabic, Syriac or Thaana letters within 30 characters on its line is ordinary bidirectional text (it
+only places neighbouring punctuation) and is not reported, whatever the share of RTL text in the
+file. It is still reported in a code block or code span, with no RTL letters around it, or in a run of
+marks. Embeddings, overrides and isolates (U+202A–U+202E, U+2066–U+2069) are never exempt.
+True positive: an RLM at the end of a `rm -rf` line in a code block. False positive that stays quiet:
+a Hebrew, Arabic or Persian sentence with an RLM before a `(npm test)` fragment.
 
 ### GR003 — Zero-width / invisible formatting characters (medium → high)
 U+200B, U+200C, U+200D, U+2060, U+2061–U+2064, U+180E, U+FEFF (not at file start), U+00AD.
