@@ -837,6 +837,23 @@ def _names_a_template(text: str, span: tuple[int, int]) -> bool:
 # --- GR015 ---------------------------------------------------------------------------------
 
 
+# A hex value in backticks that a noun in the same line names ("the root key ... `3081...`", "the
+# SHA-256 `ab12...`"): a documented value. Text that decodes to something readable still counts.
+_NAMED_VALUE = re.compile(
+    r"\b(?:\w*key|hash|digest|checksum|fingerprint|sha\d*|md5|uuid|address|signature|cert\w*|der)s?\b",
+    re.IGNORECASE,
+)
+
+
+def _documented_value(target: ScanTarget, start: int, end: int) -> bool:
+    line_start = target.text.rfind("\n", 0, start) + 1
+    return (
+        target.text[start - 1 : start] == "`"
+        and bool(re.fullmatch(r"[0-9a-fA-F]+", target.text[start:end]))
+        and _NAMED_VALUE.search(target.text, line_start, start) is not None
+    )
+
+
 @rule(
     "GR015",
     Severity.MEDIUM,
@@ -856,6 +873,8 @@ def gr015_encoded_payloads(target: ScanTarget) -> Iterator[Finding]:
         if block is not None and block.lang not in SHELL_LANGS:
             continue
         readable = run.decoded is not None
+        if not readable and _documented_value(target, run.start, run.end):
+            continue
         yield _finding(
             target,
             "GR015",
