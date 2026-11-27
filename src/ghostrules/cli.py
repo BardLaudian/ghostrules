@@ -203,7 +203,7 @@ def scan(
         Optional[str],  # noqa: UP045
         typer.Option(
             "--visibility",
-            help="default, or root-medium: also show GR013, GR014, GR031 and GR032 at medium in "
+            help="default, or root-medium: also show GR014 and GR032 at medium in "
             "root instruction files (not docs, examples or tests).",
         ),
     ] = None,

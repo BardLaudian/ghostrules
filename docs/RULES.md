@@ -689,6 +689,17 @@ code (GR110-GR113). Its findings keep the rule's own severity (indirect text), c
 not open it. A mention that only points (`see docs/guide.md`) is not a reference; the path is tried next
 to the file, then from the root, never outside the repository; references do not chain.
 
+## Visibility modes and the real-world data
+
+Scan v2 (`tests/realworld/v2`, 40 repositories, 1899 agent files, none used for tuning) produced 19
+findings at `medium` or above, all false positives (0 true positives). With the default view 12 of
+them reach `medium`; promoting GR013, GR014, GR031 and GR032 in root files (the first `root-medium`)
+added 7 more, and every one of the 7 was GR031 (5, a "no-review / skip approval" option the user may
+ask for in a drafting workflow) or GR013 (2, an API-token variable documented in a heading and a
+table). GR014 and GR032 added none. So `root-medium` now promotes only GR014 and GR032, and GR013 and
+GR031 stay at `low` in both modes: at `medium` they were wrong 7 times out of 7 on ordinary
+repositories. The default is unchanged. The sample says nothing about recall.
+
 ## Severity calibration targets (acceptance)
 - `examples/clean-repo` (realistic AGENTS.md, CLAUDE.md, .mcp.json with `${GITHUB_TOKEN}`, pinned
   packages, settings with narrow allow-list): **0 findings**.

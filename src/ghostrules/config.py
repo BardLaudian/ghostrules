@@ -31,7 +31,7 @@ DEFAULT_AGENTS = ("claude-code", "copilot-cli", "cursor", "generic")
 AGENT_NAMES = (*DEFAULT_AGENTS, "codex", "gemini-cli")
 
 
-# "root-medium" also shows GR013, GR014, GR031 and GR032 at medium in a root instruction file
+# "root-medium" also shows GR014 and GR032 at medium in a root instruction file
 # (the default shows only GR010, GR011, GR033 and GR035 there); see visibility.py
 VISIBILITY_MODES = ("default", "root-medium")
 

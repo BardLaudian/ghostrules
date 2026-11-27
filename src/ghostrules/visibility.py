@@ -144,7 +144,7 @@ def _is_catalog(target: ScanTarget) -> bool:
 # there, because the default view must not hide them. Examples and catalogues stay at info.
 _ROOT_PROSE_RULES = frozenset({"GR010", "GR011", "GR033", "GR035"})
 # ``visibility = "root-medium"`` adds these. GR016 and GR034 stay at low in both modes.
-_ROOT_EXTRA_RULES = frozenset({"GR013", "GR014", "GR031", "GR032"})
+_ROOT_EXTRA_RULES = frozenset({"GR014", "GR032"})
 _EXAMPLE_NOTE = "an example or a quotation"
 
 
