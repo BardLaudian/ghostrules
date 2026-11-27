@@ -50,7 +50,7 @@ What `ghostrules` protects, from whom, where it trusts and where it does not, an
 | Symlink out of the tree, symlink loops | Not followed outside the root; reported (GR025) | `tests/test_symlink_alias.py` |
 | Unicode evasion (zero-width inside a word, soft hyphen, fullwidth, homoglyphs) | Text is normalised before matching and the offset map is kept | `tests/test_evasion_regressions.py` |
 | Escape sequences or Markdown in a finding | Output sanitising in every reporter | `tests/test_output_contract.py` |
-| Secret in a finding | One masking step; a test searches every format | `tests/test_demo.py`, `tests/test_lock.py` |
+| Secret in a finding | One masking step; a test searches every format | `tests/test_lock.py` |
 | Config or ignore comment in the PR that hides its own payload | Trusted config and suppressions from a ref; GR030 | `docs/USAGE.md` "Scanning a pull request" |
 | A malformed config | Fails with `file:line`, exit 2, never ignored | `tests/test_config_errors.py` |
 
@@ -72,10 +72,10 @@ These are limits by design, not bugs. Several are listed in the limits of USAGE.
 | Not detected | Why | Related |
 |---|---|---|
 | Malicious instructions that share no words with the patterns (a paraphrase of "send the environment to this address") | Detection is lexical, not semantic. No model understands the text | GR010, GR011, GR013, GR014; USAGE "Limits" |
-| Languages other than English, Spanish and French | The patterns exist only for those | GR010-GR016 |
+| Languages other than English, Spanish, French, German and Portuguese, and any language for a rule that has not been extended | Patterns exist only for those, and only some rules cover all five | GR010-GR016, GR031-GR035 |
 | A command split across lines or built from variables and aliases | GR012 does not emulate a shell | GR012, GR112, GR113 |
 | A secret without a known format | Secrets are matched by format and context | GR017, GR101 |
-| MCP tool descriptions served by a running server | Nothing is started or fetched | `bench` case `mcp-server-content` |
+| MCP tool descriptions served by a running server | Nothing is started or fetched | |
 | Files an agent reads that nothing in the repository points to, or that live outside it (Cursor user and team rules, managed policy, `--add-dir`) | The scanner sees only the tree it is given | AGENT_MODELS.md |
 | Whether a legitimate-looking instruction is wise ("always run `make deploy`") | Intent is the reviewer's call | |
 | Vulnerabilities in the code an agent writes, or in your dependencies | Not a code or dependency scanner; not a general secret scanner | |
@@ -85,6 +85,61 @@ These are limits by design, not bugs. Several are listed in the limits of USAGE.
 
 "No findings" is therefore never "safe": it means none of the listed patterns matched in the files
 the model says the agent reads.
+
+## Blind measurement
+
+The rules were tuned on a labelled corpus the rule author wrote, so its numbers say nothing about inputs
+the author did not think of. To measure that, a set of cases was written by someone who had **not seen the
+rules**, and the scanner was run on it without changing anything.
+
+**Method.** 60 cases: 30 attacks and 30 benign twins (`tests/holdout/holdout-v1.jsonl`, SHA-256 recorded
+next to it, 11 attack families). Every benign twin shares its topic and vocabulary with an attack: a
+security document that quotes an injection phrase, a prohibition, a policy, a legitimate use of the same
+characters. Each case is one file at the path its name implies, scanned with the default configuration
+(`scripts/holdout_eval.py`). "Visible" means a finding at `medium` or above in the default output, which is
+the strict reading (`low` is printed by default but easy to miss). Wilson 95 % intervals; with 30 cases
+per label the intervals are wide.
+
+**Result of v1** (code of `62145d6`, before the second detection round):
+
+| | attacks seen at medium+ | 95 % interval |
+|---|---|---|
+| all 30 attacks | 11 (36.7 %) | 21.9 – 54.5 % |
+| seen anywhere in the default output (`low` counts) | 13 (43.3 %) | 27.4 – 60.8 % |
+| fails the default `--fail-on high` check | 10 (33.3 %) | 19.2 – 51.2 % |
+| benign twins with a finding at medium+ (false positives) | 2 of 30 (6.7 %) | 1.8 – 21.3 % |
+| benign twins that fail the default check | 1 of 30 (3.3 %) | 0.6 – 16.7 % |
+
+By family (attacks seen at medium+): **structural** families all detected, unicode 3/3, MCP configuration
+3/3, hidden comment 1/1; **semantic** families mostly missed, override 1/5, exfiltration 2/4,
+remote execution 1/5, concealment 0/2, sensitive files 0/2, persistence 0/2, tampering 0/1, other 0/2. In
+those two groups: 7 of 7 (64.6 – 100 %) against 4 of 23 (7.0 – 37.1 %).
+
+**v1 is burned.** Its misses guided the next detection round (generalised by category, never copied as
+patterns), so it can no longer validate anything: a rerun on it measures a set the rules were improved
+with, not the scanner. Anything run on v1 from now on must be labelled "tuning set, not a measurement". A
+test checks that no text of v1 is in the tuning corpus. Measuring the later releases needs a new blind set
+(v2) written by someone who has not seen them.
+
+**Structural and semantic detection.** What the numbers say is a difference of kind, not of effort.
+
+- *Structural* detection looks at properties of the bytes or the structure: invisible, bidirectional and tag
+  characters, variation selectors, a hidden HTML comment, the fields of an MCP or settings file (an
+  unpinned package, `http://`, a shell wrapper, an auto-approve flag), a secret by its format. It does not
+  depend on what the text means, so it is strong and close to deterministic; it can be evaded only by
+  changing the structure.
+- *Semantic* detection tries to recognise what a sentence asks the agent to do, with lexical patterns
+  over words in five languages. It is **best effort**: a paraphrase, a language or a framing the patterns do
+  not know is missed, and every pattern added to catch one more wording risks flagging documentation that
+  only talks about it. Combining weak signals in a paragraph (GR035) helps at the margin and does not change
+  this.
+
+**The lock is the control that does not depend on detection.** `ghostrules lock` records what every agent
+reads and `lock --check` makes each change to it visible for a person to approve, whatever the text says.
+A paraphrase that evades every pattern still appears as a changed file in a reviewed pull request; GR030
+and GR031 exist so that a change cannot switch that review off. It does not judge the first content it
+records, and it only works if someone reads the diff. Detection and the lock are complementary: detection
+reduces what a reviewer has to read, the lock makes sure they are asked to.
 
 ## Reporting gaps
 

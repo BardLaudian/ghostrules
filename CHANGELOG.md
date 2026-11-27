@@ -92,6 +92,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   negated cues, paragraphs about attacks and documentation do not count. The scheme is in RULES.md.
 - Example and quotation detection also recognises `things like …` and `attackers write …`.
 
+- `docs/THREAT_MODEL.md` has a "Blind measurement" section (method, v1 results with intervals, v1 is
+  burned, structural versus semantic detection, the lock as the complementary control) and no longer lists
+  German and Portuguese as unsupported or points at files that were removed.
+
 ### Tests
 
 - **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in
