@@ -300,6 +300,15 @@ Since 0.5 (H4) the verb list includes `open`, the paths include `.git-credential
 folder`: `private key` and `ssh` in one sentence after a read verb) is reported at **`low`**: it is a
 heuristic, never enough to fail the default check on its own.
 
+Since 0.6 the read, print, copy, paste and send verbs are also matched in Spanish, French, German and
+Portuguese; `private key` is recognised in those languages and with an adjective (`private SSH
+key`) next to `.ssh`, `gnupg`, `keychain` or `keystore`; the paths include `.kube/config`,
+`.docker/config.json`, `.gnupg`, `.config/gcloud` (`application_default_credentials.json`), `.azure/`
+and any `.ssh/` folder. `ne … jamais/pas` negates the French verb. `Copy ~/.ssh/id_rsa into the
+ticket` reads the path and is reported; only `Copy .env.example to .env.local` (the path is the
+destination) is skipped. Visible prose is still capped at `low` by visibility; only GR010, GR011 and
+GR033 are shown at `medium` in a root file.
+
 Instruction text referencing `~/.ssh`, `id_rsa`, `id_ed25519`, `.aws/credentials`, `.env`
 (as a file to read/send, not "add .env to .gitignore"), `.npmrc`, `.pypirc`, `.netrc`, `kubeconfig`,
 `Keychain`, browser cookie stores, `/etc/shadow`, combined with a read/print/cat/send verb that

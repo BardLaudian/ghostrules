@@ -533,15 +533,23 @@ def _cross_sentence(target: ScanTarget, covered: list[tuple[int, int]]) -> Itera
 _EMPHASIS = re.compile(r"[*_`]")
 _NEGATION_BEFORE = re.compile(
     r"(?:never|do\s+not|don'?t|must\s+not|should\s+not|shouldn'?t|mustn'?t|avoid|not"
-    r"|nunca|evita|rather\s+than|instead\s+of)\s+(?:[a-z']+\s+){0,2}$",
+    r"|nunca|evita|evite|jamais|niemals|nie|rather\s+than|instead\s+of)\s+(?:[a-z']+\s+){0,2}$"
+    r"|\bne\s+(?:[a-zé']+\s+){0,2}(?:jamais|pas|plus)\s+(?:[a-z']+\s+){0,2}$",
     re.IGNORECASE,
 )
+
+
+_FRENCH_NE = re.compile(r"\bn(?:e\s+|['’])$", re.IGNORECASE)
+_FRENCH_NEGATION = re.compile(r"[\w']+\s+(?:[\w']+\s+)?(?:jamais|pas|plus)\b", re.IGNORECASE)
 
 
 def _negated_before(text: str, start: int) -> bool:
     """Whether a prohibition ("Never", "Don't", "rather than") governs the text at ``start``;
     emphasis marks are ignored (``**Don't commit** .env``)."""
-    return bool(_NEGATION_BEFORE.search(_EMPHASIS.sub("", text[max(0, start - 40) : start])))
+    before = _EMPHASIS.sub("", text[max(0, start - 40) : start])
+    if _FRENCH_NE.search(before) and _FRENCH_NEGATION.match(text[start : start + 40]):
+        return True  # "Ne lis jamais ~/.netrc": the negation wraps the verb
+    return bool(_NEGATION_BEFORE.search(before))
 
 
 _CLAUSE_END = re.compile(r"[.;:!?\n]")
@@ -594,8 +602,18 @@ def _describes_launch(text: str, start: int) -> bool:
 
 # "Copy .env.example to .env.local": the sensitive path is the destination, not what is read.
 _COPY_TO_DESTINATION = re.compile(
-    r"(?:copy|paste)\b.*\b(?:to|into|as)\b", re.IGNORECASE | re.DOTALL
+    r"(?:copy|paste)\b.*?\b(?:to|into|as)\b", re.IGNORECASE | re.DOTALL
 )
+
+
+def _path_is_the_destination(text: str, span: tuple[int, int]) -> bool:
+    """ "Copy .env.example to .env.local": the sensitive path comes after the preposition, so it is
+    where the file goes. "Copy ~/.ssh/id_rsa into the ticket" reads the path and is reported."""
+    found = _COPY_TO_DESTINATION.match(text[span[0] : span[1]])
+    return (
+        found is not None
+        and SENSITIVE_PATH_RE.search(text, span[0] + found.end(), span[1]) is not None
+    )
 
 
 @rule(
@@ -617,7 +635,7 @@ def gr014_sensitive_files(target: ScanTarget) -> Iterator[Finding]:
             continue
         if "\n\n" in target.text[span[0] : span[1]] or _output_is_a_noun(target.text, span[0]):
             continue  # a paragraph break ends the clause; "### Output" names a section
-        if _COPY_TO_DESTINATION.match(target.text[span[0] : span[1]]):
+        if _path_is_the_destination(target.text, span):
             continue
         if _names_a_template(target.text, span) or _copies_dotenv(target.text[span[0] : span[1]]):
             continue
