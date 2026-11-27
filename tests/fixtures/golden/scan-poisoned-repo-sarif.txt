@@ -558,6 +558,27 @@ exit=1
               }
             },
             {
+              "id": "GR034",
+              "name": "Persistence mechanism",
+              "shortDescription": {
+                "text": "Persistence mechanism"
+              },
+              "fullDescription": {
+                "text": "Text telling the agent to make something start by itself: a shell startup file, cron, a service or a login item."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr034",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
               "id": "GR101",
               "name": "Hardcoded secret in agent config",
               "shortDescription": {
@@ -1187,7 +1208,7 @@ exit=1
             "security-severity": "9.5",
             "fixHint": "Reference an environment variable (for example ${GITHUB_TOKEN}) instead, and rotate this secret: it is exposed to everyone with access to the repository."
           },
-          "ruleIndex": 26
+          "ruleIndex": 27
         },
         {
           "ruleId": "GR105",
@@ -1218,7 +1239,7 @@ exit=1
             "security-severity": "9.5",
             "fixHint": "Launch the server binary directly with arguments instead of a shell command string."
           },
-          "ruleIndex": 30
+          "ruleIndex": 31
         },
         {
           "ruleId": "GR004",
@@ -1375,7 +1396,7 @@ exit=1
             "security-severity": "8.0",
             "fixHint": "Use https:// so traffic and credentials are encrypted."
           },
-          "ruleIndex": 28
+          "ruleIndex": 29
         },
         {
           "ruleId": "GR106",
@@ -1406,7 +1427,7 @@ exit=1
             "security-severity": "8.0",
             "fixHint": "Remove the option and mount only the specific directories the server needs."
           },
-          "ruleIndex": 31
+          "ruleIndex": 32
         },
         {
           "ruleId": "GR005",
@@ -1499,7 +1520,7 @@ exit=1
             "security-severity": "8.0",
             "fixHint": "Remove defaultMode or use a mode that asks for permission."
           },
-          "ruleIndex": 32
+          "ruleIndex": 33
         },
         {
           "ruleId": "GR107",
@@ -1530,7 +1551,7 @@ exit=1
             "security-severity": "8.0",
             "fixHint": "Allow only specific commands or domains, for example Bash(npm run test:*)."
           },
-          "ruleIndex": 32
+          "ruleIndex": 33
         },
         {
           "ruleId": "GR006",
@@ -1623,7 +1644,7 @@ exit=1
             "security-severity": "5.5",
             "fixHint": "Pin an exact version, for example some-mcp-server@1.2.3."
           },
-          "ruleIndex": 27
+          "ruleIndex": 28
         },
         {
           "ruleId": "GR104",
@@ -1654,7 +1675,7 @@ exit=1
             "security-severity": "5.5",
             "fixHint": "Restrict the server to the project directory, for example ${workspaceFolder}."
           },
-          "ruleIndex": 29
+          "ruleIndex": 30
         },
         {
           "ruleId": "GR108",
@@ -1685,7 +1706,7 @@ exit=1
             "security-severity": "5.5",
             "fixHint": "Remove it and approve project servers one by one."
           },
-          "ruleIndex": 33
+          "ruleIndex": 34
         },
         {
           "ruleId": "GR006",
