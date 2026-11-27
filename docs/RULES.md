@@ -118,6 +118,8 @@ Text revealed by GR001/GR004 decoding must ALSO be scanned by GR010–GR016 (rep
 `new (system )?instructions:`, `you are now (in )?(developer|dan|jailbreak)`,
 `override (the )?(system|safety)`, ES: `ignora (todas )?las instrucciones (anteriores|previas)`,
 `olvida (tus|las) instrucciones`.
+Spelling tricks do not hide it: fullwidth and look-alike letters, zero-width characters, leetspeak
+(`1gnore prev1ous`) and a phrase split across lines are folded before matching (reported as obfuscated).
 Negative: documentation *about* prompt injection inside fenced code blocks marked as examples is
 still reported but at `low` with message "appears inside a code block". Since 0.3 the directive /
 descriptive / example classification applies: guidance that quotes the phrase to say it must be

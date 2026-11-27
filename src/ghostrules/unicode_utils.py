@@ -152,10 +152,26 @@ _FOLDED = "".join(_CONFUSABLES)
 _MIXED_SCRIPT_RE = re.compile(f"[A-Za-z][{_FOLDED}]|[{_FOLDED}][A-Za-z]")
 
 
+# A word that mixes letters with 0/1/3/4/5/7/@/$ ("1gnore", "prev1ous"): leetspeak. Digits alone
+# ("2026", "v1.0") are not words, so numbers are left as they are.
+_LEET_WORD_RE = re.compile(
+    r"(?<![A-Za-z0-9@$])(?=[\w@$]*[A-Za-z])(?=[\w@$]*[013457@$])[A-Za-z0-9@$]+"
+)
+_LEET = str.maketrans("013457@$", "oieastas")
+
+
+def fold_leet(text: str) -> str:
+    """Undo leetspeak inside words that mix letters and look-alike digits. Same length as ``text``,
+    so offsets do not move."""
+    return _LEET_WORD_RE.sub(lambda m: m.group().translate(_LEET), text)
+
+
 def needs_deobfuscation(text: str) -> bool:
     """Cheap check: could ``deobfuscate`` change what a pattern sees? True for invisible
     characters, compatibility forms (fullwidth, ligatures) and a look-alike next to a Latin letter.
     Plain ASCII and single-script text (Cyrillic, Arabic, Devanagari...) return False."""
+    if _LEET_WORD_RE.search(text):
+        return True
     if text.isascii():
         return False
     return (
@@ -167,7 +183,7 @@ def needs_deobfuscation(text: str) -> bool:
 
 def deobfuscate(text: str) -> tuple[str, list[int]]:
     """Matching view of ``text``: invisible characters dropped, NFKC applied, look-alikes folded
-    to Latin and whitespace runs collapsed to one space.
+    to Latin, leetspeak folded and whitespace runs collapsed to one space.
 
     Returns the view plus, for each of its characters, the offset in the original text, so a
     match can be reported against what is really in the file."""
@@ -188,4 +204,4 @@ def deobfuscate(text: str) -> tuple[str, list[int]]:
                 chars.append(out)
                 offsets.append(i)
                 in_space = False
-    return "".join(chars), offsets
+    return fold_leet("".join(chars)), offsets
