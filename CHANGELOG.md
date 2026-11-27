@@ -99,6 +99,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - README and the usage guide say what the detection is: reliable for hidden characters, comments and MCP
   configuration, pattern-based and best effort for instructions, with the languages the patterns cover.
 
+- **`visibility = "root-medium"` / `--visibility root-medium`** shows GR013, GR014, GR031 and GR032 at
+  `medium` in root instruction files (never in docs, examples or tests); GR016 and GR034 stay `low`. The
+  default is unchanged.
+
 ### Tests
 
 - **A labelled corpus of evasion and attack cases** (235 attacks and 171 benign twins at this point) in
