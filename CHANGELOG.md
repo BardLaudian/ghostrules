@@ -37,6 +37,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Tests
 
+- **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in
+  `tests/fixtures/evasion/cases.toml`, run by `pytest` as a gate: a known attack that stops being
+  reported fails CI. Known misses are marked `open`. `scripts/corpus_metrics.py` prints precision,
+  recall and the open cases.
 - Metamorphic tests: `examples/poisoned-repo` rewritten as CRLF, with a BOM, with trailing tabs,
   and its JSON minified, with reversed keys and with every string spelled as `\u` escapes gives the
   same findings.
