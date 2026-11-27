@@ -1,5 +1,5 @@
 exit=1
-◆ ghostrules v0.5.1  scanning examples/poisoned-repo
+◆ ghostrules v0.6.0  scanning examples/poisoned-repo
 
 CLAUDE.md  2 findings ──────────────────────────────────────────────────────────────────────────────────────────────────
    HIGH    GR005 Hidden HTML comment with instructions                                                     CLAUDE.md:4:1
