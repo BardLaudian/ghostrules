@@ -84,6 +84,16 @@ model is one module, one section of `docs/AGENT_MODELS.md` and its tests:
 4. **Say what you could not model** (user-level or organisation settings, environment variables)
    in `ContextGraph.notes`, and add a line to `CHANGELOG.md`.
 
+## The evasion corpus
+
+`tests/fixtures/evasion/cases.toml` holds labelled attacks (the rule that must report them) and benign
+twins (nothing may be reported). `pytest` runs every case, so a known attack that stops being
+reported fails CI. When you fix a miss, add the case first; a case marked `status = "open"` is a
+known miss and fails the run once it starts passing, so remove the marker then. The file is ASCII:
+write invisible and look-alike characters as `\u` escapes. `python scripts/corpus_metrics.py` prints
+precision, recall and the open cases; do not copy its numbers into the README before a person has
+reviewed the labels.
+
 ## Supply chain
 
 - Every `uses:` in `action.yml` and `.github/workflows/` is pinned to a full commit SHA with the
