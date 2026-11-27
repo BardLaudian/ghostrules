@@ -48,6 +48,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **GR016 no longer reports a sentence that only says how a session was launched** (`sessions
   launched via --dangerously-skip-permissions must follow …`), found scanning public repositories.
 
+- **GR002 no longer reports one LRM, RLM or ALM inside real Hebrew, Arabic or Persian text** (found by
+  a blind test). Embeddings, overrides, isolates, marks in code and runs of marks are still reported.
+
 ### Tests
 
 - **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in

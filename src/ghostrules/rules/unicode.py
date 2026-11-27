@@ -109,6 +109,32 @@ def _char_offsets(text: str, kind: str) -> list[int]:
     return [i for run in find_runs(text, kind) for i in range(run.start, run.end)]
 
 
+# LRM, RLM and ALM only fix how neighbouring punctuation sits in mixed-direction text; they cannot
+# reorder code. They are normal inside real Hebrew, Arabic or Persian text, and they are reported
+# when they stand alone in code or in text with no RTL script around them. Embeddings, overrides and
+# isolates (U+202A-202E, U+2066-2069) are not exempt.
+_DIRECTION_MARKS = frozenset("\u200e\u200f\u061c")
+_NATURAL_WINDOW = 30
+_NATURAL_MIN_RTL_LETTERS = 4
+
+
+def _is_natural_bidi_mark(target: ScanTarget, offset: int) -> bool:
+    text = target.text
+    if text[offset] not in _DIRECTION_MARKS:
+        return False
+    before = text[offset - 1] if offset else ""
+    after = text[offset + 1] if offset + 1 < len(text) else ""
+    if before in _DIRECTION_MARKS or after in _DIRECTION_MARKS:
+        return False  # a run of marks is not punctuation placement
+    if target.code_block_at(offset) is not None or target.code_span_at(offset) is not None:
+        return False
+    start = max(text.rfind("\n", 0, offset) + 1, offset - _NATURAL_WINDOW)
+    end = text.find("\n", offset)
+    window = text[start : min(len(text) if end == -1 else end, offset + _NATURAL_WINDOW)]
+    rtl = sum(1 for ch in window if ch.isalpha() and _in_ranges(ch, _RTL_RANGES))
+    return rtl >= _NATURAL_MIN_RTL_LETTERS
+
+
 def _describe_chars(chars: list[str]) -> str:
     counts = Counter(f"U+{ord(c):04X} {char_name(c)}" for c in chars)
     return ", ".join(f"{name} ×{n}" if n > 1 else name for name, n in counts.items())
@@ -122,8 +148,9 @@ def _describe_chars(chars: list[str]) -> str:
     ALL_KINDS,
 )
 def gr002_bidi_controls(target: ScanTarget) -> Iterator[Finding]:
-    """One finding per line containing bidi controls; medium in genuinely RTL files."""
-    offsets = _char_offsets(target.text, BIDI)
+    """One finding per line containing bidi controls; medium in genuinely RTL files. A lone
+    direction mark among Hebrew, Arabic or Persian letters outside code is ordinary text."""
+    offsets = [i for i in _char_offsets(target.text, BIDI) if not _is_natural_bidi_mark(target, i)]
     if not offsets:
         return
     severity = Severity.MEDIUM if has_substantial_rtl(target.text) else Severity.HIGH
