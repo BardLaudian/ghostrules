@@ -77,9 +77,11 @@ scan. Repositories with at least one false positive at medium or above: 4 of 40 
 | GR015 | 1 / 1 | 0 | a hex value in backticks named by a key, hash or digest |
 | GR035 | 1 / 1 | 0 | "does not announce"; a flag named in backticks |
 
-Only the 40 repositories are rescanned: the earlier tuning repositories are not listed in this
-repository, so they could not be re-run. The evasion corpus (13 benign cases and 19 control attacks added)
-stays at 254 attacks caught of 254 and 0 false positives in 184 benign cases.
+The 40 repositories and the 51 of the first round (319 agent files, 1 finding of any severity, none at
+medium or above) were rescanned after the last GR031 and GR110 changes: no finding added or removed. The
+first-round repositories are not listed in this repository.
+The evasion corpus (13 benign cases and 19 control attacks added)
+reaches 260 attacks caught of 260 and 0 false positives in 189 benign cases.
 
 ## Performance after the keyword prefilter
 
