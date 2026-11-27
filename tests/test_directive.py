@@ -306,12 +306,7 @@ def test_the_poisoned_demo_keeps_its_findings() -> None:
     demo = Path(__file__).resolve().parent.parent / "examples" / "poisoned-repo"
     result = scan_paths([demo], Config(profile="strict"))
     counts = Counter(f.severity.label for f in result.findings)
-    # +1 high since round 002: copilot-instructions.md line 3 hides a Cyrillic look-alike in an
-    # instruction ("reаct"), which GR006 now reads as a disguised instruction. +1 high since
-    # round 003: the root-filesystem MCP server is GR104, now high (it was medium)
-    # GR114 (round 007) reads the setup skill's URL, credential read and paste together; since
-    # phase 16 it is capped at medium, so it adds a medium finding and no high one.
-    assert dict(counts) == {"critical": 10, "high": 17, "medium": 3, "low": 1}
+    assert dict(counts) == {"critical": 10, "high": 15, "medium": 3, "low": 1}
 
 
 # --- n8n testmax l.649, as found in the corpus run --------------------------------------------

@@ -2,18 +2,18 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://github.com/BardLaudian/ghostrules/blob/main/src/ghostrules/schemas/scan.schema.json",
   "title": "ghostrules scan report, schema 1",
-  "description": "What `ghostrules scan --format json` prints. Stable within schema_version 2: fields are only added, never removed, renamed or given another type. Removing or retyping a field raises schema_version.",
+  "description": "What `ghostrules scan --format json` prints. Stable within schema_version 1: fields are only added, never removed, renamed or given another type. Removing or retyping a field raises schema_version.",
   "type": "object",
   "required": ["schema_version", "version", "scanned_files", "findings", "summary", "warnings", "errors"],
   "properties": {
-    "schema_version": {"const": 2, "description": "Version of this document's shape, not of ghostrules."},
+    "schema_version": {"const": 1, "description": "Version of this document's shape, not of ghostrules."},
     "version": {"type": "string", "description": "The ghostrules version that wrote the report."},
     "scanned_files": {"type": "integer", "minimum": 0},
     "findings": {
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["rule_id", "severity", "confidence", "effective_severity", "title", "message", "path", "line", "column"],
+        "required": ["rule_id", "severity", "title", "message", "path", "line", "column"],
         "properties": {
           "rule_id": {"type": "string", "pattern": "^GR[0-9]{3}$"},
           "severity": {"enum": ["critical", "high", "medium", "low", "info"]},
@@ -25,9 +25,7 @@
           "end_column": {"type": ["integer", "null"]},
           "snippet": {"type": ["string", "null"]},
           "decoded": {"type": ["string", "null"]},
-          "fix_hint": {"type": ["string", "null"]},
-          "confidence": {"enum": ["high", "medium", "low"], "description": "How sure the rule is that this is a hostile or risky instruction, not just matching text. Unmeasured rules say medium; see docs/CALIBRATION.md."},
-          "effective_severity": {"enum": ["critical", "high", "medium", "low", "info"], "description": "severity, one step lower when confidence is low. This is what --fail-on compares."}
+          "fix_hint": {"type": ["string", "null"]}
         }
       }
     },

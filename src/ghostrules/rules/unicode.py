@@ -9,10 +9,8 @@ from collections.abc import Iterator
 from typing import NamedTuple
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
-from ghostrules.rules.directive import is_instruction
-from ghostrules.rules.helpers import build_finding, clean_hint, group_by_line, urls_allowed
+from ghostrules.rules.helpers import build_finding, clean_hint, group_by_line
 from ghostrules.rules.patterns import (
-    acts_on_external_url,
     has_agent_directed_language,
     has_instruction_cue,
     match_injection,
@@ -20,7 +18,6 @@ from ghostrules.rules.patterns import (
 from ghostrules.rules.registry import rule
 from ghostrules.unicode_utils import (
     BIDI,
-    SMALL_CAPITALS,
     TAG,
     VARIATION_SELECTOR,
     ZERO_WIDTH,
@@ -65,7 +62,6 @@ def gr001_tag_characters(target: ScanTarget) -> Iterator[Finding]:
         yield build_finding(
             target=target,
             rule_id="GR001",
-            confidence="high",
             severity=Severity.CRITICAL,
             title="Unicode tag characters (ASCII smuggling)",
             message=(
@@ -140,7 +136,6 @@ def gr002_bidi_controls(target: ScanTarget) -> Iterator[Finding]:
         yield build_finding(
             target=target,
             rule_id="GR002",
-            confidence="high",
             severity=severity,
             title="Bidirectional control characters (Trojan Source)",
             message=(
@@ -181,11 +176,6 @@ _ZWSP = "\u200b"
 _ZWJ, _ZWNJ = "\u200d", "\u200c"
 _ZW_HIGH_PER_LINE = 5
 _ZW_HIGH_PER_FILE = 20
-# blank characters that look like nothing: Hangul fillers and the braille blank
-_FILLERS = "".join(chr(cp) for cp in (0x3164, 0x115F, 0x1160, 0xFFA0, 0x2800))
-_BLANKS = " \t" + _FILLERS
-_ASCII_PAD = re.compile(r"[ \t]{60,}")  # a run of spaces wide enough to leave the editor view
-_FILLER_PAD = re.compile(f"[{_FILLERS}]{{8,}}")  # a few fillers are a glyph; eight are a gap
 
 
 def _in_ranges(ch: str, ranges: tuple[tuple[int, int], ...]) -> bool:
@@ -240,35 +230,6 @@ def zero_width_offsets(text: str) -> list[int]:
     return offsets
 
 
-def _padding_findings(target: ScanTarget) -> Iterator[Finding]:
-    """Text pushed off-screen: a long run of blank space or blank fillers, then words on the same
-    line. Outside code, in an instruction file, the run has no reason to exist: the words after it
-    are what the reader never sees."""
-    if target.kind != "instructions":
-        return
-    for pattern in (_ASCII_PAD, _FILLER_PAD):
-        for match in pattern.finditer(target.text):
-            line_end = target.text.find("\n", match.end())
-            rest = target.text[match.end() : len(target.text) if line_end < 0 else line_end]
-            if not rest.strip(_BLANKS) or target.code_block_at(match.start()) is not None:
-                continue
-            if target.in_inline_code(match.start()):
-                continue
-            yield build_finding(
-                target=target,
-                rule_id="GR003",
-                severity=Severity.HIGH,
-                title="Text hidden after a long run of blank characters",
-                message=(
-                    f"{len(match.group())} blank characters push the rest of this line out of "
-                    "view; the words after them are not seen when the file is read in an editor."
-                ),
-                start=match.start(),
-                end=match.end() + len(rest),
-                fix_hint=clean_hint(target),
-            )
-
-
 @rule(
     "GR003",
     Severity.MEDIUM,
@@ -277,10 +238,7 @@ def _padding_findings(target: ScanTarget) -> Iterator[Finding]:
     ALL_KINDS,
 )
 def gr003_zero_width(target: ScanTarget) -> Iterator[Finding]:
-    """One finding per line; high when a line has >= 5 or the file has >= 20 such characters.
-
-    Also high: a long run of blank space or filler characters that pushes words off-screen."""
-    yield from _padding_findings(target)
+    """One finding per line; high when a line has >= 5 or the file has >= 20 such characters."""
     text = target.text
     offsets = zero_width_offsets(text)
     if not offsets:
@@ -349,72 +307,8 @@ def gr004_variation_selectors(target: ScanTarget) -> Iterator[Finding]:
 # --- GR005 ---------------------------------------------------------------------------------
 
 _HTML_COMMENT_RE = re.compile(r"<!--(.*?)(?:-->|\Z)", re.DOTALL)
-# a link-reference comment, "[//]: # (text)" or "[comment]: <> (text)": no renderer shows it
-_LINK_COMMENT_RE = re.compile(
-    r"^[ \t]*\[(?://|comment)\]:[ \t]*(?:#|<>)[ \t]*\((.*)\)[ \t\r]*$", re.MULTILINE
-)
-# an element a renderer hides (the hidden attribute, display:none), read by the model all the same
-_HIDDEN_ELEMENT_RE = re.compile(
-    r"<(\w+)(?=[^>]*(?:\shidden(?=[\s=/>])|style\s*=\s*[\"'][^\"']*display\s*:\s*none))"
-    r"[^>]*>(.*?)</\1\s*>",
-    re.IGNORECASE | re.DOTALL,
-)
-# the title of a Markdown link: a tooltip that a reader sees only on hover
-_LINK_TITLE_RE = re.compile(r'\]\(\s*[^)\s]+\s+"([^"\n]+)"\s*\)')
-# a standing rule ("when", "before", "always") that tells the agent to pull or send from a URL
-_STANDING_CUE = re.compile(r"\b(?:when|whenever|before|after|always|never|you\s+must)\b", re.I)
-_PULLS_FROM_URL = re.compile(
-    r"\b(?:add|install|import|pull|clone|register|load|copy|upload|send|post)\b[^\n]{0,80}?https?://",
-    re.I,
-)
 _COMMENT_MIN_CHARS = 40
-_FRAGMENT_GAP_LINES = 2  # short comments this close may be pieces of one sentence
 _MARKDOWN_SUFFIXES = (".md", ".mdc", ".markdown", ".mdx")
-_SECOND_PERSON = re.compile(r"\byou\b", re.IGNORECASE)
-
-
-class _Comment(NamedTuple):
-    start: int
-    end: int
-    body: str
-    closed: bool  # False for an unterminated ``<!--``, which hides the rest of the file
-    kind: str = "HTML comment"
-    note: str = "is invisible when rendered"
-
-
-def _comments(text: str) -> list[_Comment]:
-    """HTML comments, link-reference comments, hidden elements and link titles, in document order.
-
-    Hidden elements and link titles are text a renderer does not show, like a comment, so they go
-    through the same verdict (see ``gr005_html_comments`` for the severity they get).
-    """
-    found = [
-        _Comment(m.start(), m.end(), m.group(1).strip(), m.group().endswith("-->"))
-        for m in _HTML_COMMENT_RE.finditer(text)
-    ]
-    found += [
-        _Comment(m.start(), m.end(), m.group(1).strip(), True)
-        for m in _LINK_COMMENT_RE.finditer(text)
-    ]
-    found += [
-        _Comment(m.start(), m.end(), m.group(2).strip(), True, "Hidden HTML element")
-        for m in _HIDDEN_ELEMENT_RE.finditer(text)
-    ]
-    found += [
-        _Comment(m.start(), m.end(), m.group(1).strip(), True, "Link title", "shows only on hover")
-        for m in _LINK_TITLE_RE.finditer(text)
-    ]
-    return sorted(found)
-
-
-def _inside_prose(text: str, comment: _Comment) -> bool:
-    """Whether the comment has text before and after it on its line (it sits mid-sentence)."""
-    line_start = text.rfind("\n", 0, comment.start) + 1
-    line_end = text.find("\n", comment.end)
-    line_end = len(text) if line_end < 0 else line_end
-    return bool(text[line_start : comment.start].strip()) and bool(
-        text[comment.end : line_end].strip()
-    )
 
 
 def _agent_view_of_comment(
@@ -442,85 +336,6 @@ def _agent_view_of_comment(
     return severity, note
 
 
-def _classify_comment(target: ScanTarget, comment: _Comment) -> tuple[Severity, str] | None:
-    """The severity and the reason for a comment that reads as an instruction, else ``None``."""
-    body = comment.body
-    matched = match_injection(body)
-    if matched:
-        return Severity.HIGH, f"matches {', '.join(matched)} patterns"
-    if acts_on_external_url(body) and not urls_allowed(body, target.allow_domains):
-        return Severity.HIGH, "tells the AI agent to send, run or fetch from an external URL"
-    if (
-        _STANDING_CUE.search(body)
-        and _PULLS_FROM_URL.search(body)
-        and not urls_allowed(body, target.allow_domains)
-    ):
-        return Severity.HIGH, "tells the AI agent to add or send data to an external URL"
-    if has_instruction_cue(body):
-        return Severity.MEDIUM, "addresses the AI agent"
-    if is_instruction(body) and _SECOND_PERSON.search(body):
-        # high inside a sentence: no maintainer note sits mid-sentence where readers cannot see
-        high = _inside_prose(target.text, comment)
-        return (Severity.HIGH if high else Severity.MEDIUM), "tells the AI agent what to do"
-    if has_agent_directed_language(body):
-        return Severity.LOW, "mentions the AI agent"
-    return None
-
-
-def _comment_finding(
-    target: ScanTarget, comment: _Comment, severity: Severity, reason: str
-) -> Finding:
-    severity, seen_note = _agent_view_of_comment(target, comment.start, severity)
-    return build_finding(
-        target=target,
-        rule_id="GR005",
-        severity=severity,
-        title="Hidden HTML comment with instructions"
-        if comment.kind == "HTML comment"
-        else "Hidden text with instructions",
-        message=(
-            f"{comment.kind} ({len(comment.body)} chars) {comment.note} but {reason}."
-            + (
-                " The comment is never closed, so it hides the rest of the file."
-                if not comment.closed
-                else ""
-            )
-            + seen_note
-        ),
-        start=comment.start,
-        end=comment.end,
-        fix_hint="Make the text visible or delete the comment.",
-        limit=100,
-    )
-
-
-def _neighbours(text: str, comments: list[_Comment]) -> list[list[_Comment]]:
-    """Runs of comments that follow each other with at most ``_FRAGMENT_GAP_LINES`` between."""
-    runs: list[list[_Comment]] = []
-    for comment in comments:
-        if runs and text[runs[-1][-1].end : comment.start].count("\n") <= _FRAGMENT_GAP_LINES:
-            runs[-1].append(comment)
-        else:
-            runs.append([comment])
-    return runs
-
-
-def _fragment_findings(target: ScanTarget, shown: list[_Comment]) -> Iterator[Finding]:
-    """A sentence cut into short comments: each piece is too short to read alone. Runs of two or
-    more short comments are joined and get the usual verdict; splitting the text is the hiding,
-    so a verdict of medium or more is high."""
-    for run in _neighbours(target.text, shown):
-        pieces = [c for c in run if len(c.body) < _COMMENT_MIN_CHARS]
-        joined = " ".join(c.body for c in run)
-        if len(pieces) < 2 or len(joined) < _COMMENT_MIN_CHARS:
-            continue
-        whole = _Comment(run[0].start, run[-1].end, joined, True)
-        verdict = _classify_comment(target, whole)
-        if verdict is not None and verdict[0] >= Severity.MEDIUM:
-            reason = f"{verdict[1]}, split across {len(run)} comments"
-            yield _comment_finding(target, whole, Severity.HIGH, reason)
-
-
 @rule(
     "GR005",
     Severity.MEDIUM,
@@ -529,32 +344,53 @@ def _fragment_findings(target: ScanTarget, shown: list[_Comment]) -> Iterator[Fi
     ("instructions", "other"),
 )
 def gr005_html_comments(target: ScanTarget) -> Iterator[Finding]:
-    """Comments that look like instructions (high if they match GR010-GR016 or send data out).
+    """Long HTML comments that look like instructions (high if they match GR010-GR016).
 
-    Comments inside fenced code blocks or inline code are shown literally when rendered, so they
-    are ignored. Short comments are read together when they follow each other, since a sentence
-    cut into pieces is a hiding technique. An unterminated ``<!--`` hides the rest of the document
-    and is treated as a comment to the end.
+    Comments inside fenced code blocks or inline code are visible when rendered, so they are
+    ignored. An unterminated ``<!--`` hides the rest of the document and is treated as a comment
+    to the end.
     """
     if target.kind in ("other", "script") and not target.path.lower().endswith(_MARKDOWN_SUFFIXES):
         return
-    shown: list[_Comment] = []
-    for comment in _comments(target.text):
-        # shown literally when rendered, e.g. documentation about `<!-- -->` in a fence or inline
-        if target.in_inline_code(comment.start) or target.code_block_at(comment.start) is not None:
+    for match in _HTML_COMMENT_RE.finditer(target.text):
+        body = match.group(1).strip()
+        if len(body) < _COMMENT_MIN_CHARS or target.code_block_at(match.start()) is not None:
             continue
-        shown.append(comment)
-        if len(comment.body) < _COMMENT_MIN_CHARS:
+        if target.in_inline_code(match.start()):
+            continue  # shown literally when rendered, e.g. documentation about `<!-- -->`
+        matched = match_injection(body)
+        if matched:
+            severity = Severity.HIGH
+            reason = f"matches {', '.join(matched)} patterns"
+        elif has_instruction_cue(body):
+            severity = Severity.MEDIUM
+            reason = "addresses the AI agent"
+        elif has_agent_directed_language(body):
+            severity = Severity.LOW
+            reason = "mentions the AI agent"
+        else:
             continue
-        verdict = _classify_comment(target, comment)
-        if verdict is None and comment.kind != "HTML comment" and is_instruction(comment.body):
-            verdict = (Severity.MEDIUM, "reads as an instruction")  # a hidden imperative
-        if verdict is not None and comment.kind != "HTML comment" and verdict[0] >= Severity.MEDIUM:
-            # text a renderer hides, and a model reads, is high at medium too: hiding is the act
-            verdict = (Severity.HIGH, verdict[1])
-        if verdict is not None:
-            yield _comment_finding(target, comment, *verdict)
-    yield from _fragment_findings(target, shown)
+        unterminated = not match.group().endswith("-->")
+        severity, seen_note = _agent_view_of_comment(target, match.start(), severity)
+        yield build_finding(
+            target=target,
+            rule_id="GR005",
+            severity=severity,
+            title="Hidden HTML comment with instructions",
+            message=(
+                f"HTML comment ({len(body)} chars) is invisible when rendered but {reason}."
+                + (
+                    " The comment is never closed, so it hides the rest of the file."
+                    if unterminated
+                    else ""
+                )
+                + seen_note
+            ),
+            start=match.start(),
+            end=match.end(),
+            fix_hint="Make the text visible or delete the comment.",
+            limit=100,
+        )
 
 
 # --- GR006 ---------------------------------------------------------------------------------
@@ -574,10 +410,7 @@ _CONFUSABLE_CODEPOINTS: dict[int, str] = {
     0x0391: "A", 0x0392: "B", 0x0395: "E", 0x0396: "Z", 0x0397: "H", 0x0399: "I", 0x039A: "K",
     0x039C: "M", 0x039D: "N", 0x039F: "O", 0x03A1: "P", 0x03A4: "T", 0x03A5: "Y", 0x03A7: "X",
 }  # fmt: skip
-_CONFUSABLES: dict[str, str] = {
-    **{chr(cp): latin for cp, latin in _CONFUSABLE_CODEPOINTS.items()},
-    **SMALL_CAPITALS,
-}
+_CONFUSABLES: dict[str, str] = {chr(cp): latin for cp, latin in _CONFUSABLE_CODEPOINTS.items()}
 _WORD_RE = re.compile(r"\w+")
 _URL_RE = re.compile(r"https?://[^\s<>\"'`)\]]+", re.IGNORECASE)
 _HOST_RE = re.compile(r"https?://(?:[^/?#\s@]*@)?([^/?#\s:]+)", re.IGNORECASE)
@@ -677,73 +510,6 @@ def gr006_homoglyphs(target: ScanTarget) -> Iterator[Finding]:
                 start=word.start(),
                 end=word.end(),
                 fix_hint="Replace lookalike characters with plain ASCII.",
-                limit=120,
-            )
-    yield from _disguised_directives(target)
-
-
-# Leet digits, applied only to words that also carry a digit ("5k1p" reads as "skip").
-_LEET = str.maketrans({"0": "o", "1": "i", "3": "e", "4": "a", "5": "s", "7": "t", "8": "b"})
-
-
-def _disguised_reading(line: str) -> tuple[str, bool] | None:
-    """The plain reading of a line that hides words with look-alike, fullwidth or leet characters,
-    when that reading is addressed to the agent, and whether a look-alike or fullwidth letter was
-    needed to get it; None otherwise.
-
-    Fullwidth or look-alike letters count when NFKC maps them to ASCII. Leet applies when most
-    words carry a digit that reads as a letter and a letter of their own, so numbers ("5.0",
-    "100") and version numbers ("Python3") stay as they are.
-    """
-    if line.isascii() and not any(c.isdigit() for c in line):
-        return None  # no look-alike, no fullwidth letter and no leet digit: nothing to fold
-    hidden = any(
-        c in _CONFUSABLES
-        or (c.isalpha() and not c.isascii() and unicodedata.normalize("NFKC", c).isascii())
-        for c in line
-    )
-    plain = "".join(_CONFUSABLES.get(c, c) for c in unicodedata.normalize("NFKC", line))
-    words = re.findall(r"\w+", plain)
-    leet = {
-        w
-        for w in words
-        if any(c.isdigit() for c in w)
-        and any(c.isalpha() for c in w)
-        and w.translate(_LEET).isalpha()
-    }
-    lookalike = hidden
-    if len(leet) >= 3 and 2 * len(leet) >= len(words):
-        hidden = True
-        plain = re.sub(
-            r"\w+", lambda m: m.group().translate(_LEET) if m.group() in leet else m.group(), plain
-        )
-    return (plain, lookalike) if hidden and is_instruction(plain) else None
-
-
-def _disguised_directives(target: ScanTarget) -> Iterator[Finding]:
-    """Instruction lines whose plain reading is an instruction only once disguised letters are
-    folded (high). The folded text is not echoed: it may contain a secret."""
-    offset = 0
-    for line in target.text.splitlines(keepends=True):
-        body = line.rstrip("\r\n")
-        start, offset = offset, offset + len(line)
-        reading = _disguised_reading(body) if body.strip() else None
-        if reading is not None:
-            plain, lookalike = reading
-            # Leet alone is not a disguise (phase 16): high needs a look-alike or fullwidth
-            # letter, or a plain reading that matches a known injection; else it is reported low.
-            high = lookalike or bool(match_injection(plain))
-            yield build_finding(
-                target=target,
-                rule_id="GR006",
-                confidence="medium" if high else "low",
-                severity=Severity.HIGH if high else Severity.LOW,
-                title="Instruction written with disguised characters",
-                message="The line reads as an instruction once look-alike, fullwidth or leet "
-                "characters are folded to plain letters.",
-                start=start,
-                end=start + len(body),
-                fix_hint="Replace the disguised characters with plain ASCII, and review the line.",
                 limit=120,
             )
 

@@ -6,9 +6,9 @@ import re
 from collections.abc import Iterator
 
 from ghostrules.jsonloc import JNode, parse_located
-from ghostrules.mcp_config import Span, is_settings_file, settings_env_entries
+from ghostrules.mcp_config import Span, is_settings_file
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
-from ghostrules.rules.helpers import build_finding, urls_allowed
+from ghostrules.rules.helpers import build_finding
 from ghostrules.rules.patterns import COLLECTOR_PATTERNS, EXFIL_PATTERNS, INJECTION_PATTERNS
 from ghostrules.rules.registry import rule
 
@@ -27,25 +27,12 @@ _HOOK_EXFIL_PATTERNS = tuple(
         rf"\b(?:env|printenv)\b[^\n]{{0,60}}\|\s*{_SENDER}\b",
     )
 )
-# a directory grant that is the whole home folder or the disk root (not a project subfolder)
-_BROAD_DIR = re.compile(r"~/?|\$HOME/?|\$\{HOME\}/?|/|/home/?|/Users/?|/root/?")
 _BROAD_ALLOW = re.compile(
     r"Bash(?:\(\s*\*{0,2}\s*\))?"
     r"|Bash\(\s*(?:curl|sudo|rm)\s*:\s*\*\s*\)"
     r"|WebFetch(?:\(\s*\*?\s*\))?",
     re.IGNORECASE,
 )
-# a sender that posts data it was given: -d, --data-binary, -F, -T, --upload-file, -X POST.
-# Case-sensitive on purpose: -f (fail) and -t are not data flags.
-_POSTS_DATA = re.compile(
-    rf"\b{_SENDER}\b[^\n]*?(?:\s-[a-zA-Z]*[dFT]\b|\s--(?:data|form|upload-file|post-data|json)\b"
-    r"|\s-X\s*(?:POST|PUT)\b)"
-)
-_REMOTE_URL = re.compile(
-    r"https?://(?!(?:localhost|127\.\d+\.\d+\.\d+|\[::1\])[:/])[^\s'\"]+", re.IGNORECASE
-)
-_TOOL_RULE = re.compile(r"(?:Read|Edit|Write|MultiEdit|Bash|Grep|Glob)\((.*)\)", re.DOTALL)
-_SECRET_FILE = re.compile(_SENSITIVE_PATH, re.IGNORECASE)
 
 
 def _finding(
@@ -92,15 +79,7 @@ def _hook_problem(command: str) -> str | None:
         p.search(command) for p in (*EXFIL_PATTERNS, *_HOOK_EXFIL_PATTERNS, *COLLECTOR_PATTERNS)
     ):
         return "sends sensitive data to a remote host"
-    if _POSTS_DATA.search(command) and _REMOTE_URL.search(command):
-        return "posts data to a remote host (a hook runs on every prompt or tool call)"
     return None
-
-
-def _secret_grant(rule: str) -> bool:
-    """A tool permission (``Read(...)``, ``Bash(...)``) whose argument names a secret file."""
-    found = _TOOL_RULE.fullmatch(rule.strip())
-    return found is not None and _SECRET_FILE.search(found.group(1)) is not None
 
 
 _CODEX_SWITCHES = (
@@ -152,52 +131,6 @@ def _gemini_findings(target: ScanTarget, root: JNode) -> Iterator[Finding]:
         )  # fmt: skip
 
 
-# a model API endpoint at its vendor is the normal setting; anything else receives the API key
-_OFFICIAL_API = re.compile(
-    r"^https?://(?:[\w-]+\.)*(?:anthropic\.com|openai\.com|googleapis\.com)(?=[:/]|$)", re.I
-)
-_FETCHES_REMOTE = re.compile(r"\b(?:curl|wget)\b[^\n]*?" + _REMOTE_URL.pattern, re.IGNORECASE)
-
-
-def _auto_run_findings(target: ScanTarget, root: JNode) -> Iterator[Finding]:
-    """An API key helper or a status line runs on every request: fetching from a remote host
-    there runs remote content, or hands the key to a host, on each request."""
-    nodes = [root.get("apiKeyHelper")]
-    status = root.get("statusLine")
-    nodes.append(status.get("command") if status is not None else None)
-    for node in nodes:
-        if node is None or not isinstance(node.value, str):
-            continue
-        if _FETCHES_REMOTE.search(node.value) and not urls_allowed(
-            node.value, target.allow_domains
-        ):
-            yield _finding(
-                target, "GR107", Severity.HIGH, "Over-permissive agent settings",
-                f"A command that runs on every request fetches from a remote host: "
-                f"{node.value[:100]}",
-                node.string_span(),
-                "Point it at a local script or a reviewed tool; keep the key off the network.",
-            )  # fmt: skip
-
-
-def _base_url_findings(target: ScanTarget) -> Iterator[Finding]:
-    """A ``*_BASE_URL`` in the project's env block sends every prompt and the API key to that
-    host; only the vendor's own endpoints and allowed domains are the normal setting."""
-    for entry in settings_env_entries(target):
-        value = entry.value.strip()
-        if not entry.key.endswith("_BASE_URL") or not _REMOTE_URL.match(value):
-            continue
-        if _OFFICIAL_API.match(value) or urls_allowed(value, target.allow_domains):
-            continue
-        yield _finding(
-            target, "GR107", Severity.HIGH, "Over-permissive agent settings",
-            f"{entry.key} points the model API at {value[:80]}: prompts and the API key go to "
-            "that host.",
-            entry.span,
-            "Remove the override from the committed settings, or set it in your own environment.",
-        )  # fmt: skip
-
-
 @rule(
     "GR107",
     Severity.HIGH,
@@ -235,22 +168,6 @@ def gr107_permissive_settings(target: ScanTarget) -> Iterator[Finding]:
                 item.string_span(),
                 "Allow only specific commands or domains, for example Bash(npm run test:*).",
             )  # fmt: skip
-        elif isinstance(item.value, str) and _secret_grant(item.value):
-            yield _finding(
-                target, "GR107", Severity.HIGH, "Over-permissive agent settings",
-                f"Permission rule '{item.value}' lets the agent use a secret file without asking.",
-                item.string_span(),
-                "Remove the rule; allow only the project files the task needs.",
-            )  # fmt: skip
-    extra = permissions.get("additionalDirectories") if permissions else None
-    for item in (extra.elements or []) if extra else []:
-        if isinstance(item.value, str) and _BROAD_DIR.fullmatch(item.value.strip()):
-            yield _finding(
-                target, "GR107", Severity.HIGH, "Over-permissive agent settings",
-                f"additionalDirectories grants '{item.value}': the whole home folder or disk.",
-                item.string_span(),
-                "List only the project folders the task needs in additionalDirectories.",
-            )  # fmt: skip
     yolo = root.get("yolo")
     if yolo is not None and yolo.value is True and ".gemini/" in target.path.replace("\\", "/"):
         yield _finding(
@@ -266,8 +183,6 @@ def gr107_permissive_settings(target: ScanTarget) -> Iterator[Finding]:
                 f"A hook {problem}: {command.value[:100]}",
                 command.string_span(), "Remove the hook; hooks run with your full privileges.",
             )  # fmt: skip
-    yield from _auto_run_findings(target, root)
-    yield from _base_url_findings(target)
 
 
 @rule(
