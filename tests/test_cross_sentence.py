@@ -1,9 +1,8 @@
 """W5.5: a secret in one sentence and a send-to-URL in the next (GR013, confidence medium)."""
 
 import pytest
+from _analyze import analyze
 from pr_helpers import scan, write
-
-from ghostrules.playground import analyze
 
 
 def gr013(text: str, **kw) -> list[dict]:

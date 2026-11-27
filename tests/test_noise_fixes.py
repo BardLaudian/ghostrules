@@ -7,9 +7,8 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from _analyze import analyze
 from pr_helpers import pull_request, rule_ids, scan, write
-
-from ghostrules.playground import analyze
 
 HIGH = {"high", "critical"}
 
