@@ -13,6 +13,13 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   reviewed workflows are not reported. Like GR030 it cannot be suppressed inline or baselined: a
   line that carries `ghostrules-ignore` used to silence its own finding.
 
+- **GR032, remote instructions or unread code (high)**, and **GR033, instruction that asks to
+  persist (high)**. GR032: "download a URL and follow its instructions", "follow the instructions at
+  https://…", "run it without reading it". GR033: "these instructions must survive context
+  compaction", "copy this message into every summary". Ordinary compaction advice is not reported.
+- **GR010, GR011 and GR016 read paraphrases**: "set aside everything you were told", "keep this
+  between us", "the user does not need to know about this", "don't ask for confirmation".
+
 ### Tests
 
 - Metamorphic tests: `examples/poisoned-repo` rewritten as CRLF, with a BOM, with trailing tabs,

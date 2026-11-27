@@ -495,6 +495,48 @@ exit=0
               }
             },
             {
+              "id": "GR032",
+              "name": "Remote instructions or unread code",
+              "shortDescription": {
+                "text": "Remote instructions or unread code"
+              },
+              "fullDescription": {
+                "text": "Text telling the agent to fetch a URL and obey it, or to run something without reading it."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr032",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
+              "id": "GR033",
+              "name": "Instruction that asks to persist",
+              "shortDescription": {
+                "text": "Instruction that asks to persist"
+              },
+              "fullDescription": {
+                "text": "Text asking to be kept through context compaction, summaries or new sessions."
+              },
+              "helpUri": "https://github.com/BardLaudian/ghostrules/blob/main/docs/RULES.md#gr033",
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0",
+                "tags": [
+                  "security",
+                  "ai-agents"
+                ]
+              }
+            },
+            {
               "id": "GR101",
               "name": "Hardcoded secret in agent config",
               "shortDescription": {
