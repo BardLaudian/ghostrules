@@ -151,7 +151,7 @@ _OMISSION = re.compile(
     re.IGNORECASE,
 )
 _HYGIENE = re.compile(
-    r"\b(?:secrets?|tokens?|passwords?|credentials?|api[\s_-]?keys?|pii|personal|private\s+keys?"
+    r"\b(?:fields?|columns?|propert(?:y|ies)|attributes?|secrets?|tokens?|passwords?|credentials?|api[\s_-]?keys?|pii|personal|private\s+keys?"
     r"|sensitive|confidential|geheim\w*|passw\w+|segredo\w*|senhas?|contrase\w+|mots?\s+de\s+passe)\b",
     re.IGNORECASE,
 )
@@ -180,7 +180,9 @@ def gr011_concealment(target: ScanTarget) -> Iterator[Finding]:
             continue  # "Never silently add scope": the sentence forbids it
         if _hygiene_omission(target.text, span):
             continue  # "If a token appears, do not log it": data hygiene
-        if _MODAL_BEFORE.search(target.text[max(0, span[0] - 12) : span[0]]):
+        if _MODAL_BEFORE.search(target.text[max(0, span[0] - 12) : span[0]]) or (
+            _QUANTIFIED_SUBJECT.search(target.text[max(0, span[0] - 60) : span[0]])
+        ):
             continue  # "operations either silently run on CPU": a description, not an order
         kind = classify(target, span)
         yield _finding(
@@ -694,6 +696,11 @@ def _prohibited_in_clause(text: str, start: int) -> bool:
     clause = before[ends[-1].end() :] if ends else before
     return _real_negation(_PROHIBITION.search(clause))
 
+
+# "most naively-synthesized checkers silently leak": a quantified subject, so a description.
+_QUANTIFIED_SUBJECT = re.compile(
+    r"\b(?:most|many|some|few|several|these|those|they|both)\b[^.;:!?,\n]{0,40}$", re.IGNORECASE
+)
 
 # "silently run on CPU": a modal or "either" before it makes the sentence a description.
 _MODAL_BEFORE = re.compile(
