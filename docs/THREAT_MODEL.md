@@ -44,7 +44,7 @@ What `ghostrules` protects, from whom, where it trusts and where it does not, an
 
 | Attack | Defence | Evidence |
 |---|---|---|
-| Huge or pathological file (ReDoS, 3 MB without spaces) | Size cap (`max_file_size`, 1 MiB) that sets a scan window: instruction files over it are scanned in overlapping windows, so padding does not hide a payload; a file that cannot be scanned fails the run (exit 2); property and fuzz tests on the parsers | `tests/test_robustness_limits.py`, `tests/test_robustness_*.py`, [PERFORMANCE.md](PERFORMANCE.md) |
+| Huge or pathological file (ReDoS, 3 MB without spaces) | Size limit (`max_file_size`, 1 MiB, with a visible warning when a file is skipped); property and fuzz tests on the parsers | `tests/test_robustness_limits.py`, `tests/test_robustness_*.py`, [PERFORMANCE.md](PERFORMANCE.md) |
 | A rule that raises on crafted input | The failure is an error in every report and exit code 2, never a silent skip | `tests/test_robustness_limits.py` |
 | Import chains, cycles, very deep imports | Bounded depth, cycle detection (GR023), "too deep" reported | `tests/test_scan_imports.py` |
 | Symlink out of the tree, symlink loops | Not followed outside the root; reported (GR025) | `tests/test_symlink_alias.py` |

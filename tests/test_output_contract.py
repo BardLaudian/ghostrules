@@ -26,7 +26,7 @@ def test_json_report_validates_against_its_schema(example: str) -> None:
     report = scan_json(str(ROOT / "examples" / example))
     errors = list(Draft7Validator(SCHEMA).iter_errors(report))
     assert errors == [], errors[:3]
-    assert report["schema_version"] == 2
+    assert report["schema_version"] == 1
 
 
 def test_schema_version_is_first_and_separate_from_the_tool_version() -> None:

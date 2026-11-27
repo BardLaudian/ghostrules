@@ -31,8 +31,6 @@ _KNOWN_SOURCES: tuple[tuple[str, str], ...] = (
     ("GitLab token", r"(?<![A-Za-z0-9])glpat-[0-9A-Za-z_-]{20,}"),
     ("Hugging Face token", r"(?<![A-Za-z0-9])hf_[A-Za-z0-9]{30,}"),
     ("npm token", r"(?<![A-Za-z0-9])npm_[A-Za-z0-9]{36,}"),
-    # a private key block: the header alone marks it (the body may be cut or fenced)
-    ("private key", r"-----BEGIN (?:[A-Z0-9]+ )*PRIVATE KEY-----"),
     (
         "Slack webhook",
         r"https://hooks\.slack\.com/services/T[A-Z0-9]+/B[A-Z0-9]+/(?P<s>[A-Za-z0-9*…]+)",

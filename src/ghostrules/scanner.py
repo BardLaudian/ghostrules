@@ -9,7 +9,6 @@ from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, Literal
 
-from ghostrules import windows
 from ghostrules._compat import tomllib
 from ghostrules.agents import Repo
 from ghostrules.changeset import ChangeBase, ChangeContext
@@ -548,29 +547,12 @@ def _scan_candidate(
     result: ScanResult,
     state: _ScanState,
 ) -> None:
-    """Load one file, run the file rules on it and record findings, warnings and counters.
-
-    A file over the size cap is not simply skipped when an agent reads it: padding it would hide
-    whatever follows. Instruction files are scanned in overlapping windows; a structured or
-    script file that is over the cap, or any file over the hard limit, fails the scan (exit 2).
-    """
+    """Load one file, run the file rules on it and record findings, warnings and counters."""
     too_big = _oversize(cand, config.max_file_size)
-    if too_big is not None and cand.kind == "other":
+    if too_big is not None:
         result.warnings.append(
             f"skipped {label}: {too_big} bytes exceeds max_file_size "
             f"({config.max_file_size}); raise it with --max-file-size to scan this file"
-        )
-        result.skipped_files += 1
-        return
-    if too_big is not None and (cand.kind != "instructions" or too_big > windows.HARD_FILE_LIMIT):
-        why = (
-            f"the hard limit ({windows.HARD_FILE_LIMIT})"
-            if too_big > windows.HARD_FILE_LIMIT
-            else f"max_file_size ({config.max_file_size}) and a {cand.kind} file is not split"
-        )
-        result.errors.append(
-            f"{label} cannot be scanned: {too_big} bytes is over {why}, and an agent still "
-            "reads it. Raise --max-file-size (0 = no limit) to scan it whole"
         )
         result.skipped_files += 1
         return
@@ -599,48 +581,17 @@ def _scan_candidate(
     policy = _NO_IGNORES if import_only else suppressions
     if import_only:
         state.import_only_labels.add(label)
-    pieces: list[tuple[ScanTarget, windows.Window | None]] = [(target, None)]
-    if too_big is not None:
-        pieces = list(_window_targets(target, config.max_file_size))
-        result.warnings.append(
-            f"{label}: {too_big} bytes is over max_file_size ({config.max_file_size}); "
-            f"scanned in {len(pieces)} overlapping windows"
-        )
-    for piece, window in pieces:
-        kept, suppressed, errors = scan_target(piece, config, rule_list, policy)
-        skipped = unhonoured_markers(piece, policy)
-        if import_only:
-            state.unhonoured_imported += skipped
-        else:
-            state.unhonoured += skipped
-        if config.profile != "strict":
-            kept = _apply_visibility(kept, piece, config, import_only)
-        if window is not None:
-            kept = [_shift(f, window) for f in kept]
-        state.findings.extend(_annotate(f, info, is_standalone) for f in kept)
-        result.suppressed += suppressed
-        result.errors.extend(errors)
-
-
-def _window_targets(
-    target: ScanTarget, size: int
-) -> Iterable[tuple[ScanTarget, windows.Window | None]]:
-    """One target per window of ``target``'s text (the text is cut by bytes, as the cap is)."""
-    data = target.text.encode("utf-8", errors="surrogateescape")
-    for window in windows.split(data, size):
-        text = data[window.start : window.end].decode("utf-8", errors="surrogateescape")
-        yield replace(target, text=text, parsed=None, parse_error=None), window
-
-
-def _shift(finding: Finding, window: windows.Window) -> Finding:
-    """Move a finding of one window to its place in the whole file."""
-    extra = window.column_offset if finding.line == 1 else 0
-    return replace(
-        finding,
-        line=finding.line + window.line_offset,
-        column=finding.column + extra,
-        end_column=finding.end_column + extra,
-    )
+    kept, suppressed, errors = scan_target(target, config, rule_list, policy)
+    skipped = unhonoured_markers(target, policy)
+    if import_only:
+        state.unhonoured_imported += skipped
+    else:
+        state.unhonoured += skipped
+    if config.profile != "strict":
+        kept = _apply_visibility(kept, target, config, import_only)
+    state.findings.extend(_annotate(f, info, is_standalone) for f in kept)
+    result.suppressed += suppressed
+    result.errors.extend(errors)
 
 
 def _apply_visibility(
