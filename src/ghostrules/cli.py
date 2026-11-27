@@ -24,7 +24,7 @@ from ghostrules.agents.claude_code import DEFAULT_MODE as CLAUDE_DEFAULT_MODE
 from ghostrules.agents.claude_code import MODES as CLAUDE_MODES
 from ghostrules.changeset import ChangeBase
 from ghostrules.clean import clean_text, unified_diff
-from ghostrules.config import Config, ConfigError, load_config
+from ghostrules.config import VISIBILITY_MODES, Config, ConfigError, load_config
 from ghostrules.context_command import ContextError, ContextReport, build_report, find_root
 from ghostrules.firstparty import first_party_installers
 from ghostrules.gitref import GitRefError, RefReader, config_at_ref, reviewed_lookup
@@ -199,6 +199,14 @@ def scan(
             help="Report all plain visible prose at low, including a curl | sh instruction (0.4).",
         ),
     ] = False,
+    visibility: Annotated[
+        Optional[str],  # noqa: UP045
+        typer.Option(
+            "--visibility",
+            help="default, or root-medium: also show GR014 and GR032 at medium in "
+            "root instruction files (not docs, examples or tests).",
+        ),
+    ] = None,
     baseline_file: Annotated[
         Optional[Path],  # noqa: UP045
         typer.Option(
@@ -250,6 +258,10 @@ def scan(
         cfg = replace(cfg, profile="strict")
     elif lenient:
         cfg = replace(cfg, profile="lenient")
+    if visibility is not None:
+        if visibility not in VISIBILITY_MODES:
+            _fail(f"--visibility must be one of: {', '.join(VISIBILITY_MODES)}")
+        cfg = replace(cfg, visibility=visibility)
     anchor = readers.config or readers.suppressions or readers.baseline
     cfg = replace(cfg, first_party=_first_party(base, anchor))
     result = scan_paths(

@@ -600,8 +600,13 @@ def _apply_visibility(
     """Lower the severity of prose a reviewer can read, except attacks (see ``visibility``)."""
     attacks = attack_findings(kept, target, config.allow_domains)
     lenient = config.profile == "lenient"
+    root_medium = config.visibility == "root-medium"
     return [
-        f if i in attacks else by_visibility(f, target, import_only=import_only, lenient=lenient)
+        f
+        if i in attacks
+        else by_visibility(
+            f, target, import_only=import_only, lenient=lenient, root_medium=root_medium
+        )
         for i, f in enumerate(kept)
     ]
 

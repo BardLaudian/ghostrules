@@ -22,7 +22,19 @@ from ghostrules.rules.helpers import _URL_HOST_RE, host_allowed
 
 # GR015 is not here: a base64 blob is on screen but nobody can read it, so it keeps its severity.
 VISIBLE_PROSE_RULES = frozenset(
-    {"GR010", "GR011", "GR012", "GR013", "GR014", "GR016", "GR031", "GR032", "GR033"}
+    {
+        "GR010",
+        "GR011",
+        "GR012",
+        "GR013",
+        "GR014",
+        "GR016",
+        "GR031",
+        "GR032",
+        "GR033",
+        "GR034",
+        "GR035",
+    }
 )
 
 _NOTE = (
@@ -128,6 +140,34 @@ def _is_catalog(target: ScanTarget) -> bool:
     return _catalog(target.path, target.text)
 
 
+# Phrases with no ordinary use in an instruction file, however they are worded: shown at medium
+# there, because the default view must not hide them. Examples and catalogues stay at info.
+_ROOT_PROSE_RULES = frozenset({"GR010", "GR011", "GR033", "GR035"})
+# ``visibility = "root-medium"`` adds these. GR016 and GR034 stay at low in both modes.
+_ROOT_EXTRA_RULES = frozenset({"GR014", "GR032"})
+_EXAMPLE_NOTE = "an example or a quotation"
+
+
+def _in_open_quotation(target: ScanTarget, offset: int) -> bool:
+    """Whether a quotation opened earlier in the paragraph is still open at ``offset``: a quoted
+    attack of several sentences ("Ignore ... Do not tell the user.") reads as orders in its last."""
+    start = target.text.rfind("\n\n", 0, offset) + 1
+    chunk = target.text[start:offset]
+    return _counts_inside_quotes([chunk.count(mark) for mark in _QUOTE_MARKS])
+
+
+def _shown_in_root_file(
+    finding: Finding, target: ScanTarget, lenient: bool, root_medium: bool
+) -> bool:
+    rules = _ROOT_PROSE_RULES | _ROOT_EXTRA_RULES if root_medium else _ROOT_PROSE_RULES
+    return (
+        not lenient
+        and finding.rule_id in rules
+        and target.kind == "instructions"
+        and not _in_open_quotation(target, target.offset(finding.line, finding.column))
+    )
+
+
 def _user_scope(finding: Finding, target: ScanTarget) -> Finding:
     """A user-level file (``~/...``) is read in every project: one level up, never lowered."""
     if finding.severity == Severity.INFO or _USER_NOTE in finding.message:
@@ -137,7 +177,12 @@ def _user_scope(finding: Finding, target: ScanTarget) -> Finding:
 
 
 def by_visibility(
-    finding: Finding, target: ScanTarget, *, import_only: bool, lenient: bool = False
+    finding: Finding,
+    target: ScanTarget,
+    *,
+    import_only: bool,
+    lenient: bool = False,
+    root_medium: bool = False,
 ) -> Finding:
     """``finding`` with the severity its visibility and scope call for: prose a reviewer can read
     is lowered (to ``info`` in documentation or a catalogue of attacks), and a user-level file is
@@ -155,8 +200,13 @@ def by_visibility(
         or target.in_html_comment(target.offset(finding.line, finding.column))
     ):
         return finding
-    lowered = "severity lowered" in finding.message or _is_catalog(target)
-    cap = Severity.INFO if lowered else Severity.LOW
+    example = _EXAMPLE_NOTE in finding.message or _is_catalog(target)
+    if example:
+        cap = Severity.INFO
+    elif _shown_in_root_file(finding, target, lenient, root_medium):
+        cap = Severity.MEDIUM  # an override or a concealment in an instruction file is shown
+    else:
+        cap = Severity.INFO if "severity lowered" in finding.message else Severity.LOW
     if finding.severity <= cap:
         return finding
     note = _NOTE.format(level=cap.label)

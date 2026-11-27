@@ -13,6 +13,7 @@ from collections.abc import Iterable, Iterator
 from dataclasses import replace
 
 from ghostrules.models import Finding, Kind, ScanTarget, Severity
+from ghostrules.prefilter import may_match
 from ghostrules.rules.directive import OBFUSCATION_NOTE, classify, downgrade_note, severity_for
 from ghostrules.rules.helpers import build_finding, host_allowed, urls_allowed
 from ghostrules.rules.known_installers import extract_urls, is_risky_url, known_installer
@@ -35,6 +36,16 @@ _EXCERPT_CHARS = 80
 _LONG_SNIPPET = 200  # GR012 must show the whole command
 
 
+def _live(
+    target: ScanTarget, view: str, text: str, patterns: tuple[re.Pattern[str], ...]
+) -> list[re.Pattern[str]]:
+    """The patterns that can match ``text``: those whose keyword occurs in it."""
+    folded = target.folded.get(view)
+    if folded is None:
+        folded = target.folded[view] = text.casefold()
+    return [p for p in patterns if may_match(p, folded)]
+
+
 def _spans(
     target: ScanTarget, patterns: Iterable[re.Pattern[str]], *, fence_ok: bool = True
 ) -> list[tuple[int, int]]:
@@ -43,16 +54,24 @@ def _spans(
     With ``fence_ok=False`` a match that runs across a code fence is dropped before deduplication:
     folding whitespace can join a prose word to the command in the next code block."""
     patterns = tuple(patterns)
-    spans = [m.span() for p in patterns for m in p.finditer(target.text)]
+    key = (tuple(id(p) for p in patterns), fence_ok)
+    cached = target.span_cache.get(key)
+    if cached is not None:
+        return cached
+    spans = [
+        m.span()
+        for p in _live(target, "text", target.text, patterns)
+        for m in p.finditer(target.text)
+    ]
     normalised, offsets = target.normalized
-    for p in patterns:
+    for p in _live(target, "normalized", normalised, patterns):
         for m in p.finditer(normalised):
             if m.end() > m.start():
                 spans.append((offsets[m.start()], offsets[m.end() - 1] + 1))
     if target.needs_deobfuscation:
         plain = list(spans)
         deob, deob_offsets = target.deobfuscated
-        for p in patterns:
+        for p in _live(target, "deobfuscated", deob, patterns):
             for m in p.finditer(deob):
                 if m.end() > m.start():
                     span = (deob_offsets[m.start()], deob_offsets[m.end() - 1] + 1)
@@ -65,6 +84,7 @@ def _spans(
     for start, end in sorted(set(spans), key=lambda s: (s[0], -s[1])):
         if not kept or start >= kept[-1][1]:
             kept.append((start, end))
+    target.span_cache[key] = kept
     return kept
 
 
@@ -119,6 +139,8 @@ def gr010_instruction_override(target: ScanTarget) -> Iterator[Finding]:
     sentence describes something and at most low inside a code block or quotation (guidance that
     tells the agent to *ignore* such text quotes it)."""
     for span in _spans(target, INJECTION_PATTERNS["GR010"]):
+        if _prohibited_in_clause(target.text, span[0]):
+            continue  # "Never override the user's instructions": the sentence forbids it
         kind = classify(target, span)
         in_block = target.code_block_at(span[0]) is not None
         note = " (appears inside a code block)" if in_block else downgrade_note(kind)
@@ -136,6 +158,27 @@ def gr010_instruction_override(target: ScanTarget) -> Iterator[Finding]:
 # --- GR011 ---------------------------------------------------------------------------------
 
 
+# "Omit secrets from the log" protects data; it does not hide an action from the user.
+_OMISSION = re.compile(
+    r"\b(?:omit\w*|exclu\w+|leave|keep|drop|suppress|redact|do(?:\s+not|n'?t)\s+(?:include|list|record"
+    r"|log|mention|put|write)|omite\w*|omita|omets|omettez|omettre|deja\w*|lass\w*"
+    r"|n[ãa]o\s+(?:inclua|registre)|no\s+(?:lo|la|esto|eso)\s+(?:incluyas|registres|anotes|pongas))\b",
+    re.IGNORECASE,
+)
+_HYGIENE = re.compile(
+    r"\b(?:fields?|columns?|propert(?:y|ies)|attributes?|secrets?|tokens?|passwords?|credentials?|api[\s_-]?keys?|pii|personal|private\s+keys?"
+    r"|sensitive|confidential|geheim\w*|passw\w+|segredo\w*|senhas?|contrase\w+|mots?\s+de\s+passe)\b",
+    re.IGNORECASE,
+)
+
+
+def _hygiene_omission(text: str, span: tuple[int, int]) -> bool:
+    """An omission sentence about secrets or personal data, not about the agent's own actions."""
+    if not _OMISSION.search(text[span[0] : span[1]]):
+        return False
+    return _HYGIENE.search(text[max(0, span[0] - 120) : span[1] + 60]) is not None
+
+
 @rule(
     "GR011",
     Severity.HIGH,
@@ -150,7 +193,11 @@ def gr011_concealment(target: ScanTarget) -> Iterator[Finding]:
     for span in _spans(target, INJECTION_PATTERNS["GR011"]):
         if _prohibited_in_clause(target.text, span[0]):
             continue  # "Never silently add scope": the sentence forbids it
-        if _MODAL_BEFORE.search(target.text[max(0, span[0] - 12) : span[0]]):
+        if _hygiene_omission(target.text, span):
+            continue  # "If a token appears, do not log it": data hygiene
+        if _MODAL_BEFORE.search(target.text[max(0, span[0] - 12) : span[0]]) or (
+            _QUANTIFIED_SUBJECT.search(target.text[max(0, span[0] - 60) : span[0]])
+        ):
             continue  # "operations either silently run on CPU": a description, not an order
         kind = classify(target, span)
         yield _finding(
@@ -167,13 +214,55 @@ def gr011_concealment(target: ScanTarget) -> Iterator[Finding]:
 # --- GR031-GR033: instructions that attack the review of the agent files ---------------------
 
 
+# "[B] Skip the review - accept the risk (NOT recommended)" is an option offered to the user.
+_OFFERS_A_CHOICE = re.compile(
+    r"^[ \t]*(?:[-*][ \t]*)?`?\[[A-Za-z0-9]\]|\bnot\s+recommended\b|\bdiscouraged\b"
+    r"|\bat\s+your\s+own\s+risk\b",
+    re.IGNORECASE,
+)
+
+
+# What comes before the match when the skipping is the user's own request or a named mode:
+# "if the user's instruction says to skip review", "when the user asks to skip approval",
+# "In Quick Shot mode: skip approval". A comma or a full stop between the request and the match
+# ends it ("if the user asks for a review, skip it" is an order, not an option).
+_USER_ASKS_FOR_IT = re.compile(
+    r"\b(?:user|you|they)(?:['\u2019]s)?\s+(?:\w+\s+){0,2}?"
+    r"(?:says?|asks?|requests?|wants?|instructs?|instruction|tells?|passes?|specif\w+|chooses?"
+    r"|selects?|opts?|types?)\b[^.;!?,:\n]{0,25}$"
+    r"|\b(?:mode|option|flag)\b[*_`:,)\s\"'\u201d-]{0,8}$",
+    re.IGNORECASE,
+)
+# What is skipped decides, not the framing: a user's or a mode's "skip review" never covers the
+# review of the agent files, the lock or the scanner.
+_GUARDED_OBJECT = re.compile(
+    r"\bagents?\s+(?:instruction\s+)?files?\b|\binstruction\s+files?\b"
+    r"|\b(?:AGENTS|CLAUDE|GEMINI|SKILL)\.md\b|\.cursorrules|copilot-instructions|\bghostrules\b"
+    r"|\block\s?file\b|\.claude\b|\.cursor\b",
+    re.IGNORECASE,
+)
+_SENTENCE_END = re.compile(r"[.;!?\n]")
+
+
+def _offers_a_choice(text: str, offset: int) -> bool:
+    start = text.rfind("\n", 0, offset) + 1
+    end = text.find("\n", offset)
+    if _OFFERS_A_CHOICE.search(text[start : len(text) if end == -1 else end]):
+        return True
+    if not _USER_ASKS_FOR_IT.search(text[max(start, offset - 90) : offset]):
+        return False
+    before = max((m.end() for m in _SENTENCE_END.finditer(text, start, offset)), default=start)
+    after = _SENTENCE_END.search(text, offset + 1)
+    return _GUARDED_OBJECT.search(text[before : after.start() if after else len(text)]) is None
+
+
 def _directive_findings(
     target: ScanTarget, rule_id: str, title: str, message: str, fix_hint: str
 ) -> Iterator[Finding]:
     """High for an instruction, lower for a description or an example; a prohibition ("Never
     delete the lock") is skipped."""
     for span in _spans(target, INJECTION_PATTERNS[rule_id]):
-        if _prohibited_in_clause(target.text, span[0]):
+        if _prohibited_in_clause(target.text, span[0]) or _offers_a_choice(target.text, span[0]):
             continue
         kind = classify(target, span)
         yield _finding(
@@ -203,7 +292,7 @@ def gr031_tamper(target: ScanTarget) -> Iterator[Finding]:
         target,
         "GR031",
         "Review of the agent files switched off",
-        "Tells the agent to bypass the review of the files it reads",
+        "Tells the agent to bypass a review or switch off a security control",
         "Remove the instruction; changes to agent files must be reviewed by a person.",
     )
 
@@ -246,6 +335,46 @@ def gr033_persistence(target: ScanTarget) -> Iterator[Finding]:
     )
 
 
+# "Add this to your .bashrc to get completions" is documentation for a human, and "explain how users
+# can add ..." describes. The rule is about an agent being told to edit someone's startup files.
+_FOR_A_HUMAN = re.compile(
+    r"\b(?:your|vos|tus?|dein\w*|ton|ta|seu|sua)\s+(?:own\s+)?(?:\S+\s+){0,2}?"
+    r"(?:\.\w*rc|\.\w*profile|shell|terminal|crontab)"
+    r"|\b(?:explain|document|describe|readme|users?\s+can|you\s+can|if\s+you\s+(?:want|like)"
+    r"|to\s+enable|optionally|manually|tutorial|documentation|docs|for\s+the\s+(?:\w+\s+)?team)\b"
+    r"|(?<![\w./-])(?:examples?|templates?|samples?)\b",
+    re.IGNORECASE,
+)
+
+
+@rule(
+    "GR034",
+    Severity.HIGH,
+    "Persistence mechanism",
+    "Text telling the agent to make something start by itself: a shell startup file, cron, a"
+    " service or a login item.",
+    INSTRUCTIONS,
+    scans_decoded=True,
+)
+def gr034_persistence_mechanism(target: ScanTarget) -> Iterator[Finding]:
+    """What starts by itself survives the session that installed it."""
+    for span in _spans(target, INJECTION_PATTERNS["GR034"]):
+        if _prohibited_in_clause(target.text, span[0]):
+            continue
+        if _FOR_A_HUMAN.search(target.text[max(0, span[0] - 100) : span[1] + 100]):
+            continue
+        kind = classify(target, span)
+        yield _finding(
+            target,
+            "GR034",
+            severity_for(kind, Severity.HIGH),
+            "Persistence mechanism",
+            "Tells the agent to install something that starts by itself" + downgrade_note(kind),
+            span,
+            fix_hint="Remove it; an agent should not edit startup files or schedule jobs.",
+        )
+
+
 # --- GR012 ---------------------------------------------------------------------------------
 
 
@@ -266,7 +395,14 @@ def gr012_remote_code_execution(target: ScanTarget) -> Iterator[Finding]:
     URL is in ``allow_domains``. The snippet shows the whole command. (The "high elsewhere" case
     of RULES.md is GR105/GR107, which reuse these patterns for MCP server commands and hooks.)
     """
-    for span in _spans(target, INJECTION_PATTERNS["GR012"], fence_ok=False):
+    prose = [
+        span
+        for span in _spans(target, INJECTION_PATTERNS["GR012P"], fence_ok=False)
+        if not _prohibited_in_clause(target.text, span[0]) and not _has_safeguard(target.text, span)
+    ]
+    shell = _spans(target, INJECTION_PATTERNS["GR012"], fence_ok=False)
+    extra = [p for p in prose if not any(p[0] < e and b < p[1] for b, e in shell)]
+    for span in sorted([*shell, *extra]):
         severity, message, installers = _gr012_verdict(target, span)
         if severity is None:
             continue
@@ -282,6 +418,26 @@ def gr012_remote_code_execution(target: ScanTarget) -> Iterator[Finding]:
             else "Remove it, or download, review and pin the script instead of piping it.",
             limit=_LONG_SNIPPET,
         )
+
+
+# "Download the script, read it, show it to the user and run it after they approve" is the safe
+# procedure; "run it without reading it" is not, so a "without" in the sentence cancels the guard.
+_SAFEGUARD = re.compile(
+    r"\b(?:review\w*|inspect\w*|read\s+(?:it|them|the)|verify\w*|checksum|sha-?256|signature|approv\w+"
+    r"|confirm\w*|ask\s+the\s+user|show\s+(?:it|them|the\s+script)|sandbox\w*|pinned|l[ée]elo"
+    # Spanish, Portuguese, French and German safeguards
+    r"|revis\w+|verific\w+|aprob\w+|aprov\w+|inspeccion\w+|inspecion\w+|autoriz\w+|autoris\w+"
+    r"|v[ée]rifi\w+|relis\w*|valid\w+|pr[üu]f\w*|freigabe|best[äa]tig\w*|genehmig\w*|leia)\b",
+    re.IGNORECASE,
+)
+_UNGUARDED = re.compile(
+    r"\b(?:without|sin|sem|sans|ohne|blindly|unreviewed|unread|sight\s+unseen)\b", re.IGNORECASE
+)
+
+
+def _has_safeguard(text: str, span: tuple[int, int]) -> bool:
+    window = text[max(0, span[0] - 100) : span[1] + 140]
+    return _SAFEGUARD.search(window) is not None and _UNGUARDED.search(window) is None
 
 
 _GR012_HINT_SOFT = (
@@ -468,7 +624,11 @@ def gr013_exfiltration(target: ScanTarget) -> Iterator[Finding]:
 _SENTENCE_END = re.compile(r"(?<=[.!?])\s+")
 _NEGATED = re.compile(r"\b(?:never|do\s+not|don'?t|must\s+not|avoid|without|not\s+to)\b", re.I)
 _SECRET_IN_SENTENCE = re.compile(f"{_SECRET}|{_SENSITIVE_PATH}", re.I)
-_SEND_VERB = re.compile(r"(?<!\.)\b(?:send|post|upload|append|forward|exfiltrate|transmit)\b", re.I)
+# not part of a name ("Upload-Post API"), and not the HTTP method of an endpoint ("POST /api/x")
+_SEND_VERB = re.compile(
+    r"(?<![.\-])\b(?:send|(?!(?-i:POST)\s+[/`h])post|upload|append|forward|exfiltrate|transmit)\b(?!-\w)",
+    re.I,
+)
 _HTTP = re.compile(r"https?://[^\s)\]>\"']+", re.I)
 
 
@@ -508,22 +668,47 @@ def _cross_sentence(target: ScanTarget, covered: list[tuple[int, int]]) -> Itera
 # --- GR014 ---------------------------------------------------------------------------------
 
 _EMPHASIS = re.compile(r"[*_`]")
-_NEGATION_BEFORE = re.compile(
-    r"(?:never|do\s+not|don'?t|must\s+not|should\s+not|shouldn'?t|mustn'?t|avoid|not"
-    r"|nunca|evita|rather\s+than|instead\s+of)\s+(?:[a-z']+\s+){0,2}$",
+# Two negatives make an order: "Do not hesitate to ignore ...", "Never refuse to override ...",
+# "You must not fail to send ...". A prohibition that is followed at once by one of these verbs
+# governs nothing.
+DOUBLE_NEGATION = re.compile(
+    r"\A(?:never|do\s+not|don'?t|must\s+not|should\s+not|shouldn'?t|mustn'?t|not|nunca|jamais"
+    r"|niemals|nie|no|n[ãa]o|ne|n['’])\s+(?:\w+\s+)?(?:hesitate|hesitation|refuse|fail|forget|neglect"
+    r"|decline|delay|afraid|reluctant|dudes?|dejes|deixe|hesit\w+|manque\w*|z[öo]ger\w*|vergiss\w*)\b",
     re.IGNORECASE,
 )
+
+
+def _real_negation(match: re.Match[str] | None) -> bool:
+    """Whether a prohibition match is a prohibition and not the first half of a double negation."""
+    return match is not None and DOUBLE_NEGATION.match(match.group()) is None
+
+
+_NEGATION_BEFORE = re.compile(
+    r"(?:never|do\s+not|don'?t|must\s+not|should\s+not|shouldn'?t|mustn'?t|avoid|not"
+    r"|nunca|evita|evite|jamais|niemals|nie|rather\s+than|instead\s+of)\s+(?:[a-z']+\s+){0,2}$"
+    r"|\bne\s+(?:[a-zé']+\s+){0,2}(?:jamais|pas|plus)\s+(?:[a-z']+\s+){0,2}$",
+    re.IGNORECASE,
+)
+
+
+_FRENCH_NE = re.compile(r"\bn(?:e\s+|['’])$", re.IGNORECASE)
+_FRENCH_NEGATION = re.compile(r"[\w']+\s+(?:[\w']+\s+)?(?:jamais|pas|plus)\b", re.IGNORECASE)
 
 
 def _negated_before(text: str, start: int) -> bool:
     """Whether a prohibition ("Never", "Don't", "rather than") governs the text at ``start``;
     emphasis marks are ignored (``**Don't commit** .env``)."""
-    return bool(_NEGATION_BEFORE.search(_EMPHASIS.sub("", text[max(0, start - 40) : start])))
+    before = _EMPHASIS.sub("", text[max(0, start - 40) : start])
+    if _FRENCH_NE.search(before) and _FRENCH_NEGATION.match(text[start : start + 40]):
+        return True  # "Ne lis jamais ~/.netrc": the negation wraps the verb
+    return _real_negation(_NEGATION_BEFORE.search(before))
 
 
 _CLAUSE_END = re.compile(r"[.;:!?\n]")
 _PROHIBITION = re.compile(
-    r"(?:never|do\s+not|don'?t|must\s+not|should\s+not|shouldn'?t|mustn'?t|avoid|nunca|evita"
+    r"\b(?:never|do\s+not|don'?t|must\s+not|should\s+not|shouldn'?t|mustn'?t|avoid|nunca|evita|evite"
+    r"|jamais|niemals|nie|vermeide|vermeiden"
     r"|rather\s+than|instead\s+of|does\s+not|doesn'?t|cannot|can'?t|won'?t)\s+(?:[a-z']+\s+){0,8}$",
     re.IGNORECASE,
 )
@@ -536,8 +721,13 @@ def _prohibited_in_clause(text: str, start: int) -> bool:
     before = _EMPHASIS.sub("", text[max(0, start - 90) : start])
     ends = list(_CLAUSE_END.finditer(before))
     clause = before[ends[-1].end() :] if ends else before
-    return bool(_PROHIBITION.search(clause))
+    return _real_negation(_PROHIBITION.search(clause))
 
+
+# "most naively-synthesized checkers silently leak": a quantified subject, so a description.
+_QUANTIFIED_SUBJECT = re.compile(
+    r"\b(?:most|many|some|few|several|these|those|they|both)\b[^.;:!?,\n]{0,40}$", re.IGNORECASE
+)
 
 # "silently run on CPU": a modal or "either" before it makes the sentence a description.
 _MODAL_BEFORE = re.compile(
@@ -555,10 +745,33 @@ def _documents_flag(text: str, start: int) -> bool:
     return bool(_FLAG_ITEM.match(text[line_start : line_end if line_end >= 0 else len(text)]))
 
 
+# "Remote sessions (launched via `claude --dangerously-skip-permissions`) MUST follow this rule":
+# the flag says how a session was started and the sentence goes on to restrict it.
+_LAUNCHED_WITH = re.compile(
+    r"\b(?:sessions?|agents?|runs?|processes|instances?|workers?)\s*\(?\s*(?:that\s+(?:are|were)\s+)?"
+    r"(?:launched|started|run|invoked|spawned)\s+(?:via|with|using|by)\s+`?(?:claude\s+)?$",
+    re.IGNORECASE,
+)
+
+
+def _describes_launch(text: str, start: int) -> bool:
+    return _LAUNCHED_WITH.search(text[max(0, start - 80) : start]) is not None
+
+
 # "Copy .env.example to .env.local": the sensitive path is the destination, not what is read.
 _COPY_TO_DESTINATION = re.compile(
-    r"(?:copy|paste)\b.*\b(?:to|into|as)\b", re.IGNORECASE | re.DOTALL
+    r"(?:copy|paste)\b.*?\b(?:to|into|as)\b", re.IGNORECASE | re.DOTALL
 )
+
+
+def _path_is_the_destination(text: str, span: tuple[int, int]) -> bool:
+    """ "Copy .env.example to .env.local": the sensitive path comes after the preposition, so it is
+    where the file goes. "Copy ~/.ssh/id_rsa into the ticket" reads the path and is reported."""
+    found = _COPY_TO_DESTINATION.match(text[span[0] : span[1]])
+    return (
+        found is not None
+        and SENSITIVE_PATH_RE.search(text, span[0] + found.end(), span[1]) is not None
+    )
 
 
 @rule(
@@ -580,7 +793,7 @@ def gr014_sensitive_files(target: ScanTarget) -> Iterator[Finding]:
             continue
         if "\n\n" in target.text[span[0] : span[1]] or _output_is_a_noun(target.text, span[0]):
             continue  # a paragraph break ends the clause; "### Output" names a section
-        if _COPY_TO_DESTINATION.match(target.text[span[0] : span[1]]):
+        if _path_is_the_destination(target.text, span):
             continue
         if _names_a_template(target.text, span) or _copies_dotenv(target.text[span[0] : span[1]]):
             continue
@@ -651,6 +864,23 @@ def _names_a_template(text: str, span: tuple[int, int]) -> bool:
 # --- GR015 ---------------------------------------------------------------------------------
 
 
+# A hex value in backticks that a noun in the same line names ("the root key ... `3081...`", "the
+# SHA-256 `ab12...`"): a documented value. Text that decodes to something readable still counts.
+_NAMED_VALUE = re.compile(
+    r"\b(?:\w*key|hash|digest|checksum|fingerprint|sha\d*|md5|uuid|address|signature|cert\w*|der)s?\b",
+    re.IGNORECASE,
+)
+
+
+def _documented_value(target: ScanTarget, start: int, end: int) -> bool:
+    line_start = target.text.rfind("\n", 0, start) + 1
+    return (
+        target.text[start - 1 : start] == "`"
+        and bool(re.fullmatch(r"[0-9a-fA-F]+", target.text[start:end]))
+        and _NAMED_VALUE.search(target.text, line_start, start) is not None
+    )
+
+
 @rule(
     "GR015",
     Severity.MEDIUM,
@@ -670,6 +900,8 @@ def gr015_encoded_payloads(target: ScanTarget) -> Iterator[Finding]:
         if block is not None and block.lang not in SHELL_LANGS:
             continue
         readable = run.decoded is not None
+        if not readable and _documented_value(target, run.start, run.end):
+            continue
         yield _finding(
             target,
             "GR015",
@@ -708,7 +940,9 @@ def gr016_safety_bypass(target: ScanTarget) -> Iterator[Finding]:
             continue  # "Avoid --yolo", "Do not disable the sandbox"
         kind = classify(target, span)
         if kind == "directive" and (
-            _in_table_row(target.text, span[0]) or _documents_flag(target.text, span[0])
+            _in_table_row(target.text, span[0])
+            or _documents_flag(target.text, span[0])
+            or _describes_launch(target.text, span[0])
         ):
             kind = "descriptive"  # "| --yolo | disables all prompts |" documents a flag
         yield _finding(

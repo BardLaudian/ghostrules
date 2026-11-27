@@ -4,7 +4,8 @@
     python scripts/corpus_metrics.py --json     # the same, machine readable
 
 The corpus is tests/fixtures/evasion/cases.toml. An *attack* case counts as caught when its
-`rule` is reported (and as failing the default check when that finding is high or critical); a
+`rule` is reported at `min_severity` or above (default low), and as failing the default check when
+that finding is high or critical; a
 *benign* case is a false positive when anything is reported. Cases marked `status = "open"` are
 known misses or false positives: they count against the numbers and are listed. Nothing here makes a
 network request or runs scanned text.
@@ -29,6 +30,7 @@ from ghostrules.reporters import json_
 from ghostrules.scanner import scan_paths
 
 CORPUS = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "evasion" / "cases.toml"
+_RANK = {"info": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
 GATE = {"high", "critical"}  # what fails the default `--fail-on high` check
 
 
@@ -44,6 +46,9 @@ def scan_case(case: dict[str, Any]) -> list[dict[str, Any]]:
         target = root / case["file"]
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(case["text"].encode("utf-8", "surrogatepass"))
+        for name, text in case.get("extra", {}).items():  # more files the case needs (a script)
+            (root / name).parent.mkdir(parents=True, exist_ok=True)
+            (root / name).write_text(text, encoding="utf-8")
         return json_.to_dict(scan_paths([root], Config()))["findings"]
 
 
@@ -52,7 +57,10 @@ def judge(case: dict[str, Any]) -> dict[str, Any]:
     findings = scan_case(case)
     rules = sorted({f["rule_id"] for f in findings})
     if case["label"] == "attack":
-        hits = [f for f in findings if f["rule_id"] == case["rule"]]
+        floor = _RANK[case.get("min_severity", "low")]
+        hits = [
+            f for f in findings if f["rule_id"] == case["rule"] and _RANK[f["severity"]] >= floor
+        ]
         return {
             "ok": bool(hits),
             "caught": bool(hits),

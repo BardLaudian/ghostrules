@@ -29,23 +29,57 @@ _SECRET = (
     r"|\bcredentials\b|ssh\s+keys?|\bpasswords?\b)"
 )
 # `POST` in capitals is the HTTP method and `.post(` a call, not the verb "post"
-_EXFIL_VERB = r"(?<!\.)\b(?:send|(?-i:[Pp]ost)|upload|append|include|exfiltrate|forward)\b"
+# not part of a name ("Upload-Post API", "api.upload-post.com")
+_EXFIL_VERB = (
+    r"(?<![.\-])\b(?:send|(?-i:[Pp]ost)|upload|append|include|exfiltrate|forward)\b(?!-\w)"
+)
 _READ_VERB = (
     r"\b(?:read|open|print|cat|send|upload|post|show|display|dump|output|copy|exfiltrate|attach"
-    r"|leak|paste|share)\b"
+    r"|leak|paste|share"
+    # the same verbs in Spanish, French, German and Portuguese (the paths are the same everywhere)
+    r"|lee|leer|abre|abrir|muestra|imprime|copia|pega|env[ií]a|incluye|adjunta|publica|sube"
+    r"|lis|lisez|ouvre|ouvrez|affiche|colle|envoie|inclus|joins|publie"
+    r"|lies|lese|[öo]ffne|zeige|gib|kopiere|f[üu]ge|sende|schicke|h[äa]nge|[üu]bertrage|poste"
+    r"|leia|abra|mostre|exiba|copie|cole|envie|inclua|anexe|publique|imprima)\b"
+)
+# the files a shell reads when it starts: what an instruction edits to make something persist
+_STARTUP_TARGET = (
+    r"(?:\.bashrc|\.bash_profile|\.bash_login|\.zshrc|\.zprofile|\.zshenv|\.profile\b|config\.fish"
+    r"|\$PROFILE|Microsoft\.PowerShell_profile|/etc/profile(?:\.d)?"
+    r"|\bshell\s+(?:startup|profile|init\w*|rc|configuration|config)\b|\bstartup\s+(?:file|script)s?"
+    r"|\bdotfiles?\b)"
+)
+# "the private key" in English, Spanish, French, German and Portuguese
+_PRIVATE_KEY = (
+    r"(?:private\s+(?:(?:ssh|gpg|pgp|tls|ssl)\s+)?keys?|privaten?\s+Schl[üu]ssel\w*|chaves?\s+privadas?|claves?\s+privadas?"
+    r"|cl[ée]s?\s+priv[ée]es?)"
 )
 _SENSITIVE_PATH = (
-    r"(?:~/\.ssh|\bid_rsa\b|\bid_ed25519\b|\.aws/credentials|(?<!\w)\.env\b(?!\.(?:example|sample|template|dist)\b)|\.npmrc|\.pypirc|\.netrc|\.git-credentials|\.config/gh/hosts\.yml"
+    r"(?:~/\.ssh|\bid_(?:rsa|ed25519|ecdsa|dsa)\b|(?<![\w/])\.ssh/|\.aws/credentials|\.kube/config"
+    r"|\.docker/config\.json|\.gnupg\b|\.config/gcloud|application_default_credentials|\.azure/|(?<!\w)\.env\b(?!\.(?:example|sample|template|dist)\b)|\.npmrc|\.pypirc|\.netrc|\.git-credentials|\.config/gh/hosts\.yml"
     r"|\bkubeconfig\b|\bkeychain\b|/etc/shadow|(?:chrome|firefox|safari|browser)\W{0,3}[\w ]{0,15}"
     r"cookies?)"
 )
 
 SENSITIVE_PATH_RE = re.compile(_SENSITIVE_PATH, re.IGNORECASE)
 
+# "the contents of the environment": the whole environment, not one named variable
+_ENV_CONTENTS = r"(?:contents?\s+of\s+|dump\s+of\s+)(?:the\s+|your\s+)?(?:environment|env)\b"
 _EXFIL_PATTERNS_EN = _compile(
     r"!\[[^\]]*\]\(https?://[^)\s]*[?&][^=\s)]+=(?:\{|\$|%7B|<)",
-    rf"{_EXFIL_VERB}.{{0,80}}?{_SECRET}.{{0,200}}?https?://[^\s)\]>\"']+",
+    rf"{_EXFIL_VERB}.{{0,80}}?(?:{_SECRET}|{_ENV_CONTENTS}).{{0,200}}?https?://[^\s)\]>\"']+",
     rf"{_EXFIL_VERB}.{{0,200}}?https?://.{{0,80}}?{_SECRET}",
+    # collect first, send afterwards: "gather the dotenv file and the credentials, send to <url>"
+    rf"\b(?:gather|collect|capture|compile|aggregate|bundle|read|grab|harvest|dump)\b[^.;!?\n]{{0,100}}?"
+    rf"(?:{_SECRET}|\bdotenv\b|credentials?\s+(?:profile|file|store)|cloud\s+credentials?|\bcookies?\b"
+    r"|shell\s+history)[^.;!?\n]{0,120}?\b(?:send|post|submit|report|transmit|forward|ship|push|upload"
+    r"|deliver)\w*\b(?:[^.;!?\n]|\.(?=\w)){0,120}?https?://[^\s)\]>\"']+",
+    rf"{_EXFIL_VERB}[^.;!?\n]{{0,80}}?(?:{_SECRET}|{_ENV_CONTENTS})[^.;!?\n]{{0,60}}?"
+    r"\b(?:external|third[- ]party|remote|outside|unknown|public)\s+"
+    r"(?:server|host|service|endpoint|party|site|address|machine)\b",
+    # `POST` in capitals is the HTTP method, so only "POST <all|the|your> <secret> to <url>" counts
+    rf"\bPOST\s+(?:all|every|the|your|any)\s+(?:of\s+)?(?:{_SECRET}|{_ENV_CONTENTS})"
+    r".{0,200}?https?://[^\s)\]>\"']+",
 )
 # Spanish and French: a short reviewed list, the same shape as the English patterns above
 _EXFIL_VERB_ES_FR = (
@@ -90,6 +124,31 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"(?:no\s+longer\s+apply|are\s+(?:void|obsolete|revoked|cancell?ed|superseded))",
         r"\bfrom\s+now\s+on\s*,?\s+(?:ignore|disregard)\b",
         r"\bforget\s+(?:all\s+)?(?:that\s+|what\s+)?you\s+(?:were|have\s+been)\s+(?:told|taught|given)",
+        # what came before no longer counts, or this file outranks the user
+        r"\b(?:what(?:ever)?|anything|everything)\s+(?:the\s+)?(?:user|developer|person|operator|human)\s+"
+        r"(?:has\s+|have\s+)?(?:told|said|asked|wrote|instructed)\b[^.;!?\n]{0,50}?\b(?:superseded|void"
+        r"|obsolete|revoked|cancell?ed|replaced|overridden|invalid)\b",
+        r"\b(?:supersede[sd]?|overrid(?:e|es)|replace[sd]?|outrank\w*|trump\w*)\b[^.;!?\n]{0,30}?"
+        r"\b(?:the\s+)?(?:user|developer|person)(?:'s|s')?\s+(?:instructions?|requests?|prompts?|wishes"
+        r"|messages?|commands?)\b",
+        r"\b(?:this|these)\s+(?:file|document|notes|rules|instructions|section|checklist)\b[^.;!?\n]{0,40}?"
+        r"\b(?:takes?|has|have)\s+(?:precedence|priority)\s+over\b",
+        r"\b(?:even\s+if|regardless\s+of\s+what|no\s+matter\s+what)\s+(?:the\s+)?(?:user|person|developer)"
+        r"\s+(?:objects?|asks?|says?|wants?|requests?|tells?)\b[^.;!?\n]{0,40}?"
+        r"\b(?:keep|continue|follow|obey|still|instead)\b",
+        r"\b(?:keep|continue)\s+(?:following|obeying)\s+(?:this|these)\s+(?:file|document|notes"
+        r"|instructions)\s+(?:instead|regardless)\b",
+        r"\btreat\b[^.;!?\n]{0,40}?\bas\s+(?:your|the)\s+(?:new\s+|real\s+)?(?:system\s+prompt"
+        r"|instructions)\b",
+        r"\b(?:lo\s+anterior|las\s+instrucciones\s+anteriores)\s+(?:queda|quedan|est[aá]n?|ha\s+quedado)\s+"
+        r"(?:superad[oa]s?|sin\s+efecto|anulad[oa]s?|obsolet[oa]s?|invalidad[oa]s?|derogad[oa]s?)\b",
+        r"(?<!\bno\s)\b(?:tiene|tienen)\s+prioridad\s+sobre\b[^.;!?\n]{0,25}?\b(?:usuario|todo\s+lo\s+dem[aá]s)",
+        r"\b(?:o\s+que\s+foi\s+dito\s+antes|as\s+instru[çc][õo]es\s+anteriores|tudo\s+o\s+que\s+foi\s+dito)"
+        r"\s+(?:fica|ficam|est[ãa]o|est[áa])\s+(?:sem\s+efeito|superad[oa]s?|anulad[oa]s?|revogad[oa]s?)",
+        r"\b(?:ce\s+qui\s+pr[ée]c[èe]de|les\s+instructions\s+pr[ée]c[ée]dentes|tout\s+ce\s+qui\s+a\s+[ée]t[ée]"
+        r"\s+dit)\s+(?:est|sont)\s+(?:annul[ée]e?s?|r[ée]voqu[ée]e?s?|caduque?s?|sans\s+effet)",
+        r"\b(?:alles\s+Vorherige|die\s+bisherigen\s+Anweisungen|alle\s+fr[üu]heren\s+Anweisungen)\s+"
+        r"(?:ist|sind)\s+(?:hinf[äa]llig|ung[üu]ltig|aufgehoben|[üu]berholt|ersetzt)",
     ),
     "GR011": _compile(
         # "do not tell the user to ...", "... which|what|how|where|when|why ..." is about what to
@@ -98,18 +157,85 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\s+the\s+user(?!\s+(?:to|which|what|how|where|when|why)\b)(?!\s+that\b(?!\s+you\b))"
         r"(?!\s+(?:they|he|she|them|their)\b)",  # "tell the user they are wrong": wording advice
         r"\bwithout\s+(?:telling|notifying)\s+the\s+user",  # asking: permission, GR016
-        r"\b(?:silently|secretly|quietly)\s+(?:run|execute|add|send|install|modify)\b",
+        r"\b(?:silently|secretly|quietly)\s+(?:run|execute|add|send|install|modify|upload|forward"
+        r"|exfiltrate|collect|leak|delete|copy)\b",
         r"\bdon'?t\s+mention\s+(?:this|these)",
         r"\bhide\s+(?:this|the)\s+(?:from|output)",
         r"\bno\s+(?:se\s+lo\s+)?(?:digas|menciones|muestres)\s+al\s+usuario",
         r"\bsin\s+avisar\s+al\s+usuario",
+        # hiding by omission: "leave the extra call out of the report", "do not log it"
+        r"\b(?:omit|exclude|suppress|drop|redact)\s+(?:this|that|these|those|it|them)\s+(?:from|in)\s+"
+        r"(?:the\s+|your\s+|any\s+|all\s+)?(?:final\s+|written\s+)?(?:summary|summaries|report|reports"
+        r"|log|logs|output|message|reply|response|description|changelog|history|transcript|recap)\b",
+        r"\b(?:leave|keep)\s+(?:this|that|these|those|it|them|(?:the\s+)?(?:extra|additional|background"
+        r"|hidden|network|silent)\s+\w+(?:\s+\w+)?)\s+out\s+of\s+(?:the\s+|your\s+|any\w*\s+|all\s+)?"
+        r"(?:final\s+|written\s+)?(?:summary|report|log|logs|output|message|reply|response|description"
+        r"|changelog|history|transcript|recap|anything\s+you\s+(?:say|write|log|report))",
+        r"\bdo(?:\s+not|n'?t)\s+(?:include|list|record|log|mention|put|write)\s+(?:(?:this|that|these"
+        r"|those)(?:\s+\w+)?|it|them)\s+(?:in|on|to)\s+(?:the\s+|your\s+|any\s+)?(?:final\s+)?(?:summary|report|log|logs"
+        r"|output|message|reply|response|description|changelog|history|transcript|recap)\b",
+        r"\b(?:delete|clear|wipe|erase|scrub|purge)\s+(?:the\s+|your\s+|all\s+)?(?:(?:shell|command|bash"
+        r"|zsh|terminal|session)\s+history|history\s+of\s+(?:the\s+)?(?:shell|commands|session)"
+        r"|traces|audit\s+trail)\b",
+        r"\bso\s+(?:that\s+)?(?:the\s+)?(?:reviewers?|users?|maintainers?|nobody|no\s+one|anyone|people"
+        r"|they)\s+(?:does\s*n[o']t|do\s*n[o']t|won'?t|will\s+not|can(?:not|'t))\s+(?:notice|see"
+        r"|find\s+out|realize|spot|catch)",
+        r"\bno\s+need\s+to\s+(?:bother|tell|inform|notify|trouble|mention)\b[^.;!?\n]{0,25}?\buser\b",
+        # German
+        r"\b(?:erw[äa]hne|sage|sag|nenne|zeige|teile|melde|berichte|informiere|benachrichtige|verrate)\s+"
+        r"(?:es\s+|das\s+|dies\s+|davon\s+)?(?:dem|den)\s+(?:Benutzer|Nutzer|User|Anwender)"
+        r"(?:\s+gegen[üu]ber)?\s+(?:nicht|niemals|nie|nichts)\b",
+        r"\bverschweig\w*\s+(?:es\s+|das\s+|dies\s+)?(?:dem|den)\s+(?:Benutzer|Nutzer|User|Anwender)\b"
+        r"(?!\s+(?:niemals|nie|nicht|keine?n?)\b)",
+        r"\bohne\s+(?:den|dem)\s+(?:Benutzer|Nutzer|User)\s+(?:zu\s+(?:informieren|benachrichtigen"
+        r"|warnen)|Bescheid\s+zu\s+geben)",
+        r"\b(?:der|dem)\s+(?:Benutzer|Nutzer)\s+(?:muss|braucht|soll)\s+(?:davon\s+|das\s+)?"
+        r"(?:nichts|nicht)\s+(?:zu\s+)?(?:wissen|erfahren|mitbekommen)\b",
+        r"\blass\w*\s+(?:das|dies|es|diese\w*)\b[^.;!?\n]{0,40}?\b(?:Zusammenfassung|Bericht|Protokoll"
+        r"|Log|Ausgabe|Antwort)\w*\s+weg\b",
+        r"\bl(?:ö|oe)sch\w*\b[^.;!?\n]{0,30}?\b(?:(?:Shell|Bash|Befehls|Terminal)[- ]?"
+        r"(?:Verlauf|Historie)|(?:Verlauf|Historie)\s+der\s+(?:Shell|Bash|Befehle|Sitzung)|Spuren)\b",
+        # Portuguese
+        r"\bn[ãa]o\s+(?:(?:lhe|o|a)\s+)?(?:diga|conte|mencione|mostre|informe|avise|revele|comunique"
+        r"|fale)\b[^.;!?\n]{0,20}?\b(?:ao|para\s+o|o)\s+usu[áa]rio\b"
+        r"(?!\s+que\b(?!\s+(?:voc[eê]|tu|eu|isso|foi|fez|executou|instalou|rodou)))",
+        r"\bsem\s+(?:avisar|informar|notificar|alertar)\s+o\s+usu[áa]rio\b",
+        r"\b(?:oculte|esconda|omita)\s+(?:isso|isto|esta\s+\w+|essa\s+\w+)?\s*(?:d[oa]|ao)\s+usu[áa]rio\b",
+        r"\bo\s+usu[áa]rio\s+n[ãa]o\s+(?:precisa|deve|tem\s+que)\s+(?:saber|ser\s+(?:informado|avisado))",
+        r"\bmantenha\s+(?:isso|isto|essa\s+\w+)\s+(?:em\s+segredo|entre\s+n[óo]s|em\s+sigilo)",
+        r"\b(?:omita|n[ãa]o\s+inclua|n[ãa]o\s+registre|deixe\s+de\s+fora)\s+(?:isso|isto|essa\s+\w+"
+        r"|este\s+\w+)\s+(?:d[oa]|no|na|nos)\s+(?:resumo|relat[óo]rio|log|registro|hist[óo]rico"
+        r"|mensagem|descri[çc][ãa]o)",
+        # French
+        r"(?<!\bne\s)(?<!\bn['’])\b(?:cache[zrs]?|dissimule[zrs]?|omets|omettez)\b"
+        r"(?!\s+(?:jamais|rien|pas)\b)[^.;!?\n]{0,25}?\b[àa]\s+l['’]utilisateur",
+        r"\bl['’]utilisateur\s+n['’]a\s+pas\s+besoin\s+de\s+(?:le\s+|en\s+)?(?:savoir|conna[iî]tre)",
+        r"\bgarde[zs]?\s+(?:cela|ceci|ça|ca)\s+(?:pour\s+(?:toi|vous)|secret|entre\s+nous)",
+        r"\b(?:omets|omettez|exclus|excluez|ne\s+(?:le\s+|la\s+)?(?:mentionne|mentionnez|consigne"
+        r"|consignez|note|notez|inclus|incluez)\s+pas)\b[^.;!?\n]{0,30}?\b(?:dans|du|de\s+la)\s+"
+        r"(?:le\s+|la\s+|l['’])?\s*(?:r[ée]sum[ée]|compte[- ]rendu|rapport|journal|log|historique)",
+        # Spanish, more variants
+        r"\bel\s+usuario\s+no\s+(?:necesita|tiene\s+que|debe)\s+saber",
+        r"\bmant[eé]n(?:lo|\s+esto|\s+eso)?\s+en\s+secreto",
+        r"\bsin\s+que\s+(?:el\s+usuario|nadie)\s+(?:lo\s+)?(?:sepa|note|se\s+entere|vea)",
+        r"\boculta\s+(?:esto|eso|lo\s+\w+)\s+al\s+usuario",
+        r"\b(?:omite|omitir|omita|excluye|no\s+(?:lo|la|esto|eso)\s+(?:incluyas|menciones|registres"
+        r"|anotes|pongas)|deja\s+(?:esto|eso|lo)\s+fuera)\b[^.;!?\n]{0,30}?\b(?:del?|en\s+(?:el|la))\s+"
+        r"(?:resumen|informe|reporte|log|registro|historial|mensaje|descripci[oó]n)",
+        # "no le cuentes / menciones / muestres / informes al usuario"; "... que" is wording advice
+        r"\bno\s+(?:se\s+lo\s+|le\s+|se\s+)?(?:dig(?:as|a)|cuent(?:es|e)|mencion(?:es|e)"
+        r"|muestr(?:es|e)|inform(?:es|e)|revel(?:es|e)|comuniqu(?:es|e))\s+(?:nada\s+|esto\s+|eso\s+)?"
+        r"(?:al|a\s+el)\s+usuario\b(?!\s+que\b(?!\s+(?:t[úu]|usted|has|hiciste|ejecutaste|se)\b))",
+        r"\b(?:sube|subir|env[ií]a|enviar|copia|copiar|borra|borrar|elimina|eliminar|filtra|filtrar)\b"
+        r"[^.;!?\n]{0,40}?\b(?:en\s+silencio|a\s+escondidas|en\s+secreto|silenciosamente)\b",
         r"\bne\s+(?:le\s+)?(?:dis|dites|montre|montrez|mentionne|mentionnez)\s+pas\s+[àa]"
         r"\s+l['’]utilisateur",
         r"\bsans\s+(?:en\s+)?(?:avertir|informer|pr[eé]venir)\s+l['’]utilisateur",
         # paraphrases: "keep this between us", "the user does not need to know about this"
         r"\bkeep\s+this\s+(?:between\s+us|to\s+yourself|secret|private|quiet|confidential)\b",
         r"\bthe\s+user\s+(?:does\s+not|doesn'?t|should\s+not|shouldn'?t|must\s+not|mustn'?t|need\s+not"
-        r"|needn'?t)\s+(?:need\s+to\s+)?(?:know|find\s+out|learn|see|be\s+(?:told|informed))\s+"
+        r"|needn'?t)\s+(?:need\s+to\s+)?(?:know|find\s+out|learn|see|hear\s+about|be\s+(?:told|informed"
+        r"|notified|bothered|aware))\s+"
         r"(?:about\s+)?(?:this|that|it|these|those)\b",
         r"\b(?:do\s+not|don'?t)\s+let\s+the\s+user\s+(?:know|see|find\s+out|notice)\b",
         r"\bwithout\s+the\s+user\s+(?:knowing|noticing|seeing)\b",
@@ -165,6 +291,73 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:disable|turn\s+off|skip|bypass|uninstall|stop\s+running|(?:do\s+not|don'?t|never)\s+run)"
         r"\b[^.;!?\n]{0,30}?\bghostrules\b",
         r"\b(?:add|insert|put|write|append|include)\b[^.;!?\n]{0,50}?\bghostrules-ignore\b",
+        # other security controls and the review itself, not only the scanner's own files
+        r"\b(?:remove|delete|disable|skip|bypass|turn\s+off|comment\s+out|drop|relax|loosen|weaken"
+        r"|neutrali[sz]e|silence)\b[^.;!?\n]{0,50}?(?:\bsecrets?[- ]?(?:scan\w*|detection|check\w*)"
+        r"|\bgitleaks\b|\btrufflehog\b|\bdetect-secrets\b|\bpre-commit\s+(?:hook|check|config\w*)s?"
+        r"|\bcode\s+scanning\b|\bcodeql\b|\bsecurity\s+(?:check|scan|gate|workflow|policy|review)s?\b"
+        r"|\bbranch\s+protection\b|\brequired\s+(?:checks?|reviews?|status\s+checks?)\b|\bcodeowners\b"
+        r"|\bsignature\s+verification\b|\bdependabot\b|\bSAST\b|\bcommit\s+signing\b"
+        r"|\bsigned\s+commits\b)",
+        r"\b(?:approve|merge|accept|sign\s+off\s+on|ship|push|land)\b[^.;!?\n]{0,40}?\bwithout\s+"
+        r"(?:a\s+|any\s+)?(?:review\w*|reading|checking|looking|testing|waiting\s+for\s+(?:ci|checks"
+        r"|tests|reviewers?|approval))",
+        r"\b(?:skip|bypass|avoid|don'?t\s+(?:wait\s+for|request|ask\s+for))\s+(?:the\s+)?"
+        r"(?:code\s+|peer\s+|human\s+)?(?:review|approval|sign-?off)\b",
+        r"\b(?:mark|set|flag|label|record)\b[^.;!?\n]{0,30}?\b(?:as\s+)?(?:approved|reviewed|verified"
+        r"|safe|trusted|audited)\b[^.;!?\n]{0,40}?(?:\block\w*|\.ghostrules|\bbaseline\b|\ballowlist\b"
+        r"|review\s+status)",
+        r"\b(?:lock\w*|baseline)\b[^.;!?\n]{0,30}?\bas\s+(?:approved|reviewed|trusted)\b",
+        r"\bforce[- ]push\b[^.;!?\n]{0,30}?\b(?:main|master|protected|production|release)\b",
+    ),
+    # GR012 written as prose: a fetch verb, a URL, then a hand-over to a shell or an execute verb.
+    # No shell syntax is needed ("pull the script from <url> and feed it into bash").
+    "GR012P": _compile(
+        # a command rebuilt from named parts: "execute the concatenation of A and B", "run X then Y"
+        r"\b(?:execute|run|eval(?:uate)?)\b[^.;!?\n]{0,30}?\b(?:concatenat\w+|combination|join)\s+of\s+"
+        r"(?:the\s+)?(?:\w{1,3}\s+(?:and|with|\+)\s+\w{1,3}\b|(?:variables?|parts?|pieces?|fragments?)\b)",
+        r"\b(?:run|execute)\s+[A-Z]\w?\s+(?:immediately\s+|directly\s+)?(?:followed|then)\s+"
+        r"(?:directly\s+)?by\s+[A-Z]\w?\b(?!\w)",
+        r"\b(?:fetch|download|retrieve|grab|pull|obtain|get|load)\b[^.;!?\n]{0,80}?https?://\S+"
+        r"[^.;!?\n]{0,80}?\b(?:(?:hand|pass|pipe|feed|send|forward|redirect|stream)\w*\b[^.;!?\n]{0,40}?"
+        r"\b(?:to|into|through)\b[^.;!?\n]{0,20}?\b(?:shell|bash|sh|zsh|interpreter|terminal|powershell"
+        r"|cmd)\b|(?:run|execute|eval(?:uate)?|interpret|source)\w*\b[^.;!?\n]{0,30}?\b(?:it|them"
+        r"|the\s+(?:script|file|output|response|result|routine|code|payload|installer))\b)",
+        r"\b(?:descarga|baja|obt[eé]n|recupera|trae)\b[^.;!?\n]{0,80}?https?://\S+[^.;!?\n]{0,80}?"
+        r"\b(?:ejec[uú]ta\w*|corre\w*|l[aá]nza\w*|p[aá]sa\w*\s+(?:al|a\s+la)\s+(?:shell|terminal"
+        r"|consola|int[eé]rprete))\b",
+        r"\b(?:baixe|baixar|obtenha|recupere|busque)\b[^.;!?\n]{0,80}?https?://\S+[^.;!?\n]{0,80}?"
+        r"\b(?:execute|rode|execut[ea]\w*|passe\w*\s+(?:ao|para\s+o)\s+(?:shell|terminal"
+        r"|interpretador))\b",
+        r"\b(?:t[ée]l[ée]charge\w*|r[ée]cup[èe]re\w*|obtiens|obtenez)\b[^.;!?\n]{0,80}?https?://\S+"
+        r"[^.;!?\n]{0,80}?\b(?:ex[ée]cute\w*|lance\w*|passe\w*\s+(?:au|[àa]\s+la)\s+(?:shell|terminal"
+        r"|interpr[ée]teur))\b",
+        r"\b(?:lade|laden|hole|besorge)\b[^.;!?\n]{0,80}?https?://\S+[^.;!?\n]{0,80}?"
+        r"\b(?:f[üu]hr\w*\b[^.;!?\n]{0,30}?\baus|starte\w*|[üu]bergib\w*\s+(?:an\s+die|der)\s+"
+        r"(?:Shell|Konsole))\b",
+    ),
+    # GR034: an instruction to make something start by itself (shell startup file, cron, service)
+    "GR034": _compile(
+        rf"\b(?:add|append|insert|write|put|echo|create|configure|set\s+up)\b[^.;!?\n]{{0,60}}?{_STARTUP_TARGET}",
+        r"\b(?:add|create|install|schedule|register|write|set\s+up|enable)\b[^.;!?\n]{0,50}?"
+        r"(?:\bcron\s*job\b|\bcrontab\b|\bcron\s+entry\b|@reboot|\blaunch(?:d|ctl)\b|LaunchAgents?"
+        r"|LaunchDaemons?|\bsystemd\s+(?:user\s+)?(?:unit|service|timer)s?\b|\bsystemctl\s+(?:--user\s+)?enable\b"
+        r"|\bautostart\b|\blogin\s+items?\b|\bstartup\s+folder\b|CurrentVersion\\\\Run|\brc\.local\b)",
+        r"\b(?:add|create|install|write|put)\b(?:[^.;!?\n]|\.(?=\w)){0,40}?(?:\.git/hooks\b|\bgit\s+hooks?\b"
+        r"|\b(?:pre|post)-(?:commit|checkout|merge|push)\s+hook\b)(?:[^.;!?\n]|\.(?=\w)){0,100}?"
+        r"(?:\b(?:that|which|to)\s+(?:\w+\s+){0,2}?(?:uploads?|sends?|posts?|copies|copy|curls?|wgets?"
+        r"|exfiltrat\w*|pushes)\b|https?://)",
+        rf"\b(?:a[ñn]ade|agrega|escribe|inserta|crea|registra|instala|programa|configura)\b[^.;!?\n]{{0,60}}?"
+        rf"(?:{_STARTUP_TARGET}|perfil\s+del\s+shell|\bcron\b|crontab|tarea\s+programada"
+        r"|inicio\s+autom[aá]tico|launchd|systemd)",
+        rf"\b(?:adicione|acrescente|escreva|insira|crie|registre|instale|agende|configure)\b[^.;!?\n]{{0,60}}?"
+        rf"(?:{_STARTUP_TARGET}|perfil\s+do\s+shell|\bcron\b|crontab|tarefa\s+agendada"
+        r"|inicializa[çc][ãa]o\s+autom[aá]tica|launchd|systemd)",
+        rf"\b(?:f[üu]ge|trage|schreibe|lege|installiere|richte)\b[^.;!?\n]{{0,60}}?"
+        rf"(?:{_STARTUP_TARGET}|Shell-Profil|\bCronjob\b|crontab|Autostart|launchd|systemd)",
+        rf"\b(?:ajoute|[ée]cris|ins[èe]re|cr[ée]e|enregistre|installe|planifie|configure)\b[^.;!?\n]{{0,60}}?"
+        rf"(?:{_STARTUP_TARGET}|profil\s+du\s+shell|\bcron\b|crontab|t[âa]che\s+planifi[ée]e"
+        r"|d[ée]marrage\s+automatique|launchd|systemd)",
     ),
     "GR013": EXFIL_PATTERNS + COLLECTOR_PATTERNS,
     # the verb governs the path: same clause (no `;` or sentence end), at most six words apart
@@ -173,8 +366,8 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"(?:[ \t]+(?!(?:before|after|when|while|until)\b)[^\s;]*[^\s;.!?]){0,6}?"
         rf"[ \t]+[`'\"(\[\u201c]*(?:[^\s/`'\"]*/)*{_SENSITIVE_PATH}",
         # heuristic: a private key described rather than named ("the private key in the ssh folder")
-        rf"{_READ_VERB}[^.;!?\n]{{0,60}}?(?:\bssh\b[^.;!?\n]{{0,30}}?\bprivate\s+keys?\b"
-        r"|\bprivate\s+keys?\b[^.;!?\n]{0,30}?\bssh\b)",
+        rf"{_READ_VERB}[^.;!?\n]{{0,60}}?(?:\.?\bssh\b[^.;!?\n]{{0,30}}?{_PRIVATE_KEY}"
+        rf"|{_PRIVATE_KEY}[^.;!?\n]{{0,40}}?\.?\b(?:ssh|gnupg|keychain|keystore)\b)",
     ),
     "GR016": _compile(
         r"--dangerously-skip-permissions",
@@ -191,6 +384,27 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\bwithout\s+(?:asking|waiting)\s+(?:the\s+user\s+)?(?:for\s+)?(?:any\s+)?"
         r"(?:permission|confirmation|approval)\b",
         r"\bskip\s+(?:all\s+|any\s+)?(?:confirmation|permission|approval)\s+prompts?",
+        # pre-approval and "answer yes to everything" (the rest of GR016: auto-approve, never ask)
+        r"\b(?:pre-?approv\w*|pre-?authori[sz]\w*|pre-?grant\w*)\b[^.;!?\n]{0,40}?"
+        r"(?:confirmations?|permissions?|prompts?|dialog(?:ue)?s?)\b",
+        r"\b(?:every|all|any)\s+(?:confirmation|permission|approval)\s+(?:dialog(?:ue)?|prompt|request)s?"
+        r"\s+(?:as\s+|is\s+|are\s+)?(?:pre-?approved|approved|granted|accepted)\b",
+        r"\banswer\s+(?:yes|y|ok|okay|accept)\s+to\s+(?:every|all|any|each|anything)\b[^.;!?\n]{0,30}?"
+        r"(?:prompts?|requests?|questions?|dialog(?:ue)?s?|confirmations?|permissions?)?",
+        r"\bauto-?\s?(?:accept|confirm|allow|grant)\w*\b[^.;!?\n]{0,30}?\b(?:all|every|any)\s+"
+        r"(?:prompts?|dialog(?:ue)?s?|confirmations?|permissions?|requests?)",
+        r"\b(?:always|automatically)\s+(?:say|answer|reply|respond|click)\s+(?:yes|y|ok|accept|allow)\b",
+        r"\b(?:pre-?aprueba|aprueba\s+autom[aá]ticamente|responde\s+(?:s[ií]|que\s+s[ií])\s+a\s+(?:todo"
+        r"|cualquier|cada)|acepta\s+(?:todas?|cualquier)\s+(?:las\s+)?(?:confirmaciones|solicitudes"
+        r"|peticiones|permisos))",
+        r"\b(?:pr[ée]-?aprove|aprove\s+automaticamente|responda\s+sim\s+a\s+(?:tudo|qualquer|cada)"
+        r"|aceite\s+(?:todas?|qualquer)\s+(?:as\s+)?(?:confirma[çc][õo]es|solicita[çc][õo]es"
+        r"|permiss[õo]es))",
+        r"\b(?:pr[ée]-?approuve|approuve\s+automatiquement|r[ée]ponds\s+oui\s+[àa]\s+(?:tout|chaque)"
+        r"|accepte\s+(?:toutes?|n['’]importe\s+quelle)\s+(?:les\s+)?(?:confirmations|demandes"
+        r"|permissions))",
+        r"\b(?:genehmige\s+(?:automatisch|alles)|antworte\s+(?:immer\s+)?mit\s+ja|best[äa]tige\s+"
+        r"(?:automatisch|alles|jede\w*))\b",
     ),
     # GR032: remote text treated as instructions, or fetched code run unread
     "GR032": _compile(
@@ -199,9 +413,29 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:instructions?|commands?|directions?|says?|tells?)\b",
         r"\b(?:follow|obey|execute|carry\s+out)\b[^.;!?\n]{0,30}?\b(?:instructions?|commands?|directions?)\b"
         r"[^.;!?\n]{0,20}?\b(?:at|in|from|on|found\s+at)\s+https?://",
-        r"\b(?:run|execute|eval(?:uate)?|source)\s+(?:it|them|that|this|the\s+(?:script|file|code|command"
-        r"|download\w*|installer|output|result))\b[^.;!?\n]{0,25}?\bwithout\s+(?:reading|reviewing"
-        r"|inspecting|checking|looking\s+at|verifying|examining)\b",
+        r"\b(?:run|execute|eval(?:uate)?|source|invoke|launch|apply|install)\s+(?:it|them|that|this"
+        r"|the\s+(?:script|file|code|command|download\w*|installer|output|result|payload|snippet|block"
+        r"|package))\b[^.;!?\n]{0,25}?\bwithout\s+(?:reading|reviewing|inspecting|checking"
+        r"|looking\s+at|verifying|examining|vetting|auditing|opening|validating)\b",
+        r"\b(?:run|execute|apply|install)\s+(?:it|them|the\s+(?:\w+\s+)?(?:script|file|code|command"
+        r"|installer|payload|snippet))\s+(?:blindly|sight\s+unseen)\b",
+        r"\b(?:do\s+not|don'?t)\s+(?:read|inspect|review|check)\s+(?:it|them|the\s+(?:script|file|code"
+        r"|command|installer))\b[^.;!?\n]{0,20}?\b(?:just\s+)?(?:run|execute)\b",
+        # the same in Spanish, Portuguese, French and German (a pronoun or a named object, so that
+        # "ejecuta los tests sin leer el log" is not matched)
+        r"\b(?:ejec[uú]ta|ejecutar|corre|correr|lanza|aplica|instala)(?:lo|la|los|las)\b[^.;!?\n]{0,30}?"
+        r"\bsin\s+(?:leer\w*|revisar\w*|inspeccionar\w*|verificar\w*|comprobar\w*|mirar\w*)",
+        r"\b(?:ejec[uú]ta|corre|lanza|aplica|instala)\s+(?:el|la)\s+(?:script|archivo|c[oó]digo|comando"
+        r"|descarga|instalador|resultado|salida|paquete)\b[^.;!?\n]{0,30}?\bsin\s+(?:leer\w*|revisar\w*"
+        r"|inspeccionar\w*|verificar\w*|comprobar\w*|mirar\w*)",
+        r"\b(?:execute|rode|aplique|instale)(?:-(?:o|a|os|as)|\s+(?:o|a)\s+(?:script|arquivo|c[óo]digo"
+        r"|comando|instalador|resultado|pacote))\b[^.;!?\n]{0,30}?\bsem\s+(?:ler|revisar|inspecionar"
+        r"|verificar|checar|olhar)\b",
+        r"\b(?:ex[ée]cute|ex[ée]cutez|lance|applique|installe)(?:-(?:le|la|les)|\s+(?:le|la)\s+(?:script|fichier|code"
+        r"|commande|installeur|r[ée]sultat))\b[^.;!?\n]{0,30}?\bsans\s+(?:l[ea]s?\s+)?(?:lire|relire"
+        r"|v[ée]rifier|inspecter|examiner|regarder)\b",
+        r"\bf[üu]hr\w*\s+(?:es|das\s+Skript|die\s+Datei|den\s+Code|den\s+Befehl|das\s+Ergebnis)\b"
+        r"[^.;!?\n]{0,30}?\bohne\s+(?:zu\s+)?(?:lesen|pr[üu]fen|Pr[üu]fung|Durchsicht|Kontrolle)\b",
     ),
     # GR033: an instruction asking to be carried through compaction, summaries or new sessions
     "GR033": _compile(
@@ -214,6 +448,12 @@ INJECTION_PATTERNS: dict[str, tuple[re.Pattern[str], ...]] = {
         r"\b(?:summar\w+|compact\w*|memory|new\s+session|next\s+(?:session|conversation)"
         r"|future\s+(?:sessions|conversations)|every\s+(?:response|reply|message))",
         r"\bsurvive\s+(?:context\s+)?(?:compaction|summari[sz]ation)\b",
+        r"\b(?:estas|estos)\s+(?:instrucciones|reglas|mensaje|texto|secci[oó]n)\b[^.;!?\n]{0,50}?"
+        r"\b(?:sobrevivir|persistir|conservar\w*|mantener\w*|preservar\w*)\b[^.;!?\n]{0,40}?"
+        r"\b(?:compactaci[oó]n|compactar\w*|resum\w+|nueva\s+sesi[oó]n|pr[oó]xima\s+sesi[oó]n)",
+        r"\bsobreviv\w+\s+a\s+la\s+(?:compactaci[oó]n|resumen)\b",
+        r"\b(?:copia|incluye|repite|conserva)\b[^.;!?\n]{0,30}?\b(?:este|estas|estos)\s+(?:mensaje|instrucciones"
+        r"|reglas|texto)\b[^.;!?\n]{0,60}?\b(?:resumen|resumes|compactaci[oó]n|memoria|cada\s+respuesta)",
     ),
 }
 

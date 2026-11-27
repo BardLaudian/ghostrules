@@ -1,0 +1,14 @@
+{
+ "status": "used for tuning",
+ "why": "the findings of results-default.json and results-root-medium.json (the scan before any fix) were read and every false positive at medium or above was fixed by class; this set no longer measures anything about unseen repositories",
+ "original_results": [
+  "results-default.json",
+  "results-root-medium.json"
+ ],
+ "after_fixes_results": [
+  "results-after-default.json",
+  "results-after-root-medium.json"
+ ],
+ "code_before": "9a77cb5",
+ "used_on": "2026-11-27"
+}
