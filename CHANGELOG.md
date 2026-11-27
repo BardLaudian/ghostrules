@@ -96,6 +96,9 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   burned, structural versus semantic detection, the lock as the complementary control) and no longer lists
   German and Portuguese as unsupported or points at files that were removed.
 
+- README and the usage guide say what the detection is: reliable for hidden characters, comments and MCP
+  configuration, pattern-based and best effort for instructions, with the languages the patterns cover.
+
 ### Tests
 
 - **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in

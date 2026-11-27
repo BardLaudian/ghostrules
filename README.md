@@ -13,7 +13,7 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/ghostrules.svg)](https://pypi.org/project/ghostrules/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/BardLaudian/ghostrules/blob/main/LICENSE)
 
-`ghostrules` finds the instructions your AI agent sees but you don't: hidden text and risky settings in `AGENTS.md`, `CLAUDE.md`, `.cursorrules`, Copilot instructions, skills and MCP configs. A CLI, a GitHub Action and a pre-commit hook.
+`ghostrules` finds hidden text and risky settings in the files your AI agent obeys (`AGENTS.md`, `CLAUDE.md`, `.cursorrules`, Copilot instructions, skills and MCP configs): invisible characters, hidden comments and unsafe MCP configuration are detected reliably, while instructions that tell the agent to misbehave are matched by patterns, on a best-effort basis. It also locks what the agent reads, so each change to it is reviewed. A CLI, a GitHub Action and a pre-commit hook.
 
 ## Install and run
 
@@ -99,7 +99,7 @@ On pull requests the Action reads the config and the `ghostrules-ignore` comment
 
 ## Limits
 
-`ghostrules` is a set of heuristics, not a proof: "no findings" does not mean a file is safe. It matches patterns, so it misses a paraphrase that shares no words with them, languages other than English, Spanish and French, a command built from variables, a secret without a known format and tool descriptions served by a running MCP server, and it does not see files outside the repository. Prose that a reviewer can read in the diff is reported as `low` by default; hidden text and configuration are not lowered. What it does and does not cover is written down in the [threat model](https://github.com/BardLaudian/ghostrules/blob/main/docs/THREAT_MODEL.md) and the [usage guide](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits). The project is `0.x` and Alpha: [what is stable](https://github.com/BardLaudian/ghostrules/blob/main/docs/VERSIONING.md) and the criteria for 1.0 are public.
+`ghostrules` is a set of heuristics, not a proof: "no findings" does not mean a file is safe. It matches patterns, so it misses a paraphrase that shares no words with them, wordings and languages its patterns do not know (they exist in English, Spanish, French and, for some rules, German and Portuguese), a command built from variables (a simple one rebuilt from named parts is covered), a secret without a known format and tool descriptions served by a running MCP server, and it does not see files outside the repository. Prose that a reviewer can read in the diff is reported as `low` by default (`medium` for an override or a concealment in a root instruction file); hidden text and configuration are not lowered. How well it does on cases written without seeing the rules is in the [blind measurement](https://github.com/BardLaudian/ghostrules/blob/main/docs/THREAT_MODEL.md#blind-measurement) section of the threat model, and what it does and does not cover is written down there and in the [usage guide](https://github.com/BardLaudian/ghostrules/blob/main/docs/USAGE.md#limits). The project is `0.x` and Alpha: [what is stable](https://github.com/BardLaudian/ghostrules/blob/main/docs/VERSIONING.md) and the criteria for 1.0 are public.
 
 ## How this was built
 
