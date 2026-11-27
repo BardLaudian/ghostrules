@@ -71,6 +71,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   templates are not reported. **GR107 also flags a settings hook** that archives and sends `~`, copies a
   credentials folder to `user@host:`, writes to a shell startup file or installs cron or a service.
 
+- **GR031 covers other security controls and the review itself** (secrets scan, pre-commit hook, branch
+  protection, required checks, `approve without review`, `skip the code review`, `force-push to main`).
+  A menu option offered to the user (`[B] Skip the review (NOT recommended)`, found scanning public
+  repositories) is not reported.
+
 ### Tests
 
 - **A labelled corpus of 142 evasion and attack cases** (102 attacks, 40 benign twins) in
