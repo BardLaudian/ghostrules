@@ -160,11 +160,11 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [0.5.2] - 2026-11-26
 
-Not published. 0.5.2 was prepared on a work branch and never tagged or uploaded; `main` returned the tree
-to 0.5.1 (commit `902fb2b`, "revert: return the tree to 0.5.1"), so the 0.5.2 changes were not part of any
-release. The merge `2019d60` still holds its full changelog entry. Its fixes that matter to users (CRLF
-files detected like LF files, more red-team gaps closed in GR107 and GR110) are not in 0.5.1, and the
-rules above in 0.6.0 build on the tree of 0.5.1.
+Uploaded to PyPI on 2026-11-26 from a work branch, with no git tag and no GitHub release. `main` then
+returned the tree to 0.5.1 (commit `902fb2b`, "revert: return the tree to 0.5.1"), so 0.5.2 is not in the
+history of `main`. The merge `2019d60` still holds its full changelog entry. Its fixes (CRLF files detected
+like LF files, more red-team gaps closed in GR107 and GR110) are not in 0.5.1, and 0.6.0 builds on the tree
+of 0.5.1. Use 0.6.0 instead of 0.5.2.
 
 ## [0.5.1] - 2026-11-24
 
