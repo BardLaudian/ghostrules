@@ -420,7 +420,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: BardLaudian/ghostrules@3a5f7120fc4e1dc1c9b58fad760567f8116b0b35 # v0.5.0
+      - uses: BardLaudian/ghostrules@79fc812f233886ed4351f07a5d05d5babeb5032e # v0.6.0
         with:
           fail-on: high          # critical | high | medium | low | info | none
           all-files: "false"     # also check every text file for hidden Unicode
@@ -449,7 +449,7 @@ jobs:
 **Pinning the Action.** The examples use a full commit SHA with the version in a comment: a tag
 can be moved after you reviewed it, a commit cannot, and Dependabot updates both together. As
 alternatives, `BardLaudian/ghostrules@v0` follows the latest stable `0.x.y` release (the release
-workflow moves that tag) and an exact tag such as `@v0.5.0` stays put, but both depend on the tag
+workflow moves that tag) and an exact tag such as `@v0.6.0` stays put, but both depend on the tag
 not being moved. Inside, the Action's own dependencies and build backend are installed from a
 file with a hash for each (`--require-hashes`), and every action it uses is pinned to a commit.
 
@@ -499,7 +499,7 @@ output `lock-exit-code` is `0` up to date, `1` changed, `2` the check could not 
 ```yaml
 repos:
   - repo: https://github.com/BardLaudian/ghostrules
-    rev: v0.5.0
+    rev: v0.6.0
     hooks:
       - id: ghostrules
 ```
